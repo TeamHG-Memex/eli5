@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-from sklearn.datasets import make_classification
+from __future__ import absolute_import
+
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.linear_model import (
     LogisticRegression,
@@ -19,12 +20,6 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.base import BaseEstimator
 import pytest
 
-from eli5.sklearn import (
-    get_feature_names,
-    get_coef,
-    has_intercept,
-    is_multiclass_classifier
-)
 from eli5.sklearn import explain_weights
 from eli5.formatters import format_as_text
 
@@ -136,48 +131,6 @@ def test_explain_empty(newsgroups_train):
     print(expl)
 
     assert [cl['class'] for cl in res['classes']] == class_names
-
-
-def test_has_intercept(newsgroups_train):
-    vec = TfidfVectorizer()
-    X = vec.fit_transform(newsgroups_train[0])
-    clf = LogisticRegression()
-    clf.fit(X, newsgroups_train[1])
-    assert has_intercept(clf)
-
-    clf2 = LogisticRegression(fit_intercept=False)
-    clf2.fit(X, newsgroups_train[1])
-    assert not has_intercept(clf2)
-
-
-def test_is_multiclass():
-    X, y = make_classification(n_classes=2)
-    clf = LogisticRegression()
-    clf.fit(X, y)
-    assert not is_multiclass_classifier(clf)
-
-    X, y = make_classification(n_classes=3, n_informative=5)
-    clf2 = LogisticRegression()
-    clf2.fit(X, y)
-    assert is_multiclass_classifier(clf2)
-
-
-def test_get_feature_names():
-    docs = ['hello world', 'hello', 'world']
-
-    for y in [[0, 1, 2], [0, 1, 0]]:  # multiclass, binary
-        vec = CountVectorizer()
-        X = vec.fit_transform(docs)
-
-        clf = LogisticRegression()
-        clf.fit(X, y)
-
-        assert set(get_feature_names(clf, vec)) == {'hello', 'world', '<BIAS>'}
-        assert set(get_feature_names(clf, vec, 'B')) == {'hello', 'world', 'B'}
-
-        clf2 = LogisticRegression(fit_intercept=False)
-        clf2.fit(X, y)
-        assert set(get_feature_names(clf2, vec)) == {'hello', 'world'}
 
 
 def test_unsupported():

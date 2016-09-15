@@ -3,8 +3,6 @@ from __future__ import absolute_import
 from singledispatch import singledispatch
 
 import numpy as np
-
-from eli5.utils import argsort_k_largest
 from sklearn.linear_model import LogisticRegression, LogisticRegressionCV
 from sklearn.linear_model import SGDClassifier, Perceptron
 from sklearn.linear_model import PassiveAggressiveClassifier
@@ -20,6 +18,13 @@ from sklearn.ensemble import (
 from sklearn.tree import DecisionTreeClassifier
 
 from eli5._feature_weights import get_top_features
+from eli5.utils import argsort_k_largest
+from eli5.sklearn.utils import (
+    get_coef,
+    is_multiclass_classifier,
+    get_feature_names
+)
+
 
 LINEAR_CAVEATS = """
 Caveats:
@@ -224,38 +229,6 @@ def explain_tree_feature_importance(clf, vec, top=_TOP, class_names=None):
         'classifier': repr(clf),
         'method': 'feature importances',
     }
-
-
-def is_multiclass_classifier(clf):
-    """
-    Return True if a classifier is multiclass or False if it is binary.
-    """
-    return clf.coef_.shape[0] > 1
-
-
-def has_intercept(clf):
-    """ Return True if classifier has intercept fit. """
-    return getattr(clf, 'fit_intercept', False)
-
-
-def get_feature_names(clf, vec, bias_name='<BIAS>'):
-    """ Return a vector of feature names, including bias feature """
-    feature_names = vec.get_feature_names()
-    if has_intercept(clf):
-        feature_names += [bias_name]
-    return np.array(feature_names)
-
-
-def get_coef(clf, label_id):
-    """
-    Return a vector of coefficients for a given label,
-    including bias feature.
-    """
-    coef = clf.coef_[label_id]  # multiclass case
-    if not has_intercept(clf):
-        return coef
-    bias = clf.intercept_[label_id]
-    return np.hstack([coef, bias])
 
 
 def _rename_label(label_id, label, class_names):
