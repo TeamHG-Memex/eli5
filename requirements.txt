@@ -1,0 +1,3 @@
+numpy >= 1.9.0
+singledispatch >= 3.4.0.3
+scikit-learn >= 0.17

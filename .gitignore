@@ -1,0 +1,14 @@
+*.pyc
+*.joblib
+*egg-info
+.tox
+build
+dist
+.idea
+.ipynb_checkpoints
+htmlcov
+.coverage.*
+.coverage
+.cache
+docs/_build
+.hypothesis
