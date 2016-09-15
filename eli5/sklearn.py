@@ -19,7 +19,7 @@ from sklearn.ensemble import (
 )
 from sklearn.tree import DecisionTreeClassifier
 
-from eli5._feature_weights import get_top_feature_weights
+from eli5._feature_weights import get_top_features
 
 LINEAR_CAVEATS = """
 Caveats:
@@ -95,8 +95,13 @@ def explain_linear_classifier_weights(clf, vec, top=_TOP, class_names=None):
                                 ...
                             ],
 
-                            # False if pos and neg contain all non-zero features
-                            "truncated": True/False,
+                            # A number of features not shown
+                            "pos_remaining": <int>,
+                            "neg_remaining": <int>,
+
+                            # Sum of feature weights not shown
+                            # "pos_remaining_sum": <float>,
+                            # "neg_remaining_sum": <float>,
                         },
                         ...
                     ]
@@ -111,8 +116,19 @@ def explain_linear_classifier_weights(clf, vec, top=_TOP, class_names=None):
 
     def _features(label_id):
         coef = get_coef(clf, label_id)
-        pos, neg, truncated = get_top_feature_weights(feature_names, coef, top)
-        return {'pos': pos, 'neg': neg, 'truncated': truncated}
+        pos, neg = get_top_features(feature_names, coef, top)
+        pos_coef = coef > 0
+        neg_coef = coef < 0
+        # pos_sum = sum(w for name, w in pos or [['', 0]])
+        # neg_sum = sum(w for name, w in neg or [['', 0]])
+        return {
+            'pos': pos,
+            'neg': neg,
+            'pos_remaining': pos_coef.sum() - len(pos),
+            'neg_remaining': neg_coef.sum() - len(neg),
+            # 'pos_remaining_sum': coef[pos_coef].sum() - pos_sum,
+            # 'neg_remaining_sum': coef[neg_coef].sum() - neg_sum,
+        }
 
     def _label(label_id, label):
         return _rename_label(label_id, label, class_names)

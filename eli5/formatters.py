@@ -24,15 +24,23 @@ def format_as_text(explanation):
         for class_explanation in explanation['classes']:
             lines.append("y=%r top features" % class_explanation['class'])
             lines.append("-" * (sz + 10))
-            weights = class_explanation['feature_weights']
-            pos = weights['pos']
-            neg = weights['neg']
-            for name, w in pos:
-                lines.append("%s %+8.3f" % (name.rjust(sz), w))
-            if weights['truncated']:
-                lines.append("...".rjust(sz))
-            for name, w in reversed(neg):
-                lines.append("%s %8.3f" % (name.rjust(sz), w))
+            w = class_explanation['feature_weights']
+            pos = w['pos']
+            neg = w['neg']
+            for name, coef in pos:
+                lines.append("%s %+8.3f" % (name.rjust(sz), coef))
+            if w['pos_remaining']:
+                msg = "%s   (%d more positive features)" % (
+                    "...".rjust(sz), w['pos_remaining']
+                )
+                lines.append(msg)
+            if w['neg_remaining']:
+                msg = "%s   (%d more negative features)" % (
+                    "...".rjust(sz), w['neg_remaining']
+                )
+                lines.append(msg)
+            for name, coef in reversed(neg):
+                lines.append("%s %+8.3f" % (name.rjust(sz), coef))
             lines.append("")
 
     if 'feature_importances' in explanation:

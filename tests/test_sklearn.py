@@ -76,6 +76,33 @@ def test_explain_linear(newsgroups_train, clf):
         assert str(label) in expl
 
 
+def test_explain_linear_tuple_top(newsgroups_train):
+    docs, y, class_names = newsgroups_train
+    vec = TfidfVectorizer()
+    clf = LogisticRegression()
+
+    X = vec.fit_transform(docs)
+    clf.fit(X, y)
+
+    res_neg = explain_weights(clf, vec, class_names=class_names, top=(0, 10))
+    expl_neg = format_as_text(res_neg)
+    print(expl_neg)
+
+    for cl in res_neg['classes']:
+        assert len(cl['feature_weights']['pos']) == 0
+        assert len(cl['feature_weights']['neg']) == 10
+
+    assert "+0." not in expl_neg
+
+    res_pos = explain_weights(clf, vec, class_names=class_names, top=(10, 2))
+    expl_pos = format_as_text(res_pos)
+    print(expl_pos)
+
+    for cl in res_pos['classes']:
+        assert len(cl['feature_weights']['pos']) == 10
+        assert len(cl['feature_weights']['neg']) == 2
+
+
 @pytest.mark.parametrize(['clf'], [
     [RandomForestClassifier(n_estimators=100)],
     [ExtraTreesClassifier(n_estimators=100)],
