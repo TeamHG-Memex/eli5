@@ -12,7 +12,6 @@ _PLUS_MINUS = "+-" if six.PY2 else "±"
 
 def format_as_text(explanation):
     lines = []
-    lines.append(explanation['classifier'])
     if 'method' in explanation:
         lines.append("Explained as: %s" % explanation['method'])
 
