@@ -17,12 +17,13 @@ from sklearn.ensemble import (
 )
 from sklearn.tree import DecisionTreeClassifier
 
-from eli5._feature_weights import get_top_features
+from eli5._feature_weights import get_top_features, get_top_features_dict
 from eli5.utils import argsort_k_largest
 from eli5.sklearn.utils import (
     get_coef,
     is_multiclass_classifier,
-    get_feature_names
+    get_feature_names,
+    rename_label,
 )
 
 
@@ -121,22 +122,10 @@ def explain_linear_classifier_weights(clf, vec, top=_TOP, class_names=None):
 
     def _features(label_id):
         coef = get_coef(clf, label_id)
-        pos, neg = get_top_features(feature_names, coef, top)
-        pos_coef = coef > 0
-        neg_coef = coef < 0
-        # pos_sum = sum(w for name, w in pos or [['', 0]])
-        # neg_sum = sum(w for name, w in neg or [['', 0]])
-        return {
-            'pos': pos,
-            'neg': neg,
-            'pos_remaining': pos_coef.sum() - len(pos),
-            'neg_remaining': neg_coef.sum() - len(neg),
-            # 'pos_remaining_sum': coef[pos_coef].sum() - pos_sum,
-            # 'neg_remaining_sum': coef[neg_coef].sum() - neg_sum,
-        }
+        return get_top_features_dict(feature_names, coef, top)
 
     def _label(label_id, label):
-        return _rename_label(label_id, label, class_names)
+        return rename_label(label_id, label, class_names)
 
     if is_multiclass_classifier(clf):
         return {
@@ -229,11 +218,3 @@ def explain_tree_feature_importance(clf, vec, top=_TOP, class_names=None):
         'classifier': repr(clf),
         'method': 'feature importances',
     }
-
-
-def _rename_label(label_id, label, class_names):
-    if class_names is None:
-        return label
-    if isinstance(class_names, dict):
-        return class_names[label]
-    return class_names[label_id]

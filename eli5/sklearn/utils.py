@@ -9,6 +9,11 @@ def is_multiclass_classifier(clf):
     return clf.coef_.shape[0] > 1
 
 
+def is_probabilistic_classifier(clf):
+    """ Return True if a classifier can return probabilities """
+    return hasattr(clf, 'predict_proba')
+
+
 def has_intercept(clf):
     """ Return True if classifier has intercept fit. """
     return getattr(clf, 'fit_intercept', False)
@@ -27,8 +32,17 @@ def get_coef(clf, label_id):
     Return a vector of coefficients for a given label,
     including bias feature.
     """
-    coef = clf.coef_[label_id]  # multiclass case
+    coef = clf.coef_[label_id]  # multiclass case, also works for binary
     if not has_intercept(clf):
         return coef
     bias = clf.intercept_[label_id]
     return np.hstack([coef, bias])
+
+
+def rename_label(label_id, label, class_names):
+    """ Rename label according to class_names """
+    if class_names is None:
+        return label
+    if isinstance(class_names, dict):
+        return class_names[label]
+    return class_names[label_id]

@@ -2,7 +2,7 @@
 from __future__ import absolute_import
 import numpy as np
 
-from .utils import argsort_k_largest, argsort_k_smallest
+from .utils import argsort_k_largest, argsort_k_smallest, mask
 
 
 def get_top_features(feature_names, coef, top):
@@ -31,6 +31,22 @@ def get_top_features(feature_names, coef, top):
     return pos, neg
 
 
+def get_top_features_dict(feature_names, coef, top):
+    pos, neg = get_top_features(feature_names, coef, top)
+    pos_coef = coef > 0
+    neg_coef = coef < 0
+    # pos_sum = sum(w for name, w in pos or [['', 0]])
+    # neg_sum = sum(w for name, w in neg or [['', 0]])
+    return {
+        'pos': pos,
+        'neg': neg,
+        'pos_remaining': pos_coef.sum() - len(pos),
+        'neg_remaining': neg_coef.sum() - len(neg),
+        # 'pos_remaining_sum': coef[pos_coef].sum() - pos_sum,
+        # 'neg_remaining_sum': coef[neg_coef].sum() - neg_sum,
+    }
+
+
 def _get_top_abs_features(feature_names, coef, k):
     indices = argsort_k_largest(np.abs(coef), k)
     features = _features(indices, feature_names, coef)
@@ -56,9 +72,8 @@ def _negative(features):
 
 
 def _features(indices, feature_names, coef):
-    if not indices.shape[0]:
-        return []
-    names, values = feature_names[indices], coef[indices]
+    names = mask(feature_names, indices)
+    values = mask(coef, indices)
     return list(zip(names, values))
 
 

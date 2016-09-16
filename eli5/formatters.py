@@ -21,8 +21,19 @@ def format_as_text(explanation):
     if 'classes' in explanation:
         sz = _rjust_size(explanation['classes'])
         for class_explanation in explanation['classes']:
-            lines.append("y=%r top features" % class_explanation['class'])
+            class_scores = _format_scores(
+                class_explanation.get('proba'),
+                class_explanation.get('score'),
+            )
+            if class_scores:
+                class_scores = " (%s) " % class_scores
+
+            lines.append("y=%r%stop features" % (
+                class_explanation['class'],
+                class_scores
+            ))
             lines.append("-" * (sz + 10))
+
             w = class_explanation['feature_weights']
             pos = w['pos']
             neg = w['neg']
@@ -50,6 +61,15 @@ def format_as_text(explanation):
             ))
 
     return "\n".join(lines)
+
+
+def _format_scores(proba, score):
+    scores = []
+    if proba is not None:
+        scores.append("probability=%0.3f" % proba)
+    if score is not None:
+        scores.append("score=%0.3f" % score)
+    return ", ".join(scores)
 
 
 def _maxlen(features):

@@ -6,3 +6,7 @@ from .explain_weights import (
     explain_rf_feature_importance,
     explain_tree_feature_importance,
 )
+from .explain_prediction import (
+    explain_prediction,
+    explain_prediction_linear,
+)
