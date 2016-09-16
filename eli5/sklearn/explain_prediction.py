@@ -19,7 +19,7 @@ from eli5.sklearn.utils import (
 from eli5._feature_weights import get_top_features_dict
 
 
-_TOP = 100
+_TOP = 20
 
 
 @singledispatch
