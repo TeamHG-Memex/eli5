@@ -2,18 +2,22 @@
 import pytest
 from sklearn.datasets import fetch_20newsgroups
 
-NEWSGROUPS_CATEGORIES = [
+CATEGORIES = [
     'alt.atheism',
     'talk.religion.misc',
     'comp.graphics',
     'sci.space',
+]
+CATEGORIES_BINARY = [
+    'alt.atheism',
+    'comp.graphics',
 ]
 SIZE = 100
 
 
 def _get_newsgroups(binary=False, remove_chrome=False, test=False, size=SIZE):
     remove = ('headers', 'footers', 'quotes') if remove_chrome else []
-    categories = NEWSGROUPS_CATEGORIES[:2] if binary else NEWSGROUPS_CATEGORIES
+    categories = CATEGORIES_BINARY if binary else CATEGORIES
     subset = 'test' if test else 'train'
     data = fetch_20newsgroups(subset=subset, categories=categories,
                               shuffle=True, random_state=42,

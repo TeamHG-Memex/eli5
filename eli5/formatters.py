@@ -26,9 +26,9 @@ def format_as_text(explanation):
                 class_explanation.get('score'),
             )
             if class_scores:
-                class_scores = " (%s) " % class_scores
+                class_scores = " (%s)" % class_scores
 
-            lines.append("y=%r%stop features" % (
+            lines.append("y=%r%s top features" % (
                 class_explanation['class'],
                 class_scores
             ))

@@ -52,6 +52,27 @@ def test_explain_linear(newsgroups_train, clf):
     assert 'file' in expl
 
 
+def test_explain_linear_binary(newsgroups_train_binary):
+    docs, y, class_names = newsgroups_train_binary
+    vec = TfidfVectorizer()
+    clf = LogisticRegression()
+    X = vec.fit_transform(docs)
+    clf.fit(X, y)
+
+    res = explain_prediction(clf, vec, docs[0], class_names=class_names, top=20)
+    expl = format_as_text(res)
+    print(expl)
+    pprint(res)
+
+    assert len(res['classes']) == 1
+    e = res['classes'][0]
+    assert e['class'] == 'comp.graphics'
+    neg = {name for name, value in e['feature_weights']['neg']}
+    assert 'freedom' in neg
+    assert 'comp.graphics' in expl
+    assert 'freedom' in expl
+
+
 def test_unsupported():
     vec = CountVectorizer()
     clf = BaseEstimator()

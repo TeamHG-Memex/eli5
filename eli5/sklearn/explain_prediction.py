@@ -79,12 +79,12 @@ def explain_prediction_linear(clf, vec, doc, top=_TOP, class_names=None):
         return res
     else:
         class_info = {
-            'class': _label(1, clf.class_names_[1]),
+            'class': _label(1, clf.classes_[1]),
             'feature_weights': _weights(0),
             'score': score,
         }
         if proba is not None:
-            class_info['proba'] = proba
+            class_info['proba'] = proba[1]
         res['classes'].append(class_info)
 
     return res
