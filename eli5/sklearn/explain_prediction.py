@@ -98,7 +98,7 @@ def _multiply(X, coef):
 
 
 def _add_intercept(X):
-    intercept = np.ones((X.shape[0], 1.0))
+    intercept = np.ones((X.shape[0], 1))
     if sp.issparse(X):
         return sp.hstack([X, intercept]).tocsr()
     else:
