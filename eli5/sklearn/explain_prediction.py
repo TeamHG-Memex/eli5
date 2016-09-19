@@ -39,11 +39,14 @@ def explain_prediction(clf, vec, doc, top=_TOP, class_names=None,
 @explain_prediction.register(Perceptron)
 @explain_prediction.register(LinearSVC)
 def explain_prediction_linear(clf, vec, doc, top=_TOP, class_names=None,
-                              feature_names=None):
+                              feature_names=None, vectorized=False):
     """ Explain prediction of a linear classifier. """
     feature_names = get_feature_names(clf, vec, feature_names=feature_names)
 
-    X = vec.transform([doc]).toarray()
+    X = vec.transform([doc]) if not vectorized else doc
+    if sp.issparse(X):
+        X = X.toarray()
+
     if is_probabilistic_classifier(clf):
         proba = clf.predict_proba(X)[0]
     else:
