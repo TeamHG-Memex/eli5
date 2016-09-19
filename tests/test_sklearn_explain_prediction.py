@@ -72,6 +72,11 @@ def test_explain_linear_binary(newsgroups_train_binary):
     assert 'comp.graphics' in expl
     assert 'freedom' in expl
 
+    res_vectorized = explain_prediction(
+        clf, vec, vec.transform([docs[0]]), class_names=class_names, top=20,
+        vectorized=True)
+    assert res_vectorized == res
+
 
 def test_unsupported():
     vec = CountVectorizer()
