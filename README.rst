@@ -24,4 +24,4 @@ classifiers and explain their predictions.
 
 License is MIT.
 
-Check `docs <http://eli5.readthedocs.org/>`_ for more.
+Check `docs <http://eli5.readthedocs.org/>`_ for more (sorry, TODO).
