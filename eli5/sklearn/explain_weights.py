@@ -61,7 +61,8 @@ _TOP = 20
 
 
 @singledispatch
-def explain_weights(clf, vec, top=_TOP, class_names=None):
+def explain_weights(clf, vec=None, top=_TOP, class_names=None,
+                    feature_names=None):
     """ Return an explanation of a classifier """
     return {
         "classifier": repr(clf),
@@ -75,7 +76,8 @@ def explain_weights(clf, vec, top=_TOP, class_names=None):
 @explain_weights.register(PassiveAggressiveClassifier)
 @explain_weights.register(Perceptron)
 @explain_weights.register(LinearSVC)
-def explain_linear_classifier_weights(clf, vec, top=_TOP, class_names=None):
+def explain_linear_classifier_weights(clf, vec=None, top=_TOP, class_names=None,
+                                      feature_names=None):
     """
     Return an explanation of a linear classifier weights in the following
     format::
@@ -118,7 +120,7 @@ def explain_linear_classifier_weights(clf, vec, top=_TOP, class_names=None):
 
     To print it use utilities from eli5.formatters.
     """
-    feature_names = get_feature_names(clf, vec)
+    feature_names = get_feature_names(clf, vec, feature_names=feature_names)
 
     def _features(label_id):
         coef = get_coef(clf, label_id)
@@ -158,7 +160,8 @@ def explain_linear_classifier_weights(clf, vec, top=_TOP, class_names=None):
 @explain_weights.register(ExtraTreesClassifier)
 @explain_weights.register(GradientBoostingClassifier)
 @explain_weights.register(AdaBoostClassifier)
-def explain_rf_feature_importance(clf, vec, top=_TOP, class_names=None):
+def explain_rf_feature_importance(clf, vec, top=_TOP, class_names=None,
+                                  feature_names=None):
     """
     Return an explanation of a tree-based ensemble classifier in the
     following format::
@@ -173,7 +176,7 @@ def explain_rf_feature_importance(clf, vec, top=_TOP, class_names=None):
             ]
         }
     """
-    feature_names = get_feature_names(clf, vec)
+    feature_names = get_feature_names(clf, vec, feature_names=feature_names)
     coef = clf.feature_importances_
     trees = np.array(clf.estimators_).ravel()
     coef_std = np.std([tree.feature_importances_ for tree in trees], axis=0)
@@ -189,7 +192,8 @@ def explain_rf_feature_importance(clf, vec, top=_TOP, class_names=None):
 
 
 @explain_weights.register(DecisionTreeClassifier)
-def explain_tree_feature_importance(clf, vec, top=_TOP, class_names=None):
+def explain_tree_feature_importance(clf, vec=None, top=_TOP, class_names=None,
+                                    feature_names=None):
     """
     TODO/FIXME: should it be a tree instead?
 
@@ -207,7 +211,7 @@ def explain_tree_feature_importance(clf, vec, top=_TOP, class_names=None):
         }
 
     """
-    feature_names = get_feature_names(clf, vec)
+    feature_names = get_feature_names(clf, vec, feature_names=feature_names)
     coef = clf.feature_importances_
     indices = argsort_k_largest(coef, top)
     names, values = feature_names[indices], coef[indices]

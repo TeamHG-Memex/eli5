@@ -23,7 +23,8 @@ _TOP = 20
 
 
 @singledispatch
-def explain_prediction(clf, vec, doc, top=_TOP, class_names=None):
+def explain_prediction(clf, vec, doc, top=_TOP, class_names=None,
+                       feature_names=None):
     """ Return an explanation of a classifier """
     return {
         "classifier": repr(clf),
@@ -37,9 +38,10 @@ def explain_prediction(clf, vec, doc, top=_TOP, class_names=None):
 @explain_prediction.register(PassiveAggressiveClassifier)
 @explain_prediction.register(Perceptron)
 @explain_prediction.register(LinearSVC)
-def explain_prediction_linear(clf, vec, doc, top=_TOP, class_names=None):
+def explain_prediction_linear(clf, vec, doc, top=_TOP, class_names=None,
+                              feature_names=None):
     """ Explain prediction of a linear classifier. """
-    feature_names = get_feature_names(clf, vec)
+    feature_names = get_feature_names(clf, vec, feature_names=feature_names)
 
     X = vec.transform([doc]).toarray()
     if is_probabilistic_classifier(clf):

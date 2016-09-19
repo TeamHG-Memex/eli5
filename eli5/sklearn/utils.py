@@ -19,11 +19,26 @@ def has_intercept(clf):
     return getattr(clf, 'fit_intercept', False)
 
 
-def get_feature_names(clf, vec, bias_name='<BIAS>'):
-    """ Return a vector of feature names, including bias feature """
-    feature_names = vec.get_feature_names()
-    if has_intercept(clf):
-        feature_names += [bias_name]
+def get_feature_names(clf, vec=None, bias_name='<BIAS>', feature_names=None):
+    """
+    Return a vector of feature names, including bias feature.
+    If vec is None or doesn't have get_feature_names() method,
+    features are named x1, x2, etc.
+    """
+    if feature_names is None:
+        if vec and hasattr(vec, 'get_feature_names'):
+            feature_names = vec.get_feature_names()
+        else:
+            num_features = clf.coef_[0].shape[0]
+            feature_names = ["x%d" % i for i in range(num_features)]
+        if bias_name is not None and has_intercept(clf):
+            feature_names += [bias_name]
+    else:
+        num_features = clf.coef_[0].shape[0] + int(has_intercept(clf))
+        if len(feature_names) != num_features:
+            raise ValueError("feature_names has a wrong lenght: "
+                             "expected=%d, got=%d" % (num_features,
+                                                      len(feature_names)))
     return np.array(feature_names)
 
 

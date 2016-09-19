@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 
+import pytest
 from sklearn.datasets import make_classification
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from sklearn.linear_model import LogisticRegression
@@ -49,6 +50,14 @@ def test_get_feature_names():
 
         assert set(get_feature_names(clf, vec)) == {'hello', 'world', '<BIAS>'}
         assert set(get_feature_names(clf, vec, 'B')) == {'hello', 'world', 'B'}
+        assert set(get_feature_names(clf)) == {'x0', 'x1', '<BIAS>'}
+        assert set(get_feature_names(clf, feature_names=['a', 'b', 'c'])) == {'a', 'b', 'c'}
+
+        with pytest.raises(ValueError):
+            get_feature_names(clf, feature_names=['a', 'b'])
+
+        with pytest.raises(ValueError):
+            get_feature_names(clf, feature_names=['a', 'b', 'c', 'd'])
 
         clf2 = LogisticRegression(fit_intercept=False)
         clf2.fit(X, y)
