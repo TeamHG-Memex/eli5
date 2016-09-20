@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import numpy as np
+from scipy import sparse as sp
 
 
 def argsort_k_largest(x, k):
@@ -32,3 +33,10 @@ def mask(x, indices):
     if not indices.shape[0]:
         return np.array([])
     return x[indices]
+
+
+def vstack(blocks, format=None, dtype=None):
+    if any(sp.issparse(b) for b in blocks):
+        return sp.vstack(blocks, format=format, dtype=dtype)
+    else:
+        return np.vstack(blocks)

@@ -17,7 +17,7 @@ from sklearn.ensemble import (
 )
 from sklearn.tree import DecisionTreeClassifier
 
-from eli5._feature_weights import get_top_features, get_top_features_dict
+from eli5._feature_weights import get_top_features_dict
 from eli5.utils import argsort_k_largest
 from eli5.sklearn.utils import (
     get_coef,
