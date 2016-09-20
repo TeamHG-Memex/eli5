@@ -23,6 +23,7 @@ setup(
     packages=find_packages(exclude=['tests']),
     install_requires=[
         'numpy >= 1.9.0',
+        'scipy',
         'singledispatch >= 3.4.0.3',
         'six',
     ],
