@@ -51,14 +51,18 @@ def test_get_feature_names():
         assert set(get_feature_names(clf, vec)) == {'hello', 'world', '<BIAS>'}
         assert set(get_feature_names(clf, vec, 'B')) == {'hello', 'world', 'B'}
         assert set(get_feature_names(clf)) == {'x0', 'x1', '<BIAS>'}
-        assert set(get_feature_names(clf, feature_names=['a', 'b', 'c'])) == {'a', 'b', 'c'}
+        assert set(get_feature_names(clf, feature_names=['a', 'b'])) == {'a', 'b', '<BIAS>'}
+        assert set(get_feature_names(clf, feature_names=['a', 'b'],
+                                     bias_name='bias')) == {'a', 'b', 'bias'}
 
         with pytest.raises(ValueError):
-            get_feature_names(clf, feature_names=['a', 'b'])
+            get_feature_names(clf, feature_names=['a'])
 
         with pytest.raises(ValueError):
-            get_feature_names(clf, feature_names=['a', 'b', 'c', 'd'])
+            get_feature_names(clf, feature_names=['a', 'b', 'c'])
 
         clf2 = LogisticRegression(fit_intercept=False)
         clf2.fit(X, y)
         assert set(get_feature_names(clf2, vec)) == {'hello', 'world'}
+        assert set(get_feature_names(
+            clf2, feature_names=['hello', 'world'])) == {'hello', 'world'}

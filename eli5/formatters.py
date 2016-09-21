@@ -19,39 +19,10 @@ def format_as_text(explanation):
         lines.append(explanation['description'])
 
     if 'classes' in explanation:
-        sz = _rjust_size(explanation['classes'])
-        for class_explanation in explanation['classes']:
-            class_scores = _format_scores(
-                class_explanation.get('proba'),
-                class_explanation.get('score'),
-            )
-            if class_scores:
-                class_scores = " (%s)" % class_scores
+        lines.extend(_format_weights(explanation['classes']))
 
-            lines.append("y=%r%s top features" % (
-                class_explanation['class'],
-                class_scores
-            ))
-            lines.append("-" * (sz + 10))
-
-            w = class_explanation['feature_weights']
-            pos = w['pos']
-            neg = w['neg']
-            for name, coef in pos:
-                lines.append("%s %+8.3f" % (name.rjust(sz), coef))
-            if w['pos_remaining']:
-                msg = "%s   (%d more positive features)" % (
-                    "...".rjust(sz), w['pos_remaining']
-                )
-                lines.append(msg)
-            if w['neg_remaining']:
-                msg = "%s   (%d more negative features)" % (
-                    "...".rjust(sz), w['neg_remaining']
-                )
-                lines.append(msg)
-            for name, coef in reversed(neg):
-                lines.append("%s %+8.3f" % (name.rjust(sz), coef))
-            lines.append("")
+    if 'targets' in explanation:
+        lines.extend(_format_weights(explanation['targets']))
 
     if 'feature_importances' in explanation:
         sz = _maxlen(explanation['feature_importances'])
@@ -61,6 +32,53 @@ def format_as_text(explanation):
             ))
 
     return "\n".join(lines)
+
+
+def _format_weights(explanations):
+    lines = []
+    sz = _rjust_size(explanations)
+    for explanation in explanations:
+        scores = _format_scores(
+            explanation.get('proba'),
+            explanation.get('score'),
+        )
+        if scores:
+            scores = " (%s)" % scores
+
+        if 'class' in explanation:
+            header = "y=%r%s top features" % (
+                explanation['class'],
+                scores
+            )
+        elif 'target' in explanation:
+            header = "%r%s top features" % (
+                explanation['target'],
+                scores
+            )
+        else:
+            raise ValueError('Expected "class" or "target" key')
+        lines.append(header)
+        lines.append("-" * (sz + 10))
+
+        w = explanation['feature_weights']
+        pos = w['pos']
+        neg = w['neg']
+        for name, coef in pos:
+            lines.append("%s %+8.3f" % (name.rjust(sz), coef))
+        if w['pos_remaining']:
+            msg = "%s   (%d more positive features)" % (
+                "...".rjust(sz), w['pos_remaining']
+            )
+            lines.append(msg)
+        if w['neg_remaining']:
+            msg = "%s   (%d more negative features)" % (
+                "...".rjust(sz), w['neg_remaining']
+            )
+            lines.append(msg)
+        for name, coef in reversed(neg):
+            lines.append("%s %+8.3f" % (name.rjust(sz), coef))
+        lines.append("")
+    return lines
 
 
 def _format_scores(proba, score):

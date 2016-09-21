@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
+from functools import partial
 
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.linear_model import (
     LogisticRegression,
     LogisticRegressionCV,
     SGDClassifier,
+    SGDRegressor,
     PassiveAggressiveClassifier,
     Perceptron,
 )
@@ -46,16 +48,9 @@ def test_explain_linear(newsgroups_train, clf):
     expl = format_as_text(res)
     print(expl)
 
-    def _top(class_name):
-        for expl in res['classes']:
-            if expl['class'] != class_name:
-                continue
-            pos = {name for name, value in expl['feature_weights']['pos']}
-            neg = {name for name, value in expl['feature_weights']['neg']}
-            return pos, neg
-
     assert [cl['class'] for cl in res['classes']] == class_names
 
+    _top = partial(top_pos_neg, res['classes'], 'class')
     pos, neg = _top('sci.space')
     assert 'space' in pos
 
@@ -69,6 +64,15 @@ def test_explain_linear(newsgroups_train, clf):
     assert 'atheists' in expl
     for label in class_names:
         assert str(label) in expl
+
+
+def top_pos_neg(classes, key, class_name):
+    for expl in classes:
+        if expl[key] != class_name:
+            continue
+        pos = {name for name, value in expl['feature_weights']['pos']}
+        neg = {name for name, value in expl['feature_weights']['neg']}
+        return pos, neg
 
 
 def test_explain_linear_tuple_top(newsgroups_train):
@@ -138,3 +142,24 @@ def test_unsupported():
     clf = BaseEstimator()
     res = explain_weights(clf, vec)
     assert 'Error' in res['description']
+
+
+@pytest.mark.parametrize(['clf'], [
+    [SGDRegressor(random_state=13)],
+])
+def test_explain_linear_regression(boston_train, clf):
+    X, y, feature_names = boston_train
+    clf.fit(X, y)
+    res = explain_weights(clf)
+    expl = format_as_text(res)
+    print(expl)
+
+    assert 'x12' in expl
+    assert 'x9' in expl
+    assert '<BIAS>' in expl
+
+    pos, neg = top_pos_neg(res['targets'], 'target', 'y')
+    assert 'x12' in pos
+    assert 'x9' in neg
+    assert '<BIAS>' in neg
+
