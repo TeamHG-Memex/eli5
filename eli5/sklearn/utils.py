@@ -88,10 +88,10 @@ def get_coef(clf, label_id):
     return np.hstack([coef, bias])
 
 
-def rename_label(label_id, label, class_names):
-    """ Rename label according to class_names """
-    if class_names is None:
+def rename_label(label_id, label, target_names):
+    """ Rename label according to target_names """
+    if target_names is None:
         return label
-    if isinstance(class_names, dict):
-        return class_names[label]
-    return class_names[label_id]
+    if isinstance(target_names, dict):
+        return target_names[label]
+    return target_names[label_id]

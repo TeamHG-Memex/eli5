@@ -77,7 +77,7 @@ _TOP = 20
 
 
 @singledispatch
-def explain_weights(clf, vec=None, top=_TOP, class_names=None,
+def explain_weights(clf, vec=None, top=_TOP, target_names=None,
                     feature_names=None):
     """ Return an explanation of an estimator """
     return {
@@ -92,7 +92,7 @@ def explain_weights(clf, vec=None, top=_TOP, class_names=None,
 @explain_weights.register(PassiveAggressiveClassifier)
 @explain_weights.register(Perceptron)
 @explain_weights.register(LinearSVC)
-def explain_linear_classifier_weights(clf, vec=None, top=_TOP, class_names=None,
+def explain_linear_classifier_weights(clf, vec=None, top=_TOP, target_names=None,
                                       feature_names=None):
     """
     Return an explanation of a linear classifier weights in the following
@@ -143,7 +143,7 @@ def explain_linear_classifier_weights(clf, vec=None, top=_TOP, class_names=None,
         return get_top_features_dict(feature_names, coef, top)
 
     def _label(label_id, label):
-        return rename_label(label_id, label, class_names)
+        return rename_label(label_id, label, target_names)
 
     if is_multiclass_classifier(clf):
         return {
@@ -176,7 +176,7 @@ def explain_linear_classifier_weights(clf, vec=None, top=_TOP, class_names=None,
 @explain_weights.register(ExtraTreesClassifier)
 @explain_weights.register(GradientBoostingClassifier)
 @explain_weights.register(AdaBoostClassifier)
-def explain_rf_feature_importance(clf, vec, top=_TOP, class_names=None,
+def explain_rf_feature_importance(clf, vec, top=_TOP, target_names=None,
                                   feature_names=None):
     """
     Return an explanation of a tree-based ensemble classifier in the
@@ -208,7 +208,7 @@ def explain_rf_feature_importance(clf, vec, top=_TOP, class_names=None,
 
 
 @explain_weights.register(DecisionTreeClassifier)
-def explain_tree_feature_importance(clf, vec=None, top=_TOP, class_names=None,
+def explain_tree_feature_importance(clf, vec=None, top=_TOP, target_names=None,
                                     feature_names=None):
     """
     TODO/FIXME: should it be a tree instead?

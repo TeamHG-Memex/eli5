@@ -43,17 +43,17 @@ from eli5.formatters import format_as_text
     [LinearSVC()],
 ])
 def test_explain_linear(newsgroups_train, clf):
-    docs, y, class_names = newsgroups_train
+    docs, y, target_names = newsgroups_train
     vec = TfidfVectorizer()
 
     X = vec.fit_transform(docs)
     clf.fit(X, y)
 
-    res = explain_weights(clf, vec, class_names=class_names, top=20)
+    res = explain_weights(clf, vec, target_names=target_names, top=20)
     expl = format_as_text(res)
     print(expl)
 
-    assert [cl['class'] for cl in res['classes']] == class_names
+    assert [cl['class'] for cl in res['classes']] == target_names
 
     _top = partial(top_pos_neg, res['classes'], 'class')
     pos, neg = _top('sci.space')
@@ -67,7 +67,7 @@ def test_explain_linear(newsgroups_train, clf):
 
     assert 'space' in expl
     assert 'atheists' in expl
-    for label in class_names:
+    for label in target_names:
         assert str(label) in expl
 
 
@@ -81,14 +81,14 @@ def top_pos_neg(classes, key, class_name):
 
 
 def test_explain_linear_tuple_top(newsgroups_train):
-    docs, y, class_names = newsgroups_train
+    docs, y, target_names = newsgroups_train
     vec = TfidfVectorizer()
     clf = LogisticRegression()
 
     X = vec.fit_transform(docs)
     clf.fit(X, y)
 
-    res_neg = explain_weights(clf, vec, class_names=class_names, top=(0, 10))
+    res_neg = explain_weights(clf, vec, target_names=target_names, top=(0, 10))
     expl_neg = format_as_text(res_neg)
     print(expl_neg)
 
@@ -98,7 +98,7 @@ def test_explain_linear_tuple_top(newsgroups_train):
 
     assert "+0." not in expl_neg
 
-    res_pos = explain_weights(clf, vec, class_names=class_names, top=(10, 2))
+    res_pos = explain_weights(clf, vec, target_names=target_names, top=(10, 2))
     expl_pos = format_as_text(res_pos)
     print(expl_pos)
 
@@ -115,12 +115,12 @@ def test_explain_linear_tuple_top(newsgroups_train):
     [DecisionTreeClassifier()],
 ])
 def test_explain_random_forest(newsgroups_train, clf):
-    docs, y, class_names = newsgroups_train
+    docs, y, target_names = newsgroups_train
     vec = TfidfVectorizer()
     X = vec.fit_transform(docs)
     clf.fit(X.toarray(), y)
 
-    res = explain_weights(clf, vec, class_names=class_names, top=30)
+    res = explain_weights(clf, vec, target_names=target_names, top=30)
     expl = format_as_text(res)
     print(expl)
     assert 'feature importances' in expl
@@ -129,17 +129,17 @@ def test_explain_random_forest(newsgroups_train, clf):
 
 def test_explain_empty(newsgroups_train):
     clf = LogisticRegression(C=0.01, penalty='l1')
-    docs, y, class_names = newsgroups_train
+    docs, y, target_names = newsgroups_train
     vec = TfidfVectorizer()
 
     X = vec.fit_transform(docs)
     clf.fit(X, y)
 
-    res = explain_weights(clf, vec, class_names=class_names, top=20)
+    res = explain_weights(clf, vec, target_names=target_names, top=20)
     expl = format_as_text(res)
     print(expl)
 
-    assert [cl['class'] for cl in res['classes']] == class_names
+    assert [cl['class'] for cl in res['classes']] == target_names
 
 
 def test_unsupported():

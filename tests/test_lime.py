@@ -11,7 +11,7 @@ from sklearn.pipeline import make_pipeline
 
 
 def test_lime_explain_probabilistic(newsgroups_train):
-    docs, y, class_names = newsgroups_train
+    docs, y, target_names = newsgroups_train
     vec = HashingVectorizer(non_negative=True)
     clf = MultinomialNB()
 
@@ -29,7 +29,7 @@ def test_lime_explain_probabilistic(newsgroups_train):
     assert score > 0.7
 
     res = explain_prediction(clf_local, doc, vec_local, top=10,
-                             class_names=class_names)
+                             target_names=target_names)
     expl = format_as_text(res)
     print(expl)
     assert 'file' in expl

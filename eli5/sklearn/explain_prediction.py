@@ -23,8 +23,8 @@ _TOP = 20
 
 
 @singledispatch
-def explain_prediction(clf, doc, vec=None, top=_TOP, class_names=None,
-                       feature_names=None, target_names=None):
+def explain_prediction(clf, doc, vec=None, top=_TOP, target_names=None,
+                       feature_names=None):
     """ Return an explanation of an estimator """
     return {
         "estimator": repr(clf),
@@ -39,7 +39,7 @@ def explain_prediction(clf, doc, vec=None, top=_TOP, class_names=None,
 @explain_prediction.register(Perceptron)
 @explain_prediction.register(LinearSVC)
 def explain_prediction_linear(
-        clf, doc, vec=None, top=_TOP, class_names=None,
+        clf, doc, vec=None, top=_TOP, target_names=None,
         feature_names=None, vectorized=False):
     """ Explain prediction of a linear classifier. """
     feature_names = get_feature_names(clf, vec, feature_names=feature_names)
@@ -67,7 +67,7 @@ def explain_prediction_linear(
         return get_top_features_dict(feature_names, scores, top)
 
     def _label(label_id, label):
-        return rename_label(label_id, label, class_names)
+        return rename_label(label_id, label, target_names)
 
     if is_multiclass_classifier(clf):
         for label_id, label in enumerate(clf.classes_):
