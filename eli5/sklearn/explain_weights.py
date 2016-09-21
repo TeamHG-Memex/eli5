@@ -79,10 +79,10 @@ _TOP = 20
 @singledispatch
 def explain_weights(clf, vec=None, top=_TOP, class_names=None,
                     feature_names=None):
-    """ Return an explanation of a classifier """
+    """ Return an explanation of an estimator """
     return {
-        "classifier": repr(clf),
-        "description": "Error: classifier %r is not supported" % clf,
+        "estimator": repr(clf),
+        "description": "Error: estimator %r is not supported" % clf,
     }
 
 
@@ -99,7 +99,7 @@ def explain_linear_classifier_weights(clf, vec=None, top=_TOP, class_names=None,
     format::
 
         {
-            "classifier": "<classifier repr>",
+            "estimator": "<classifier repr>",
             "method": "<interpretation method>",
             "description": "<human readable description>",
             "classes": [
@@ -155,7 +155,7 @@ def explain_linear_classifier_weights(clf, vec=None, top=_TOP, class_names=None,
                 for label_id, label in enumerate(clf.classes_)
             ],
             'description': DESCRIPTION_CLF_MULTICLASS,
-            'classifier': repr(clf),
+            'estimator': repr(clf),
             'method': 'linear model',
         }
     else:
@@ -167,7 +167,7 @@ def explain_linear_classifier_weights(clf, vec=None, top=_TOP, class_names=None,
                 'feature_weights': _features(0),
             }],
             'description': DESCRIPTION_CLF_BINARY,
-            'classifier': repr(clf),
+            'estimator': repr(clf),
             'method': 'linear model',
         }
 
@@ -183,7 +183,7 @@ def explain_rf_feature_importance(clf, vec, top=_TOP, class_names=None,
     following format::
 
         {
-            "classifier": "<classifier repr>",
+            "estimator": "<classifier repr>",
             "method": "<interpretation method>",
             "description": "<human readable description>",
             "feature_importances": [
@@ -202,7 +202,7 @@ def explain_rf_feature_importance(clf, vec, top=_TOP, class_names=None,
     return {
         'feature_importances': list(zip(names, values, std)),
         'description': DESCRIPTION_RANDOM_FOREST,
-        'classifier': repr(clf),
+        'estimator': repr(clf),
         'method': 'feature importances',
     }
 
@@ -217,7 +217,7 @@ def explain_tree_feature_importance(clf, vec=None, top=_TOP, class_names=None,
     following format (compatible with random forest explanations)::
 
         {
-            "classifier": "<classifier repr>",
+            "estimator": "<classifier repr>",
             "method": "<interpretation method>",
             "description": "<human readable description>",
             "feature_importances": [
@@ -235,7 +235,7 @@ def explain_tree_feature_importance(clf, vec=None, top=_TOP, class_names=None,
     return {
         'feature_importances': list(zip(names, values, std)),
         'description': DESCRIPTION_DECISION_TREE,
-        'classifier': repr(clf),
+        'estimator': repr(clf),
         'method': 'feature importances',
     }
 
@@ -251,7 +251,7 @@ def explain_linear_regressor_weights(clf, vec=None, feature_names=None, top=_TOP
     format::
 
         {
-            "classifier": "<classifier repr>",
+            "estimator": "<regressor repr>",
             "method": "<interpretation method>",
             "description": "<human readable description>",
             "targets": [
@@ -309,7 +309,7 @@ def explain_linear_regressor_weights(clf, vec=None, feature_names=None, top=_TOP
                 for target_id, target in enumerate(target_names)
                 ],
             'description': DESCRIPTION_REGRESSION_MULTITARGET,
-            'classifier': repr(clf),
+            'estimator': repr(clf),
             'method': 'linear model',
         }
     else:
@@ -319,6 +319,6 @@ def explain_linear_regressor_weights(clf, vec=None, feature_names=None, top=_TOP
                 'feature_weights': _features(0),
             }],
             'description': DESCRIPTION_REGRESSION,
-            'classifier': repr(clf),
+            'estimator': repr(clf),
             'method': 'linear model',
         }

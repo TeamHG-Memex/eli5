@@ -25,10 +25,10 @@ _TOP = 20
 @singledispatch
 def explain_prediction(clf, vec, doc, top=_TOP, class_names=None,
                        feature_names=None, vectorized=False):
-    """ Return an explanation of a classifier """
+    """ Return an explanation of an estimator """
     return {
-        "classifier": repr(clf),
-        "description": "Error: classifier %r is not supported" % clf,
+        "estimator": repr(clf),
+        "description": "Error: estimator %r is not supported" % clf,
     }
 
 
@@ -61,7 +61,7 @@ def explain_prediction_linear(clf, vec, doc, top=_TOP, class_names=None,
     x = X[0]
 
     res = {
-        "classifier": repr(clf),
+        "estimator": repr(clf),
         "method": "linear model",
         "classes": [],
     }
