@@ -24,7 +24,7 @@ _TOP = 20
 
 @singledispatch
 def explain_prediction(clf, vec, doc, top=_TOP, class_names=None,
-                       feature_names=None):
+                       feature_names=None, vectorized=False):
     """ Return an explanation of a classifier """
     return {
         "classifier": repr(clf),
@@ -43,7 +43,10 @@ def explain_prediction_linear(clf, vec, doc, top=_TOP, class_names=None,
     """ Explain prediction of a linear classifier. """
     feature_names = get_feature_names(clf, vec, feature_names=feature_names)
 
-    X = vec.transform([doc]) if not vectorized else doc
+    if vectorized:
+        X = np.array([doc]) if isinstance(doc, np.ndarray) else doc
+    else:
+        X = vec.transform([doc])
     if sp.issparse(X):
         X = X.toarray()
 
