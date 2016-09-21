@@ -69,8 +69,13 @@ def get_coef(clf, label_id):
     including bias feature.
     """
     if len(clf.coef_.shape) == 2:
-        coef = clf.coef_[label_id]  # multiclass case, also works for binary
+        # Most classifiers (even in binary case) and regressors
+        coef = clf.coef_[label_id]
     elif len(clf.coef_.shape) == 1:
+        # SGDRegressor stores coefficients in a 1D array
+        if label_id != 0:
+            raise ValueError(
+                'Unexpected label_id %s for 1D coefficient' % label_id)
         coef = clf.coef_
     else:
         raise ValueError('Unexpected clf.coef_ shape: %s' % clf.coef_.shape)
