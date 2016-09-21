@@ -256,7 +256,7 @@ def explain_linear_regressor_weights(clf, vec=None, feature_names=None, top=_TOP
             "description": "<human readable description>",
             "targets": [
                 {
-                    "targets <target name>,
+                    "target": "<target name>",
                     "feature_weights": [
                         {
                             # positive weights
