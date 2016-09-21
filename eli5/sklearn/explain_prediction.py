@@ -23,7 +23,7 @@ _TOP = 20
 
 
 @singledispatch
-def explain_prediction(clf, vec, doc, top=_TOP, class_names=None,
+def explain_prediction(clf, doc, vec=None, top=_TOP, target_names=None,
                        feature_names=None, vectorized=False):
     """ Return an explanation of an estimator """
     return {
@@ -38,17 +38,12 @@ def explain_prediction(clf, vec, doc, top=_TOP, class_names=None,
 @explain_prediction.register(PassiveAggressiveClassifier)
 @explain_prediction.register(Perceptron)
 @explain_prediction.register(LinearSVC)
-def explain_prediction_linear(clf, vec, doc, top=_TOP, class_names=None,
-                              feature_names=None, vectorized=False):
+def explain_prediction_linear(
+        clf, doc, vec=None, top=_TOP, target_names=None,
+        feature_names=None, vectorized=False):
     """ Explain prediction of a linear classifier. """
     feature_names = get_feature_names(clf, vec, feature_names=feature_names)
-
-    if vectorized:
-        X = np.array([doc]) if isinstance(doc, np.ndarray) else doc
-    else:
-        X = vec.transform([doc])
-    if sp.issparse(X):
-        X = X.toarray()
+    X = _get_X(doc, vec=vec, vectorized=vectorized)
 
     if is_probabilistic_classifier(clf):
         proba = clf.predict_proba(X)[0]
@@ -72,7 +67,7 @@ def explain_prediction_linear(clf, vec, doc, top=_TOP, class_names=None,
         return get_top_features_dict(feature_names, scores, top)
 
     def _label(label_id, label):
-        return rename_label(label_id, label, class_names)
+        return rename_label(label_id, label, target_names)
 
     if is_multiclass_classifier(clf):
         for label_id, label in enumerate(clf.classes_):
@@ -111,3 +106,13 @@ def _add_intercept(X):
         return sp.hstack([X, intercept]).tocsr()
     else:
         return np.hstack([X, intercept])
+
+
+def _get_X(doc, vec=None, vectorized=False):
+    if vec is None or vectorized:
+        X = np.array([doc]) if isinstance(doc, np.ndarray) else doc
+    else:
+        X = vec.transform([doc])
+    if sp.issparse(X):
+        X = X.toarray()
+    return X

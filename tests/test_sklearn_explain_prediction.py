@@ -31,13 +31,13 @@ from eli5.formatters import format_as_text
     [LinearSVC()],
 ])
 def test_explain_linear(newsgroups_train, clf):
-    docs, y, class_names = newsgroups_train
+    docs, y, target_names = newsgroups_train
     vec = TfidfVectorizer()
 
     X = vec.fit_transform(docs)
     clf.fit(X, y)
 
-    res = explain_prediction(clf, vec, docs[0], class_names=class_names, top=20)
+    res = explain_prediction(clf, docs[0], vec=vec, target_names=target_names, top=20)
     expl = format_as_text(res)
     print(expl)
     pprint(res)
@@ -48,19 +48,19 @@ def test_explain_linear(newsgroups_train, clf):
         pos = {name for name, value in e['feature_weights']['pos']}
         assert 'file' in pos
 
-    for label in class_names:
+    for label in target_names:
         assert str(label) in expl
     assert 'file' in expl
 
 
 def test_explain_linear_binary(newsgroups_train_binary):
-    docs, y, class_names = newsgroups_train_binary
+    docs, y, target_names = newsgroups_train_binary
     vec = TfidfVectorizer()
     clf = LogisticRegression()
     X = vec.fit_transform(docs)
     clf.fit(X, y)
 
-    res = explain_prediction(clf, vec, docs[0], class_names=class_names, top=20)
+    res = explain_prediction(clf, docs[0], vec, target_names=target_names, top=20)
     expl = format_as_text(res)
     print(expl)
     pprint(res)
@@ -74,8 +74,8 @@ def test_explain_linear_binary(newsgroups_train_binary):
     assert 'freedom' in expl
 
     res_vectorized = explain_prediction(
-        clf, vec, vec.transform([docs[0]])[0], class_names=class_names, top=20,
-        vectorized=True)
+        clf, vec.transform([docs[0]])[0], vec, target_names=target_names,
+        top=20, vectorized=True)
     assert res_vectorized == res
 
 
@@ -89,14 +89,15 @@ def test_explain_linear_dense():
     X = vec.fit_transform(data)
     clf.fit(X, [0, 1, 1, 0])
     test_day = {'day': 'tue', 'moon': 'full'}
-    class_names = ['sunny', 'shady']
-    res1 = explain_prediction(clf, vec, test_day, class_names=class_names)
+    target_names = ['sunny', 'shady']
+    res1 = explain_prediction(clf, test_day, vec, target_names=target_names)
     expl1 = format_as_text(res1)
     print(expl1)
     assert 'day=tue' in expl1
     [test_day_vec] = vec.transform(test_day)
-    res2 = explain_prediction(clf, vec, test_day_vec, class_names=class_names,
-                              vectorized=True)
+    res2 = explain_prediction(
+        clf, test_day_vec, target_names=target_names,
+        vectorized=True, feature_names=vec.get_feature_names())
     expl2 = format_as_text(res1)
     print(expl2)
     assert res1 == res2
@@ -105,5 +106,5 @@ def test_explain_linear_dense():
 def test_unsupported():
     vec = CountVectorizer()
     clf = BaseEstimator()
-    res = explain_prediction(clf, vec, 'hello, world')
+    res = explain_prediction(clf, 'hello, world', vec)
     assert 'Error' in res['description']

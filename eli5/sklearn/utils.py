@@ -35,7 +35,7 @@ def get_feature_names(clf, vec=None, bias_name='<BIAS>', feature_names=None):
     """
     if feature_names is None:
         if vec and hasattr(vec, 'get_feature_names'):
-            feature_names = vec.get_feature_names()
+            feature_names = list(vec.get_feature_names())
         else:
             num_features = clf.coef_.shape[-1]
             feature_names = ["x%d" % i for i in range(num_features)]
@@ -88,10 +88,10 @@ def get_coef(clf, label_id):
     return np.hstack([coef, bias])
 
 
-def rename_label(label_id, label, class_names):
-    """ Rename label according to class_names """
-    if class_names is None:
+def rename_label(label_id, label, target_names):
+    """ Rename label according to target_names """
+    if target_names is None:
         return label
-    if isinstance(class_names, dict):
-        return class_names[label]
-    return class_names[label_id]
+    if isinstance(target_names, dict):
+        return target_names[label]
+    return target_names[label_id]
