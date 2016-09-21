@@ -150,11 +150,11 @@ def test_unsupported():
 
 
 @pytest.mark.parametrize(['clf'], [
-    [ElasticNet()],
+    [ElasticNet(random_state=42)],
     [Lars()],
-    [Lasso()],
-    [Ridge()],
-    [SGDRegressor()],
+    [Lasso(random_state=42)],
+    [Ridge(random_state=42)],
+    [SGDRegressor(random_state=42)],
 ])
 def test_explain_linear_regression(boston_train, clf):
     X, y, feature_names = boston_train
@@ -174,10 +174,10 @@ def test_explain_linear_regression(boston_train, clf):
 
 
 @pytest.mark.parametrize(['clf'], [
-    [ElasticNet()],
+    [ElasticNet(random_state=42)],
     [Lars()],
-    [Lasso()],
-    [Ridge()],
+    [Lasso(random_state=42)],
+    [Ridge(random_state=42)],
 ])
 def test_explain_linear_regression_multitarget(clf):
     X, y = make_regression(n_samples=100, n_targets=3, n_features=10)
