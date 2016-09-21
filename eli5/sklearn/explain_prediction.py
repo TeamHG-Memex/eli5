@@ -109,8 +109,6 @@ def _add_intercept(X):
 
 
 def _get_X(doc, vec=None, vectorized=False):
-    if vec is None and not vectorized:
-        raise ValueError('vec is required when vectorized is False')
     if vec is None or vectorized:
         X = np.array([doc]) if isinstance(doc, np.ndarray) else doc
     else:

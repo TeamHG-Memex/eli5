@@ -2,7 +2,6 @@
 from __future__ import absolute_import
 from pprint import pprint
 
-import numpy as np
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.feature_extraction.dict_vectorizer import DictVectorizer
 from sklearn.linear_model import (
@@ -109,12 +108,3 @@ def test_unsupported():
     clf = BaseEstimator()
     res = explain_prediction(clf, 'hello, world', vec)
     assert 'Error' in res['description']
-
-
-def test_without_vec():
-    clf = LogisticRegression()
-    clf.fit(np.array([[1], [0]]), np.array([0, 1]))
-    with pytest.raises(ValueError) as excinfo:
-        explain_prediction(clf, 'hello, world')
-    assert 'vec' in str(excinfo.value)
-    assert 'vectorized' in str(excinfo.value)
