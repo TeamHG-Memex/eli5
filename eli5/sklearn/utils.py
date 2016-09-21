@@ -50,6 +50,19 @@ def get_feature_names(clf, vec=None, bias_name='<BIAS>', feature_names=None):
     return np.array(feature_names)
 
 
+def get_target_names(clf):
+    """
+    Return a vector of target names: y if the is only one target,
+    and y0, ... if there are multiple targets.
+    """
+    if len(clf.coef_.shape) == 1:
+        target_names = ['y']
+    else:
+        num_targets, _ = clf.coef_.shape
+        target_names = ['y%d' % i for i in range(num_targets)]
+    return np.array(target_names)
+
+
 def get_coef(clf, label_id):
     """
     Return a vector of coefficients for a given label,
@@ -63,7 +76,10 @@ def get_coef(clf, label_id):
         raise ValueError('Unexpected clf.coef_ shape: %s' % clf.coef_.shape)
     if not has_intercept(clf):
         return coef
-    bias = clf.intercept_[label_id]
+    if label_id == 0 and not isinstance(clf.intercept_, np.ndarray):
+        bias = clf.intercept_
+    else:
+        bias = clf.intercept_[label_id]
     return np.hstack([coef, bias])
 
 

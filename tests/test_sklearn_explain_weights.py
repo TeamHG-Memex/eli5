@@ -2,14 +2,19 @@
 from __future__ import absolute_import
 from functools import partial
 
+from sklearn.datasets import make_regression
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.linear_model import (
+    ElasticNet,
+    Lars,
+    Lasso,
     LogisticRegression,
     LogisticRegressionCV,
-    SGDClassifier,
-    SGDRegressor,
     PassiveAggressiveClassifier,
     Perceptron,
+    Ridge,
+    SGDClassifier,
+    SGDRegressor,
 )
 from sklearn.svm import LinearSVC
 from sklearn.ensemble import (
@@ -145,7 +150,11 @@ def test_unsupported():
 
 
 @pytest.mark.parametrize(['clf'], [
-    [SGDRegressor(random_state=13)],
+    [ElasticNet()],
+    [Lars()],
+    [Lasso()],
+    [Ridge()],
+    [SGDRegressor()],
 ])
 def test_explain_linear_regression(boston_train, clf):
     X, y, feature_names = boston_train
@@ -159,7 +168,27 @@ def test_explain_linear_regression(boston_train, clf):
     assert '<BIAS>' in expl
 
     pos, neg = top_pos_neg(res['targets'], 'target', 'y')
-    assert 'x12' in pos
-    assert 'x9' in neg
-    assert '<BIAS>' in neg
+    assert 'x12' in pos or 'x12' in neg
+    assert 'x9' in neg or 'x9' in pos
+    assert '<BIAS>' in neg or '<BIAS>' in pos
 
+
+@pytest.mark.parametrize(['clf'], [
+    [ElasticNet()],
+    [Lars()],
+    [Lasso()],
+    [Ridge()],
+])
+def test_explain_linear_regression_multitarget(clf):
+    X, y = make_regression(n_samples=100, n_targets=3, n_features=10)
+    clf.fit(X, y)
+    res = explain_weights(clf)
+    expl = format_as_text(res)
+    print(expl)
+
+    assert 'x9' in expl
+    assert '<BIAS>' in expl
+
+    pos, neg = top_pos_neg(res['targets'], 'target', 'y2')
+    assert 'x9' in neg or 'x9' in pos
+    assert '<BIAS>' in neg or '<BIAS>' in pos

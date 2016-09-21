@@ -4,8 +4,16 @@ from singledispatch import singledispatch
 
 import numpy as np
 from sklearn.linear_model import (
-    LogisticRegression, LogisticRegressionCV, PassiveAggressiveClassifier,
-    Perceptron, SGDClassifier,  SGDRegressor)
+    ElasticNet,
+    Lars,
+    LogisticRegression,
+    LogisticRegressionCV,
+    PassiveAggressiveClassifier,
+    Perceptron,
+    Ridge,
+    SGDClassifier,
+    SGDRegressor,
+)
 from sklearn.svm import LinearSVC
 # TODO: see https://github.com/scikit-learn/scikit-learn/pull/2250
 from sklearn.naive_bayes import BernoulliNB, MultinomialNB
@@ -24,6 +32,7 @@ from eli5.sklearn.utils import (
     is_multiclass_classifier,
     is_multitarget_regressor,
     get_feature_names,
+    get_target_names,
     rename_label,
 )
 
@@ -73,7 +82,7 @@ def explain_weights(clf, vec=None, top=_TOP, class_names=None,
     """ Return an explanation of a classifier """
     return {
         "classifier": repr(clf),
-        "description": "Error: classifier is not supported",
+        "description": "Error: classifier %r is not supported" % clf,
     }
 
 
@@ -231,6 +240,9 @@ def explain_tree_feature_importance(clf, vec=None, top=_TOP, class_names=None,
     }
 
 
+@explain_weights.register(ElasticNet)
+@explain_weights.register(Lars)
+@explain_weights.register(Ridge)
 @explain_weights.register(SGDRegressor)
 def explain_linear_regressor_weights(clf, vec=None, feature_names=None, top=_TOP,
                                      target_names=None):
@@ -286,13 +298,14 @@ def explain_linear_regressor_weights(clf, vec=None, feature_names=None, top=_TOP
         return rename_label(target_id, target, target_names)
 
     if is_multitarget_regressor(clf):
+        if target_names is None:
+            target_names = get_target_names(clf)
         return {
             'targets': [
                 {
                     'target': _label(target_id, target),
                     'feature_weights': _features(target_id)
                 }
-                # FIXME - what if target_names is not set
                 for target_id, target in enumerate(target_names)
                 ],
             'description': DESCRIPTION_REGRESSION_MULTITARGET,

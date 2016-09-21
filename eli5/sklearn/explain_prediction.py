@@ -28,7 +28,7 @@ def explain_prediction(clf, vec, doc, top=_TOP, class_names=None,
     """ Return an explanation of a classifier """
     return {
         "classifier": repr(clf),
-        "description": "Error: classifier is not supported",
+        "description": "Error: classifier %r is not supported" % clf,
     }
 
 
