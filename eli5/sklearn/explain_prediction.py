@@ -3,15 +3,25 @@ from singledispatch import singledispatch
 
 import numpy as np
 import scipy.sparse as sp
-from sklearn.linear_model import LogisticRegression, LogisticRegressionCV
-from sklearn.linear_model import SGDClassifier, Perceptron
-from sklearn.linear_model import PassiveAggressiveClassifier
+from sklearn.linear_model import (
+    ElasticNet,
+    Lars,
+    LogisticRegression,
+    LogisticRegressionCV,
+    PassiveAggressiveClassifier,
+    Perceptron,
+    Ridge,
+    SGDClassifier,
+    SGDRegressor,
+)
 from sklearn.svm import LinearSVC
 
 from eli5.sklearn.utils import (
     get_feature_names,
     get_coef,
+    get_target_names,
     is_multiclass_classifier,
+    is_multitarget_regressor,
     is_probabilistic_classifier,
     has_intercept,
     rename_label,
@@ -38,7 +48,7 @@ def explain_prediction(clf, doc, vec=None, top=_TOP, target_names=None,
 @explain_prediction.register(PassiveAggressiveClassifier)
 @explain_prediction.register(Perceptron)
 @explain_prediction.register(LinearSVC)
-def explain_prediction_linear(
+def explain_prediction_linear_classifier(
         clf, doc, vec=None, top=_TOP, target_names=None,
         feature_names=None, vectorized=False):
     """ Explain prediction of a linear classifier. """
@@ -46,14 +56,14 @@ def explain_prediction_linear(
     X = _get_X(doc, vec=vec, vectorized=vectorized)
 
     if is_probabilistic_classifier(clf):
-        proba = clf.predict_proba(X)[0]
+        proba, = clf.predict_proba(X)
     else:
         proba = None
-    score = clf.decision_function(X)[0]
+    score, = clf.decision_function(X)
 
     if has_intercept(clf):
         X = _add_intercept(X)
-    x = X[0]
+    x, = X
 
     res = {
         "estimator": repr(clf),
@@ -116,3 +126,56 @@ def _get_X(doc, vec=None, vectorized=False):
     if sp.issparse(X):
         X = X.toarray()
     return X
+
+
+@explain_prediction.register(ElasticNet)
+@explain_prediction.register(Lars)
+@explain_prediction.register(Ridge)
+@explain_prediction.register(SGDRegressor)
+def explain_prediction_linear_regressor(
+        clf, doc, vec=None, top=_TOP, target_names=None,
+        feature_names=None, vectorized=False):
+    """ Explain prediction of a linear regressor. """
+    feature_names = get_feature_names(clf, vec, feature_names=feature_names)
+    X = _get_X(doc, vec=vec, vectorized=vectorized)
+
+    score, = clf.predict(X)
+
+    if has_intercept(clf):
+        X = _add_intercept(X)
+    x, = X
+
+    res = {
+        "estimator": repr(clf),
+        "method": "linear model",
+        "targets": [],
+    }
+
+    def _weights(label_id):
+        coef = get_coef(clf, label_id)
+        scores = _multiply(x, coef)
+        return get_top_features_dict(feature_names, scores, top)
+
+    def _label(label_id, label):
+        return rename_label(label_id, label, target_names)
+
+    if is_multitarget_regressor(clf):
+        if target_names is None:
+            target_names = get_target_names(clf)
+        for label_id, label in enumerate(target_names):
+            target_info = {
+                'target': _label(label_id, label),
+                'feature_weights': _weights(label_id),
+                'score': score[label_id],
+            }
+            res['targets'].append(target_info)
+        return res
+    else:
+        target_info = {
+            'target': _label(0, 'y'),
+            'feature_weights': _weights(0),
+            'score': score,
+        }
+        res['targets'].append(target_info)
+
+    return res
