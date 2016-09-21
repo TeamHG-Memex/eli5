@@ -24,7 +24,7 @@ _TOP = 20
 
 @singledispatch
 def explain_prediction(clf, doc, vec=None, top=_TOP, target_names=None,
-                       feature_names=None):
+                       feature_names=None, vectorized=False):
     """ Return an explanation of an estimator """
     return {
         "estimator": repr(clf),
