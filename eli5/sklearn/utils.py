@@ -35,7 +35,7 @@ def get_feature_names(clf, vec=None, bias_name='<BIAS>', feature_names=None):
     """
     if feature_names is None:
         if vec and hasattr(vec, 'get_feature_names'):
-            feature_names = vec.get_feature_names()
+            feature_names = list(vec.get_feature_names())
         else:
             num_features = clf.coef_.shape[-1]
             feature_names = ["x%d" % i for i in range(num_features)]

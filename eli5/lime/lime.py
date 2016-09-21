@@ -112,7 +112,7 @@ def get_local_classifier_text(text, predict_proba, n_samples=1000,
                               expand_factor=10):
     """
     Train a classifier which approximates probabilistic text classifier locally.
-    Return (vec, clf, score) tuple with "easy" vectorizer, "easy" classifier,
+    Return (clf, vec, score) tuple with "easy" classifier, "easy" vectorizer,
     and an estimated accuracy score of this pipeline, i.e.
     how well these "easy" vectorizer/classifier approximates text
     classifier in neighbourhood of ``text``.

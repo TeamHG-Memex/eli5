@@ -2,6 +2,7 @@
 from __future__ import absolute_import
 from pprint import pprint
 
+import numpy as np
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.feature_extraction.dict_vectorizer import DictVectorizer
 from sklearn.linear_model import (
@@ -37,7 +38,7 @@ def test_explain_linear(newsgroups_train, clf):
     X = vec.fit_transform(docs)
     clf.fit(X, y)
 
-    res = explain_prediction(clf, vec, docs[0], class_names=class_names, top=20)
+    res = explain_prediction(clf, docs[0], vec=vec, class_names=class_names, top=20)
     expl = format_as_text(res)
     print(expl)
     pprint(res)
@@ -60,7 +61,7 @@ def test_explain_linear_binary(newsgroups_train_binary):
     X = vec.fit_transform(docs)
     clf.fit(X, y)
 
-    res = explain_prediction(clf, vec, docs[0], class_names=class_names, top=20)
+    res = explain_prediction(clf, docs[0], vec, class_names=class_names, top=20)
     expl = format_as_text(res)
     print(expl)
     pprint(res)
@@ -74,8 +75,8 @@ def test_explain_linear_binary(newsgroups_train_binary):
     assert 'freedom' in expl
 
     res_vectorized = explain_prediction(
-        clf, vec, vec.transform([docs[0]])[0], class_names=class_names, top=20,
-        vectorized=True)
+        clf, vec.transform([docs[0]])[0], vec, class_names=class_names,
+        top=20, vectorized=True)
     assert res_vectorized == res
 
 
@@ -90,13 +91,14 @@ def test_explain_linear_dense():
     clf.fit(X, [0, 1, 1, 0])
     test_day = {'day': 'tue', 'moon': 'full'}
     class_names = ['sunny', 'shady']
-    res1 = explain_prediction(clf, vec, test_day, class_names=class_names)
+    res1 = explain_prediction(clf, test_day, vec, class_names=class_names)
     expl1 = format_as_text(res1)
     print(expl1)
     assert 'day=tue' in expl1
     [test_day_vec] = vec.transform(test_day)
-    res2 = explain_prediction(clf, vec, test_day_vec, class_names=class_names,
-                              vectorized=True)
+    res2 = explain_prediction(
+        clf, test_day_vec, class_names=class_names,
+        vectorized=True, feature_names=vec.get_feature_names())
     expl2 = format_as_text(res1)
     print(expl2)
     assert res1 == res2
@@ -105,5 +107,14 @@ def test_explain_linear_dense():
 def test_unsupported():
     vec = CountVectorizer()
     clf = BaseEstimator()
-    res = explain_prediction(clf, vec, 'hello, world')
+    res = explain_prediction(clf, 'hello, world', vec)
     assert 'Error' in res['description']
+
+
+def test_without_vec():
+    clf = LogisticRegression()
+    clf.fit(np.array([[1], [0]]), np.array([0, 1]))
+    with pytest.raises(ValueError) as excinfo:
+        explain_prediction(clf, 'hello, world')
+    assert 'vec' in str(excinfo.value)
+    assert 'vectorized' in str(excinfo.value)

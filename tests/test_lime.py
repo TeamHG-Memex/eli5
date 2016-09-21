@@ -28,7 +28,7 @@ def test_lime_explain_probabilistic(newsgroups_train):
     print(score)
     assert score > 0.7
 
-    res = explain_prediction(clf_local, vec_local, doc, top=10,
+    res = explain_prediction(clf_local, doc, vec_local, top=10,
                              class_names=class_names)
     expl = format_as_text(res)
     print(expl)
