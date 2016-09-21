@@ -3,6 +3,7 @@ from __future__ import absolute_import
 from pprint import pprint
 
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
+from sklearn.feature_extraction.dict_vectorizer import DictVectorizer
 from sklearn.linear_model import (
     LogisticRegression,
     LogisticRegressionCV,
@@ -73,9 +74,32 @@ def test_explain_linear_binary(newsgroups_train_binary):
     assert 'freedom' in expl
 
     res_vectorized = explain_prediction(
-        clf, vec, vec.transform([docs[0]]), class_names=class_names, top=20,
+        clf, vec, vec.transform([docs[0]])[0], class_names=class_names, top=20,
         vectorized=True)
     assert res_vectorized == res
+
+
+def test_explain_linear_dense():
+    clf = LogisticRegression()
+    data = [{'day': 'mon', 'moon': 'full'},
+            {'day': 'tue', 'moon': 'rising'},
+            {'day': 'tue', 'moon': 'rising'},
+            {'day': 'mon', 'moon': 'rising'}]
+    vec = DictVectorizer(sparse=False)
+    X = vec.fit_transform(data)
+    clf.fit(X, [0, 1, 1, 0])
+    test_day = {'day': 'tue', 'moon': 'full'}
+    class_names = ['sunny', 'shady']
+    res1 = explain_prediction(clf, vec, test_day, class_names=class_names)
+    expl1 = format_as_text(res1)
+    print(expl1)
+    assert 'day=tue' in expl1
+    [test_day_vec] = vec.transform(test_day)
+    res2 = explain_prediction(clf, vec, test_day_vec, class_names=class_names,
+                              vectorized=True)
+    expl2 = format_as_text(res1)
+    print(expl2)
+    assert res1 == res2
 
 
 def test_unsupported():
