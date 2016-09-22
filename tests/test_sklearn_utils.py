@@ -5,6 +5,9 @@ import pytest
 from sklearn.datasets import make_classification, make_regression
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from sklearn.linear_model import LogisticRegression, ElasticNet, SGDRegressor
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.naive_bayes import GaussianNB, BernoulliNB
+from sklearn.tree import DecisionTreeClassifier
 
 from eli5.sklearn.utils import (
     get_feature_names,
@@ -12,6 +15,7 @@ from eli5.sklearn.utils import (
     has_intercept,
     is_multiclass_classifier,
     is_multitarget_regressor,
+    get_num_features,
 )
 
 
@@ -98,3 +102,21 @@ def test_get_target_names():
     X, y = make_regression(n_targets=2, n_features=3)
     clf.fit(X, y)
     assert set(get_target_names(clf)) == {'y0', 'y1'}
+
+
+@pytest.mark.parametrize(['clf'], [
+    [LogisticRegression()],
+    [RandomForestClassifier()],
+    [GaussianNB()],
+    [DecisionTreeClassifier()],
+    [BernoulliNB()],
+])
+def test_get_num_features(clf):
+    X_bin, y_bin = make_classification(n_features=20, n_classes=2)
+    X, y = make_classification(n_features=20, n_informative=4, n_classes=3)
+
+    clf.fit(X, y)
+    assert get_num_features(clf) == 20
+
+    clf.fit(X_bin, y_bin)
+    assert get_num_features(clf) == 20

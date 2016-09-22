@@ -37,7 +37,7 @@ def get_feature_names(clf, vec=None, bias_name='<BIAS>', feature_names=None):
         if vec and hasattr(vec, 'get_feature_names'):
             feature_names = list(vec.get_feature_names())
         else:
-            num_features = clf.coef_.shape[-1]
+            num_features = get_num_features(clf)
             feature_names = ["x%d" % i for i in range(num_features)]
     else:
         num_features = clf.coef_.shape[-1]
@@ -95,3 +95,17 @@ def rename_label(label_id, label, target_names):
     if isinstance(target_names, dict):
         return target_names[label]
     return target_names[label_id]
+
+
+def get_num_features(clf):
+    """ Return size of a feature vector classifier expects as an input. """
+    if hasattr(clf, 'coef_'):
+        return clf.coef_.shape[-1]
+    elif hasattr(clf, 'feature_importances_'):
+        return clf.feature_importances_.shape[-1]
+    elif hasattr(clf, 'feature_count_'):
+        return clf.feature_count_.shape[-1]
+    elif hasattr(clf, 'theta_'):
+        return clf.theta_.shape[-1]
+    else:
+        raise ValueError("Can't figure out feature vector size for %s" % clf)
