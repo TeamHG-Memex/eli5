@@ -1,21 +1,2 @@
-codecov:
-  branch: master
-  bot: null
-
-coverage:
-  precision: 2
-  round: down
-  range: "70...100"
-
-  status:
-    patch:
-      default:
-        target: auto
-        branches: null
-
-  ignore: null
-
 comment:
   layout: "header, diff, tree"
-  branches: null
-  behavior: default
