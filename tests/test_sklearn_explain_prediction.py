@@ -151,7 +151,8 @@ def test_explain_linear_regression(boston_train, clf):
     [Ridge(random_state=42)],
 ])
 def test_explain_linear_regression_multitarget(clf):
-    X, y = make_regression(n_samples=100, n_targets=3, n_features=10)
+    X, y = make_regression(n_samples=100, n_targets=3, n_features=10,
+                           random_state=42)
     clf.fit(X, y)
     res = explain_prediction(clf, X[0])
     expl = format_as_text(res)
