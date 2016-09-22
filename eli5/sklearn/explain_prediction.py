@@ -89,7 +89,6 @@ def explain_prediction_linear_classifier(
             if proba is not None:
                 class_info['proba'] = proba[label_id]
             res['classes'].append(class_info)
-        return res
     else:
         class_info = {
             'class': _label(1, clf.classes_[1]),
@@ -169,7 +168,6 @@ def explain_prediction_linear_regressor(
                 'score': score[label_id],
             }
             res['targets'].append(target_info)
-        return res
     else:
         target_info = {
             'target': _label(0, 'y'),
