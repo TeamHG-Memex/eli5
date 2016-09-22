@@ -24,14 +24,14 @@ classifiers and explain their predictions.
 
 It can explain weights and predictions of:
 
-* scikit-learn linear classifiers (weights and predictions) and regressors (only weights);
+* scikit-learn linear classifiers and regressors;
 * scikit-learn decision trees and tree-based ensemble classifiers (only weights);
 * any black-box classifier using LIME ( http://arxiv.org/abs/1602.04938 )
   algorithm.
 
 TODO:
 
-* explain predictions of linear regressors, decision trees and treee-based ensembles
+* explain predictions of decision trees and treee-based ensembles
 * https://github.com/TeamHG-Memex/sklearn-crfsuite
   and https://github.com/tpeng/python-crfsuite
 * https://github.com/scikit-learn-contrib/polylearn

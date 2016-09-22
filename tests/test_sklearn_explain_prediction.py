@@ -2,14 +2,20 @@
 from __future__ import absolute_import
 from pprint import pprint
 
+from sklearn.datasets import make_regression
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.feature_extraction.dict_vectorizer import DictVectorizer
 from sklearn.linear_model import (
+    ElasticNet,
+    Lars,
+    Lasso,
     LogisticRegression,
     LogisticRegressionCV,
-    SGDClassifier,
     PassiveAggressiveClassifier,
     Perceptron,
+    Ridge,
+    SGDClassifier,
+    SGDRegressor,
 )
 from sklearn.svm import LinearSVC
 from sklearn.base import BaseEstimator
@@ -108,3 +114,58 @@ def test_unsupported():
     clf = BaseEstimator()
     res = explain_prediction(clf, 'hello, world', vec)
     assert 'Error' in res['description']
+
+
+@pytest.mark.parametrize(['clf'], [
+    [ElasticNet(random_state=42)],
+    [Lars()],
+    [Lasso(random_state=42)],
+    [Ridge(random_state=42)],
+    [SGDRegressor(random_state=42)],
+])
+def test_explain_linear_regression(boston_train, clf):
+    X, y, feature_names = boston_train
+    clf.fit(X, y)
+    res = explain_prediction(clf, X[0])
+    expl = format_as_text(res)
+    pprint(res)
+    print(expl)
+
+    assert len(res['targets']) == 1
+    target = res['targets'][0]
+    assert target['target'] == 'y'
+    pos, neg = (dict(target['feature_weights']['pos']),
+                dict(target['feature_weights']['neg']))
+    assert 'x11' in pos or 'x11' in neg
+    assert '<BIAS>' in pos or '<BIAS>' in neg
+
+    assert 'x11' in expl
+    assert '<BIAS>' in expl
+    assert "'y'" in expl
+
+
+@pytest.mark.parametrize(['clf'], [
+    [ElasticNet(random_state=42)],
+    [Lars()],
+    [Lasso(random_state=42)],
+    [Ridge(random_state=42)],
+])
+def test_explain_linear_regression_multitarget(clf):
+    X, y = make_regression(n_samples=100, n_targets=3, n_features=10)
+    clf.fit(X, y)
+    res = explain_prediction(clf, X[0])
+    expl = format_as_text(res)
+    pprint(res)
+    print(expl)
+
+    assert len(res['targets']) == 3
+    target = res['targets'][1]
+    assert target['target'] == 'y1'
+    pos, neg = (dict(target['feature_weights']['pos']),
+                dict(target['feature_weights']['neg']))
+    assert 'x8' in pos or 'x8' in neg
+    assert '<BIAS>' in pos or '<BIAS>' in neg
+
+    assert 'x8' in expl
+    assert '<BIAS>' in expl
+    assert "'y2'" in expl
