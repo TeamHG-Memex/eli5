@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 
+import numpy as np
 import pytest
 from sklearn.datasets import make_classification, make_regression
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
@@ -58,6 +59,9 @@ def test_is_multitarget_regressor():
 def test_get_feature_names():
     docs = ['hello world', 'hello', 'world']
 
+    def _names(*args, **kwargs):
+        return set(get_feature_names(*args, **kwargs))
+
     for y in [[0, 1, 2], [0, 1, 0]]:  # multiclass, binary
         vec = CountVectorizer()
         X = vec.fit_transform(docs)
@@ -65,12 +69,13 @@ def test_get_feature_names():
         clf = LogisticRegression()
         clf.fit(X, y)
 
-        assert set(get_feature_names(clf, vec)) == {'hello', 'world', '<BIAS>'}
-        assert set(get_feature_names(clf, vec, 'B')) == {'hello', 'world', 'B'}
-        assert set(get_feature_names(clf)) == {'x0', 'x1', '<BIAS>'}
-        assert set(get_feature_names(clf, feature_names=['a', 'b'])) == {'a', 'b', '<BIAS>'}
-        assert set(get_feature_names(clf, feature_names=['a', 'b'],
-                                     bias_name='bias')) == {'a', 'b', 'bias'}
+        assert _names(clf, vec) == {'hello', 'world', '<BIAS>'}
+        assert _names(clf, vec, 'B') == {'hello', 'world', 'B'}
+        assert _names(clf) == {'x0', 'x1', '<BIAS>'}
+        assert _names(clf, feature_names=['a', 'b']) == {'a', 'b', '<BIAS>'}
+        assert _names(clf, feature_names=['a', 'b'],
+                                   bias_name='bias') == {'a', 'b', 'bias'}
+        assert _names(clf, feature_names=np.array(['a', 'b'])) == {'a', 'b', '<BIAS>'}
 
         with pytest.raises(ValueError):
             get_feature_names(clf, feature_names=['a'])
@@ -80,9 +85,8 @@ def test_get_feature_names():
 
         clf2 = LogisticRegression(fit_intercept=False)
         clf2.fit(X, y)
-        assert set(get_feature_names(clf2, vec)) == {'hello', 'world'}
-        assert set(get_feature_names(
-            clf2, feature_names=['hello', 'world'])) == {'hello', 'world'}
+        assert _names(clf2, vec) == {'hello', 'world'}
+        assert _names(clf2, feature_names=['hello', 'world']) == {'hello', 'world'}
 
 
 def test_get_feature_names_1dim_coef():
