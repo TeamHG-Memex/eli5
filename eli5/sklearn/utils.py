@@ -40,6 +40,7 @@ def get_feature_names(clf, vec=None, bias_name='<BIAS>', feature_names=None):
             num_features = get_num_features(clf)
             feature_names = ["x%d" % i for i in range(num_features)]
     else:
+        feature_names = list(feature_names)
         num_features = clf.coef_.shape[-1]
         if len(feature_names) != num_features:
             raise ValueError("feature_names has a wrong length: "
