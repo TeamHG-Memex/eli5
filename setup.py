@@ -26,6 +26,7 @@ setup(
         'scipy',
         'singledispatch >= 3.4.0.3',
         'six',
+        'typing',
     ],
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',

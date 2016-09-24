@@ -27,6 +27,7 @@ from sklearn.tree import DecisionTreeClassifier
 
 from eli5._feature_weights import get_top_features_dict
 from eli5.utils import argsort_k_largest
+from eli5.sklearn.unhashing import InvertableHashingVectorizer
 from eli5.sklearn.utils import (
     get_coef,
     is_multiclass_classifier,
@@ -35,6 +36,7 @@ from eli5.sklearn.utils import (
     get_target_names,
     rename_label,
 )
+
 
 
 LINEAR_CAVEATS = """
@@ -47,6 +49,15 @@ Caveats:
 3. Depending on regularization, rare features sometimes may have high
    coefficients; this doesn't mean they contribute much to the
    classification result for most examples.
+""".lstrip()
+
+HASHING_CAVEATS = """
+Feature names are restored from their hashes; this is not 100% precise
+because collisions are possible. For known collisions possible feature names
+are separated by | sign. Keep in mind the collision list is not exhaustive.
+Features marked with (-) should be read as inverted: if they have positive
+coefficient, the result is negative, if they have negative coefficient,
+the result is positive.
 """.lstrip()
 
 DESCRIPTION_CLF_MULTICLASS = """
@@ -78,7 +89,7 @@ _TOP = 20
 
 @singledispatch
 def explain_weights(clf, vec=None, top=_TOP, target_names=None,
-                    feature_names=None):
+                    feature_names=None, coef_scale=None):
     """ Return an explanation of an estimator """
     return {
         "estimator": repr(clf),
@@ -93,7 +104,7 @@ def explain_weights(clf, vec=None, top=_TOP, target_names=None,
 @explain_weights.register(Perceptron)
 @explain_weights.register(LinearSVC)
 def explain_linear_classifier_weights(clf, vec=None, top=_TOP, target_names=None,
-                                      feature_names=None):
+                                      feature_names=None, coef_scale=None):
     """
     Return an explanation of a linear classifier weights in the following
     format::
@@ -136,10 +147,13 @@ def explain_linear_classifier_weights(clf, vec=None, top=_TOP, target_names=None
 
     To print it use utilities from eli5.formatters.
     """
+    feature_names, coef_scale = _handle_hashing_vec(vec, feature_names,
+                                                    coef_scale)
     feature_names = get_feature_names(clf, vec, feature_names=feature_names)
+    _extra_caveats = "\n" + HASHING_CAVEATS if _is_invhashing(vec) else ''
 
     def _features(label_id):
-        coef = get_coef(clf, label_id)
+        coef = get_coef(clf, label_id, scale=coef_scale)
         return get_top_features_dict(feature_names, coef, top)
 
     def _label(label_id, label):
@@ -154,7 +168,7 @@ def explain_linear_classifier_weights(clf, vec=None, top=_TOP, target_names=None
                 }
                 for label_id, label in enumerate(clf.classes_)
             ],
-            'description': DESCRIPTION_CLF_MULTICLASS,
+            'description': DESCRIPTION_CLF_MULTICLASS + _extra_caveats,
             'estimator': repr(clf),
             'method': 'linear model',
         }
@@ -166,7 +180,7 @@ def explain_linear_classifier_weights(clf, vec=None, top=_TOP, target_names=None
                 'class': _label(1, clf.classes_[1]),
                 'feature_weights': _features(0),
             }],
-            'description': DESCRIPTION_CLF_BINARY,
+            'description': DESCRIPTION_CLF_BINARY + _extra_caveats,
             'estimator': repr(clf),
             'method': 'linear model',
         }
@@ -177,7 +191,7 @@ def explain_linear_classifier_weights(clf, vec=None, top=_TOP, target_names=None
 @explain_weights.register(GradientBoostingClassifier)
 @explain_weights.register(AdaBoostClassifier)
 def explain_rf_feature_importance(clf, vec, top=_TOP, target_names=None,
-                                  feature_names=None):
+                                  feature_names=None, coef_scale=None):
     """
     Return an explanation of a tree-based ensemble classifier in the
     following format::
@@ -209,7 +223,7 @@ def explain_rf_feature_importance(clf, vec, top=_TOP, target_names=None,
 
 @explain_weights.register(DecisionTreeClassifier)
 def explain_tree_feature_importance(clf, vec=None, top=_TOP, target_names=None,
-                                    feature_names=None):
+                                    feature_names=None, coef_scale=None):
     """
     TODO/FIXME: should it be a tree instead?
 
@@ -244,8 +258,9 @@ def explain_tree_feature_importance(clf, vec=None, top=_TOP, target_names=None,
 @explain_weights.register(Lars)
 @explain_weights.register(Ridge)
 @explain_weights.register(SGDRegressor)
-def explain_linear_regressor_weights(clf, vec=None, feature_names=None, top=_TOP,
-                                     target_names=None):
+def explain_linear_regressor_weights(clf, vec=None, feature_names=None,
+                                     top=_TOP, target_names=None,
+                                     coef_scale=None):
     """
     Return an explanation of a linear regressor weights in the following
     format::
@@ -288,10 +303,13 @@ def explain_linear_regressor_weights(clf, vec=None, feature_names=None, top=_TOP
 
     To print it use utilities from eli5.formatters.
     """
+    feature_names, coef_scale = _handle_hashing_vec(vec, feature_names,
+                                                    coef_scale)
     feature_names = get_feature_names(clf, vec, feature_names=feature_names)
+    _extra_caveats = "\n" + HASHING_CAVEATS if _is_invhashing(vec) else ''
 
     def _features(target_id):
-        coef = get_coef(clf, target_id)
+        coef = get_coef(clf, target_id, scale=coef_scale)
         return get_top_features_dict(feature_names, coef, top)
 
     def _label(target_id, target):
@@ -308,7 +326,7 @@ def explain_linear_regressor_weights(clf, vec=None, feature_names=None, top=_TOP
                 }
                 for target_id, target in enumerate(target_names)
                 ],
-            'description': DESCRIPTION_REGRESSION_MULTITARGET,
+            'description': DESCRIPTION_REGRESSION_MULTITARGET + _extra_caveats,
             'estimator': repr(clf),
             'method': 'linear model',
         }
@@ -318,7 +336,20 @@ def explain_linear_regressor_weights(clf, vec=None, feature_names=None, top=_TOP
                 'target': _label(0, 'y'),
                 'feature_weights': _features(0),
             }],
-            'description': DESCRIPTION_REGRESSION,
+            'description': DESCRIPTION_REGRESSION + _extra_caveats,
             'estimator': repr(clf),
             'method': 'linear model',
         }
+
+
+def _handle_hashing_vec(vec, feature_names, coef_scale):
+    if _is_invhashing(vec):
+        if feature_names is None:
+            feature_names = vec.get_feature_names(always_signed=False)
+        if coef_scale is None:
+            coef_scale = vec.column_signs_
+    return feature_names, coef_scale
+
+
+def _is_invhashing(vec):
+    return isinstance(vec, InvertableHashingVectorizer)

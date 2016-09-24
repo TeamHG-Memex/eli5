@@ -3,7 +3,11 @@ from __future__ import absolute_import
 from functools import partial
 
 from sklearn.datasets import make_regression
-from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
+from sklearn.feature_extraction.text import (
+    CountVectorizer,
+    TfidfVectorizer,
+    HashingVectorizer
+)
 from sklearn.linear_model import (
     ElasticNet,
     Lars,
@@ -27,28 +31,11 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.base import BaseEstimator
 import pytest
 
-from eli5.sklearn import explain_weights
+from eli5.sklearn import explain_weights, InvertableHashingVectorizer
 from eli5.formatters import format_as_text
 
 
-@pytest.mark.parametrize(['clf'], [
-    [LogisticRegression()],
-    [LogisticRegression(multi_class='multinomial', solver='lbfgs')],
-    [LogisticRegression(fit_intercept=False)],
-    [LogisticRegressionCV()],
-    [SGDClassifier(random_state=42)],
-    [SGDClassifier(loss='log', random_state=42)],
-    [PassiveAggressiveClassifier()],
-    [Perceptron()],
-    [LinearSVC()],
-])
-def test_explain_linear(newsgroups_train, clf):
-    docs, y, target_names = newsgroups_train
-    vec = TfidfVectorizer()
-
-    X = vec.fit_transform(docs)
-    clf.fit(X, y)
-
+def check_newsgroups_explanation_linear(clf, vec, target_names):
     res = explain_weights(clf, vec, target_names=target_names, top=20)
     expl = format_as_text(res)
     print(expl)
@@ -69,6 +56,47 @@ def test_explain_linear(newsgroups_train, clf):
     assert 'atheists' in expl
     for label in target_names:
         assert str(label) in expl
+
+
+@pytest.mark.parametrize(['clf'], [
+    [LogisticRegression()],
+    [LogisticRegression(multi_class='multinomial', solver='lbfgs')],
+    [LogisticRegression(fit_intercept=False)],
+    [LogisticRegressionCV()],
+    [SGDClassifier(random_state=42)],
+    [SGDClassifier(loss='log', random_state=42)],
+    [PassiveAggressiveClassifier()],
+    [Perceptron()],
+    [LinearSVC()],
+])
+def test_explain_linear(newsgroups_train, clf):
+    docs, y, target_names = newsgroups_train
+    vec = TfidfVectorizer()
+
+    X = vec.fit_transform(docs)
+    clf.fit(X, y)
+
+    check_newsgroups_explanation_linear(clf, vec, target_names)
+
+
+@pytest.mark.parametrize(['clf'], [
+    [LogisticRegression()],
+    [LogisticRegression(fit_intercept=False)],
+    [SGDClassifier(random_state=42)],
+    [LinearSVC()],
+])
+def test_explain_linear_hashed(newsgroups_train, clf):
+    docs, y, target_names = newsgroups_train
+    vec = HashingVectorizer()
+    ivec = InvertableHashingVectorizer(vec)
+
+    X = vec.fit_transform(docs)
+    clf.fit(X, y)
+
+    # use half of the docs to find common terms, to make it more realistic
+    ivec.fit(docs[::2])
+
+    check_newsgroups_explanation_linear(clf, ivec, target_names)
 
 
 def top_pos_neg(classes, key, class_name):

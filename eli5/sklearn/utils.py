@@ -41,7 +41,7 @@ def get_feature_names(clf, vec=None, bias_name='<BIAS>', feature_names=None):
             feature_names = ["x%d" % i for i in range(num_features)]
     else:
         feature_names = list(feature_names)
-        num_features = clf.coef_.shape[-1]
+        num_features = get_num_features(clf)
         if len(feature_names) != num_features:
             raise ValueError("feature_names has a wrong length: "
                              "expected=%d, got=%d" % (num_features,
@@ -64,10 +64,13 @@ def get_target_names(clf):
     return np.array(target_names)
 
 
-def get_coef(clf, label_id):
+def get_coef(clf, label_id, scale=None):
     """
     Return a vector of coefficients for a given label,
     including bias feature.
+
+    ``scale`` (optional) is a scaling vector; coef_[i] => coef[i] * scale[i] if
+    scale[i] is not nan. Intercept is not scaled.
     """
     if len(clf.coef_.shape) == 2:
         # Most classifiers (even in binary case) and regressors
@@ -80,6 +83,16 @@ def get_coef(clf, label_id):
         coef = clf.coef_
     else:
         raise ValueError('Unexpected clf.coef_ shape: %s' % clf.coef_.shape)
+
+    if scale is not None:
+        if coef.shape != scale.shape:
+            raise ValueError("scale shape is incorrect: expected %s, got %s" % (
+                coef.shape, scale.shape,
+            ))
+        # print("shape is ok")
+        not_nan = ~np.isnan(scale)
+        coef[not_nan] *= scale[not_nan]
+
     if not has_intercept(clf):
         return coef
     if label_id == 0 and not isinstance(clf.intercept_, np.ndarray):
