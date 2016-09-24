@@ -1,6 +1,21 @@
 Changelog
 =========
 
+0.0.4 (2016-09-24)
+------------------
+
+* eli5.sklearn.InvertableHashingVectorizer and
+  eli5.sklearn.FeatureUnhasher allow to recover feature names for
+  pipelines which use HashingVectorizer or FeatureHasher;
+* added support for scikit-learn linear regression models (ElasticNet,
+  Lars, Lasso, LinearRegression, LinearSVR, Ridge, SGDRegressor);
+* doc and vec arguments are swapped in explain_prediction function;
+  vec can now be omitted if an example is already vectorized;
+* fixed issue with dense feature vectors;
+* all class_names arguments are renamed to target_names;
+* feature name guessing is fixed for scikit-learn ensemble estimators;
+* testing improvements.
+
 0.0.3 (2016-09-21)
 ------------------
 
