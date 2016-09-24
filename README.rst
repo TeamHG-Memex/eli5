@@ -22,30 +22,34 @@ ELI5
 ELI5 is a Python package which helps to debug machine learning
 classifiers and explain their predictions.
 
-It can explain weights and predictions of:
+Currently it allows to:
 
-* scikit-learn linear classifiers and regressors;
-* scikit-learn decision trees and tree-based ensemble classifiers (only weights);
-* any black-box classifier using LIME ( http://arxiv.org/abs/1602.04938 )
-  algorithm.
+* explain weights and predictions of scikit-learn linear classifiers
+  and regressors;
+* explain weights of scikit-learn decision trees and tree-based ensemble
+  classifiers (via feature importances);
+* debug scikit-learn pipelines which contain HashingVectorizer,
+  by undoing hashing;
+* explain predictions of any black-box classifier using LIME
+  ( http://arxiv.org/abs/1602.04938 ) algorithm.
 
 TODO:
 
-* explain predictions of decision trees and treee-based ensembles
+* IPython and HTML support
 * https://github.com/TeamHG-Memex/sklearn-crfsuite
   and https://github.com/tpeng/python-crfsuite
 * https://github.com/scikit-learn-contrib/polylearn
 * https://github.com/scikit-learn-contrib/lightning
 * fasttext (?)
 * xgboost (?)
+* eli5.lime improvements
 * image input
-* built-in support for non-text data in eli5.lime;
+* built-in support for non-text data in eli5.lime
 * tensorflow, theano, lasagne, keras
 * Naive Bayes from scikit-learn
   (see https://github.com/scikit-learn/scikit-learn/issues/2237)
-* eli5.lime improvements;
-* IPython and HTML support;
-* Reinforcement Learning support.
+* Reinforcement Learning support
+* explain predictions of decision trees and treee-based ensembles
 
 License is MIT.
 
