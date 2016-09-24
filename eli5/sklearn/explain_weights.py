@@ -27,7 +27,7 @@ from sklearn.tree import DecisionTreeClassifier
 
 from eli5._feature_weights import get_top_features_dict
 from eli5.utils import argsort_k_largest
-from eli5.sklearn.unhash import InvertableHashingVectorizer
+from eli5.sklearn.unhashing import InvertableHashingVectorizer
 from eli5.sklearn.utils import (
     get_coef,
     is_multiclass_classifier,

@@ -12,4 +12,4 @@ from .explain_prediction import (
     explain_prediction_linear_classifier,
     explain_prediction_linear_regressor,
 )
-from .unhash import InvertableHashingVectorizer, FeatureUnhasher
+from .unhashing import InvertableHashingVectorizer, FeatureUnhasher
