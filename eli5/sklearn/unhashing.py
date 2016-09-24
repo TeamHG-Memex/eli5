@@ -100,7 +100,7 @@ class FeatureUnhasher(BaseEstimator):
         # type: (FeatureHasher) -> None
         if hasher.input_type != 'string':
             raise ValueError("FeatureUnhasher only supports hashers with "
-                             "input_type 'string', fot %r." % hasher.input_type)
+                             "input_type 'string', got %r." % hasher.input_type)
         self.hasher = hasher
         self.n_features = self.hasher.n_features
         self.unkn_template = unkn_template
