@@ -6,6 +6,7 @@ import scipy.sparse as sp
 from sklearn.linear_model import (
     ElasticNet,
     Lars,
+    LinearRegression,
     LogisticRegression,
     LogisticRegressionCV,
     PassiveAggressiveClassifier,
@@ -14,7 +15,7 @@ from sklearn.linear_model import (
     SGDClassifier,
     SGDRegressor,
 )
-from sklearn.svm import LinearSVC
+from sklearn.svm import LinearSVC, LinearSVR
 
 from eli5.sklearn.utils import (
     get_feature_names,
@@ -129,6 +130,8 @@ def _get_X(doc, vec=None, vectorized=False):
 
 @explain_prediction.register(ElasticNet)
 @explain_prediction.register(Lars)
+@explain_prediction.register(LinearRegression)
+@explain_prediction.register(LinearSVR)
 @explain_prediction.register(Ridge)
 @explain_prediction.register(SGDRegressor)
 def explain_prediction_linear_regressor(

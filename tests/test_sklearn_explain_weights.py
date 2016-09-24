@@ -12,6 +12,7 @@ from sklearn.linear_model import (
     ElasticNet,
     Lars,
     Lasso,
+    LinearRegression,
     LogisticRegression,
     LogisticRegressionCV,
     PassiveAggressiveClassifier,
@@ -20,7 +21,7 @@ from sklearn.linear_model import (
     SGDClassifier,
     SGDRegressor,
 )
-from sklearn.svm import LinearSVC
+from sklearn.svm import LinearSVC, LinearSVR
 from sklearn.ensemble import (
     RandomForestClassifier,
     ExtraTreesClassifier,
@@ -183,6 +184,8 @@ def test_unsupported():
     [Lasso(random_state=42)],
     [Ridge(random_state=42)],
     [SGDRegressor(random_state=42)],
+    [LinearRegression()],
+    [LinearSVR()],
 ])
 def test_explain_linear_regression(boston_train, clf):
     X, y, feature_names = boston_train
@@ -206,6 +209,7 @@ def test_explain_linear_regression(boston_train, clf):
     [Lars()],
     [Lasso(random_state=42)],
     [Ridge(random_state=42)],
+    [LinearRegression()],
 ])
 def test_explain_linear_regression_multitarget(clf):
     X, y = make_regression(n_samples=100, n_targets=3, n_features=10,

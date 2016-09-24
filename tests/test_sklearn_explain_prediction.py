@@ -9,6 +9,7 @@ from sklearn.linear_model import (
     ElasticNet,
     Lars,
     Lasso,
+    LinearRegression,
     LogisticRegression,
     LogisticRegressionCV,
     PassiveAggressiveClassifier,
@@ -17,7 +18,7 @@ from sklearn.linear_model import (
     SGDClassifier,
     SGDRegressor,
 )
-from sklearn.svm import LinearSVC
+from sklearn.svm import LinearSVC, LinearSVR
 from sklearn.base import BaseEstimator
 import pytest
 
@@ -120,6 +121,8 @@ def test_unsupported():
     [ElasticNet(random_state=42)],
     [Lars()],
     [Lasso(random_state=42)],
+    [LinearRegression()],
+    [LinearSVR()],
     [Ridge(random_state=42)],
     [SGDRegressor(random_state=42)],
 ])
@@ -148,6 +151,7 @@ def test_explain_linear_regression(boston_train, clf):
     [ElasticNet(random_state=42)],
     [Lars()],
     [Lasso(random_state=42)],
+    [LinearRegression()],
     [Ridge(random_state=42)],
 ])
 def test_explain_linear_regression_multitarget(clf):

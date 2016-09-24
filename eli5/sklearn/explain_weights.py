@@ -6,6 +6,7 @@ import numpy as np
 from sklearn.linear_model import (
     ElasticNet,
     Lars,
+    LinearRegression,
     LogisticRegression,
     LogisticRegressionCV,
     PassiveAggressiveClassifier,
@@ -14,7 +15,7 @@ from sklearn.linear_model import (
     SGDClassifier,
     SGDRegressor,
 )
-from sklearn.svm import LinearSVC
+from sklearn.svm import LinearSVC, LinearSVR
 # TODO: see https://github.com/scikit-learn/scikit-learn/pull/2250
 from sklearn.naive_bayes import BernoulliNB, MultinomialNB
 from sklearn.ensemble import (
@@ -256,6 +257,8 @@ def explain_tree_feature_importance(clf, vec=None, top=_TOP, target_names=None,
 
 @explain_weights.register(ElasticNet)
 @explain_weights.register(Lars)
+@explain_weights.register(LinearRegression)
+@explain_weights.register(LinearSVR)
 @explain_weights.register(Ridge)
 @explain_weights.register(SGDRegressor)
 def explain_linear_regressor_weights(clf, vec=None, feature_names=None,
