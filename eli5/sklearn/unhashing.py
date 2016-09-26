@@ -230,3 +230,16 @@ def _format_name(names, signs, sep=" | ", always_signed=False):
     if not always_signed and len(set(signs)) == 1:
         return sep.join(names)
     return sep.join(_signed(n, s) for n, s in zip(names, signs))
+
+
+def handle_hashing_vec(vec, feature_names, coef_scale):
+    if is_invhashing(vec):
+        if feature_names is None:
+            feature_names = vec.get_feature_names(always_signed=False)
+        if coef_scale is None:
+            coef_scale = vec.column_signs_
+    return feature_names, coef_scale
+
+
+def is_invhashing(vec):
+    return isinstance(vec, InvertableHashingVectorizer)

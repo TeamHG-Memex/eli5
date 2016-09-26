@@ -28,7 +28,7 @@ from sklearn.tree import DecisionTreeClassifier
 
 from eli5._feature_weights import get_top_features_dict
 from eli5.utils import argsort_k_largest
-from eli5.sklearn.unhashing import InvertableHashingVectorizer
+from eli5.sklearn.unhashing import handle_hashing_vec, is_invhashing
 from eli5.sklearn.utils import (
     get_coef,
     is_multiclass_classifier,
@@ -148,10 +148,10 @@ def explain_linear_classifier_weights(clf, vec=None, top=_TOP, target_names=None
 
     To print it use utilities from eli5.formatters.
     """
-    feature_names, coef_scale = _handle_hashing_vec(vec, feature_names,
+    feature_names, coef_scale = handle_hashing_vec(vec, feature_names,
                                                     coef_scale)
     feature_names = get_feature_names(clf, vec, feature_names=feature_names)
-    _extra_caveats = "\n" + HASHING_CAVEATS if _is_invhashing(vec) else ''
+    _extra_caveats = "\n" + HASHING_CAVEATS if is_invhashing(vec) else ''
 
     def _features(label_id):
         coef = get_coef(clf, label_id, scale=coef_scale)
@@ -306,10 +306,10 @@ def explain_linear_regressor_weights(clf, vec=None, feature_names=None,
 
     To print it use utilities from eli5.formatters.
     """
-    feature_names, coef_scale = _handle_hashing_vec(vec, feature_names,
+    feature_names, coef_scale = handle_hashing_vec(vec, feature_names,
                                                     coef_scale)
     feature_names = get_feature_names(clf, vec, feature_names=feature_names)
-    _extra_caveats = "\n" + HASHING_CAVEATS if _is_invhashing(vec) else ''
+    _extra_caveats = "\n" + HASHING_CAVEATS if is_invhashing(vec) else ''
 
     def _features(target_id):
         coef = get_coef(clf, target_id, scale=coef_scale)
@@ -343,16 +343,3 @@ def explain_linear_regressor_weights(clf, vec=None, feature_names=None,
             'estimator': repr(clf),
             'method': 'linear model',
         }
-
-
-def _handle_hashing_vec(vec, feature_names, coef_scale):
-    if _is_invhashing(vec):
-        if feature_names is None:
-            feature_names = vec.get_feature_names(always_signed=False)
-        if coef_scale is None:
-            coef_scale = vec.column_signs_
-    return feature_names, coef_scale
-
-
-def _is_invhashing(vec):
-    return isinstance(vec, InvertableHashingVectorizer)

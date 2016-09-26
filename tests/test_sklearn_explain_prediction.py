@@ -3,7 +3,8 @@ from __future__ import absolute_import
 from pprint import pprint
 
 from sklearn.datasets import make_regression
-from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
+from sklearn.feature_extraction.text import (
+    CountVectorizer, TfidfVectorizer, HashingVectorizer)
 from sklearn.feature_extraction.dict_vectorizer import DictVectorizer
 from sklearn.linear_model import (
     ElasticNet,
@@ -22,20 +23,20 @@ from sklearn.svm import LinearSVC, LinearSVR
 from sklearn.base import BaseEstimator
 import pytest
 
-from eli5.sklearn import explain_prediction
+from eli5.sklearn import explain_prediction, InvertableHashingVectorizer
 from eli5.formatters import format_as_text
 
 
 @pytest.mark.parametrize(['clf'], [
-    [LogisticRegression()],
-    [LogisticRegression(multi_class='multinomial', solver='lbfgs')],
-    [LogisticRegression(fit_intercept=False)],
-    [LogisticRegressionCV()],
+    [LogisticRegression(random_state=42)],
+    [LogisticRegression(random_state=42, multi_class='multinomial', solver='lbfgs')],
+    [LogisticRegression(random_state=42, fit_intercept=False)],
+    [LogisticRegressionCV(random_state=42)],
     [SGDClassifier(random_state=42)],
     [SGDClassifier(loss='log', random_state=42)],
-    [PassiveAggressiveClassifier()],
-    [Perceptron()],
-    [LinearSVC()],
+    [PassiveAggressiveClassifier(random_state=42)],
+    [Perceptron(random_state=42)],
+    [LinearSVC(random_state=42)],
 ])
 def test_explain_linear(newsgroups_train, clf):
     docs, y, target_names = newsgroups_train
@@ -60,29 +61,61 @@ def test_explain_linear(newsgroups_train, clf):
     assert 'file' in expl
 
 
-def test_explain_linear_binary(newsgroups_train_binary):
-    docs, y, target_names = newsgroups_train_binary
-    vec = TfidfVectorizer()
-    clf = LogisticRegression()
-    X = vec.fit_transform(docs)
-    clf.fit(X, y)
-
-    res = explain_prediction(clf, docs[0], vec, target_names=target_names, top=20)
+def check_explain_linear_binary(res):
     expl = format_as_text(res)
     print(expl)
     pprint(res)
-
     assert len(res['classes']) == 1
     e = res['classes'][0]
     assert e['class'] == 'comp.graphics'
     neg = {name for name, value in e['feature_weights']['neg']}
-    assert 'freedom' in neg
+    assert 'objective' in neg
     assert 'comp.graphics' in expl
-    assert 'freedom' in expl
+    assert 'objective' in expl
 
+
+@pytest.mark.parametrize(['vec'], [
+    [CountVectorizer()],
+    [HashingVectorizer()],
+])
+def test_explain_linear_binary(vec, newsgroups_train_binary):
+    docs, y, target_names = newsgroups_train_binary
+    clf = LogisticRegression(random_state=42)
+    X = vec.fit_transform(docs)
+    clf.fit(X, y)
+
+    res = explain_prediction(
+        clf, docs[0], vec, target_names=target_names, top=20)
+    check_explain_linear_binary(res)
     res_vectorized = explain_prediction(
         clf, vec.transform([docs[0]])[0], vec, target_names=target_names,
         top=20, vectorized=True)
+    if isinstance(vec, HashingVectorizer):
+        # InvertableHashingVectorizer must be passed with vectorized=True
+        neg_vectorized = {name for name, value in
+                          res_vectorized['classes'][0]['feature_weights']['neg']}
+        assert all(name.startswith('x') for name in neg_vectorized)
+    else:
+        assert res_vectorized == res
+
+
+def test_explain_hashing_vectorizer(newsgroups_train_binary):
+    # test that we can pass InvertableHashingVectorizer explicitly
+    vec = HashingVectorizer()
+    ivec = InvertableHashingVectorizer(vec)
+    clf = LogisticRegression(random_state=42)
+    docs, y, target_names = newsgroups_train_binary
+    ivec.fit([docs[0]])
+    X = vec.fit_transform(docs)
+    clf.fit(X, y)
+
+    res = explain_prediction(
+        clf, docs[0], ivec, target_names=target_names, top=20)
+    check_explain_linear_binary(res)
+    res_vectorized = explain_prediction(
+        clf, vec.transform([docs[0]])[0], ivec, target_names=target_names,
+        top=20, vectorized=True)
+    pprint(res_vectorized)
     assert res_vectorized == res
 
 
