@@ -91,6 +91,7 @@ def get_coef(clf, label_id, scale=None):
             ))
         # print("shape is ok")
         not_nan = ~np.isnan(scale)
+        coef = coef.copy()
         coef[not_nan] *= scale[not_nan]
 
     if not has_intercept(clf):
