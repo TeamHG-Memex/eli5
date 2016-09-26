@@ -1,6 +1,11 @@
 Changelog
 =========
 
+0.0.5 (yyyy-mm-dd)
+------------------
+
+* HashingVectorizer support in explain_prediction;
+
 0.0.4 (2016-09-24)
 ------------------
 
