@@ -149,7 +149,7 @@ def explain_linear_classifier_weights(clf, vec=None, top=_TOP, target_names=None
     To print it use utilities from eli5.formatters.
     """
     feature_names, coef_scale = handle_hashing_vec(vec, feature_names,
-                                                    coef_scale)
+                                                   coef_scale)
     feature_names = get_feature_names(clf, vec, feature_names=feature_names)
     _extra_caveats = "\n" + HASHING_CAVEATS if is_invhashing(vec) else ''
 

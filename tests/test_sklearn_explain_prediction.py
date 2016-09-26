@@ -115,8 +115,8 @@ def test_explain_hashing_vectorizer(newsgroups_train_binary):
     X = vec.fit_transform(docs)
     clf.fit(X, y)
 
-    get_res = lambda: explain_prediction(
-        clf, docs[0], ivec, target_names=target_names, top=20)
+    get_res = lambda **kwargs: explain_prediction(
+        clf, docs[0], ivec, target_names=target_names, top=20, **kwargs)
     res = get_res()
     check_explain_linear_binary(res)
     assert res == get_res()
@@ -125,6 +125,10 @@ def test_explain_hashing_vectorizer(newsgroups_train_binary):
         top=20, vectorized=True)
     pprint(res_vectorized)
     assert res_vectorized == res
+
+    assert res == get_res(
+        feature_names=ivec.get_feature_names(always_signed=False),
+        coef_scale=ivec.column_signs_)
 
 
 def test_explain_linear_dense():
