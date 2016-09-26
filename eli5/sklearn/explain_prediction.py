@@ -3,6 +3,7 @@ from singledispatch import singledispatch
 
 import numpy as np
 import scipy.sparse as sp
+from sklearn.feature_extraction.text import HashingVectorizer
 from sklearn.linear_model import (
     ElasticNet,
     Lars,
@@ -17,6 +18,7 @@ from sklearn.linear_model import (
 )
 from sklearn.svm import LinearSVC, LinearSVR
 
+from eli5.sklearn.unhashing import InvertableHashingVectorizer, handle_hashing_vec
 from eli5.sklearn.utils import (
     get_feature_names,
     get_coef,
@@ -35,7 +37,7 @@ _TOP = 20
 
 @singledispatch
 def explain_prediction(clf, doc, vec=None, top=_TOP, target_names=None,
-                       feature_names=None, vectorized=False):
+                       feature_names=None, vectorized=False, coef_scale=None):
     """ Return an explanation of an estimator """
     return {
         "estimator": repr(clf),
@@ -51,8 +53,13 @@ def explain_prediction(clf, doc, vec=None, top=_TOP, target_names=None,
 @explain_prediction.register(LinearSVC)
 def explain_prediction_linear_classifier(
         clf, doc, vec=None, top=_TOP, target_names=None,
-        feature_names=None, vectorized=False):
+        feature_names=None, vectorized=False, coef_scale=None):
     """ Explain prediction of a linear classifier. """
+    if isinstance(vec, HashingVectorizer) and not vectorized:
+        vec = InvertableHashingVectorizer(vec)
+        vec.fit([doc])
+    feature_names, coef_scale = handle_hashing_vec(vec, feature_names,
+                                                   coef_scale)
     feature_names = get_feature_names(clf, vec, feature_names=feature_names)
     X = _get_X(doc, vec=vec, vectorized=vectorized)
 
@@ -73,7 +80,7 @@ def explain_prediction_linear_classifier(
     }
 
     def _weights(label_id):
-        coef = get_coef(clf, label_id)
+        coef = get_coef(clf, label_id, scale=coef_scale)
         scores = _multiply(x, coef)
         return get_top_features_dict(feature_names, scores, top)
 

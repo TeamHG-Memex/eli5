@@ -37,7 +37,9 @@ from eli5.formatters import format_as_text
 
 
 def check_newsgroups_explanation_linear(clf, vec, target_names):
-    res = explain_weights(clf, vec, target_names=target_names, top=20)
+    get_res = lambda: explain_weights(
+        clf, vec, target_names=target_names, top=20)
+    res = get_res()
     expl = format_as_text(res)
     print(expl)
 
@@ -57,6 +59,8 @@ def check_newsgroups_explanation_linear(clf, vec, target_names):
     assert 'atheists' in expl
     for label in target_names:
         assert str(label) in expl
+
+    assert res == get_res()
 
 
 @pytest.mark.parametrize(['clf'], [
@@ -149,11 +153,15 @@ def test_explain_random_forest(newsgroups_train, clf):
     X = vec.fit_transform(docs)
     clf.fit(X.toarray(), y)
 
-    res = explain_weights(clf, vec, target_names=target_names, top=30)
+    get_res = lambda: explain_weights(
+        clf, vec, target_names=target_names, top=30)
+    res = get_res()
     expl = format_as_text(res)
     print(expl)
     assert 'feature importances' in expl
     assert 'that 0.' in expl  # high-ranked feature
+
+    assert res == get_res()
 
 
 def test_explain_empty(newsgroups_train):
@@ -203,6 +211,8 @@ def test_explain_linear_regression(boston_train, clf):
     assert 'x9' in neg or 'x9' in pos
     assert '<BIAS>' in neg or '<BIAS>' in pos
 
+    assert res == explain_weights(clf)
+
 
 @pytest.mark.parametrize(['clf'], [
     [ElasticNet(random_state=42)],
@@ -225,3 +235,5 @@ def test_explain_linear_regression_multitarget(clf):
     pos, neg = top_pos_neg(res['targets'], 'target', 'y2')
     assert 'x9' in neg or 'x9' in pos
     assert '<BIAS>' in neg or '<BIAS>' in pos
+
+    assert res == explain_weights(clf)
