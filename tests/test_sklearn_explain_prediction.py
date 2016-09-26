@@ -45,7 +45,9 @@ def test_explain_linear(newsgroups_train, clf):
     X = vec.fit_transform(docs)
     clf.fit(X, y)
 
-    res = explain_prediction(clf, docs[0], vec=vec, target_names=target_names, top=20)
+    get_res = lambda: explain_prediction(
+        clf, docs[0], vec=vec, target_names=target_names, top=20)
+    res = get_res()
     expl = format_as_text(res)
     print(expl)
     pprint(res)
@@ -59,6 +61,8 @@ def test_explain_linear(newsgroups_train, clf):
     for label in target_names:
         assert str(label) in expl
     assert 'file' in expl
+
+    assert res == get_res()
 
 
 def check_explain_linear_binary(res):
@@ -84,9 +88,11 @@ def test_explain_linear_binary(vec, newsgroups_train_binary):
     X = vec.fit_transform(docs)
     clf.fit(X, y)
 
-    res = explain_prediction(
+    get_res = lambda: explain_prediction(
         clf, docs[0], vec, target_names=target_names, top=20)
+    res = get_res()
     check_explain_linear_binary(res)
+    assert res == get_res()
     res_vectorized = explain_prediction(
         clf, vec.transform([docs[0]])[0], vec, target_names=target_names,
         top=20, vectorized=True)
@@ -109,9 +115,11 @@ def test_explain_hashing_vectorizer(newsgroups_train_binary):
     X = vec.fit_transform(docs)
     clf.fit(X, y)
 
-    res = explain_prediction(
+    get_res = lambda: explain_prediction(
         clf, docs[0], ivec, target_names=target_names, top=20)
+    res = get_res()
     check_explain_linear_binary(res)
+    assert res == get_res()
     res_vectorized = explain_prediction(
         clf, vec.transform([docs[0]])[0], ivec, target_names=target_names,
         top=20, vectorized=True)
@@ -179,6 +187,8 @@ def test_explain_linear_regression(boston_train, clf):
     assert '<BIAS>' in expl
     assert "'y'" in expl
 
+    assert res == explain_prediction(clf, X[0])
+
 
 @pytest.mark.parametrize(['clf'], [
     [ElasticNet(random_state=42)],
@@ -207,3 +217,5 @@ def test_explain_linear_regression_multitarget(clf):
     assert 'x8' in expl
     assert '<BIAS>' in expl
     assert "'y2'" in expl
+
+    assert res == explain_prediction(clf, X[0])
