@@ -1,10 +1,14 @@
 Changelog
 =========
 
-0.0.5 (yyyy-mm-dd)
+0.0.5 (2016-09-27)
 ------------------
 
 * HashingVectorizer support in explain_prediction;
+* add an option to pass coefficient scaling array; it is useful
+  if you want to compare coefficients for features which scale or sign
+  is different in the input;
+* bug fix: classifier weights are no longer changed by eli5 functions.
 
 0.0.4 (2016-09-24)
 ------------------
