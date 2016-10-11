@@ -5,7 +5,7 @@ Utilities to reverse transformation done by FeatureHasher or HashingVectorizer.
 from __future__ import absolute_import
 
 from functools import partial
-from collections import defaultdict
+from collections import defaultdict, Counter
 from itertools import chain
 from typing import List, Iterable
 
@@ -30,6 +30,9 @@ class InvertableHashingVectorizer(BaseEstimator, TransformerMixin):
     You can fit InvertableHashingVectorizer on a random sample of documents
     (not necessarily on the whole training and testing data), and use it
     to inspect an existing HashingVectorizer instance.
+
+    If several features hash to the same value, they are ordered by
+    their frequency in documents that were used to fit the vectorizer.
 
     :meth:`transform` works the same as HashingVectorizer.transform.
     """
@@ -105,18 +108,18 @@ class FeatureUnhasher(BaseEstimator):
         self.n_features = self.hasher.n_features
         self.unkn_template = unkn_template
         self._attributes_dirty = True
-        self._terms_set = set()
+        self._term_counts = Counter()
 
     def fit(self, X, y=None):
         # type: (Iterable[str], None) -> FeatureUnhasher
-        self._terms_set = set()
+        self._term_counts.clear()
         self.partial_fit(X, y)
         self.recalculate_attributes(force=True)
         return self
 
     def partial_fit(self, X, y=None):
         # type: (Iterable[str], None) -> FeatureUnhasher
-        self._terms_set.update(X)
+        self._term_counts.update(X)
         self._attributes_dirty = True
         return self
 
@@ -143,7 +146,7 @@ class FeatureUnhasher(BaseEstimator):
         """
         if not self._attributes_dirty and not force:
             return
-        terms = np.array(list(self._terms_set))
+        terms = np.array([term for term, _ in self._term_counts.most_common()])
         if len(terms):
             indices, signs = _get_indices_and_signs(self.hasher, terms)
         else:

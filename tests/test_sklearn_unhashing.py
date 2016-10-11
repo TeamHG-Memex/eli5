@@ -1,4 +1,5 @@
 from itertools import repeat
+from collections import Counter
 
 import pytest
 import numpy as np
@@ -35,17 +36,22 @@ def test_invertable_hashing_vectorizer(always_signed):
 def check_feature_names(vec, ivec, always_signed, corpus):
     feature_names = ivec.get_feature_names(always_signed=always_signed)
     seen_words = set()
+    counts = Counter(corpus)
     for idx, feature_name in enumerate(feature_names):
         collisions = feature_name.split(' | ')
+        words_in_collision = []
         for c in collisions:
             sign = 1
             if c.startswith('(-)'):
                 c = c[len('(-)'):]
                 sign = -1
             seen_words.add(c)
+            words_in_collision.append(c)
             if not always_signed and ivec.column_signs_[idx] < 0:
                 sign *= -1
             expected = np.zeros(vec.n_features)
             expected[idx] = sign
             assert np.allclose(vec.transform([c]).toarray(), expected)
+        for prev_w, w in zip(words_in_collision, words_in_collision[1:]):
+            assert counts[prev_w] > counts[w]
     assert seen_words == set(corpus)
