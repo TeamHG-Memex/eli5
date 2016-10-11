@@ -1,6 +1,12 @@
 Changelog
 =========
 
+0.0.6 (yyyy-mm-dd)
+------------------
+
+* Candidate features in eli5.sklearn.InvertableHashingVectorizer
+  are ordered by their frequency
+
 0.0.5 (2016-09-27)
 ------------------
 
