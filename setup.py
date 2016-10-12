@@ -20,8 +20,10 @@ setup(
     description="Debug machine learning classifiers and explain their predictions",
     url='https://github.com/TeamHG-Memex/eli5',
     zip_safe=False,
+    include_package_data=True,
     packages=find_packages(exclude=['tests']),
     install_requires=[
+        'jinja2',
         'numpy >= 1.9.0',
         'scipy',
         'singledispatch >= 3.4.0.3',

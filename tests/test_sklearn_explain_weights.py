@@ -33,15 +33,16 @@ from sklearn.base import BaseEstimator
 import pytest
 
 from eli5.sklearn import explain_weights, InvertableHashingVectorizer
-from eli5.formatters import format_as_text
+from eli5.formatters import format_as_text, format_as_html
 
 
 def check_newsgroups_explanation_linear(clf, vec, target_names):
     get_res = lambda: explain_weights(
         clf, vec, target_names=target_names, top=20)
     res = get_res()
-    expl = format_as_text(res)
-    print(expl)
+    expl_text, expl_html = format_as_text(res), format_as_html(res)
+    print(expl_text)
+    print(expl_html)
 
     assert [cl['class'] for cl in res['classes']] == target_names
 
@@ -55,10 +56,11 @@ def check_newsgroups_explanation_linear(clf, vec, target_names):
     pos, neg = _top('talk.religion.misc')
     assert 'jesus' in pos
 
-    assert 'space' in expl
-    assert 'atheists' in expl
-    for label in target_names:
-        assert str(label) in expl
+    for expl in [expl_text, expl_html]:
+        assert 'space' in expl
+        assert 'atheists' in expl
+        for label in target_names:
+            assert str(label) in expl
 
     assert res == get_res()
 

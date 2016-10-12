@@ -1,0 +1,39 @@
+{% if method %}
+    <p>Explained as: {{ method }}</p>
+{% endif %}
+
+{% if description %}
+    {# TODO - have a structured prepresentation and convert it to html and text #}
+    <pre>{{ description }}</pre>
+{% endif %}
+
+{% if classes %}
+    {% with explanations = classes %}
+    {% include "weights.html" with context %}
+    {% endwith %}
+{% endif %}
+
+{% if targets %}
+    {% with explanations = targets %}
+        {% include "weights.html" with context %}
+    {% endwith %}
+{% endif %}
+
+{% if feature_importances %}
+    <table>
+        <thead>
+        <tr>
+            <th align="left">Feature</th>
+            <th align="left">Weight</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for name, w, std in feature_importances %}
+            <tr>
+                <td>{{ name }}</td>
+                <td>{{ weight }} &plusmn; {{ 2 * std }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endif %}
