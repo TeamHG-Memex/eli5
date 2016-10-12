@@ -1,7 +1,7 @@
 Changelog
 =========
 
-0.0.6 (yyyy-mm-dd)
+0.0.6 (2016-10-12)
 ------------------
 
 * Candidate features in eli5.sklearn.InvertableHashingVectorizer
