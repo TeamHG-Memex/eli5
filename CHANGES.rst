@@ -5,7 +5,7 @@ Changelog
 ------------------
 
 * Candidate features in eli5.sklearn.InvertableHashingVectorizer
-  are ordered by their frequency
+  are ordered by their frequency, first candidate is always positive.
 
 0.0.5 (2016-09-27)
 ------------------
