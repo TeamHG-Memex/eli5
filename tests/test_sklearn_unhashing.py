@@ -40,18 +40,24 @@ def check_feature_names(vec, ivec, always_signed, corpus):
     for idx, feature_name in enumerate(feature_names):
         collisions = feature_name.split(' | ')
         words_in_collision = []
-        for c in collisions:
+        for ic, c in enumerate(collisions):
             sign = 1
             if c.startswith('(-)'):
                 c = c[len('(-)'):]
                 sign = -1
+            if ic == 0 and not always_signed:
+                # Most frequent term is always not inverted.
+                assert sign == 1, collisions
             seen_words.add(c)
             words_in_collision.append(c)
             if not always_signed and ivec.column_signs_[idx] < 0:
                 sign *= -1
+            # Term hashes to correct value with correct sign.
             expected = np.zeros(vec.n_features)
             expected[idx] = sign
-            assert np.allclose(vec.transform([c]).toarray(), expected)
+            transormed = vec.transform([c]).toarray()
+            assert np.allclose(transormed, expected), (transormed, expected)
         for prev_w, w in zip(words_in_collision, words_in_collision[1:]):
+            # Terms are ordered by frequency.
             assert counts[prev_w] > counts[w]
     assert seen_words == set(corpus)

@@ -162,7 +162,7 @@ class FeatureUnhasher(BaseEstimator):
         colums_signs = np.ones(self.n_features) * np.nan
         for hash_id, term_ids in self.collisions_.items():
             term_signs = self.term_signs_[term_ids]
-            if (term_signs < 0).all():
+            if _invert_signs(term_signs):
                 colums_signs[hash_id] = -1
             elif (term_signs > 0).all():
                 colums_signs[hash_id] = 1
@@ -228,11 +228,20 @@ def _format_name(names, signs, sep=" | ", always_signed=False):
     >>> _format_name(["foo", "bar"], [-1, -1])
     'foo | bar'
     >>> _format_name(["foo", "bar"], [-1, +1])
-    '(-)foo | bar'
+    'foo | (-)bar'
+    >>> _format_name(["foo", "bar"], [1, -1])
+    'foo | (-)bar'
     """
-    if not always_signed and len(set(signs)) == 1:
-        return sep.join(names)
+    if not always_signed and _invert_signs(signs):
+        signs = [-sign for sign in signs]
     return sep.join(_signed(n, s) for n, s in zip(names, signs))
+
+
+def _invert_signs(signs):
+    """ Shall we invert signs?
+    Invert if first (most probable) term is negative.
+    """
+    return signs[0] < 0
 
 
 def handle_hashing_vec(vec, feature_names, coef_scale):
