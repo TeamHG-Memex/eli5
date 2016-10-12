@@ -1,9 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Functions to convert explanations to human-digestable formats.
-
-TODO: html, IPython integration, customizability.
-"""
 from __future__ import absolute_import
 import six
 
