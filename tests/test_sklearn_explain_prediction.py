@@ -24,7 +24,8 @@ from sklearn.base import BaseEstimator
 import pytest
 
 from eli5.sklearn import explain_prediction, InvertableHashingVectorizer
-from eli5.formatters import format_as_text
+from eli5.formatters import format_as_text, format_as_html
+from .utils import write_html
 
 
 @pytest.mark.parametrize(['clf'], [
@@ -48,9 +49,10 @@ def test_explain_linear(newsgroups_train, clf):
     get_res = lambda: explain_prediction(
         clf, docs[0], vec=vec, target_names=target_names, top=20)
     res = get_res()
-    expl = format_as_text(res)
-    print(expl)
+    expl_text, expl_html = format_as_text(res), format_as_html(res)
     pprint(res)
+    print(expl_text)
+    write_html(clf, expl_html)
 
     for e in res['classes']:
         if e['class'] != 'comp.graphics':
@@ -58,9 +60,10 @@ def test_explain_linear(newsgroups_train, clf):
         pos = {name for name, value in e['feature_weights']['pos']}
         assert 'file' in pos
 
-    for label in target_names:
-        assert str(label) in expl
-    assert 'file' in expl
+    for expl in [expl_text, expl_html]:
+        for label in target_names:
+            assert str(label) in expl
+        assert 'file' in expl
 
     assert res == get_res()
 
@@ -175,9 +178,10 @@ def test_explain_linear_regression(boston_train, clf):
     X, y, feature_names = boston_train
     clf.fit(X, y)
     res = explain_prediction(clf, X[0])
-    expl = format_as_text(res)
+    expl_text, expl_html = format_as_text(res), format_as_html(res)
     pprint(res)
-    print(expl)
+    print(expl_text)
+    write_html(clf, expl_html)
 
     assert len(res['targets']) == 1
     target = res['targets'][0]
@@ -187,9 +191,13 @@ def test_explain_linear_regression(boston_train, clf):
     assert 'x11' in pos or 'x11' in neg
     assert '<BIAS>' in pos or '<BIAS>' in neg
 
-    assert 'x11' in expl
-    assert '<BIAS>' in expl
-    assert "'y'" in expl
+    for expl in [expl_text, expl_html]:
+        assert 'x11' in expl
+        assert '(score' in expl
+    assert "'y'" in expl_text
+    assert '<BIAS>' in expl_text
+    assert '<b>y</b>' in expl_html.replace(' ', '').replace('\n', '')
+    assert '&lt;BIAS&gt;' in expl_html
 
     assert res == explain_prediction(clf, X[0])
 

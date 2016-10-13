@@ -34,6 +34,7 @@ import pytest
 
 from eli5.sklearn import explain_weights, InvertableHashingVectorizer
 from eli5.formatters import format_as_text, format_as_html
+from .utils import write_html
 
 
 def check_newsgroups_explanation_linear(clf, vec, target_names):
@@ -42,7 +43,7 @@ def check_newsgroups_explanation_linear(clf, vec, target_names):
     res = get_res()
     expl_text, expl_html = format_as_text(res), format_as_html(res)
     print(expl_text)
-    print(expl_html)
+    write_html(clf, expl_html)
 
     assert [cl['class'] for cl in res['classes']] == target_names
 
@@ -201,12 +202,15 @@ def test_explain_linear_regression(boston_train, clf):
     X, y, feature_names = boston_train
     clf.fit(X, y)
     res = explain_weights(clf)
-    expl = format_as_text(res)
-    print(expl)
+    expl_text, expl_html = format_as_text(res), format_as_html(res)
+    print(expl_text)
+    write_html(clf, expl_html)
 
-    assert 'x12' in expl
-    assert 'x9' in expl
-    assert '<BIAS>' in expl
+    for expl in [expl_text, expl_html]:
+        assert 'x12' in expl
+        assert 'x9' in expl
+    assert '<BIAS>' in expl_text
+    assert '&lt;BIAS&gt;' in expl_html
 
     pos, neg = top_pos_neg(res['targets'], 'target', 'y')
     assert 'x12' in pos or 'x12' in neg

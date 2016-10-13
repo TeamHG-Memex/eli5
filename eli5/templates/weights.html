@@ -1,10 +1,26 @@
 {% for expl in explanations %}
 
-    {% if expl.class %}
-        <p><b>y={{ expl.class }}</b> top features</p>
-    {% elif expl.target %}
-        <p><b>{{ expl.target }}</b> top features</p>
-    {% endif %}
+    <p>
+        <b>
+            {% if expl.class %}
+                y={{ expl.class }}
+            {% elif expl.target %}
+                {{ expl.target }}
+            {% endif %}
+        </b>
+        {% if expl.proba is defined or expl.score is defined %}
+            {% set comma = joiner(", ") %}
+            (
+            {%- if expl.proba is defined -%}
+                {{ comma() }}probability <b>{{ "%0.3f"|format(expl.proba) }}</b>
+            {%- endif -%}
+            {%- if expl.score is defined -%}
+                {{ comma() }}score <b>{{ "%0.3f"|format(expl.score) }}</b>
+            {%- endif -%}
+            )
+        {% endif %}
+        top features
+    </p>
 
     <table>
         <thead>
