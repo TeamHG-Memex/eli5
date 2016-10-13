@@ -24,8 +24,7 @@ from sklearn.base import BaseEstimator
 import pytest
 
 from eli5.sklearn import explain_prediction, InvertableHashingVectorizer
-from eli5.formatters import format_as_text, format_as_html
-from .utils import write_html
+from .utils import format_as_all, strip_blanks
 
 
 @pytest.mark.parametrize(['clf'], [
@@ -49,10 +48,7 @@ def test_explain_linear(newsgroups_train, clf):
     get_res = lambda: explain_prediction(
         clf, docs[0], vec=vec, target_names=target_names, top=20)
     res = get_res()
-    expl_text, expl_html = format_as_text(res), format_as_html(res)
-    pprint(res)
-    print(expl_text)
-    write_html(clf, expl_html)
+    expl_text, expl_html = format_as_all(res, clf)
 
     for e in res['classes']:
         if e['class'] != 'comp.graphics':
@@ -68,17 +64,16 @@ def test_explain_linear(newsgroups_train, clf):
     assert res == get_res()
 
 
-def check_explain_linear_binary(res):
-    expl = format_as_text(res)
-    print(expl)
-    pprint(res)
+def check_explain_linear_binary(res, clf):
+    expl_text, expl_html = format_as_all(res, clf)
     assert len(res['classes']) == 1
     e = res['classes'][0]
     assert e['class'] == 'comp.graphics'
     neg = {name for name, value in e['feature_weights']['neg']}
     assert 'objective' in neg
-    assert 'comp.graphics' in expl
-    assert 'objective' in expl
+    for expl in [expl_text, expl_html]:
+        assert 'comp.graphics' in expl
+        assert 'objective' in expl
 
 
 @pytest.mark.parametrize(['vec'], [
@@ -94,7 +89,7 @@ def test_explain_linear_binary(vec, newsgroups_train_binary):
     get_res = lambda: explain_prediction(
         clf, docs[0], vec, target_names=target_names, top=20)
     res = get_res()
-    check_explain_linear_binary(res)
+    check_explain_linear_binary(res, clf)
     assert res == get_res()
     res_vectorized = explain_prediction(
         clf, vec.transform([docs[0]])[0], vec, target_names=target_names,
@@ -121,7 +116,7 @@ def test_explain_hashing_vectorizer(newsgroups_train_binary):
     get_res = lambda **kwargs: explain_prediction(
         clf, docs[0], ivec, target_names=target_names, top=20, **kwargs)
     res = get_res()
-    check_explain_linear_binary(res)
+    check_explain_linear_binary(res, clf)
     assert res == get_res()
     res_vectorized = explain_prediction(
         clf, vec.transform([docs[0]])[0], ivec, target_names=target_names,
@@ -146,15 +141,13 @@ def test_explain_linear_dense():
     test_day = {'day': 'tue', 'moon': 'full'}
     target_names = ['sunny', 'shady']
     res1 = explain_prediction(clf, test_day, vec, target_names=target_names)
-    expl1 = format_as_text(res1)
-    print(expl1)
-    assert 'day=tue' in expl1
+    expl_text, expl_html = format_as_all(res1, clf)
+    assert 'day=tue' in expl_text
+    assert 'day=tue' in expl_html
     [test_day_vec] = vec.transform(test_day)
     res2 = explain_prediction(
         clf, test_day_vec, target_names=target_names,
         vectorized=True, feature_names=vec.get_feature_names())
-    expl2 = format_as_text(res1)
-    print(expl2)
     assert res1 == res2
 
 
@@ -178,10 +171,7 @@ def test_explain_linear_regression(boston_train, clf):
     X, y, feature_names = boston_train
     clf.fit(X, y)
     res = explain_prediction(clf, X[0])
-    expl_text, expl_html = format_as_text(res), format_as_html(res)
-    pprint(res)
-    print(expl_text)
-    write_html(clf, expl_html)
+    expl_text, expl_html = format_as_all(res, clf)
 
     assert len(res['targets']) == 1
     target = res['targets'][0]
@@ -196,7 +186,7 @@ def test_explain_linear_regression(boston_train, clf):
         assert '(score' in expl
     assert "'y'" in expl_text
     assert '<BIAS>' in expl_text
-    assert '<b>y</b>' in expl_html.replace(' ', '').replace('\n', '')
+    assert '<b>y</b>' in strip_blanks(expl_html)
     assert '&lt;BIAS&gt;' in expl_html
 
     assert res == explain_prediction(clf, X[0])
@@ -214,9 +204,7 @@ def test_explain_linear_regression_multitarget(clf):
                            random_state=42)
     clf.fit(X, y)
     res = explain_prediction(clf, X[0])
-    expl = format_as_text(res)
-    pprint(res)
-    print(expl)
+    expl_text, expl_html = format_as_all(res, clf)
 
     assert len(res['targets']) == 3
     target = res['targets'][1]
@@ -226,8 +214,8 @@ def test_explain_linear_regression_multitarget(clf):
     assert 'x8' in pos or 'x8' in neg
     assert '<BIAS>' in pos or '<BIAS>' in neg
 
-    assert 'x8' in expl
-    assert '<BIAS>' in expl
-    assert "'y2'" in expl
+    assert 'x8' in expl_text
+    assert '<BIAS>' in expl_text
+    assert "'y2'" in expl_text
 
     assert res == explain_prediction(clf, X[0])

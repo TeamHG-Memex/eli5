@@ -33,17 +33,14 @@ from sklearn.base import BaseEstimator
 import pytest
 
 from eli5.sklearn import explain_weights, InvertableHashingVectorizer
-from eli5.formatters import format_as_text, format_as_html
-from .utils import write_html
+from .utils import format_as_all
 
 
 def check_newsgroups_explanation_linear(clf, vec, target_names):
     get_res = lambda: explain_weights(
         clf, vec, target_names=target_names, top=20)
     res = get_res()
-    expl_text, expl_html = format_as_text(res), format_as_html(res)
-    print(expl_text)
-    write_html(clf, expl_html)
+    expl_text, expl_html = format_as_all(res, clf)
 
     assert [cl['class'] for cl in res['classes']] == target_names
 
@@ -125,8 +122,7 @@ def test_explain_linear_tuple_top(newsgroups_train):
     clf.fit(X, y)
 
     res_neg = explain_weights(clf, vec, target_names=target_names, top=(0, 10))
-    expl_neg = format_as_text(res_neg)
-    print(expl_neg)
+    expl_neg, _ = format_as_all(res_neg, clf)
 
     for cl in res_neg['classes']:
         assert len(cl['feature_weights']['pos']) == 0
@@ -135,8 +131,7 @@ def test_explain_linear_tuple_top(newsgroups_train):
     assert "+0." not in expl_neg
 
     res_pos = explain_weights(clf, vec, target_names=target_names, top=(10, 2))
-    expl_pos = format_as_text(res_pos)
-    print(expl_pos)
+    format_as_all(res_pos, clf)
 
     for cl in res_pos['classes']:
         assert len(cl['feature_weights']['pos']) == 10
@@ -159,10 +154,10 @@ def test_explain_random_forest(newsgroups_train, clf):
     get_res = lambda: explain_weights(
         clf, vec, target_names=target_names, top=30)
     res = get_res()
-    expl = format_as_text(res)
-    print(expl)
-    assert 'feature importances' in expl
-    assert 'that 0.' in expl  # high-ranked feature
+    expl_text, expl_html = format_as_all(res, clf)
+    for expl in [expl_text, expl_html]:
+        assert 'feature importances' in expl
+    assert 'that 0.' in expl_text  # high-ranked feature
 
     assert res == get_res()
 
@@ -176,8 +171,7 @@ def test_explain_empty(newsgroups_train):
     clf.fit(X, y)
 
     res = explain_weights(clf, vec, target_names=target_names, top=20)
-    expl = format_as_text(res)
-    print(expl)
+    format_as_all(res, clf)
 
     assert [cl['class'] for cl in res['classes']] == target_names
 
@@ -202,9 +196,7 @@ def test_explain_linear_regression(boston_train, clf):
     X, y, feature_names = boston_train
     clf.fit(X, y)
     res = explain_weights(clf)
-    expl_text, expl_html = format_as_text(res), format_as_html(res)
-    print(expl_text)
-    write_html(clf, expl_html)
+    expl_text, expl_html = format_as_all(res, clf)
 
     for expl in [expl_text, expl_html]:
         assert 'x12' in expl
@@ -232,8 +224,7 @@ def test_explain_linear_regression_multitarget(clf):
                            random_state=42)
     clf.fit(X, y)
     res = explain_weights(clf)
-    expl = format_as_text(res)
-    print(expl)
+    expl, _ = format_as_all(res, clf)
 
     assert 'x9' in expl
     assert '<BIAS>' in expl
