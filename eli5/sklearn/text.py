@@ -1,10 +1,11 @@
 import re
 
+import numpy as np
 from six.moves import xrange
 from sklearn.feature_extraction.text import VectorizerMixin
 
 
-def highlighted_features(doc, vec, feature_weights, window=5):
+def highlighted_features(doc, vec, feature_weights):
     if not isinstance(vec, VectorizerMixin):
         return
     feature_weights_dict = {
@@ -16,11 +17,11 @@ def highlighted_features(doc, vec, feature_weights, window=5):
         return
     preprocessed_doc = vec.build_preprocessor()(vec.decode(doc))
     weighted_spans = []
-    for span, feature in span_analyzer(preprocessed_doc):
+    for spans, feature in span_analyzer(preprocessed_doc):
         weight = feature_weights_dict.get(feature)
         if weight is not None:
-            weighted_spans.append((span, weight))
-    return weighted_spans
+            weighted_spans.append((spans, weight))
+    return _highlight(preprocessed_doc, weighted_spans)
 
 
 def _build_span_analyzer(vec):
@@ -40,9 +41,11 @@ def _build_tokenizer(vec):
 
 def _word_ngrams(vec, tokens, stop_words=None):
     if stop_words is not None:
-        tokens = [w for w in tokens if w not in stop_words]
+        tokens = [(s, w) for s, w in tokens if w not in stop_words]
     min_n, max_n = vec.ngram_range
-    if max_n != 1:
+    if max_n == 1:
+        tokens = [([s], w) for s, w in tokens]
+    else:
         original_tokens = tokens
         tokens = []
         n_original_tokens = len(original_tokens)
@@ -54,3 +57,32 @@ def _word_ngrams(vec, tokens, stop_words=None):
                     [s for s, _ in ngram_tokens],
                     ' '.join(t for _, t in ngram_tokens)))
     return tokens
+
+
+def _highlight(doc, weighted_spans):
+    char_weights = np.zeros(len(doc))
+    for spans, weight in weighted_spans:
+        for start, end in spans:
+            char_weights[start:end] += weight
+    # TODO - can be much smarter, join spans at least
+    # TODO - for longer documents, remove text without active features
+    weight_range = max(abs(char_weights.min()), abs(char_weights.max()))
+    return ''.join(
+        c if np.isclose(weight, 0.) else
+        '<span style="background-color: {color}" '
+        'title="{weight:.3f}"'
+        '>{c}</span>'.format(
+            color=weight_color(weight, weight_range),
+            weight=weight,
+            c=c)
+        for c, weight in zip(doc, char_weights))
+
+
+def weight_color(weight, weight_range):
+    alpha = (abs(weight) / weight_range) ** 2
+    if weight > 0:
+        rgb = (0, 255, 0)
+    else:
+        rgb = (255, 0, 0)
+    rbga = rgb + (alpha,)
+    return 'rgba{}'.format(rbga)

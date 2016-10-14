@@ -22,6 +22,7 @@
         top features
     </p>
 
+    {% if force_weights or not expl.highlighted_features is defined %}
     <table class="eli5-weights">
         <thead>
         <tr>
@@ -61,5 +62,10 @@
         {% endwith %}
         </tbody>
     </table>
+    {% endif %}
+
+    {% if expl.highlighted_features %}
+    {{ expl.highlighted_features }}
+    {% endif %}
 
 {% endfor %}

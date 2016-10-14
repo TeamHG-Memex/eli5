@@ -8,9 +8,12 @@ template_env = Environment(
     extensions=['jinja2.ext.with_'])
 
 
-def format_as_html(explanation, include_styles=True):
+def format_as_html(explanation, include_styles=True, force_weights=False):
     template = template_env.get_template('explain.html')
-    return template.render(include_styles=include_styles, **explanation)
+    return template.render(
+        include_styles=include_styles,
+        force_weights=force_weights,
+        **explanation)
 
 
 def format_html_styles():
