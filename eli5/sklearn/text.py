@@ -1,13 +1,12 @@
 import re
 
-import numpy as np
 from six.moves import xrange
 from sklearn.feature_extraction.text import VectorizerMixin
 
 
-def highlighted_features(doc, vec, feature_weights):
-    """ If possible, return a string representation of doc with active
-    features highlighted.
+def get_weighted_spans(doc, vec, feature_weights):
+    """ If possible, return a dict with preprocessed document and a list
+    of spans with weights, corresponding to features in the document.
     """
     if not isinstance(vec, VectorizerMixin):
         return
@@ -23,7 +22,7 @@ def highlighted_features(doc, vec, feature_weights):
         weight = feature_weights_dict.get(feature)
         if weight is not None:
             weighted_spans.append((spans, weight))
-    return _highlight(preprocessed_doc, weighted_spans)
+    return {'document': preprocessed_doc, 'weighted_spans': weighted_spans}
 
 
 def _build_span_analyzer(document, vec):
@@ -116,40 +115,3 @@ def _char_wb_ngrams(vec, text_document):
             if offset == 0:   # count a short word (w_len < n) only once
                 break
     return ngrams
-
-
-def _highlight(doc, weighted_spans):
-    """ Highlight features in the document.
-    """
-    char_weights = np.zeros(len(doc))
-    for spans, weight in weighted_spans:
-        for start, end in spans:
-            char_weights[start:end] += weight
-    # TODO - can be much smarter, join spans at least
-    # TODO - for longer documents, remove text without active features
-    weight_range = max(abs(char_weights.min()), abs(char_weights.max()))
-    return ''.join(
-        c if np.isclose(weight, 0.) else
-        '<span '
-        'style="background-color: {color}" '
-        'title="{weight:.3f}"'
-        '>{c}</span>'.format(
-            color=_weight_color(weight, weight_range),
-            weight=weight,
-            c=c)
-        for c, weight in zip(doc, char_weights))
-
-
-def _weight_color(weight, weight_range):
-    """ Return css color for given weight, were the max absolute weight
-    is given by weight_range.
-    """
-    # TODO - maybe there are better solutions for this in matplotlib
-    alpha = (abs(weight) / weight_range) ** 1.5
-    h, l = 255, 150
-    if weight > 0:
-        rgb = (l, h, l)
-    else:
-        rgb = (h, l, l)
-    rbga = rgb + (alpha,)
-    return 'rgba{}'.format(rbga)

@@ -29,7 +29,7 @@ from eli5.sklearn.utils import (
     has_intercept,
     rename_label,
 )
-from eli5.sklearn.text import highlighted_features
+from eli5.sklearn.text import get_weighted_spans
 from eli5._feature_weights import get_top_features_dict
 
 
@@ -99,9 +99,9 @@ def explain_prediction_linear_classifier(
             if proba is not None:
                 class_info['proba'] = proba[label_id]
             if isinstance(doc, str) and vec is not None:
-                hfeatures = highlighted_features(doc, vec, feature_weights)
-                if hfeatures:
-                    class_info['highlighted_features'] = hfeatures
+                weighted_spans = get_weighted_spans(doc, vec, feature_weights)
+                if weighted_spans:
+                    class_info['weighted_spans'] = weighted_spans
             res['classes'].append(class_info)
     else:
         class_info = {
