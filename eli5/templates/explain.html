@@ -1,25 +1,6 @@
-<style>
-    table.eli5-weights {
-        border-collapse: collapse;
-        border: none;
-    }
-    table.eli5-weights tr:hover {
-        background-color: #f5f5f5;
-    }
-    table.eli5-weights td,
-    table.eli5-weights th {
-        padding: 0 1em 0 0.5em;
-        text-align: right;
-        border: none;
-        border-bottom: 1px solid #ddd;
-    }
-    table.eli5-weights td:last-child,
-    table.eli5-weights th:last-child {
-        /* Weights */
-        text-align: left;
-        padding-right: 0;
-    }
-</style>
+{% if include_styles %}
+    {% include "styles.html" %}
+{% endif %}
 
 {% if method %}
     <p>Explained as: {{ method }}</p>
