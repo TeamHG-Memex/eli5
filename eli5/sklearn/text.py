@@ -30,6 +30,9 @@ def _build_span_analyzer(document, vec):
         stop_words = vec.get_stop_words()
         tokenize = _build_tokenizer(vec)
         analyzer = lambda doc: _word_ngrams(vec, tokenize(doc), stop_words)
+    elif vec.analyzer == 'char':
+        preprocessed_doc = vec._white_spaces.sub(' ', preprocessed_doc)
+        analyzer = lambda doc: _char_ngrams(vec, doc)
     elif vec.analyzer == 'char_wb':
         preprocessed_doc = vec._white_spaces.sub(' ', preprocessed_doc)
         analyzer = lambda doc: _char_wb_ngrams(vec, doc)
@@ -65,6 +68,18 @@ def _word_ngrams(vec, tokens, stop_words=None):
                     [s for s, _ in ngram_tokens],
                     ' '.join(t for _, t in ngram_tokens)))
     return tokens
+
+
+# Adapted from VectorizerMixin._char_wb_ngrams
+
+def _char_ngrams(vec, text_document):
+    text_len = len(text_document)
+    ngrams = []
+    min_n, max_n = vec.ngram_range
+    for n in xrange(min_n, min(max_n + 1, text_len + 1)):
+        for i in xrange(text_len - n + 1):
+            ngrams.append(([(i, i + n)], text_document[i: i + n]))
+    return ngrams
 
 
 # Adapted from VectorizerMixin._char_wb_ngrams
