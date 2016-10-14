@@ -29,6 +29,7 @@ from eli5.sklearn.utils import (
     has_intercept,
     rename_label,
 )
+from eli5.sklearn.text import highlighted_features
 from eli5._feature_weights import get_top_features_dict
 
 
@@ -89,13 +90,18 @@ def explain_prediction_linear_classifier(
 
     if is_multiclass_classifier(clf):
         for label_id, label in enumerate(clf.classes_):
+            feature_weights = _weights(label_id)
             class_info = {
                 'class': _label(label_id, label),
-                'feature_weights': _weights(label_id),
+                'feature_weights': feature_weights,
                 'score': score[label_id],
             }
             if proba is not None:
                 class_info['proba'] = proba[label_id]
+            if isinstance(doc, str) and vec is not None:
+                hfeatures = highlighted_features(doc, vec, feature_weights)
+                if hfeatures:
+                    class_info['highlighted_features'] = hfeatures
             res['classes'].append(class_info)
     else:
         class_info = {
