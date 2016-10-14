@@ -41,14 +41,14 @@
             {% if w.pos_remaining %}
                 <tr>
                     <td>&hellip;</td>
-                    <td>({{ w.pos_remaining }} more positive features)</td>
+                    <td colspan="2">{{ w.pos_remaining }} more positive</td>
                 </tr>
             {% endif %}
 
             {% if w.neg_remaining %}
                 <tr>
                     <td>&hellip;</td>
-                    <td>({{ w.neg_remaining }} more negative features)</td>
+                    <td>{{ w.neg_remaining }} more negative</td>
                 </tr>
             {% endif %}
             {% for name, coef in w.neg|reverse %}
