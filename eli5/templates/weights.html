@@ -2,9 +2,9 @@
 
     <p>
         <b>
-            {% if expl.class %}
+            {% if expl.class is defined %}
                 y={{ expl.class }}
-            {% elif expl.target %}
+            {% elif expl.target is defined %}
                 {{ expl.target }}
             {% endif %}
         </b>
