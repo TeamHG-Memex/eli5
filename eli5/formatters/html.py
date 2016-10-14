@@ -11,7 +11,7 @@ template_env.filters['render_weighted_spans'] = \
     lambda x: render_weighted_spans(x)
 
 
-def format_as_html(explanation, include_styles=True, force_weights=False):
+def format_as_html(explanation, include_styles=True, force_weights=True):
     template = template_env.get_template('explain.html')
     return template.render(
         include_styles=include_styles,
