@@ -11,11 +11,10 @@ def highlighted_features(doc, vec, feature_weights):
     feature_weights_dict = {
         feature: weight for group in ['pos', 'neg']
         for feature, weight in feature_weights[group]}
-    span_analyzer = _build_span_analyzer(vec)
+    span_analyzer, preprocessed_doc = _build_span_analyzer(doc, vec)
     if span_analyzer is None:
         # TODO - fallback to work on tokens
         return
-    preprocessed_doc = vec.build_preprocessor()(vec.decode(doc))
     weighted_spans = []
     for spans, feature in span_analyzer(preprocessed_doc):
         weight = feature_weights_dict.get(feature)
@@ -24,13 +23,20 @@ def highlighted_features(doc, vec, feature_weights):
     return _highlight(preprocessed_doc, weighted_spans)
 
 
-def _build_span_analyzer(vec):
+def _build_span_analyzer(document, vec):
+    preprocessed_doc = vec.build_preprocessor()(vec.decode(document))
+    analyzer = None
     if vec.analyzer == 'word' and vec.tokenizer is None:
         stop_words = vec.get_stop_words()
         tokenize = _build_tokenizer(vec)
-        return lambda preprocessed_doc: _word_ngrams(
-            vec, tokenize(preprocessed_doc), stop_words)
+        analyzer = lambda doc: _word_ngrams(vec, tokenize(doc), stop_words)
+    elif vec.analyzer == 'char_wb':
+        preprocessed_doc = vec._white_spaces.sub(' ', preprocessed_doc)
+        analyzer = lambda doc: _char_wb_ngrams(vec, doc)
+    return analyzer, preprocessed_doc
 
+
+# Adapted from VectorizerMixin.build_tokenizer
 
 def _build_tokenizer(vec):
     token_pattern = re.compile(vec.token_pattern)
@@ -38,6 +44,8 @@ def _build_tokenizer(vec):
         (m.span(), m.group()) for m in re.finditer(token_pattern, doc)]
     return tokenizer
 
+
+# Adapted from VectorizerMixin._word_ngrams
 
 def _word_ngrams(vec, tokens, stop_words=None):
     if stop_words is not None:
@@ -57,6 +65,31 @@ def _word_ngrams(vec, tokens, stop_words=None):
                     [s for s, _ in ngram_tokens],
                     ' '.join(t for _, t in ngram_tokens)))
     return tokens
+
+
+# Adapted from VectorizerMixin._char_wb_ngrams
+
+def _char_wb_ngrams(vec, text_document):
+    min_n, max_n = vec.ngram_range
+    ngrams = []
+    for m in re.finditer(r'\S+', text_document):
+        w_start, w_end = m.start(), m.end()
+        w = m.group(0)
+        w = ' ' + w + ' '
+        w_len = len(w)
+        for n in xrange(min_n, max_n + 1):
+            offset = 0
+            ngrams.append((
+                [(w_start + offset - 1, w_start + offset + n - 1)],
+                w[offset:offset + n]))
+            while offset + n < w_len:
+                offset += 1
+                ngrams.append((
+                    [(w_start + offset - 1, w_start + offset + n - 1)],
+                    w[offset:offset + n]))
+            if offset == 0:   # count a short word (w_len < n) only once
+                break
+    return ngrams
 
 
 def _highlight(doc, weighted_spans):
