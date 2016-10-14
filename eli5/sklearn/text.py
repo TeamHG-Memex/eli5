@@ -6,6 +6,9 @@ from sklearn.feature_extraction.text import VectorizerMixin
 
 
 def highlighted_features(doc, vec, feature_weights):
+    """ If possible, return a string representation of doc with active
+    features highlighted.
+    """
     if not isinstance(vec, VectorizerMixin):
         return
     feature_weights_dict = {
@@ -24,6 +27,14 @@ def highlighted_features(doc, vec, feature_weights):
 
 
 def _build_span_analyzer(document, vec):
+    """ Return an analyzer and the preprocessed doc.
+    Analyzer will yield pairs of spans and feature, where spans are pairs
+    of indices into the preprocessed doc. The idea here is to do minimal
+    preprocessing so that we can still recover the same features as sklearn
+    vectorizers, but with spans, that will allow us to highlight
+    features in preprocessed documents.
+    Analyzers are adapter from VectorizerMixin from sklearn.
+    """
     preprocessed_doc = vec.build_preprocessor()(vec.decode(document))
     analyzer = None
     if vec.analyzer == 'word' and vec.tokenizer is None:
@@ -108,6 +119,8 @@ def _char_wb_ngrams(vec, text_document):
 
 
 def _highlight(doc, weighted_spans):
+    """ Highlight features in the document.
+    """
     char_weights = np.zeros(len(doc))
     for spans, weight in weighted_spans:
         for start, end in spans:
@@ -117,16 +130,21 @@ def _highlight(doc, weighted_spans):
     weight_range = max(abs(char_weights.min()), abs(char_weights.max()))
     return ''.join(
         c if np.isclose(weight, 0.) else
-        '<span style="background-color: {color}" '
+        '<span '
+        'style="background-color: {color}" '
         'title="{weight:.3f}"'
         '>{c}</span>'.format(
-            color=weight_color(weight, weight_range),
+            color=_weight_color(weight, weight_range),
             weight=weight,
             c=c)
         for c, weight in zip(doc, char_weights))
 
 
-def weight_color(weight, weight_range):
+def _weight_color(weight, weight_range):
+    """ Return css color for given weight, were the max absolute weight
+    is given by weight_range.
+    """
+    # TODO - maybe there are better solutions for this in matplotlib
     alpha = (abs(weight) / weight_range) ** 1.5
     h, l = 255, 150
     if weight > 0:
