@@ -79,10 +79,11 @@ def _highlight(doc, weighted_spans):
 
 
 def weight_color(weight, weight_range):
-    alpha = (abs(weight) / weight_range) ** 2
+    alpha = (abs(weight) / weight_range) ** 1.5
+    h, l = 255, 150
     if weight > 0:
-        rgb = (0, 255, 0)
+        rgb = (l, h, l)
     else:
-        rgb = (255, 0, 0)
+        rgb = (h, l, l)
     rbga = rgb + (alpha,)
     return 'rgba{}'.format(rbga)
