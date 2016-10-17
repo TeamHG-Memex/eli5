@@ -105,7 +105,7 @@ def test_explain_linear_binary(vec, newsgroups_train_binary):
 
 def test_explain_hashing_vectorizer(newsgroups_train_binary):
     # test that we can pass InvertableHashingVectorizer explicitly
-    vec = HashingVectorizer()
+    vec = HashingVectorizer(n_features=1000)
     ivec = InvertableHashingVectorizer(vec)
     clf = LogisticRegression(random_state=42)
     docs, y, target_names = newsgroups_train_binary
@@ -122,7 +122,10 @@ def test_explain_hashing_vectorizer(newsgroups_train_binary):
         clf, vec.transform([docs[0]])[0], ivec, target_names=target_names,
         top=20, vectorized=True)
     pprint(res_vectorized)
-    assert res_vectorized == res
+    _res = dict(res)
+    _res['classes'] = [{k: v for k, v in d.items() if k != 'weighted_spans'}
+                       for d in _res['classes']]
+    assert res_vectorized == _res
 
     assert res == get_res(
         feature_names=ivec.get_feature_names(always_signed=False),

@@ -90,18 +90,14 @@ def explain_prediction_linear_classifier(
 
     if is_multiclass_classifier(clf):
         for label_id, label in enumerate(clf.classes_):
-            feature_weights = _weights(label_id)
             class_info = {
                 'class': _label(label_id, label),
-                'feature_weights': feature_weights,
+                'feature_weights': _weights(label_id),
                 'score': score[label_id],
             }
             if proba is not None:
                 class_info['proba'] = proba[label_id]
-            if isinstance(doc, str) and vec is not None:
-                weighted_spans = get_weighted_spans(doc, vec, feature_weights)
-                if weighted_spans:
-                    class_info['weighted_spans'] = weighted_spans
+            _add_weighted_spans(doc, vec, class_info)
             res['classes'].append(class_info)
     else:
         class_info = {
@@ -111,9 +107,18 @@ def explain_prediction_linear_classifier(
         }
         if proba is not None:
             class_info['proba'] = proba[1]
+        _add_weighted_spans(doc, vec, class_info)
         res['classes'].append(class_info)
 
     return res
+
+
+def _add_weighted_spans(doc, vec, class_info):
+    if isinstance(doc, str) and vec is not None:
+        weighted_spans = get_weighted_spans(
+            doc, vec, class_info['feature_weights'])
+        if weighted_spans:
+            class_info['weighted_spans'] = weighted_spans
 
 
 def _multiply(X, coef):
@@ -183,6 +188,7 @@ def explain_prediction_linear_regressor(
                 'feature_weights': _weights(label_id),
                 'score': score[label_id],
             }
+            _add_weighted_spans(doc, vec, target_info)
             res['targets'].append(target_info)
     else:
         target_info = {
@@ -190,6 +196,7 @@ def explain_prediction_linear_regressor(
             'feature_weights': _weights(0),
             'score': score,
         }
+        _add_weighted_spans(doc, vec, target_info)
         res['targets'].append(target_info)
 
     return res

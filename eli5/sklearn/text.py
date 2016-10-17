@@ -3,16 +3,29 @@ import re
 from six.moves import xrange
 from sklearn.feature_extraction.text import VectorizerMixin
 
+from eli5.sklearn.unhashing import InvertableHashingVectorizer
+
 
 def get_weighted_spans(doc, vec, feature_weights):
     """ If possible, return a dict with preprocessed document and a list
     of spans with weights, corresponding to features in the document.
     """
+    if isinstance(vec, InvertableHashingVectorizer):
+        vec = vec.vec
     if not isinstance(vec, VectorizerMixin):
         return
+
+    def _get_features(feature):
+        if isinstance(feature, list):
+            return [f['name'] for f in feature]
+        else:
+            return [feature]
+
     feature_weights_dict = {
-        feature: weight for group in ['pos', 'neg']
-        for feature, weight in feature_weights[group]}
+        f: weight for group in ['pos', 'neg']
+        for feature, weight in feature_weights[group]
+        for f in _get_features(feature)}
+
     span_analyzer, preprocessed_doc = _build_span_analyzer(doc, vec)
     if span_analyzer is None:
         # TODO - fallback to work on tokens
