@@ -123,9 +123,9 @@ def format_signed(feature):
     """
     Format unhashed feature with sign.
 
-    >>> format_signed([{'name': 'foo', 'sign': 1}])
+    >>> format_signed({'name': 'foo', 'sign': 1})
     'foo'
-    >>> format_signed([{'name': 'foo', 'sign': -1}])
+    >>> format_signed({'name': 'foo', 'sign': -1})
     '(-)foo'
     """
     txt = '' if feature['sign'] > 0 else '(-)'

@@ -157,7 +157,7 @@ def test_explain_random_forest(newsgroups_train, clf):
     expl_text, expl_html = format_as_all(res, clf)
     for expl in [expl_text, expl_html]:
         assert 'feature importances' in expl
-    assert 'that 0.' in expl_text  # high-ranked feature
+        assert 'that' in expl  # high-ranked feature
 
     assert res == get_res()
 
