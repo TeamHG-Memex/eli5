@@ -36,27 +36,47 @@ def render_weighted_spans(weighted_spans_data):
     # TODO - for longer documents, remove text without active features
     weight_range = max(abs(char_weights.min()), abs(char_weights.max()))
     return ''.join(
-        c if np.isclose(weight, 0.) else
-        '<span '
-        'style="background-color: {color}" '
-        'title="{weight:.3f}"'
-        '>{c}</span>'.format(
-            color=_weight_color(weight, weight_range),
-            weight=weight,
-            c=c)
-        for c, weight in zip(doc, char_weights))
+        _colorize(char, weight, weight_range)
+        for char, weight in zip(doc, char_weights))
+
+
+def _colorize(char, weight, weight_range):
+    if np.isclose(weight, 0.):
+        return (
+            '<span '
+            'style="opacity: {opacity}"'
+            '>{char}</span>'.format(
+                opacity=_weight_opacity(weight, weight_range),
+                char=char)
+        )
+    else:
+        return (
+            '<span '
+            'style="background-color: {color}; opacity: {opacity}" '
+            'title="{weight:.3f}"'
+            '>{char}</span>'.format(
+                color=_weight_color(weight, weight_range),
+                opacity=_weight_opacity(weight, weight_range),
+                weight=weight,
+                char=char)
+        )
+
+
+def _weight_opacity(weight, weight_range):
+    """ Return opacity value for given weight as a string.
+    """
+    min_opacity = 0.5
+    rel_weight = abs(weight) / weight_range
+    return '{:.2f}'.format(min_opacity + (1 - min_opacity) * rel_weight)
 
 
 def _weight_color(weight, weight_range):
     """ Return css color for given weight, were the max absolute weight
     is given by weight_range.
     """
-    # TODO - maybe there are better solutions for this in matplotlib
-    alpha = (abs(weight) / weight_range) ** 1.5
-    h, l = 255, 150
-    if weight > 0:
-        rgb = (l, h, l)
-    else:
-        rgb = (h, l, l)
-    rbga = rgb + (alpha,)
-    return 'rgba{}'.format(rbga)
+    hue = 120 if weight > 0 else 0
+    saturation = 1
+    lightness = 1.0 - 0.5 * (abs(weight) / weight_range)
+    alpha = 1.
+    return 'hsla({}, {:.0%}, {:.0%}, {:.2f})'.format(
+        hue, saturation, lightness, alpha)
