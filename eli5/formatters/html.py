@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
-import numpy as np
+import cgi
 
+import numpy as np
 from jinja2 import Environment, PackageLoader
 
 
@@ -37,30 +38,37 @@ def render_weighted_spans(weighted_spans_data):
     # TODO - can be much smarter, join spans at least
     # TODO - for longer documents, remove text without active features
     weight_range = max(abs(char_weights.min()), abs(char_weights.max()))
-    return ''.join(
-        _colorize(char, weight, weight_range)
-        for char, weight in zip(doc, char_weights))
+    not_found_weights = sorted(
+        (feature, weight)
+        for feature, weight in weighted_spans_data['not_found'].items()
+        if not np.isclose(weight, 0.))
+    tokens_weights = list(zip(doc, char_weights))
+    return ' '.join(
+        ''.join(_colorize(token, weight, weight_range)
+                for token, weight in part)
+        for part in filter(None, [not_found_weights, tokens_weights]))
 
 
-def _colorize(char, weight, weight_range):
+def _colorize(token, weight, weight_range):
+    token = cgi.escape(token, quote=True)
     if np.isclose(weight, 0.):
         return (
             '<span '
             'style="opacity: {opacity}"'
-            '>{char}</span>'.format(
+            '>{token}</span>'.format(
                 opacity=_weight_opacity(weight, weight_range),
-                char=char)
+                token=token)
         )
     else:
         return (
             '<span '
             'style="background-color: {color}; opacity: {opacity}" '
             'title="{weight:.3f}"'
-            '>{char}</span>'.format(
+            '>{token}</span>'.format(
                 color=_weight_color(weight, weight_range),
                 opacity=_weight_opacity(weight, weight_range),
                 weight=weight,
-                char=char)
+                token=token)
         )
 
 

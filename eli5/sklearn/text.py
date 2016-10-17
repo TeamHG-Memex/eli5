@@ -18,11 +18,20 @@ def get_weighted_spans(doc, vec, feature_weights):
         # TODO - fallback to work on tokens
         return
     weighted_spans = []
+    found_features = set()
     for spans, feature in span_analyzer(preprocessed_doc):
         weight = feature_weights_dict.get(feature)
         if weight is not None:
+            found_features.add(feature)
             weighted_spans.append((spans, weight))
-    return {'document': preprocessed_doc, 'weighted_spans': weighted_spans}
+    not_found = {
+        feature: weight for feature, weight in feature_weights_dict.items()
+        if feature not in found_features}
+    return {
+        'document': preprocessed_doc,
+        'weighted_spans': weighted_spans,
+        'not_found': not_found,
+    }
 
 
 def _build_span_analyzer(document, vec):
