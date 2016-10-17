@@ -41,14 +41,14 @@
                 </tr>
             {% endfor %}
             {% if w.pos_remaining %}
-                <tr>
+                <tr style="background-color: {{ w.pos|smallest_weight_color(weight_range) }}">
                     <td>&hellip;</td>
                     <td colspan="2">{{ w.pos_remaining }} more positive</td>
                 </tr>
             {% endif %}
 
             {% if w.neg_remaining %}
-                <tr>
+                <tr style="background-color: {{ w.neg|smallest_weight_color(weight_range) }}">
                     <td>&hellip;</td>
                     <td>{{ w.neg_remaining }} more negative</td>
                 </tr>

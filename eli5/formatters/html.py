@@ -11,6 +11,8 @@ template_env = Environment(
 flt = template_env.filters
 flt['render_weighted_spans'] = lambda x: render_weighted_spans(x)
 flt['weight_color'] = lambda w, w_range: _weight_color(w, w_range)
+flt['smallest_weight_color'] = lambda ws, w_range: _weight_color(
+    min((coef for _, coef in ws), key=abs), w_range)
 flt['weight_range'] = lambda w: _weight_range(w)
 
 
