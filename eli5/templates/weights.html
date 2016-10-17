@@ -32,9 +32,10 @@
         </thead>
         <tbody>
         {% with w = expl.feature_weights %}
+            {% set weight_range = w|weight_range %}
 
             {% for name, coef in w.pos %}
-                <tr>
+                <tr style="background-color: {{ coef|weight_color(weight_range) }}">
                     <td>{{ name|escape }}</td>
                     <td>{{ "%+.3f"|format(coef) }}</td>
                 </tr>
@@ -53,7 +54,7 @@
                 </tr>
             {% endif %}
             {% for name, coef in w.neg|reverse %}
-                <tr>
+                <tr style="background-color: {{ coef|weight_color(weight_range) }}">
                     <td>{{ name|escape }}</td>
                     <td>{{ "%+.3f"|format(coef) }}</td>
                 </tr>

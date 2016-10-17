@@ -7,8 +7,10 @@ from jinja2 import Environment, PackageLoader
 template_env = Environment(
     loader=PackageLoader('eli5', 'templates'),
     extensions=['jinja2.ext.with_'])
-template_env.filters['render_weighted_spans'] = \
-    lambda x: render_weighted_spans(x)
+flt = template_env.filters
+flt['render_weighted_spans'] = lambda x: render_weighted_spans(x)
+flt['weight_color'] = lambda w, w_range: _weight_color(w, w_range)
+flt['weight_range'] = lambda w: _weight_range(w)
 
 
 def format_as_html(explanation, include_styles=True, force_weights=True):
@@ -65,7 +67,7 @@ def _colorize(char, weight, weight_range):
 def _weight_opacity(weight, weight_range):
     """ Return opacity value for given weight as a string.
     """
-    min_opacity = 0.5
+    min_opacity = 0.8
     rel_weight = abs(weight) / weight_range
     return '{:.2f}'.format(min_opacity + (1 - min_opacity) * rel_weight)
 
@@ -78,5 +80,10 @@ def _weight_color(weight, weight_range):
     saturation = 1
     lightness = 1.0 - 0.5 * (abs(weight) / weight_range)
     alpha = 1.
-    return 'hsla({}, {:.0%}, {:.0%}, {:.2f})'.format(
+    return 'hsla({}, {:.2%}, {:.2%}, {:.4f})'.format(
         hue, saturation, lightness, alpha)
+
+
+def _weight_range(weights):
+    return max(abs(coef) for key in ['pos', 'neg']
+               for _, coef in weights.get(key, []))
