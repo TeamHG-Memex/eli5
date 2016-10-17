@@ -78,7 +78,7 @@ def _weight_color(weight, weight_range):
     """
     hue = 120 if weight > 0 else 0
     saturation = 1
-    lightness = 1.0 - 0.5 * (abs(weight) / weight_range)
+    lightness = 1.0 - 0.4 * abs(weight) / weight_range
     alpha = 1.
     return 'hsla({}, {:.2%}, {:.2%}, {:.4f})'.format(
         hue, saturation, lightness, alpha)
