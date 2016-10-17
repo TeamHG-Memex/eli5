@@ -4,16 +4,20 @@ import cgi
 import numpy as np
 from jinja2 import Environment, PackageLoader
 
+from .text import _format_feature as format_feature_as_text
+
 
 template_env = Environment(
     loader=PackageLoader('eli5', 'templates'),
     extensions=['jinja2.ext.with_'])
-flt = template_env.filters
-flt['render_weighted_spans'] = lambda x: render_weighted_spans(x)
-flt['weight_color'] = lambda w, w_range: _weight_color(w, w_range)
-flt['smallest_weight_color'] = lambda ws, w_range: _weight_color(
-    min((coef for _, coef in ws), key=abs), w_range)
-flt['weight_range'] = lambda w: _weight_range(w)
+template_env.filters.update(dict(
+    render_weighted_spans=lambda x: render_weighted_spans(x),
+    weight_color=lambda w, w_range: _weight_color(w, w_range),
+    smallest_weight_color=lambda ws, w_range:
+        _weight_color(min([coef for _, coef in ws] or [0], key=abs), w_range),
+    weight_range=lambda w: _weight_range(w),
+    format_feature=lambda f: _format_feature(f),
+))
 
 
 def format_as_html(explanation, include_styles=True, force_weights=True):
@@ -97,5 +101,10 @@ def _weight_color(weight, weight_range):
 
 
 def _weight_range(weights):
-    return max(abs(coef) for key in ['pos', 'neg']
-               for _, coef in weights.get(key, []))
+    return max([abs(coef) for key in ['pos', 'neg']
+                for _, coef in weights.get(key, [])] or [0])
+
+
+def _format_feature(feature):
+    # TODO - we can do better with html
+    return cgi.escape(format_feature_as_text(feature))

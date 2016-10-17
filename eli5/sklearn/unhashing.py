@@ -127,17 +127,19 @@ class FeatureUnhasher(BaseEstimator):
         self.recalculate_attributes()
 
         # names of unknown features
-        names = np.array(
+        feature_names = np.array(
             [self.unkn_template % i for i in range(self.n_features)],
             dtype=object
         )
 
-        # names of known features
+        # lists of names with signs of known features
         column_ids, term_names, term_signs = self._get_collision_info()
-        _fmt = partial(_format_name, always_signed=always_signed)
-        names_formatted = list(map(_fmt, term_names, term_signs))
-        names[column_ids] = names_formatted
-        return names
+        for col_id, names, signs in zip(column_ids, term_names, term_signs):
+            if not always_signed and _invert_signs(signs):
+                signs = [-sign for sign in signs]
+            feature_names[col_id] = [{'name': name, 'sign': sign}
+                             for name, sign in zip(names, signs)]
+        return feature_names
 
     def recalculate_attributes(self, force=False):
         """
@@ -201,40 +203,6 @@ def _get_indices_and_signs(hasher, terms):
 
 def _transform_terms(hasher, terms):
     return hasher.transform(np.array(terms).reshape(-1, 1))
-
-
-def _signed(name, sign):
-    """
-    >>> _signed("foo", +1)
-    'foo'
-    >>> _signed("foo", -1)
-    '(-)foo'
-    """
-    txt = "" if sign > 0 else '(-)'
-    return "".join([txt, name])
-
-
-def _format_name(names, signs, sep=" | ", always_signed=False):
-    r"""
-    Format feature name for hashed features.
-    If always_signed is False (default), sign is only added if it is ambiguous.
-
-    >>> _format_name(["foo"], [-1])
-    'foo'
-    >>> _format_name(["foo"], [-1], always_signed=True)
-    '(-)foo'
-    >>> _format_name(["foo"], [+1])
-    'foo'
-    >>> _format_name(["foo", "bar"], [-1, -1])
-    'foo | bar'
-    >>> _format_name(["foo", "bar"], [-1, +1])
-    'foo | (-)bar'
-    >>> _format_name(["foo", "bar"], [1, -1])
-    'foo | (-)bar'
-    """
-    if not always_signed and _invert_signs(signs):
-        signs = [-sign for sign in signs]
-    return sep.join(_signed(n, s) for n, s in zip(names, signs))
 
 
 def _invert_signs(signs):

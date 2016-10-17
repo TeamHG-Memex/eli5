@@ -33,7 +33,7 @@ from sklearn.base import BaseEstimator
 import pytest
 
 from eli5.sklearn import explain_weights, InvertableHashingVectorizer
-from .utils import format_as_all
+from .utils import format_as_all, get_all_features
 
 
 def check_newsgroups_explanation_linear(clf, vec, target_names):
@@ -92,7 +92,7 @@ def test_explain_linear(newsgroups_train, clf):
 ])
 def test_explain_linear_hashed(newsgroups_train, clf):
     docs, y, target_names = newsgroups_train
-    vec = HashingVectorizer()
+    vec = HashingVectorizer(n_features=10000)
     ivec = InvertableHashingVectorizer(vec)
 
     X = vec.fit_transform(docs)
@@ -108,8 +108,8 @@ def top_pos_neg(classes, key, class_name):
     for expl in classes:
         if expl[key] != class_name:
             continue
-        pos = {name for name, value in expl['feature_weights']['pos']}
-        neg = {name for name, value in expl['feature_weights']['neg']}
+        pos = get_all_features(expl['feature_weights']['pos'])
+        neg = get_all_features(expl['feature_weights']['neg'])
         return pos, neg
 
 

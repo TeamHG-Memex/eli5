@@ -56,10 +56,7 @@ def _format_weights(explanations):
         lines.append("-" * (sz + 10))
 
         w = explanation['feature_weights']
-        pos = w['pos']
-        neg = w['neg']
-        for name, coef in pos:
-            lines.append("%s %+8.3f" % (name.rjust(sz), coef))
+        lines.extend(_format_feature_weights(w['pos'], sz))
         if w['pos_remaining']:
             msg = "%s   (%d more positive features)" % (
                 "...".rjust(sz), w['pos_remaining']
@@ -70,8 +67,7 @@ def _format_weights(explanations):
                 "...".rjust(sz), w['neg_remaining']
             )
             lines.append(msg)
-        for name, coef in reversed(neg):
-            lines.append("%s %+8.3f" % (name.rjust(sz), coef))
+        lines.extend(_format_feature_weights(w['neg'], sz))
         lines.append("")
     return lines
 
@@ -85,13 +81,53 @@ def _format_scores(proba, score):
     return ", ".join(scores)
 
 
-def _maxlen(features):
-    if not features:
+def _maxlen(feature_weights):
+    if not feature_weights:
         return 0
-    return max(len(it[0]) for it in features)
+    return max(len(_format_feature(it[0])) for it in feature_weights)
 
 
 def _rjust_size(explanation):
     def _max_feature_length(w):
         return _maxlen(w['pos'] + w['neg'])
     return max(_max_feature_length(e['feature_weights']) for e in explanation)
+
+
+def _format_feature_weights(feature_weights, sz):
+    return ['%s %+8.3f' % (_format_feature(name).rjust(sz), coef)
+            for name, coef in feature_weights]
+
+
+def _format_feature(name):
+    if isinstance(name, list) and ('name' in x and 'sign' in x for x in name):
+        return _format_unhashed_feature(name)
+    else:
+        return name
+
+
+def _format_unhashed_feature(name, sep=' | '):
+    r"""
+    Format feature name for hashed features.
+    If always_signed is False (default), sign is only added if it is ambiguous.
+
+    >>> _format_unhashed_feature(['foo'], [-1])
+    '(-)foo'
+    >>> _format_unhashed_feature(['foo'], [+1])
+    'foo'
+    >>> _format_unhashed_feature(['foo', 'bar'], [-1, +1])
+    '(-)foo | bar'
+    >>> _format_unhashed_feature(['foo', 'bar'], [1, -1])
+    'foo | (-)bar'
+    """
+    return sep.join(_signed(x['name'], x['sign']) for x in name)
+
+
+def _signed(name, sign):
+    """
+    >>> _signed('foo', +1)
+    'foo'
+    >>> _signed('foo', -1)
+    '(-)foo'
+    """
+    txt = '' if sign > 0 else '(-)'
+    return ''.join([txt, name])

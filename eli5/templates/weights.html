@@ -36,7 +36,7 @@
 
             {% for name, coef in w.pos %}
                 <tr style="background-color: {{ coef|weight_color(weight_range) }}">
-                    <td>{{ name|escape }}</td>
+                    <td>{{ name|format_feature }}</td>
                     <td>{{ "%+.3f"|format(coef) }}</td>
                 </tr>
             {% endfor %}
@@ -55,7 +55,7 @@
             {% endif %}
             {% for name, coef in w.neg|reverse %}
                 <tr style="background-color: {{ coef|weight_color(weight_range) }}">
-                    <td>{{ name|escape }}</td>
+                    <td>{{ name|format_feature }}</td>
                     <td>{{ "%+.3f"|format(coef) }}</td>
                 </tr>
             {% endfor %}

@@ -24,7 +24,7 @@ from sklearn.base import BaseEstimator
 import pytest
 
 from eli5.sklearn import explain_prediction, InvertableHashingVectorizer
-from .utils import format_as_all, strip_blanks
+from .utils import format_as_all, strip_blanks, get_all_features
 
 
 @pytest.mark.parametrize(['clf'], [
@@ -53,7 +53,7 @@ def test_explain_linear(newsgroups_train, clf):
     for e in res['classes']:
         if e['class'] != 'comp.graphics':
             continue
-        pos = {name for name, value in e['feature_weights']['pos']}
+        pos = get_all_features(e['feature_weights']['pos'])
         assert 'file' in pos
 
     for expl in [expl_text, expl_html]:
@@ -69,7 +69,7 @@ def check_explain_linear_binary(res, clf):
     assert len(res['classes']) == 1
     e = res['classes'][0]
     assert e['class'] == 'comp.graphics'
-    neg = {name for name, value in e['feature_weights']['neg']}
+    neg = get_all_features(e['feature_weights']['neg'])
     assert 'objective' in neg
     for expl in [expl_text, expl_html]:
         assert 'comp.graphics' in expl
@@ -96,8 +96,8 @@ def test_explain_linear_binary(vec, newsgroups_train_binary):
         top=20, vectorized=True)
     if isinstance(vec, HashingVectorizer):
         # InvertableHashingVectorizer must be passed with vectorized=True
-        neg_vectorized = {name for name, value in
-                          res_vectorized['classes'][0]['feature_weights']['neg']}
+        neg_vectorized = get_all_features(
+            res_vectorized['classes'][0]['feature_weights']['neg'])
         assert all(name.startswith('x') for name in neg_vectorized)
     else:
         assert res_vectorized == res
@@ -176,8 +176,8 @@ def test_explain_linear_regression(boston_train, clf):
     assert len(res['targets']) == 1
     target = res['targets'][0]
     assert target['target'] == 'y'
-    pos, neg = (dict(target['feature_weights']['pos']),
-                dict(target['feature_weights']['neg']))
+    pos, neg = (get_all_features(target['feature_weights']['pos']),
+                get_all_features(target['feature_weights']['neg']))
     assert 'x11' in pos or 'x11' in neg
     assert '<BIAS>' in pos or '<BIAS>' in neg
 
@@ -209,8 +209,8 @@ def test_explain_linear_regression_multitarget(clf):
     assert len(res['targets']) == 3
     target = res['targets'][1]
     assert target['target'] == 'y1'
-    pos, neg = (dict(target['feature_weights']['pos']),
-                dict(target['feature_weights']['neg']))
+    pos, neg = (get_all_features(target['feature_weights']['pos']),
+                get_all_features(target['feature_weights']['neg']))
     assert 'x8' in pos or 'x8' in neg
     assert '<BIAS>' in pos or '<BIAS>' in neg
 

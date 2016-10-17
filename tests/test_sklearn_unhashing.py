@@ -37,14 +37,11 @@ def check_feature_names(vec, ivec, always_signed, corpus):
     feature_names = ivec.get_feature_names(always_signed=always_signed)
     seen_words = set()
     counts = Counter(corpus)
-    for idx, feature_name in enumerate(feature_names):
-        collisions = feature_name.split(' | ')
+    for idx, collisions in enumerate(feature_names):
         words_in_collision = []
-        for ic, c in enumerate(collisions):
-            sign = 1
-            if c.startswith('(-)'):
-                c = c[len('(-)'):]
-                sign = -1
+        for ic, collision in enumerate(collisions):
+            sign = collision['sign']
+            c = collision['name']
             if ic == 0 and not always_signed:
                 # Most frequent term is always not inverted.
                 assert sign == 1, collisions

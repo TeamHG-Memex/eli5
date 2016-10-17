@@ -55,3 +55,15 @@ def _write_html(clf, html, text):
                 .format(text=cgi.escape(text, quote=True), html=html)
                 .encode('utf8'))
     print('html written to {}'.format(path))
+
+
+def get_all_features(feature_weights):
+    """ Collect a set of all features from feature weights.
+    """
+    features = set()
+    for name, value in feature_weights:
+        if isinstance(name, list):
+            features.update(f['name'] for f in name)
+        else:
+            features.add(name)
+    return features
