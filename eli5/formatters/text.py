@@ -3,12 +3,13 @@ from __future__ import absolute_import
 import six
 
 _PLUS_MINUS = "+-" if six.PY2 else "±"
+_ELLIPSIS = '...' if six.PY2 else '…'
 
 
 def format_as_text(explanation):
     lines = []
     if 'method' in explanation:
-        lines.append("Explained as: %s" % explanation['method'])
+        lines.append('Explained as: {}'.format(explanation['method']))
 
     if 'description' in explanation:
         lines.append(explanation['description'])
@@ -22,16 +23,19 @@ def format_as_text(explanation):
     if 'feature_importances' in explanation:
         sz = _maxlen(explanation['feature_importances'])
         for name, w, std in explanation['feature_importances']:
-            lines.append("%s %0.4f %s %0.4f" % (
-                name.rjust(sz), w, _PLUS_MINUS, 2*std,
+            lines.append('{w:0.4f} {plus} {std:0.4f} {feature}'.format(
+                feature=name.ljust(sz),
+                w=w,
+                plus=_PLUS_MINUS,
+                std=2*std,
             ))
 
-    return "\n".join(lines)
+    return '\n'.join(lines)
 
 
 def _format_weights(explanations):
     lines = []
-    sz = _rjust_size(explanations)
+    sz = _max_feature_size(explanations)
     for explanation in explanations:
         scores = _format_scores(
             explanation.get('proba'),
@@ -58,15 +62,9 @@ def _format_weights(explanations):
         w = explanation['feature_weights']
         lines.extend(_format_feature_weights(w['pos'], sz))
         if w['pos_remaining']:
-            msg = "%s   (%d more positive features)" % (
-                "...".rjust(sz), w['pos_remaining']
-            )
-            lines.append(msg)
+            lines.append(_format_remaining(w['pos_remaining'], 'positive'))
         if w['neg_remaining']:
-            msg = "%s   (%d more negative features)" % (
-                "...".rjust(sz), w['neg_remaining']
-            )
-            lines.append(msg)
+            lines.append(_format_remaining(w['neg_remaining'], 'negative'))
         lines.extend(_format_feature_weights(w['neg'], sz))
         lines.append("")
     return lines
@@ -87,15 +85,24 @@ def _maxlen(feature_weights):
     return max(len(_format_feature(it[0])) for it in feature_weights)
 
 
-def _rjust_size(explanation):
+def _max_feature_size(explanation):
     def _max_feature_length(w):
         return _maxlen(w['pos'] + w['neg'])
     return max(_max_feature_length(e['feature_weights']) for e in explanation)
 
 
 def _format_feature_weights(feature_weights, sz):
-    return ['%s %+8.3f' % (_format_feature(name).rjust(sz), coef)
+    return ['{weight:+8.3f}  {feature}'.format(
+        weight=coef, feature=_format_feature(name).ljust(sz))
             for name, coef in feature_weights]
+
+
+def _format_remaining(remaining, kind):
+    return '{ellipsis}  ({remaining} more {kind} features)'.format(
+        ellipsis=_ELLIPSIS.rjust(8),
+        remaining=remaining,
+        kind=kind,
+    )
 
 
 def _format_feature(name):
