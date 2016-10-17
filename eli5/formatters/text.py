@@ -110,13 +110,13 @@ def _format_unhashed_feature(name, sep=' | '):
     Format feature name for hashed features.
     If always_signed is False (default), sign is only added if it is ambiguous.
 
-    >>> _format_unhashed_feature(['foo'], [-1])
+    >>> _format_unhashed_feature([{'name': 'foo', 'sign': -1}])
     '(-)foo'
-    >>> _format_unhashed_feature(['foo'], [+1])
+    >>> _format_unhashed_feature([{'name': 'foo', 'sign': 1}])
     'foo'
-    >>> _format_unhashed_feature(['foo', 'bar'], [-1, +1])
+    >>> _format_unhashed_feature([{'name': 'foo', 'sign': -1}, {'name': 'bar', 'sign': 1}])
     '(-)foo | bar'
-    >>> _format_unhashed_feature(['foo', 'bar'], [1, -1])
+    >>> _format_unhashed_feature([{'name': 'foo', 'sign': 1}, {'name': 'bar', 'sign': -11}])
     'foo | (-)bar'
     """
     return sep.join(_signed(x['name'], x['sign']) for x in name)
