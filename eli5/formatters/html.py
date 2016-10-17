@@ -42,11 +42,13 @@ def render_weighted_spans(weighted_spans_data):
         (feature, weight)
         for feature, weight in weighted_spans_data['not_found'].items()
         if not np.isclose(weight, 0.))
-    tokens_weights = list(zip(doc, char_weights))
-    return ' '.join(
-        ''.join(_colorize(token, weight, weight_range)
-                for token, weight in part)
-        for part in filter(None, [not_found_weights, tokens_weights]))
+    hl_doc = []
+    if not_found_weights:
+        hl_doc.append(' '.join(_colorize(token, weight, weight_range)
+                            for token, weight in not_found_weights))
+    hl_doc.append(''.join(_colorize(token, weight, weight_range)
+                       for token, weight in zip(doc, char_weights)))
+    return ' '.join(hl_doc)
 
 
 def _colorize(token, weight, weight_range):
