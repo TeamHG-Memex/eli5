@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
-import cgi
 import os
 import inspect
 from pprint import pprint
@@ -9,6 +8,7 @@ from hypothesis.strategies import integers
 from hypothesis.extra.numpy import arrays
 
 from eli5.formatters import format_as_text, format_as_html
+from eli5.formatters.html import html_escape
 
 
 def rnd_len_arrays(dtype, min_len=0, max_len=3, elements=None):
@@ -52,7 +52,7 @@ def _write_html(clf, html, text):
     path = os.path.join(dirname, filename)
     with open(path, 'wb') as f:
         f.write('Text:<pre>{text}</pre>End of text<hr/>\n{html}'
-                .format(text=cgi.escape(text, quote=True), html=html)
+                .format(text=html_escape(text), html=html)
                 .encode('utf8'))
     print('html written to {}'.format(path))
 

@@ -4,7 +4,7 @@ import cgi
 import numpy as np
 from jinja2 import Environment, PackageLoader
 
-from .text import _format_feature as format_feature_as_text
+from .text import format_signed
 
 
 template_env = Environment(
@@ -105,6 +105,25 @@ def _weight_range(weights):
                 for _, coef in weights.get(key, [])] or [0])
 
 
+def _format_unhashed_feature(feature):
+    if not feature:
+        return ''
+    else:
+        first, rest = feature[0], feature[1:]
+        html = html_escape(format_signed(first))
+        if rest:
+            html += ' <span title="{}">&hellip;</span>'.format(
+                '\n'.join(html_escape(format_signed(f)) for f in rest))
+        return html
+
+
 def _format_feature(feature):
-    # TODO - we can do better with html
-    return cgi.escape(format_feature_as_text(feature))
+    if (isinstance(feature, list) and
+            ('name' in x and 'sign' in x for x in feature)):
+        return _format_unhashed_feature(feature)
+    else:
+        return html_escape(feature)
+
+
+def html_escape(text):
+    return cgi.escape(text, quote=True)
