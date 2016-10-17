@@ -27,15 +27,15 @@
     <table class="eli5-weights">
         <thead>
         <tr>
-            <th>Feature</th>
             <th>Weight</th>
+            <th>Feature</th>
         </tr>
         </thead>
         <tbody>
         {% for name, w, std in feature_importances %}
             <tr>
-                <td>{{ name }}</td>
                 <td>{{ "%0.4f"|format(w) }} &plusmn; {{ "%0.4f"|format(2 * std) }}</td>
+                <td>{{ name }}</td>
             </tr>
         {% endfor %}
         </tbody>
