@@ -86,7 +86,7 @@ class MultivariateKernelDensitySampler(_BaseKernelDensitySampler):
     kernel density estimation.
 
     The limitation is that a single bandwidth value is used for all dimensions,
-    i.e. bandwith matrix is a positive scalars times the identity matrix.
+    i.e. bandwith matrix is a positive scalar times the identity matrix.
     It is a problem e.g. when features have different variances
     (e.g. some of them are one-hot encoded and other are continuous).
     """
