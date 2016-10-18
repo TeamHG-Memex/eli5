@@ -72,7 +72,7 @@ def test_univariate_kde_sampler():
     assert (zeros | ones).sum() == 1000
     assert 0.5 < feat2_sampled.mean() < 0.9
     assert zeros.sum() > 100
-    assert ones.sum() > 600
+    assert ones.sum() > 500
 
     # feat1 should be centered around zero
     assert -1 < feat1_sampled.mean() < 1
