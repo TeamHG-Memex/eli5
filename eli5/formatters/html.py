@@ -55,7 +55,7 @@ def render_weighted_spans(weighted_spans_data):
     doc = weighted_spans_data['document']
     weighted_spans = weighted_spans_data['weighted_spans']
     char_weights = np.zeros(len(doc))
-    for spans, weight in weighted_spans:
+    for _, spans, weight in weighted_spans:
         for start, end in spans:
             char_weights[start:end] += weight
     # TODO - can be much smarter, join spans at least

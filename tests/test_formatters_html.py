@@ -28,10 +28,10 @@ def test_render_weighted_spans():
     weighted_spans = {
         'document': 'i see: a leaning lemon tree',
         'weighted_spans': [
-            ([(2, 5)], 0.2),
-            ([(23, 27)], -0.6),
-            ([(9, 16), (17, 22)], 0.5),
-            ([(17, 22), (23, 27)], 0.8)],
+            ('see', [(2, 5)], 0.2),
+            ('tree', [(23, 27)], -0.6),
+            ('leaning lemon', [(9, 16), (17, 22)], 0.5),
+            ('lemon tree', [(17, 22), (23, 27)], 0.8)],
         'not_found': {'<BIAS>': 0.5}
     }
     s = render_weighted_spans(weighted_spans)

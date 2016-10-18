@@ -35,7 +35,7 @@ def get_weighted_spans(doc, vec, feature_weights):
         weight = feature_weights_dict.get(feature)
         if weight is not None:
             found_features.add(feature)
-            weighted_spans.append((spans, weight))
+            weighted_spans.append((feature, spans, weight))
     not_found = {
         feature: weight for feature, weight in feature_weights_dict.items()
         if feature not in found_features}
