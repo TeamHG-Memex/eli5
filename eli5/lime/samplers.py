@@ -92,6 +92,7 @@ class MultivariateKernelDensitySampler(_BaseKernelDensitySampler):
     """
     def fit(self, X, y=None):
         self.grid_, self.kde_ = self._fit_kde(self.kde, X)
+        return self
 
     def sample_near(self, doc, n_samples=1):
         # XXX: it doesn't sample only near the given document, it
@@ -122,6 +123,7 @@ class UnivariateKernelDensitySampler(_BaseKernelDensitySampler):
             grid, kde = self._fit_kde(self.kde, X[:, i].reshape(-1, 1))
             self.grids_.append(grid)
             self.kdes_.append(kde)
+        return self
 
     def sample_near(self, doc, n_samples=1):
         """
