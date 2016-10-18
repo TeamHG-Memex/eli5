@@ -26,6 +26,10 @@ def format_as_html(explanation, include_styles=True, force_weights=True):
     return template.render(
         include_styles=include_styles,
         force_weights=force_weights,
+        table_styles='border-collapse: collapse; border: none;',
+        tr_styles='border: none;',
+        td1_styles='padding: 0 1em 0 0.5em; text-align: right; border: none;',
+        td2_styles='padding: 0 0.5em 0 0.5em; text-align: left; border: none;',
         **explanation)
 
 

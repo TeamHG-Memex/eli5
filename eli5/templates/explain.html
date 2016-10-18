@@ -24,9 +24,9 @@
 {% endif %}
 
 {% if feature_importances %}
-    <table class="eli5-weights">
+    <table class="eli5-weights" style="{{ table_styles }}">
         <thead>
-        <tr>
+        <tr style="{{ tr_styles }}">
             <th>Weight</th>
             <th>Feature</th>
         </tr>
@@ -34,9 +34,13 @@
         <tbody>
         {% with weight_range = feature_importances|fi_weight_range %}
             {% for name, w, std in feature_importances %}
-                <tr style="background-color: {{ w|weight_color(weight_range) }}">
-                    <td>{{ "%0.4f"|format(w) }} &plusmn; {{ "%0.4f"|format(2 * std) }}</td>
-                    <td>{{ name }}</td>
+                <tr style="background-color: {{ w|weight_color(weight_range) }}; {{ tr_styles }}">
+                    <td style="{{ td1_styles }}">
+                        {{ "%0.4f"|format(w) }} &plusmn; {{ "%0.4f"|format(2 * std) }}
+                    </td>
+                    <td style="{{ td2_styles }}">
+                        {{ name }}
+                    </td>
                 </tr>
             {% endfor %}
         {% endwith %}
