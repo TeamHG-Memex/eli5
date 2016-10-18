@@ -32,12 +32,14 @@
         </tr>
         </thead>
         <tbody>
-        {% for name, w, std in feature_importances %}
-            <tr>
-                <td>{{ "%0.4f"|format(w) }} &plusmn; {{ "%0.4f"|format(2 * std) }}</td>
-                <td>{{ name }}</td>
-            </tr>
-        {% endfor %}
+        {% with weight_range = feature_importances|fi_weight_range %}
+            {% for name, w, std in feature_importances %}
+                <tr style="background-color: {{ w|weight_color(weight_range) }}">
+                    <td>{{ "%0.4f"|format(w) }} &plusmn; {{ "%0.4f"|format(2 * std) }}</td>
+                    <td>{{ name }}</td>
+                </tr>
+            {% endfor %}
+        {% endwith %}
         </tbody>
     </table>
 {% endif %}

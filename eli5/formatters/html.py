@@ -16,6 +16,7 @@ template_env.filters.update(dict(
     smallest_weight_color=lambda ws, w_range:
         _weight_color(min([coef for _, coef in ws] or [0], key=abs), w_range),
     weight_range=lambda w: _weight_range(w),
+    fi_weight_range=lambda w: max([abs(x[1]) for x in w] or [0]),
     format_feature=lambda f: _format_feature(f),
 ))
 
