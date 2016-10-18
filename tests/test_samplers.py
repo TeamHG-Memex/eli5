@@ -87,7 +87,7 @@ def test_multivariate_kde_sampler():
     s.fit(X)
 
     # no extreme bandwidths
-    assert 0.05 < s.kde_.bandwidth < 5
+    assert 0.01 < s.kde_.bandwidth < 5
 
     # check sampling results
     X_sampled, distances = s.sample_near(X[0], 1000)
