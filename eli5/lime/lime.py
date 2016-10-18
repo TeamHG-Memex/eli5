@@ -73,7 +73,7 @@ def get_local_classifier(doc,
                          test_size=0.3,
                          ):
     # type: (Any, Callable[[Any], np.ndarray], Any, Any, BaseSampler, int, float, float) -> Tuple[Any, Any, float]
-    samples, similarities = sampler.sample_near(doc, n_samples=n_samples)
+    samples, distances = sampler.sample_near(doc, n_samples=n_samples)
     y_proba = predict_proba(samples)
     y_best = y_proba.argmax(axis=1)
 
@@ -92,7 +92,7 @@ def get_local_classifier(doc,
     # XXX: in the original lime code instead of a probabilitsic classifier
     # they build several regression models which try to output probabilities.
     #
-    # XXX: similarities are currently unused; using sample_weights
+    # XXX: distances are currently unused; using sample_weights
     # doesn't seem to improve quality. TODO: investigate it.
     X_train = local_vec.fit_transform(docs_train)
 
