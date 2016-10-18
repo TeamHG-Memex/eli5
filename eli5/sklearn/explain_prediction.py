@@ -3,6 +3,7 @@ from singledispatch import singledispatch
 
 import numpy as np
 import scipy.sparse as sp
+import six
 from sklearn.feature_extraction.text import HashingVectorizer
 from sklearn.linear_model import (
     ElasticNet,
@@ -114,7 +115,7 @@ def explain_prediction_linear_classifier(
 
 
 def _add_weighted_spans(doc, vec, class_info):
-    if isinstance(doc, str) and vec is not None:
+    if isinstance(doc, six.string_types) and vec is not None:
         weighted_spans = get_weighted_spans(
             doc, vec, class_info['feature_weights'])
         if weighted_spans:

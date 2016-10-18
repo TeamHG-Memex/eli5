@@ -28,7 +28,6 @@ def get_weighted_spans(doc, vec, feature_weights):
 
     span_analyzer, preprocessed_doc = _build_span_analyzer(doc, vec)
     if span_analyzer is None:
-        # TODO - fallback to work on tokens
         return
     weighted_spans = []
     found_features = set()

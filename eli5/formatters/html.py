@@ -22,6 +22,14 @@ template_env.filters.update(dict(
 
 
 def format_as_html(explanation, include_styles=True, force_weights=True):
+    """ Format explanation as html.
+    Most styles are inline, but some are included separately in <style> tag,
+    you can omit them by passing ``include_styles=False`` and call
+    ``format_html_styles`` to render them separately (or just omit them).
+    With ``force_weights=False``, weights will not be displayed in a table for
+    predictions where it is possible to show feature weights highlighted
+    in the document.
+    """
     template = template_env.get_template('explain.html')
     return template.render(
         include_styles=include_styles,
@@ -34,6 +42,9 @@ def format_as_html(explanation, include_styles=True, force_weights=True):
 
 
 def format_html_styles():
+    """ Format just the styles,
+    use with ``format_as_html(explanation, include_styles=False)``.
+    """
     return template_env.get_template('styles.html').render()
 
 
@@ -69,7 +80,7 @@ def _colorize(token, weight, weight_range):
     """ Return token wrapped in a span with some styles
     (calculated from weight and weight_range) applied.
     """
-    token = cgi.escape(token, quote=True)
+    token = html_escape(token)
     if np.isclose(weight, 0.):
         return (
             '<span '
@@ -105,7 +116,8 @@ def _weight_color(weight, weight_range):
     """
     hue = 120 if weight > 0 else 0
     saturation = 1
-    lightness = 1.0 - 0.4 * abs(weight) / weight_range
+    min_lightness = 0.6
+    lightness = 1.0 - (1 - min_lightness) * abs(weight) / weight_range
     return 'hsl({}, {:.2%}, {:.2%})'.format(hue, saturation, lightness)
 
 
@@ -135,7 +147,7 @@ def _format_feature(feature):
     """ Format any feature.
     """
     if (isinstance(feature, list) and
-            ('name' in x and 'sign' in x for x in feature)):
+            all('name' in x and 'sign' in x for x in feature)):
         return _format_unhashed_feature(feature)
     else:
         return html_escape(feature)
