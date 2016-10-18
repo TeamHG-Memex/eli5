@@ -70,3 +70,21 @@ def test_weighted_spans_char():
             ([(20, 23)], 0.8),
             ([(7, 11)], 0.5)],
         'not_found': {}}
+
+
+def test_weighted_spans_char_wb():
+    doc = 'I see: a leaning lemon tree'
+    vec = CountVectorizer(analyzer='char_wb', ngram_range=(3, 4))
+    vec.fit([doc])
+    w_spans = get_weighted_spans(
+        doc, vec,
+        {'pos': [('see', 0.2), ('a le', 0.5), ('on ', 0.8)],
+         'neg': [('lem', -0.6), (' lem', -0.4)]})
+    assert w_spans == {
+        'document': 'i see: a leaning lemon tree',
+        'weighted_spans': [
+            ([(2, 5)], 0.2),
+            ([(17, 20)], -0.6),
+            ([(20, 23)], 0.8),
+            ([(16, 20)], -0.4)],
+        'not_found': {'a le': 0.5}}
