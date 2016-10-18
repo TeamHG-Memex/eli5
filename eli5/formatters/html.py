@@ -37,6 +37,7 @@ def format_as_html(explanation, include_styles=True, force_weights=True):
         table_styles='border-collapse: collapse; border: none;',
         tr_styles='border: none;',
         td1_styles='padding: 0 1em 0 0.5em; text-align: right; border: none;',
+        tdm_styles='padding: 0 0.5em 0 0.5em; text-align: center; border: none;',
         td2_styles='padding: 0 0.5em 0 0.5em; text-align: left; border: none;',
         **explanation)
 
