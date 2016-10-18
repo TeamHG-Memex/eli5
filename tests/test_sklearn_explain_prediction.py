@@ -100,7 +100,7 @@ def test_explain_linear_binary(vec, newsgroups_train_binary):
             res_vectorized['classes'][0]['feature_weights']['neg'])
         assert all(name.startswith('x') for name in neg_vectorized)
     else:
-        assert res_vectorized == res
+        assert res_vectorized == _without_weighted_spans(res)
 
 
 def test_explain_hashing_vectorizer(newsgroups_train_binary):
@@ -122,14 +122,18 @@ def test_explain_hashing_vectorizer(newsgroups_train_binary):
         clf, vec.transform([docs[0]])[0], ivec, target_names=target_names,
         top=20, vectorized=True)
     pprint(res_vectorized)
-    _res = dict(res)
-    _res['classes'] = [{k: v for k, v in d.items() if k != 'weighted_spans'}
-                       for d in _res['classes']]
-    assert res_vectorized == _res
+    assert res_vectorized == _without_weighted_spans(res)
 
     assert res == get_res(
         feature_names=ivec.get_feature_names(always_signed=False),
         coef_scale=ivec.column_signs_)
+
+
+def _without_weighted_spans(res):
+    res = dict(res)
+    res['classes'] = [{k: v for k, v in d.items() if k != 'weighted_spans'}
+                       for d in res['classes']]
+    return res
 
 
 def test_explain_linear_dense():

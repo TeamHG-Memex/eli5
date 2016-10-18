@@ -55,13 +55,16 @@ def render_weighted_spans(weighted_spans_data):
     hl_doc = []
     if not_found_weights:
         hl_doc.append(' '.join(_colorize(token, weight, weight_range)
-                            for token, weight in not_found_weights))
+                               for token, weight in not_found_weights))
     hl_doc.append(''.join(_colorize(token, weight, weight_range)
-                       for token, weight in zip(doc, char_weights)))
+                          for token, weight in zip(doc, char_weights)))
     return ' '.join(hl_doc)
 
 
 def _colorize(token, weight, weight_range):
+    """ Return token wrapped in a span with some styles
+    (calculated from weight and weight_range) applied.
+    """
     token = cgi.escape(token, quote=True)
     if np.isclose(weight, 0.):
         return (
@@ -93,23 +96,26 @@ def _weight_opacity(weight, weight_range):
 
 
 def _weight_color(weight, weight_range):
-    """ Return css color for given weight, were the max absolute weight
+    """ Return css color for given weight, where the max absolute weight
     is given by weight_range.
     """
     hue = 120 if weight > 0 else 0
     saturation = 1
     lightness = 1.0 - 0.4 * abs(weight) / weight_range
-    alpha = 1.
-    return 'hsla({}, {:.2%}, {:.2%}, {:.4f})'.format(
-        hue, saturation, lightness, alpha)
+    return 'hsl({}, {:.2%}, {:.2%})'.format(hue, saturation, lightness)
 
 
 def _weight_range(weights):
+    """ Max absolute feature for pos and neg weights.
+    """
     return max([abs(coef) for key in ['pos', 'neg']
                 for _, coef in weights.get(key, [])] or [0])
 
 
 def _format_unhashed_feature(feature):
+    """ Format unhashed feature: show first (most probable) candidate,
+    display other candidates in title attribute.
+    """
     if not feature:
         return ''
     else:
@@ -122,6 +128,8 @@ def _format_unhashed_feature(feature):
 
 
 def _format_feature(feature):
+    """ Format any feature.
+    """
     if (isinstance(feature, list) and
             ('name' in x and 'sign' in x for x in feature)):
         return _format_unhashed_feature(feature)
