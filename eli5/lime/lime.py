@@ -51,6 +51,7 @@ as black-box classifier, but a mistmatch between them limits explanation
 quality.
 """
 from __future__ import absolute_import
+from typing import Any, Callable
 
 import numpy as np
 from sklearn.feature_extraction.text import CountVectorizer
@@ -59,24 +60,26 @@ from sklearn.cross_validation import train_test_split
 
 from eli5.lime import textutils
 from eli5.utils import vstack
+from eli5.lime.samplers import BaseSampler, MaskingTextSampler
 
 
 def get_local_classifier(doc,
                          predict_proba,
                          local_clf,
                          local_vec,
-                         generate_samples,
+                         sampler,
                          n_samples=200,
                          expand_factor=10,
                          test_size=0.3,
                          ):
-    docs, similarities = generate_samples(doc, n_samples=n_samples)
-    y_proba = predict_proba(docs)
+    # type: (Any, Callable[[Any], np.ndarray], Any, Any, BaseSampler, int, float, float) -> Tuple[Any, Any, float]
+    samples, similarities = sampler.sample_near(doc, n_samples=n_samples)
+    y_proba = predict_proba(samples)
     y_best = y_proba.argmax(axis=1)
 
     (docs_train, docs_test,
      y_proba_train, y_proba_test,
-     y_best_train, y_best_test) = train_test_split(docs, y_proba, y_best,
+     y_best_train, y_best_test) = train_test_split(samples, y_proba, y_best,
                                                    test_size=test_size)
 
     # scikit-learn can't optimize cross-entropy directly if target
@@ -122,13 +125,14 @@ def get_local_classifier_text(text, predict_proba, n_samples=1000,
         token_pattern=textutils.DEFAULT_TOKEN_PATTERN,
     )
     clf = LogisticRegression(solver='lbfgs')  # supports sample_weight
+    sampler = MaskingTextSampler(bow=True)
 
     return get_local_classifier(
         doc=text,
         predict_proba=predict_proba,
         local_clf=clf,
         local_vec=vec,
-        generate_samples=textutils.generate_samples,
+        sampler=sampler,
         n_samples=n_samples,
         expand_factor=expand_factor,
     )

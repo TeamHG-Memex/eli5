@@ -57,7 +57,11 @@ class TokenizedText(object):
         By default words are replaced with '', i.e. removed.
         """
         indices = np.arange(len(self.split.tokens))
-        sizes = np.random.randint(low=1, high=indices.shape[0], size=n_samples)
+        n_tokens = indices.shape[0]
+        if not n_tokens:
+            return [('', 0)] * n_samples
+        sizes = np.random.randint(low=1, high=n_tokens + 1,
+                                  size=n_samples)
         res = []
         for size in sizes:
             s = self.split.copy()
@@ -74,7 +78,9 @@ class TokenizedText(object):
         from the text. By default words are replaced with '', i.e. removed.
         """
         vocab = set(self.split.tokens)
-        sizes = np.random.randint(low=1, high=len(vocab), size=n_samples)
+        if not vocab:
+            return [('', 0)] * n_samples
+        sizes = np.random.randint(low=1, high=len(vocab)+1, size=n_samples)
         res = []
         for size in sizes:
             to_remove = set(random.sample(vocab, size))
