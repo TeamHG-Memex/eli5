@@ -65,12 +65,12 @@ def get_local_classifier(doc,
                          predict_proba,
                          local_clf,
                          local_vec,
-                         generate_perturbations,
+                         generate_samples,
                          n_samples=200,
                          expand_factor=10,
                          test_size=0.3,
                          ):
-    docs, similarities = generate_perturbations(doc, n_samples=n_samples)
+    docs, similarities = generate_samples(doc, n_samples=n_samples)
     y_proba = predict_proba(docs)
     y_best = y_proba.argmax(axis=1)
 
@@ -128,7 +128,7 @@ def get_local_classifier_text(text, predict_proba, n_samples=1000,
         predict_proba=predict_proba,
         local_clf=clf,
         local_vec=vec,
-        generate_perturbations=textutils.generate_perturbations,
+        generate_samples=textutils.generate_samples,
         n_samples=n_samples,
         expand_factor=expand_factor,
     )

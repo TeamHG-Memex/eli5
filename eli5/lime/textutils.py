@@ -5,6 +5,7 @@ Utilities for text generation.
 from __future__ import absolute_import
 import re
 import random
+from typing import List, Tuple
 
 import numpy as np
 
@@ -12,8 +13,9 @@ import numpy as np
 DEFAULT_TOKEN_PATTERN = r'(?u)\b\w+\b'
 
 
-def generate_perturbations(text, n_samples=500, bow=True,
-                           token_pattern=DEFAULT_TOKEN_PATTERN):
+def generate_samples(text, n_samples=500, bow=True,
+                     token_pattern=DEFAULT_TOKEN_PATTERN):
+    # type: (str, int, bool, str) -> Tuple[List[str], np.ndarray]
     """
     Return ``n_samples`` changed versions of text (with some words removed),
     along with distances between the original text and a generated
@@ -28,8 +30,8 @@ def generate_perturbations(text, n_samples=500, bow=True,
         num_tokens = len(t.split.tokens)
         res = t.replace_random_tokens(n_samples)
 
-    texts, num_removed = zip(*res)
-    similarity = cosine_similarity_vec(num_tokens, num_removed)
+    texts, num_removed_vec = zip(*res)
+    similarity = cosine_similarity_vec(num_tokens, num_removed_vec)
     return texts, similarity
 
 
