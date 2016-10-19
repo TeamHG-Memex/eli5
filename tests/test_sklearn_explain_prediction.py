@@ -223,3 +223,26 @@ def test_explain_linear_regression_multitarget(clf):
     assert "'y2'" in expl
 
     assert res == explain_prediction(clf, X[0])
+
+
+def test_explain_regression_hashing_vectorizer(newsgroups_train_binary):
+    docs, y, target_names = newsgroups_train_binary
+    vec = HashingVectorizer()
+    clf = LinearRegression()
+    X = vec.fit_transform(docs)
+    clf.fit(X, y)
+
+    res = explain_prediction(
+        clf, docs[0], vec, target_names=[target_names[1]], top=20)
+    expl = format_as_text(res)
+    print(expl)
+    pprint(res)
+    assert len(res['targets']) == 1
+    e = res['targets'][0]
+    assert e['target'] == 'comp.graphics'
+    neg = {name for name, value in e['feature_weights']['neg']}
+    assert 'objective' in neg
+    pos = {name for name, value in e['feature_weights']['pos']}
+    assert 'that' in pos
+    assert 'comp.graphics' in expl
+    assert 'objective' in expl
