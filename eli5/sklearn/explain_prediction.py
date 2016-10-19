@@ -168,7 +168,7 @@ def explain_prediction_linear_regressor(
     }
 
     def _weights(label_id):
-        coef = get_coef(clf, label_id)
+        coef = get_coef(clf, label_id, scale=coef_scale)
         scores = _multiply(x, coef)
         return get_top_features_dict(feature_names, scores, top)
 

@@ -242,5 +242,7 @@ def test_explain_regression_hashing_vectorizer(newsgroups_train_binary):
     assert e['target'] == 'comp.graphics'
     neg = {name for name, value in e['feature_weights']['neg']}
     assert 'objective' in neg
+    pos = {name for name, value in e['feature_weights']['pos']}
+    assert 'that' in pos
     assert 'comp.graphics' in expl
     assert 'objective' in expl
