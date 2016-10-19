@@ -191,7 +191,7 @@ def explain_linear_classifier_weights(clf, vec=None, top=_TOP, target_names=None
 @explain_weights.register(ExtraTreesClassifier)
 @explain_weights.register(GradientBoostingClassifier)
 @explain_weights.register(AdaBoostClassifier)
-def explain_rf_feature_importance(clf, vec, top=_TOP, target_names=None,
+def explain_rf_feature_importance(clf, vec=None, top=_TOP, target_names=None,
                                   feature_names=None, coef_scale=None):
     """
     Return an explanation of a tree-based ensemble classifier in the
