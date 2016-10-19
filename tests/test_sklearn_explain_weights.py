@@ -108,6 +108,7 @@ def test_explain_linear_hashed(newsgroups_train, clf):
 def test_explain_linear_hashed_pos_neg(newsgroups_train, pass_feature_weights):
     docs, y, target_names = newsgroups_train
     # make it binary
+    y = y.copy()
     y[y != 0] = 1
     target_names = [target_names[0], 'other']
     vec = HashingVectorizer(norm=None)
