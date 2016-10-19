@@ -57,12 +57,8 @@ def explain_prediction_linear_classifier(
         clf, doc, vec=None, top=_TOP, target_names=None,
         feature_names=None, vectorized=False, coef_scale=None):
     """ Explain prediction of a linear classifier. """
-    if isinstance(vec, HashingVectorizer) and not vectorized:
-        vec = InvertableHashingVectorizer(vec)
-        vec.fit([doc])
-    feature_names, coef_scale = handle_hashing_vec(vec, feature_names,
-                                                   coef_scale)
-    feature_names = get_feature_names(clf, vec, feature_names=feature_names)
+    vec, feature_names, coef_scale = _handle_vec(
+        clf, doc, vec, vectorized, feature_names, coef_scale)
     X = _get_X(doc, vec=vec, vectorized=vectorized)
 
     if is_probabilistic_classifier(clf):
@@ -147,6 +143,16 @@ def _get_X(doc, vec=None, vectorized=False):
     return X
 
 
+def _handle_vec(clf, doc, vec, vectorized, feature_names, coef_scale):
+    if isinstance(vec, HashingVectorizer) and not vectorized:
+        vec = InvertableHashingVectorizer(vec)
+        vec.fit([doc])
+    feature_names, coef_scale = handle_hashing_vec(
+        vec, feature_names, coef_scale)
+    feature_names = get_feature_names(clf, vec, feature_names=feature_names)
+    return vec, feature_names, coef_scale
+
+
 @explain_prediction.register(ElasticNet)
 @explain_prediction.register(Lars)
 @explain_prediction.register(LinearRegression)
@@ -155,9 +161,10 @@ def _get_X(doc, vec=None, vectorized=False):
 @explain_prediction.register(SGDRegressor)
 def explain_prediction_linear_regressor(
         clf, doc, vec=None, top=_TOP, target_names=None,
-        feature_names=None, vectorized=False):
+        feature_names=None, vectorized=False, coef_scale=None):
     """ Explain prediction of a linear regressor. """
-    feature_names = get_feature_names(clf, vec, feature_names=feature_names)
+    vec, feature_names, coef_scale = _handle_vec(
+        clf, doc, vec, vectorized, feature_names, coef_scale)
     X = _get_X(doc, vec=vec, vectorized=vectorized)
 
     score, = clf.predict(X)
@@ -173,7 +180,7 @@ def explain_prediction_linear_regressor(
     }
 
     def _weights(label_id):
-        coef = get_coef(clf, label_id)
+        coef = get_coef(clf, label_id, scale=coef_scale)
         scores = _multiply(x, coef)
         return get_top_features_dict(feature_names, scores, top)
 
