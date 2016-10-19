@@ -127,8 +127,7 @@ def test_explain_hashing_vectorizer(newsgroups_train_binary):
     assert res_vectorized == res
 
     assert res == get_res(
-        feature_names=ivec.get_feature_names(always_signed=False),
-        coef_scale=ivec.column_signs_)
+        feature_names=ivec.get_feature_names(always_signed=False))
 
 
 def test_explain_linear_dense():
@@ -227,22 +226,40 @@ def test_explain_linear_regression_multitarget(clf):
 
 def test_explain_regression_hashing_vectorizer(newsgroups_train_binary):
     docs, y, target_names = newsgroups_train_binary
-    vec = HashingVectorizer()
+    vec = HashingVectorizer(norm=None)
     clf = LinearRegression()
-    X = vec.fit_transform(docs)
-    clf.fit(X, y)
+    clf.fit(vec.fit_transform(docs), y)
 
+    # Setting large "top" in order to compare it with CountVectorizer below
+    # (due to small differences in the coefficients they might have cutoffs
+    # at different points).
     res = explain_prediction(
-        clf, docs[0], vec, target_names=[target_names[1]], top=20)
+        clf, docs[0], vec, target_names=[target_names[1]], top=1000)
     expl = format_as_text(res)
     print(expl)
     pprint(res)
     assert len(res['targets']) == 1
     e = res['targets'][0]
     assert e['target'] == 'comp.graphics'
-    neg = {name for name, value in e['feature_weights']['neg']}
-    assert 'objective' in neg
-    pos = {name for name, value in e['feature_weights']['pos']}
-    assert 'that' in pos
     assert 'comp.graphics' in expl
     assert 'objective' in expl
+
+    # HashingVectorizer with norm=None is "the same" as CountVectorizer,
+    # so we can compare it and check that explanation is almost the same.
+    count_vec = CountVectorizer()
+    count_clf = LinearRegression()
+    count_clf.fit(count_vec.fit_transform(docs), y)
+    count_res = explain_prediction(
+        count_clf, docs[0], count_vec, target_names=[target_names[1]], top=1000)
+    pprint(count_res)
+    count_expl = format_as_text(count_res)
+    print(count_expl)
+
+    for key in ['pos', 'neg']:
+        values, count_values = [
+            sorted(r['targets'][0]['feature_weights'][key])
+            for r in [res, count_res]]
+        assert len(values) == len(count_values)
+        for (name, coef), (count_name, count_coef) in zip(values, count_values):
+            assert name == count_name
+            assert abs(coef - count_coef) < 0.05
