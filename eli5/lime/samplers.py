@@ -46,7 +46,7 @@ class MaskingTextSampler(BaseSampler):
                                               n_samples=n_samples,
                                               bow=self.bow,
                                               token_pattern=self.token_pattern)
-        return docs, 1 - similarities
+        return list(docs), 1 - similarities
 
 
 _BANDWIDTHS = np.hstack([

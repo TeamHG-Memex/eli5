@@ -57,62 +57,48 @@ import numpy as np
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.cross_validation import train_test_split
+from sklearn.pipeline import make_pipeline
 
 from eli5.lime import textutils
-from eli5.utils import vstack
 from eli5.lime.samplers import BaseSampler, MaskingTextSampler
 
 
-def get_local_classifier(doc,
-                         predict_proba,
-                         local_clf,
-                         local_vec,
-                         sampler,
-                         n_samples=200,
-                         expand_factor=10,
-                         test_size=0.3,
-                         ):
-    # type: (Any, Callable[[Any], np.ndarray], Any, Any, BaseSampler, int, float, float) -> Tuple[Any, Any, float]
-    samples, distances = sampler.sample_near(doc, n_samples=n_samples)
+def train_local_classifier(local_clf,
+                           samples,
+                           distances,
+                           predict_proba,
+                           expand_factor=10,
+                           test_size=0.3
+                           ):
+    # type: (Any, Any, np.ndarray, Callable[[Any], np.ndarray], int, float) -> float
     y_proba = predict_proba(samples)
     y_best = y_proba.argmax(axis=1)
 
-    (docs_train, docs_test,
+    (X_train, X_test,
      y_proba_train, y_proba_test,
      y_best_train, y_best_test) = train_test_split(samples, y_proba, y_best,
                                                    test_size=test_size)
 
-    # scikit-learn can't optimize cross-entropy directly if target
-    # probability values are not indicator vectors. Probability information
-    # is helpful because it could be hard to get enough examples of all classes
-    # automatically. As a workaround here we're expanding the dataset
-    # according to target probabilities. Use expand_factor=None to turn
-    # it off (e.g. if probability scores are 0/1 in a first place).
-    #
     # XXX: in the original lime code instead of a probabilitsic classifier
     # they build several regression models which try to output probabilities.
     #
     # XXX: distances are currently unused; using sample_weights
     # doesn't seem to improve quality. TODO: investigate it.
-    X_train = local_vec.fit_transform(docs_train)
-
-    if expand_factor:
-        X_train, y_train = zip(*expand_dataset(X_train, y_proba_train,
-                                               expand_factor))
-        X_train = vstack(X_train)
-    else:
-        y_train = y_proba_train.argmax(axis=1)
+    #
+    # XXX: Probability information is helpful because it could be hard
+    # to get enough examples of all classes automatically, so we're fitting
+    # classifier to produce the same probabilities, not only the same
+    # best answer.
 
     # TODO: feature selection
-    local_clf.fit(X_train, y_train)
+    fit_proba(local_clf, X_train, y_proba_train, expand_factor=expand_factor)
 
-    X_test = local_vec.transform(docs_test)
-    score = local_clf.score(X_test, y_best_test)
-    return local_clf, local_vec, score
+    # TODO/FIXME: score should take probabilities in account
+    return local_clf.score(X_test, y_best_test)
 
 
-def get_local_classifier_text(text, predict_proba, n_samples=1000,
-                              expand_factor=10):
+def get_local_pipeline_text(text, predict_proba, n_samples=1000,
+                            expand_factor=10):
     """
     Train a classifier which approximates probabilistic text classifier locally.
     Return (clf, vec, score) tuple with "easy" classifier, "easy" vectorizer,
@@ -125,17 +111,37 @@ def get_local_classifier_text(text, predict_proba, n_samples=1000,
         token_pattern=textutils.DEFAULT_TOKEN_PATTERN,
     )
     clf = LogisticRegression(solver='lbfgs')  # supports sample_weight
-    sampler = MaskingTextSampler(bow=True)
+    pipe = make_pipeline(vec, clf)
 
-    return get_local_classifier(
-        doc=text,
+    sampler = MaskingTextSampler(bow=True)
+    samples, distances = sampler.sample_near(text, n_samples=n_samples)
+
+    score = train_local_classifier(
+        local_clf=pipe,
+        samples=samples,
+        distances=distances,
         predict_proba=predict_proba,
-        local_clf=clf,
-        local_vec=vec,
-        sampler=sampler,
-        n_samples=n_samples,
-        expand_factor=expand_factor,
+        expand_factor=expand_factor
     )
+    return clf, vec, score
+
+
+def fit_proba(clf, X, y_proba, expand_factor=10, **fit_params):
+    """
+    Fit classifier ``clf`` to return probabilities close to ``y_proba``.
+
+    scikit-learn can't optimize cross-entropy directly if target
+    probability values are not indicator vectors. As a workaround this function
+    expands the dataset according to target probabilities.
+    Use expand_factor=None to turn it off
+    (e.g. if probability scores are 0/1 in a first place).
+    """
+    if expand_factor:
+        X, y = zip(*expand_dataset(X, y_proba, expand_factor))
+    else:
+        y = y_proba.argmax(axis=1)
+    clf.fit(X, y, **fit_params)
+    return clf
 
 
 def expand_dataset(X, y_proba, factor=10):
