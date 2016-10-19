@@ -33,7 +33,7 @@ from sklearn.base import BaseEstimator
 import pytest
 
 from eli5.sklearn import explain_weights, InvertableHashingVectorizer
-from .utils import format_as_all, get_all_features
+from .utils import format_as_all, get_all_features, get_names_coefs
 
 
 def check_newsgroups_explanation_linear(clf, vec, target_names):
@@ -102,6 +102,45 @@ def test_explain_linear_hashed(newsgroups_train, clf):
     ivec.fit(docs[::2])
 
     check_newsgroups_explanation_linear(clf, ivec, target_names)
+
+
+@pytest.mark.parametrize(['pass_feature_weights'], [[False], [True]])
+def test_explain_linear_hashed_pos_neg(newsgroups_train, pass_feature_weights):
+    docs, y, target_names = newsgroups_train
+    # make it binary
+    y[y != 0] = 1
+    target_names = [target_names[0], 'other']
+    vec = HashingVectorizer(norm=None)
+    ivec = InvertableHashingVectorizer(vec)
+
+    clf = LogisticRegression(random_state=42)
+    clf.fit(vec.fit_transform(docs), y)
+    ivec.fit(docs)
+    if pass_feature_weights:
+        res = explain_weights(
+            clf, top=(10, 10), target_names=target_names,
+            feature_names=ivec.get_feature_names(always_signed=False),
+            coef_scale=ivec.column_signs_)
+    else:
+        res = explain_weights(
+            clf, ivec, top=(10, 10), target_names=target_names)
+
+    # HashingVectorizer with norm=None is "the same" as CountVectorizer,
+    # so we can compare it and check that explanation is almost the same.
+    count_vec = CountVectorizer()
+    count_clf = LogisticRegression(random_state=42)
+    count_clf.fit(count_vec.fit_transform(docs), y)
+    count_res = explain_weights(
+        count_clf, count_vec, top=(10, 10), target_names=target_names)
+
+    for key in ['pos', 'neg']:
+        values, count_values = [
+            sorted(get_names_coefs(r['classes'][0]['feature_weights'][key]))
+            for r in [res, count_res]]
+        assert len(values) == len(count_values)
+        for (name, coef), (count_name, count_coef) in zip(values, count_values):
+            assert name == count_name
+            assert abs(coef - count_coef) < 0.05
 
 
 def top_pos_neg(classes, key, class_name):

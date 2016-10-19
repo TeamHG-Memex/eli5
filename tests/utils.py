@@ -9,6 +9,7 @@ from hypothesis.extra.numpy import arrays
 
 from eli5.formatters import format_as_text, format_as_html
 from eli5.formatters.html import html_escape
+from eli5.formatters.text import format_signed
 
 
 def rnd_len_arrays(dtype, min_len=0, max_len=3, elements=None):
@@ -67,3 +68,8 @@ def get_all_features(feature_weights):
         else:
             features.add(name)
     return features
+
+
+def get_names_coefs(feature_weights):
+    return [(format_signed(name[0]) if isinstance(name, list) else name,
+             coef) for name, coef in feature_weights]
