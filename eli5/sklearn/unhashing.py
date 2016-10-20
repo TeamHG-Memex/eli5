@@ -13,6 +13,8 @@ import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.feature_extraction.text import HashingVectorizer, FeatureHasher
 
+from eli5.sklearn.utils import FeatureNames
+
 
 class InvertableHashingVectorizer(BaseEstimator, TransformerMixin):
     """
@@ -126,20 +128,18 @@ class FeatureUnhasher(BaseEstimator):
     def get_feature_names(self, always_signed=True):
         self.recalculate_attributes()
 
-        # names of unknown features
-        feature_names = np.array(
-            [self.unkn_template % i for i in range(self.n_features)],
-            dtype=object
-        )
-
         # lists of names with signs of known features
         column_ids, term_names, term_signs = self._get_collision_info()
+        feature_names = {}
         for col_id, names, signs in zip(column_ids, term_names, term_signs):
             if not always_signed and _invert_signs(signs):
                 signs = [-sign for sign in signs]
             feature_names[col_id] = [{'name': name, 'sign': sign}
-                             for name, sign in zip(names, signs)]
-        return feature_names
+                                     for name, sign in zip(names, signs)]
+        return FeatureNames(
+            feature_names,
+            n_features=self.n_features,
+            unkn_template=self.unkn_template)
 
     def recalculate_attributes(self, force=False):
         """

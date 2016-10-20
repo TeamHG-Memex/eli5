@@ -17,6 +17,7 @@ from eli5.sklearn.utils import (
     is_multiclass_classifier,
     is_multitarget_regressor,
     get_num_features,
+    FeatureNames,
 )
 
 
@@ -69,6 +70,9 @@ def test_get_feature_names():
         clf = LogisticRegression()
         clf.fit(X, y)
 
+        fnames = get_feature_names(clf, vec)
+        assert isinstance(fnames, FeatureNames)
+        assert repr(fnames) == '<FeatureNames: 2 features with bias>'
         assert _names(clf, vec) == {'hello', 'world', '<BIAS>'}
         assert _names(clf, vec, 'B') == {'hello', 'world', 'B'}
         assert _names(clf) == {'x0', 'x1', '<BIAS>'}
@@ -76,12 +80,18 @@ def test_get_feature_names():
         assert _names(clf, feature_names=['a', 'b'],
                                    bias_name='bias') == {'a', 'b', 'bias'}
         assert _names(clf, feature_names=np.array(['a', 'b'])) == {'a', 'b', '<BIAS>'}
+        assert _names(clf, feature_names=FeatureNames(['a', 'b'])) == {'a', 'b', '<BIAS>'}
+        assert _names(clf, feature_names=FeatureNames(
+            n_features=2, unkn_template='F%d')) == {'F0', 'F1', '<BIAS>'}
 
         with pytest.raises(ValueError):
             get_feature_names(clf, feature_names=['a'])
 
         with pytest.raises(ValueError):
             get_feature_names(clf, feature_names=['a', 'b', 'c'])
+
+        with pytest.raises(ValueError):
+            get_feature_names(clf, feature_names=FeatureNames(['a', 'b', 'c']))
 
         clf2 = LogisticRegression(fit_intercept=False)
         clf2.fit(X, y)
