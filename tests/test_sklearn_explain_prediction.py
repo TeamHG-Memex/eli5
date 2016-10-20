@@ -24,7 +24,7 @@ from sklearn.base import BaseEstimator
 import pytest
 
 from eli5.sklearn import explain_prediction, InvertableHashingVectorizer
-from eli5.formatters import format_as_text
+from .utils import format_as_all, strip_blanks, get_all_features, get_names_coefs
 
 
 @pytest.mark.parametrize(['clf'], [
@@ -48,34 +48,32 @@ def test_explain_linear(newsgroups_train, clf):
     get_res = lambda: explain_prediction(
         clf, docs[0], vec=vec, target_names=target_names, top=20)
     res = get_res()
-    expl = format_as_text(res)
-    print(expl)
-    pprint(res)
+    expl_text, expl_html = format_as_all(res, clf)
 
     for e in res['classes']:
         if e['class'] != 'comp.graphics':
             continue
-        pos = {name for name, value in e['feature_weights']['pos']}
+        pos = get_all_features(e['feature_weights']['pos'])
         assert 'file' in pos
 
-    for label in target_names:
-        assert str(label) in expl
-    assert 'file' in expl
+    for expl in [expl_text, expl_html]:
+        for label in target_names:
+            assert str(label) in expl
+        assert 'file' in expl
 
     assert res == get_res()
 
 
-def check_explain_linear_binary(res):
-    expl = format_as_text(res)
-    print(expl)
-    pprint(res)
+def check_explain_linear_binary(res, clf):
+    expl_text, expl_html = format_as_all(res, clf)
     assert len(res['classes']) == 1
     e = res['classes'][0]
     assert e['class'] == 'comp.graphics'
-    neg = {name for name, value in e['feature_weights']['neg']}
+    neg = get_all_features(e['feature_weights']['neg'])
     assert 'objective' in neg
-    assert 'comp.graphics' in expl
-    assert 'objective' in expl
+    for expl in [expl_text, expl_html]:
+        assert 'comp.graphics' in expl
+        assert 'objective' in expl
 
 
 @pytest.mark.parametrize(['vec'], [
@@ -91,23 +89,23 @@ def test_explain_linear_binary(vec, newsgroups_train_binary):
     get_res = lambda: explain_prediction(
         clf, docs[0], vec, target_names=target_names, top=20)
     res = get_res()
-    check_explain_linear_binary(res)
+    check_explain_linear_binary(res, clf)
     assert res == get_res()
     res_vectorized = explain_prediction(
         clf, vec.transform([docs[0]])[0], vec, target_names=target_names,
         top=20, vectorized=True)
     if isinstance(vec, HashingVectorizer):
         # InvertableHashingVectorizer must be passed with vectorized=True
-        neg_vectorized = {name for name, value in
-                          res_vectorized['classes'][0]['feature_weights']['neg']}
+        neg_vectorized = get_all_features(
+            res_vectorized['classes'][0]['feature_weights']['neg'])
         assert all(name.startswith('x') for name in neg_vectorized)
     else:
-        assert res_vectorized == res
+        assert res_vectorized == _without_weighted_spans(res)
 
 
 def test_explain_hashing_vectorizer(newsgroups_train_binary):
     # test that we can pass InvertableHashingVectorizer explicitly
-    vec = HashingVectorizer()
+    vec = HashingVectorizer(n_features=1000)
     ivec = InvertableHashingVectorizer(vec)
     clf = LogisticRegression(random_state=42)
     docs, y, target_names = newsgroups_train_binary
@@ -118,16 +116,23 @@ def test_explain_hashing_vectorizer(newsgroups_train_binary):
     get_res = lambda **kwargs: explain_prediction(
         clf, docs[0], ivec, target_names=target_names, top=20, **kwargs)
     res = get_res()
-    check_explain_linear_binary(res)
+    check_explain_linear_binary(res, clf)
     assert res == get_res()
     res_vectorized = explain_prediction(
         clf, vec.transform([docs[0]])[0], ivec, target_names=target_names,
         top=20, vectorized=True)
     pprint(res_vectorized)
-    assert res_vectorized == res
+    assert res_vectorized == _without_weighted_spans(res)
 
     assert res == get_res(
         feature_names=ivec.get_feature_names(always_signed=False))
+
+
+def _without_weighted_spans(res):
+    res = dict(res)
+    res['classes'] = [{k: v for k, v in d.items() if k != 'weighted_spans'}
+                       for d in res['classes']]
+    return res
 
 
 def test_explain_linear_dense():
@@ -142,15 +147,13 @@ def test_explain_linear_dense():
     test_day = {'day': 'tue', 'moon': 'full'}
     target_names = ['sunny', 'shady']
     res1 = explain_prediction(clf, test_day, vec, target_names=target_names)
-    expl1 = format_as_text(res1)
-    print(expl1)
-    assert 'day=tue' in expl1
+    expl_text, expl_html = format_as_all(res1, clf)
+    assert 'day=tue' in expl_text
+    assert 'day=tue' in expl_html
     [test_day_vec] = vec.transform(test_day)
     res2 = explain_prediction(
         clf, test_day_vec, target_names=target_names,
         vectorized=True, feature_names=vec.get_feature_names())
-    expl2 = format_as_text(res1)
-    print(expl2)
     assert res1 == res2
 
 
@@ -174,21 +177,23 @@ def test_explain_linear_regression(boston_train, clf):
     X, y, feature_names = boston_train
     clf.fit(X, y)
     res = explain_prediction(clf, X[0])
-    expl = format_as_text(res)
-    pprint(res)
-    print(expl)
+    expl_text, expl_html = format_as_all(res, clf)
 
     assert len(res['targets']) == 1
     target = res['targets'][0]
     assert target['target'] == 'y'
-    pos, neg = (dict(target['feature_weights']['pos']),
-                dict(target['feature_weights']['neg']))
+    pos, neg = (get_all_features(target['feature_weights']['pos']),
+                get_all_features(target['feature_weights']['neg']))
     assert 'x11' in pos or 'x11' in neg
     assert '<BIAS>' in pos or '<BIAS>' in neg
 
-    assert 'x11' in expl
-    assert '<BIAS>' in expl
-    assert "'y'" in expl
+    for expl in [expl_text, expl_html]:
+        assert 'x11' in expl
+        assert '(score' in expl
+    assert "'y'" in expl_text
+    assert '<BIAS>' in expl_text
+    assert '<b>y</b>' in strip_blanks(expl_html)
+    assert '&lt;BIAS&gt;' in expl_html
 
     assert res == explain_prediction(clf, X[0])
 
@@ -205,21 +210,19 @@ def test_explain_linear_regression_multitarget(clf):
                            random_state=42)
     clf.fit(X, y)
     res = explain_prediction(clf, X[0])
-    expl = format_as_text(res)
-    pprint(res)
-    print(expl)
+    expl_text, expl_html = format_as_all(res, clf)
 
     assert len(res['targets']) == 3
     target = res['targets'][1]
     assert target['target'] == 'y1'
-    pos, neg = (dict(target['feature_weights']['pos']),
-                dict(target['feature_weights']['neg']))
+    pos, neg = (get_all_features(target['feature_weights']['pos']),
+                get_all_features(target['feature_weights']['neg']))
     assert 'x8' in pos or 'x8' in neg
     assert '<BIAS>' in pos or '<BIAS>' in neg
 
-    assert 'x8' in expl
-    assert '<BIAS>' in expl
-    assert "'y2'" in expl
+    assert 'x8' in expl_text
+    assert '<BIAS>' in expl_text
+    assert "'y2'" in expl_text
 
     assert res == explain_prediction(clf, X[0])
 
@@ -235,14 +238,16 @@ def test_explain_regression_hashing_vectorizer(newsgroups_train_binary):
     # at different points).
     res = explain_prediction(
         clf, docs[0], vec, target_names=[target_names[1]], top=1000)
-    expl = format_as_text(res)
-    print(expl)
-    pprint(res)
+    expl, _ = format_as_all(res, clf)
     assert len(res['targets']) == 1
     e = res['targets'][0]
     assert e['target'] == 'comp.graphics'
+    neg = get_all_features(e['feature_weights']['neg'])
+    assert 'objective' in neg
+    assert 'that' in neg
     assert 'comp.graphics' in expl
     assert 'objective' in expl
+    assert 'that' in expl
 
     # HashingVectorizer with norm=None is "the same" as CountVectorizer,
     # so we can compare it and check that explanation is almost the same.
@@ -252,12 +257,12 @@ def test_explain_regression_hashing_vectorizer(newsgroups_train_binary):
     count_res = explain_prediction(
         count_clf, docs[0], count_vec, target_names=[target_names[1]], top=1000)
     pprint(count_res)
-    count_expl = format_as_text(count_res)
+    count_expl, _ = format_as_all(count_res, count_clf)
     print(count_expl)
 
     for key in ['pos', 'neg']:
         values, count_values = [
-            sorted(r['targets'][0]['feature_weights'][key])
+            sorted(get_names_coefs(r['targets'][0]['feature_weights'][key]))
             for r in [res, count_res]]
         assert len(values) == len(count_values)
         for (name, coef), (count_name, count_coef) in zip(values, count_values):

@@ -1,0 +1,49 @@
+{% if include_styles %}
+    {% include "styles.html" %}
+{% endif %}
+
+{% if method %}
+    <p>Explained as: {{ method }}</p>
+{% endif %}
+
+{% if description %}
+    {# TODO - have a structured prepresentation and convert it to html and text #}
+    <pre>{{ description }}</pre>
+{% endif %}
+
+{% if classes %}
+    {% with explanations = classes %}
+    {% include "weights.html" with context %}
+    {% endwith %}
+{% endif %}
+
+{% if targets %}
+    {% with explanations = targets %}
+        {% include "weights.html" with context %}
+    {% endwith %}
+{% endif %}
+
+{% if feature_importances %}
+    <table class="eli5-weights" style="{{ table_styles }}">
+        <thead>
+        <tr style="{{ tr_styles }}">
+            <th>Weight</th>
+            <th>Feature</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% with weight_range = feature_importances|fi_weight_range %}
+            {% for name, w, std in feature_importances %}
+                <tr style="background-color: {{ w|weight_color(weight_range) }}; {{ tr_styles }}">
+                    <td style="{{ td1_styles }}">
+                        {{ "%0.4f"|format(w) }} &plusmn; {{ "%0.4f"|format(2 * std) }}
+                    </td>
+                    <td style="{{ td2_styles }}">
+                        {{ name }}
+                    </td>
+                </tr>
+            {% endfor %}
+        {% endwith %}
+        </tbody>
+    </table>
+{% endif %}

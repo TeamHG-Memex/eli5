@@ -1,0 +1,84 @@
+{% for expl in explanations %}
+
+    <p>
+        <b>
+            {% if expl.class is defined %}
+                y={{ expl.class }}
+            {% elif expl.target is defined %}
+                {{ expl.target }}
+            {% endif %}
+        </b>
+        {% if expl.proba is defined or expl.score is defined %}
+            {% set comma = joiner(", ") %}
+            (
+            {%- if expl.proba is defined -%}
+                {{ comma() }}probability <b>{{ "%0.3f"|format(expl.proba) }}</b>
+            {%- endif -%}
+            {%- if expl.score is defined -%}
+                {{ comma() }}score <b>{{ "%0.3f"|format(expl.score) }}</b>
+            {%- endif -%}
+            )
+        {% endif %}
+        top features
+    </p>
+
+    {% if force_weights or not expl.weighted_spans is defined %}
+    <table class="eli5-weights" style="{{ table_styles }}">
+        <thead>
+        <tr style="{{ tr_styles }}">
+            <th style="{{ td1_styles }}">Weight</th>
+            <th style="{{ td2_styles }}">Feature</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% with w = expl.feature_weights %}
+            {% set weight_range = w|weight_range %}
+
+            {% for name, coef in w.pos %}
+                <tr style="background-color: {{ coef|weight_color(weight_range) }}; {{ tr_styles }}">
+                    <td style="{{ td1_styles }}">
+                        {{ "%+.3f"|format(coef) }}
+                    </td>
+                    <td style="{{ td2_styles }}">
+                        {{ name|format_feature }}
+                    </td>
+                </tr>
+            {% endfor %}
+            {% if w.pos_remaining %}
+                <tr style="background-color: {{ w.pos|smallest_weight_color(weight_range) }}; {{ tr_styles }}">
+                    <td colspan="2" style="{{ tdm_styles }}">
+                        <i>&hellip; {{ w.pos_remaining }} more positive &hellip;</i>
+                    </td>
+                </tr>
+            {% endif %}
+
+            {% if w.neg_remaining %}
+                <tr style="background-color: {{ w.neg|smallest_weight_color(weight_range) }}; {{ tr_styles }}">
+                    <td colspan="2" style="{{ tdm_styles }}">
+                        <i>&hellip; {{ w.neg_remaining }} more negative &hellip;</i>
+                    </td>
+                </tr>
+            {% endif %}
+            {% for name, coef in w.neg|reverse %}
+                <tr style="background-color: {{ coef|weight_color(weight_range) }}; {{ tr_styles }}">
+                    <td style="{{ td1_styles }}">
+                        {{ "%+.3f"|format(coef) }}
+                    </td>
+                    <td style="{{ td2_styles }}">
+                        {{ name|format_feature }}
+                    </td>
+                </tr>
+            {% endfor %}
+
+        {% endwith %}
+        </tbody>
+    </table>
+    {% endif %}
+
+    {% if expl.weighted_spans %}
+        <p>
+            {{ expl.weighted_spans|render_weighted_spans }}
+        </p>
+    {% endif %}
+
+{% endfor %}

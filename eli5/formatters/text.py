@@ -1,19 +1,15 @@
 # -*- coding: utf-8 -*-
-"""
-Functions to convert explanations to human-digestable formats.
-
-TODO: html, IPython integration, customizability.
-"""
 from __future__ import absolute_import
 import six
 
 _PLUS_MINUS = "+-" if six.PY2 else "±"
+_ELLIPSIS = '...' if six.PY2 else '…'
 
 
 def format_as_text(explanation):
     lines = []
     if 'method' in explanation:
-        lines.append("Explained as: %s" % explanation['method'])
+        lines.append('Explained as: {}'.format(explanation['method']))
 
     if 'description' in explanation:
         lines.append(explanation['description'])
@@ -27,16 +23,19 @@ def format_as_text(explanation):
     if 'feature_importances' in explanation:
         sz = _maxlen(explanation['feature_importances'])
         for name, w, std in explanation['feature_importances']:
-            lines.append("%s %0.4f %s %0.4f" % (
-                name.rjust(sz), w, _PLUS_MINUS, 2*std,
+            lines.append('{w:0.4f} {plus} {std:0.4f} {feature}'.format(
+                feature=name.ljust(sz),
+                w=w,
+                plus=_PLUS_MINUS,
+                std=2*std,
             ))
 
-    return "\n".join(lines)
+    return '\n'.join(lines)
 
 
 def _format_weights(explanations):
     lines = []
-    sz = _rjust_size(explanations)
+    sz = _max_feature_size(explanations)
     for explanation in explanations:
         scores = _format_scores(
             explanation.get('proba'),
@@ -61,22 +60,12 @@ def _format_weights(explanations):
         lines.append("-" * (sz + 10))
 
         w = explanation['feature_weights']
-        pos = w['pos']
-        neg = w['neg']
-        for name, coef in pos:
-            lines.append("%s %+8.3f" % (name.rjust(sz), coef))
+        lines.extend(_format_feature_weights(w['pos'], sz))
         if w['pos_remaining']:
-            msg = "%s   (%d more positive features)" % (
-                "...".rjust(sz), w['pos_remaining']
-            )
-            lines.append(msg)
+            lines.append(_format_remaining(w['pos_remaining'], 'positive'))
         if w['neg_remaining']:
-            msg = "%s   (%d more negative features)" % (
-                "...".rjust(sz), w['neg_remaining']
-            )
-            lines.append(msg)
-        for name, coef in reversed(neg):
-            lines.append("%s %+8.3f" % (name.rjust(sz), coef))
+            lines.append(_format_remaining(w['neg_remaining'], 'negative'))
+        lines.extend(_format_feature_weights(w['neg'], sz))
         lines.append("")
     return lines
 
@@ -90,13 +79,54 @@ def _format_scores(proba, score):
     return ", ".join(scores)
 
 
-def _maxlen(features):
-    if not features:
+def _maxlen(feature_weights):
+    if not feature_weights:
         return 0
-    return max(len(it[0]) for it in features)
+    return max(len(_format_feature(it[0])) for it in feature_weights)
 
 
-def _rjust_size(explanation):
+def _max_feature_size(explanation):
     def _max_feature_length(w):
         return _maxlen(w['pos'] + w['neg'])
     return max(_max_feature_length(e['feature_weights']) for e in explanation)
+
+
+def _format_feature_weights(feature_weights, sz):
+    return ['{weight:+8.3f}  {feature}'.format(
+        weight=coef, feature=_format_feature(name).ljust(sz))
+            for name, coef in feature_weights]
+
+
+def _format_remaining(remaining, kind):
+    return '{ellipsis}  ({remaining} more {kind} features)'.format(
+        ellipsis=_ELLIPSIS.rjust(8),
+        remaining=remaining,
+        kind=kind,
+    )
+
+
+def _format_feature(name):
+    if isinstance(name, list) and all('name' in x and 'sign' in x for x in name):
+        return _format_unhashed_feature(name)
+    else:
+        return name
+
+
+def _format_unhashed_feature(name, sep=' | '):
+    """
+    Format feature name for hashed features.
+    """
+    return sep.join(map(format_signed, name))
+
+
+def format_signed(feature):
+    """
+    Format unhashed feature with sign.
+
+    >>> format_signed({'name': 'foo', 'sign': 1})
+    'foo'
+    >>> format_signed({'name': 'foo', 'sign': -1})
+    '(-)foo'
+    """
+    txt = '' if feature['sign'] > 0 else '(-)'
+    return ''.join([txt, feature['name']])
