@@ -20,7 +20,6 @@ def test_lime_explain_probabilistic(newsgroups_train):
 
     pipe = make_pipeline(vec, clf)
     doc = docs[0]
-    print(doc.__class__, doc)
 
     clf_local, vec_local, score = get_local_pipeline_text(doc,
                                                           pipe.predict_proba,
