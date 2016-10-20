@@ -69,11 +69,10 @@ from eli5.lime.utils import rbf, fit_proba
 
 def _train_local_classifier(estimator,
                             samples,
-                            distances,
+                            similarity,
                             predict_proba,
                             expand_factor=10,
                             test_size=0.3,
-                            sigma=1.0,
                             ):
     # type: (Any, Any, np.ndarray, Callable[[Any], np.ndarray], int, float) -> float
     y_proba = predict_proba(samples)
@@ -95,7 +94,7 @@ def _train_local_classifier(estimator,
     # TODO: feature selection
     fit_proba(estimator, X_train, y_proba_train,
               expand_factor=expand_factor,
-              sample_weight=rbf(distances, sigma=sigma))
+              sample_weight=similarity)
 
     # TODO/FIXME: score should take probabilities in account
     return estimator.score(X_test, y_best_test)
@@ -118,12 +117,12 @@ def get_local_pipeline_text(text, predict_proba, n_samples=1000,
     pipe = make_pipeline(vec, clf)
 
     sampler = MaskingTextSampler(bow=True)
-    samples, distances = sampler.sample_near(text, n_samples=n_samples)
+    samples, similarity = sampler.sample_near(text, n_samples=n_samples)
 
     score = _train_local_classifier(
         estimator=pipe,
         samples=samples,
-        distances=distances,
+        similarity=similarity,
         predict_proba=predict_proba,
         expand_factor=expand_factor,
     )

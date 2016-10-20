@@ -2,8 +2,11 @@
 from __future__ import absolute_import
 import abc
 import six
+from typing import Tuple
 
 import numpy as np
+
+from eli5.lime.utils import rbf
 from sklearn.base import BaseEstimator, clone
 from sklearn.neighbors import KernelDensity
 from sklearn.metrics import pairwise_distances
@@ -42,11 +45,13 @@ class MaskingTextSampler(BaseSampler):
         self.bow = bow
 
     def sample_near(self, doc, n_samples=1):
-        docs, similarities = generate_samples(doc,
-                                              n_samples=n_samples,
-                                              bow=self.bow,
-                                              token_pattern=self.token_pattern)
-        return list(docs), 1 - similarities
+        docs, similarity = generate_samples(doc,
+                                            n_samples=n_samples,
+                                            bow=self.bow,
+                                            token_pattern=self.token_pattern)
+        # XXX: should it use RBF kernel as well, instead of raw
+        # cosine similarity?
+        return list(docs), similarity
 
 
 _BANDWIDTHS = np.hstack([
@@ -56,7 +61,7 @@ _BANDWIDTHS = np.hstack([
 
 class _BaseKernelDensitySampler(BaseSampler):
     def __init__(self, kde=None, metric='euclidean', fit_bandwidth=True,
-                 bandwidths=_BANDWIDTHS, n_jobs=1):
+                 bandwidths=_BANDWIDTHS, sigma='distance', n_jobs=1):
         if kde is None:
             kde = KernelDensity(rtol=1e-7, atol=1e-7)
         self.kde = kde
@@ -64,6 +69,12 @@ class _BaseKernelDensitySampler(BaseSampler):
         self.bandwidths = bandwidths
         self.metric = metric
         self.n_jobs = n_jobs
+        if not isinstance(sigma, (int, float)):
+            allowed = {'bandwidth', 'distance'}
+            if sigma not in allowed:
+                raise ValueError("sigma must be either "
+                                 "a number or one of {}".format(allowed))
+        self.sigma = sigma
 
     def _get_grid(self):
         param_grid = {'bandwidth': self.bandwidths}
@@ -72,12 +83,34 @@ class _BaseKernelDensitySampler(BaseSampler):
                             cv=cv)
 
     def _fit_kde(self, kde, X):
+        # type: (KernelDensity, np.ndarray) -> Tuple[GridSearchCV, KernelDensity]
         if self.fit_bandwidth:
             grid = self._get_grid()
             grid.fit(X)
             return grid, grid.best_estimator_
         else:
             return None, clone(kde).fit(X)
+
+    def _similarity(self, doc, samples):
+        distance = _distances(doc, samples, metric=self.metric)
+        if self.sigma == "distance":
+            self.sigma_ = abs(distance.max()) / 2
+        return rbf(distance, sigma=self.sigma_)
+
+    def _set_sigma(self, bandwidth):
+        if self.sigma == 'bandwidth':
+            # Sigma estimation using optimal bandwidth found by KDE.
+            #
+            # If all features are one-hot encoded then bandwidth is
+            # tiny, but we need a larger sigma because otherwise similarity
+            # for all examples will be close to zero.
+            #
+            # XXX: how does it work in practice? Is it worth supporting?
+            self.sigma_ = max(0.5, bandwidth * 2)
+        elif self.sigma == "distance":
+            self.sigma_ = None  # depends on sample distances
+        else:
+            self.sigma_ = self.sigma
 
 
 class MultivariateKernelDensitySampler(_BaseKernelDensitySampler):
@@ -92,14 +125,14 @@ class MultivariateKernelDensitySampler(_BaseKernelDensitySampler):
     """
     def fit(self, X, y=None):
         self.grid_, self.kde_ = self._fit_kde(self.kde, X)
+        self._set_sigma(self.kde_.bandwidth)
         return self
 
     def sample_near(self, doc, n_samples=1):
         # XXX: it doesn't sample only near the given document, it
         # samples everywhere
         samples = self.kde_.sample(n_samples)
-        distances = _distances(doc, samples, metric=self.metric)
-        return samples, distances
+        return samples, self._similarity(doc, samples)
 
 
 class UnivariateKernelDensitySampler(_BaseKernelDensitySampler):
@@ -123,6 +156,7 @@ class UnivariateKernelDensitySampler(_BaseKernelDensitySampler):
             grid, kde = self._fit_kde(self.kde, X[:, i].reshape(-1, 1))
             self.grids_.append(grid)
             self.kdes_.append(kde)
+        self._set_sigma(bandwidth=max(kde.bandwidth for kde in self.kdes_))
         return self
 
     def sample_near(self, doc, n_samples=1):
@@ -141,8 +175,7 @@ class UnivariateKernelDensitySampler(_BaseKernelDensitySampler):
                 new_doc[i] = self.kdes_[i].sample().ravel()
             samples.append(new_doc)
         samples = np.asarray(samples)
-        distances = _distances(doc, samples, metric=self.metric)
-        return samples, distances
+        return samples, self._similarity(doc, samples)
 
 
 def _distances(doc, samples, metric):
