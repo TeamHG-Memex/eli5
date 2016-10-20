@@ -11,9 +11,9 @@ Input:
 Main idea:
 
 1. Generate a fake dataset from the example to explain: generated instances
-   are changed versions of the example (e.g. for text it could be the same text,
-   but with some words removed); generated labels are black-box classifier
-   predictions for these generated examples.
+   are changed versions of the example (e.g. for text it could be the same
+   text, but with some words removed); generated labels are black-box
+   classifier predictions for these generated examples.
 
 2. Train a white-box classifer on these examples (e.g. a linear model).
 
@@ -64,15 +64,17 @@ except ImportError:  # sklearn < 0.18
 
 from eli5.lime import textutils
 from eli5.lime.samplers import BaseSampler, MaskingTextSampler
+from eli5.lime.utils import rbf, fit_proba
 
 
-def train_local_classifier(local_clf,
-                           samples,
-                           distances,
-                           predict_proba,
-                           expand_factor=10,
-                           test_size=0.3
-                           ):
+def _train_local_classifier(estimator,
+                            samples,
+                            distances,
+                            predict_proba,
+                            expand_factor=10,
+                            test_size=0.3,
+                            sigma=1.0,
+                            ):
     # type: (Any, Any, np.ndarray, Callable[[Any], np.ndarray], int, float) -> float
     y_proba = predict_proba(samples)
     y_best = y_proba.argmax(axis=1)
@@ -85,19 +87,18 @@ def train_local_classifier(local_clf,
     # XXX: in the original lime code instead of a probabilitsic classifier
     # they build several regression models which try to output probabilities.
     #
-    # XXX: distances are currently unused; using sample_weights
-    # doesn't seem to improve quality. TODO: investigate it.
-    #
     # XXX: Probability information is helpful because it could be hard
     # to get enough examples of all classes automatically, so we're fitting
     # classifier to produce the same probabilities, not only the same
     # best answer.
 
     # TODO: feature selection
-    fit_proba(local_clf, X_train, y_proba_train, expand_factor=expand_factor)
+    fit_proba(estimator, X_train, y_proba_train,
+              expand_factor=expand_factor,
+              sample_weight=rbf(distances, sigma=sigma))
 
     # TODO/FIXME: score should take probabilities in account
-    return local_clf.score(X_test, y_best_test)
+    return estimator.score(X_test, y_best_test)
 
 
 def get_local_pipeline_text(text, predict_proba, n_samples=1000,
@@ -119,42 +120,11 @@ def get_local_pipeline_text(text, predict_proba, n_samples=1000,
     sampler = MaskingTextSampler(bow=True)
     samples, distances = sampler.sample_near(text, n_samples=n_samples)
 
-    score = train_local_classifier(
-        local_clf=pipe,
+    score = _train_local_classifier(
+        estimator=pipe,
         samples=samples,
         distances=distances,
         predict_proba=predict_proba,
-        expand_factor=expand_factor
+        expand_factor=expand_factor,
     )
     return clf, vec, score
-
-
-def fit_proba(clf, X, y_proba, expand_factor=10, **fit_params):
-    """
-    Fit classifier ``clf`` to return probabilities close to ``y_proba``.
-
-    scikit-learn can't optimize cross-entropy directly if target
-    probability values are not indicator vectors. As a workaround this function
-    expands the dataset according to target probabilities.
-    Use expand_factor=None to turn it off
-    (e.g. if probability scores are 0/1 in a first place).
-    """
-    if expand_factor:
-        X, y = zip(*expand_dataset(X, y_proba, expand_factor))
-    else:
-        y = y_proba.argmax(axis=1)
-    clf.fit(X, y, **fit_params)
-    return clf
-
-
-def expand_dataset(X, y_proba, factor=10):
-    """
-    Convert a dataset with float multiclass probabilities to a dataset
-    with indicator probabilities by duplicating X rows and sampling
-    true labels.
-    """
-    n_classes = y_proba.shape[1]
-    classes = np.arange(n_classes, dtype=int)
-    for x, probs in zip(X, y_proba):
-        for label in np.random.choice(classes, size=factor, p=probs):
-            yield x, label
