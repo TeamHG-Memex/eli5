@@ -33,6 +33,7 @@ from sklearn.base import BaseEstimator
 import pytest
 
 from eli5.sklearn import explain_weights, InvertableHashingVectorizer
+from eli5.sklearn.utils import with_bias_name
 from .utils import format_as_all, get_all_features, get_names_coefs
 
 
@@ -120,7 +121,7 @@ def test_explain_linear_hashed_pos_neg(newsgroups_train, pass_feature_weights):
     if pass_feature_weights:
         res = explain_weights(
             clf, top=(10, 10), target_names=target_names,
-            feature_names=ivec.get_feature_names(always_signed=False),
+            feature_names=with_bias_name(ivec.get_feature_names(always_signed=False)),
             coef_scale=ivec.column_signs_)
     else:
         res = explain_weights(

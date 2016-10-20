@@ -72,16 +72,15 @@ def test_get_feature_names():
         assert _names(clf, vec) == {'hello', 'world', '<BIAS>'}
         assert _names(clf, vec, 'B') == {'hello', 'world', 'B'}
         assert _names(clf) == {'x0', 'x1', '<BIAS>'}
-        assert _names(clf, feature_names=['a', 'b']) == {'a', 'b', '<BIAS>'}
-        assert _names(clf, feature_names=['a', 'b'],
-                                   bias_name='bias') == {'a', 'b', 'bias'}
-        assert _names(clf, feature_names=np.array(['a', 'b'])) == {'a', 'b', '<BIAS>'}
+        assert _names(clf, feature_names=['a', 'b', 'bias']) == {'a', 'b', 'bias'}
+        assert _names(clf, feature_names=np.array(['a', 'b', 'bias'])) == \
+               {'a', 'b', 'bias'}
 
         with pytest.raises(ValueError):
-            get_feature_names(clf, feature_names=['a'])
+            get_feature_names(clf, feature_names=['a', 'b'])
 
         with pytest.raises(ValueError):
-            get_feature_names(clf, feature_names=['a', 'b', 'c'])
+            get_feature_names(clf, feature_names=['a', 'b', 'c', 'd'])
 
         clf2 = LogisticRegression(fit_intercept=False)
         clf2.fit(X, y)

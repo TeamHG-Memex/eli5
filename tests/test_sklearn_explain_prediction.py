@@ -24,6 +24,7 @@ from sklearn.base import BaseEstimator
 import pytest
 
 from eli5.sklearn import explain_prediction, InvertableHashingVectorizer
+from eli5.sklearn.utils import with_bias_name
 from .utils import format_as_all, strip_blanks, get_all_features, get_names_coefs
 
 
@@ -124,8 +125,8 @@ def test_explain_hashing_vectorizer(newsgroups_train_binary):
     pprint(res_vectorized)
     assert res_vectorized == _without_weighted_spans(res)
 
-    assert res == get_res(
-        feature_names=ivec.get_feature_names(always_signed=False))
+    assert res == get_res(feature_names=with_bias_name(
+        ivec.get_feature_names(always_signed=False)))
 
 
 def _without_weighted_spans(res):
@@ -153,7 +154,7 @@ def test_explain_linear_dense():
     [test_day_vec] = vec.transform(test_day)
     res2 = explain_prediction(
         clf, test_day_vec, target_names=target_names,
-        vectorized=True, feature_names=vec.get_feature_names())
+        vectorized=True, feature_names=with_bias_name(vec.get_feature_names()))
     assert res1 == res2
 
 

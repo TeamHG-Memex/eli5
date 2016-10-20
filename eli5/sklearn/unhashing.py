@@ -4,7 +4,6 @@ Utilities to reverse transformation done by FeatureHasher or HashingVectorizer.
 """
 from __future__ import absolute_import
 
-from functools import partial
 from collections import defaultdict, Counter
 from itertools import chain
 from typing import List, Iterable
@@ -12,6 +11,8 @@ from typing import List, Iterable
 import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.feature_extraction.text import HashingVectorizer, FeatureHasher
+
+from .utils import has_intercept, with_bias_name
 
 
 class InvertableHashingVectorizer(BaseEstimator, TransformerMixin):
@@ -212,10 +213,12 @@ def _invert_signs(signs):
     return signs[0] < 0
 
 
-def handle_hashing_vec(vec, feature_names, coef_scale):
+def handle_hashing_vec(clf, vec, feature_names, coef_scale):
     if is_invhashing(vec):
         if feature_names is None:
             feature_names = vec.get_feature_names(always_signed=False)
+            if has_intercept(clf):
+                feature_names = with_bias_name(feature_names)
         if coef_scale is None:
             coef_scale = vec.column_signs_
     return feature_names, coef_scale
