@@ -27,28 +27,76 @@ def has_intercept(clf):
     return getattr(clf, 'fit_intercept', False)
 
 
+class FeatureNames(object):
+    def __init__(self, feature_names=None, bias_name=None,
+                 unkn_template=None, n_features=None):
+        assert (feature_names is not None or
+                (unkn_template is not None and n_features))
+        self.feature_names = feature_names
+        self.unkn_template = unkn_template
+        self.n_features = n_features or len(feature_names)
+        self.bias_name = bias_name
+
+    def __repr__(self):
+        return '<FeatureNames: {} features {} bias>'.format(
+            self.n_features, 'with' if self.has_bias else 'without')
+
+    def __len__(self):
+        return self.n_features + bool(self.has_bias)
+
+    def __getitem__(self, idx):
+        if isinstance(idx, np.ndarray):
+            return [self[i] for i in idx]
+        n = len(self)
+        if self.has_bias and idx == n - 1:
+            return self.bias_name
+        if 0 <= idx < n:
+            try:
+                return self.feature_names[idx]
+            except (TypeError, KeyError, IndexError):
+                return self.unkn_template % idx
+        raise IndexError('Feature index out of range')
+
+    @property
+    def has_bias(self):
+        return self.bias_name is not None
+
+
 def get_feature_names(clf, vec=None, bias_name='<BIAS>', feature_names=None):
     """
     Return a vector of feature names, including bias feature.
     If vec is None or doesn't have get_feature_names() method,
     features are named x1, x2, etc.
     """
+    if not has_intercept(clf):
+        bias_name = None
+
     if feature_names is None:
         if vec and hasattr(vec, 'get_feature_names'):
-            feature_names = list(vec.get_feature_names())
+            return FeatureNames(vec.get_feature_names(), bias_name=bias_name)
         else:
             num_features = get_num_features(clf)
-            feature_names = ["x%d" % i for i in range(num_features)]
+            return FeatureNames(
+                n_features=num_features, unkn_template='x%d', bias_name=bias_name)
+
+    num_features = get_num_features(clf)
+    if isinstance(feature_names, FeatureNames):
+        if feature_names.n_features != num_features:
+            raise ValueError("feature_names has a wrong n_features: "
+                             "expected=%d, got=%d" % (num_features,
+                                                      len(feature_names)))
+        # Make a shallow copy setting proper bias_name
+        return FeatureNames(
+            feature_names.feature_names,
+            n_features=num_features,
+            bias_name=bias_name,
+            unkn_template=feature_names.unkn_template)
     else:
-        feature_names = list(feature_names)
-        num_features = get_num_features(clf)
         if len(feature_names) != num_features:
             raise ValueError("feature_names has a wrong length: "
                              "expected=%d, got=%d" % (num_features,
                                                       len(feature_names)))
-    if bias_name is not None and has_intercept(clf):
-        feature_names += [bias_name]
-    return np.array(feature_names)
+        return FeatureNames(feature_names, bias_name=bias_name)
 
 
 def get_target_names(clf):
