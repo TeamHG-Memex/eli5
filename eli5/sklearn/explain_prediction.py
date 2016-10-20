@@ -29,6 +29,7 @@ from eli5.sklearn.utils import (
     is_probabilistic_classifier,
     has_intercept,
     rename_label,
+    with_bias_name,
 )
 from eli5.sklearn.text import get_weighted_spans
 from eli5._feature_weights import get_top_features_dict
@@ -150,6 +151,8 @@ def _handle_vec(clf, doc, vec, vectorized, feature_names):
         # Explaining predictions does not need coef_scale,
         # because it is handled by the vectorizer.
         feature_names = vec.get_feature_names(always_signed=False)
+        if has_intercept(clf):
+            feature_names = with_bias_name(feature_names)
     feature_names = get_feature_names(clf, vec, feature_names=feature_names)
     return vec, feature_names
 

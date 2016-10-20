@@ -2,6 +2,9 @@
 import numpy as np
 
 
+BIAS_NAME = '<BIAS>'
+
+
 def is_multiclass_classifier(clf):
     """
     Return True if a classifier is multiclass or False if it is binary.
@@ -27,28 +30,36 @@ def has_intercept(clf):
     return getattr(clf, 'fit_intercept', False)
 
 
-def get_feature_names(clf, vec=None, bias_name='<BIAS>', feature_names=None):
+def get_feature_names(clf, vec=None, bias_name=BIAS_NAME, feature_names=None):
     """
     Return a vector of feature names, including bias feature.
     If vec is None or doesn't have get_feature_names() method,
     features are named x1, x2, etc.
     """
+    clf_has_intercept = has_intercept(clf)
     if feature_names is None:
         if vec and hasattr(vec, 'get_feature_names'):
             feature_names = list(vec.get_feature_names())
         else:
             num_features = get_num_features(clf)
             feature_names = ["x%d" % i for i in range(num_features)]
+        if bias_name is not None and clf_has_intercept:
+            feature_names += [bias_name]
     else:
-        feature_names = list(feature_names)
-        num_features = get_num_features(clf)
+        num_features = get_num_features(clf) + int(clf_has_intercept)
         if len(feature_names) != num_features:
-            raise ValueError("feature_names has a wrong length: "
-                             "expected=%d, got=%d" % (num_features,
-                                                      len(feature_names)))
-    if bias_name is not None and has_intercept(clf):
-        feature_names += [bias_name]
-    return np.array(feature_names)
+            raise ValueError(
+                "feature_names has a wrong length: expected=%d, got=%d%s"
+                % (num_features, len(feature_names),
+                   ' (it must also include the bias feature name)'
+                   if clf_has_intercept else ''))
+    if not isinstance(feature_names, np.ndarray):
+        feature_names = np.array(feature_names)
+    return feature_names
+
+
+def with_bias_name(feature_names, bias_name=BIAS_NAME):
+    return list(feature_names) + [bias_name]
 
 
 def get_target_names(clf):
