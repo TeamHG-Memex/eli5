@@ -40,6 +40,7 @@ def get_weighted_spans(doc, vec, feature_weights):
         feature: weight for feature, weight in feature_weights_dict.items()
         if feature not in found_features}
     return {
+        'analyzer': vec.analyzer,
         'document': preprocessed_doc,
         'weighted_spans': weighted_spans,
         'not_found': not_found,

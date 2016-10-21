@@ -12,6 +12,7 @@ def test_weighted_spans_word():
         {'pos': [('see', 0.2), ('lemon', 0.5), ('bias', 0.8)],
          'neg': [('tree', -0.6)]})
     assert w_spans == {
+        'analyzer': 'word',
         'document': 'i see: a leaning lemon tree',
         'weighted_spans': [
             ('see', [(2, 5)], 0.2),
@@ -29,6 +30,7 @@ def test_weighted_spans_word_bigrams():
         {'pos': [('see', 0.2), ('leaning lemon', 0.5), ('lemon tree', 0.8)],
          'neg': [('tree', -0.6)]})
     assert w_spans == {
+        'analyzer': 'word',
         'document': 'i see: a leaning lemon tree',
         'weighted_spans': [
             ('see', [(2, 5)], 0.2),
@@ -47,6 +49,7 @@ def test_weighted_spans_word_stopwords():
         {'pos': [('see', 0.2), ('lemon', 0.5), ('bias', 0.8)],
          'neg': [('tree', -0.6)]})
     assert w_spans == {
+        'analyzer': 'word',
         'document': 'i see: a leaning lemon tree',
         'weighted_spans': [
             ('lemon', [(17, 22)], 0.5),
@@ -63,6 +66,7 @@ def test_weighted_spans_char():
         {'pos': [('see', 0.2), ('a le', 0.5), ('on ', 0.8)],
          'neg': [('lem', -0.6)]})
     assert w_spans == {
+        'analyzer': 'char',
         'document': 'i see: a leaning lemon tree',
         'weighted_spans': [
             ('see', [(2, 5)], 0.2),
@@ -81,6 +85,7 @@ def test_weighted_spans_char_wb():
         {'pos': [('see', 0.2), ('a le', 0.5), ('on ', 0.8)],
          'neg': [('lem', -0.6), (' lem', -0.4)]})
     assert w_spans == {
+        'analyzer': 'char_wb',
         'document': 'i see: a leaning lemon tree',
         'weighted_spans': [
             ('see', [(2, 5)], 0.2),

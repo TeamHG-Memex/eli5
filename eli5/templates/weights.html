@@ -77,7 +77,7 @@
 
     {% if expl.weighted_spans %}
         <p>
-            {{ expl.weighted_spans|render_weighted_spans }}
+            {{ expl.weighted_spans|render_weighted_spans(preserve_density) }}
         </p>
     {% endif %}
 

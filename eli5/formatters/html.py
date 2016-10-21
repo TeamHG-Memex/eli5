@@ -12,7 +12,7 @@ template_env = Environment(
     loader=PackageLoader('eli5', 'templates'),
     extensions=['jinja2.ext.with_'])
 template_env.filters.update(dict(
-    render_weighted_spans=lambda x: render_weighted_spans(x),
+    render_weighted_spans=lambda x, pd: render_weighted_spans(x, pd),
     weight_color=lambda w, w_range: _weight_color(w, w_range),
     smallest_weight_color=lambda ws, w_range:
         _weight_color(min([coef for _, coef in ws] or [0], key=abs), w_range),
@@ -23,7 +23,7 @@ template_env.filters.update(dict(
 
 
 def format_as_html(explanation, include_styles=True, force_weights=True,
-                   show=fields.ALL):
+                   show=fields.ALL, preserve_density=None):
     """ Format explanation as html.
     Most styles are inline, but some are included separately in <style> tag,
     you can omit them by passing ``include_styles=False`` and call
@@ -37,6 +37,7 @@ def format_as_html(explanation, include_styles=True, force_weights=True,
     return template.render(
         include_styles=include_styles,
         force_weights=force_weights,
+        preserve_density=preserve_density,
         table_styles='border-collapse: collapse; border: none;',
         tr_styles='border: none;',
         td1_styles='padding: 0 1em 0 0.5em; text-align: right; border: none;',
@@ -53,19 +54,29 @@ def format_html_styles():
     return template_env.get_template('styles.html').render()
 
 
-def render_weighted_spans(weighted_spans_data):
+def render_weighted_spans(weighted_spans_data, preserve_density=None):
     """ Render text document with highlighted features.
+    If preserve_density is True, then color for longer fragments will be
+    less intensive than for shorter fragments, so that "sum" of intensities
+    will correspond to feature weight.
+    If preserve_density is None, then it's value is chosen depending on
+    analyzer kind: it is preserved for "char" and "char_wb" analyzers,
+    and not preserved for "word" analyzers.
     """
+    if preserve_density is None:
+        preserve_density = weighted_spans_data['analyzer'].startswith('char')
     doc = weighted_spans_data['document']
     weighted_spans = weighted_spans_data['weighted_spans']
     char_weights = np.zeros(len(doc))
     for _, spans, weight in weighted_spans:
         for start, end in spans:
+            if preserve_density:
+                weight /= (end - start)
             char_weights[start:end] += weight
     # TODO - can be much smarter, join spans at least
     # TODO - for longer documents, remove text without active features
     not_found_weights = sorted(
-        (feature, weight)
+        (feature, weight / len(feature) if preserve_density else weight)
         for feature, weight in weighted_spans_data['not_found'].items()
         if not np.isclose(weight, 0.))
     weight_range = max(abs(x) for x in char_weights)

@@ -58,8 +58,9 @@ def test_format_single_feature():
     )
 
 
-def test_render_weighted_spans():
+def test_render_weighted_spans_word():
     weighted_spans = {
+        'analyzer': 'word',
         'document': 'i see: a leaning lemon tree',
         'weighted_spans': [
             ('see', [(2, 5)], 0.2),
@@ -109,3 +110,47 @@ def test_render_weighted_spans():
          '<span  title="0.200">e</span>'
          '<span  title="0.200">e</span>'
     )
+
+
+def test_render_weighted_spans_char():
+    weighted_spans = {
+        'analyzer': 'char',
+        'document': 'see',
+        'weighted_spans': [
+            ('se', [(0, 2)], 0.2),
+            ('ee', [(1, 3)], 0.1),
+            ],
+        'not_found': {'<BIAS>': 0.5}
+    }
+    s = render_weighted_spans(weighted_spans)
+    assert s == (
+        '<span'
+        ' style="background-color: hsl(120, 100.00%, 77.78%); opacity: 0.91"'
+        ' title="0.083">&lt;BIAS&gt;</span> '
+        '<span'
+        ' style="background-color: hsl(120, 100.00%, 73.33%); opacity: 0.93"'
+        ' title="0.100">s</span>'
+        '<span'
+        ' style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00"'
+        ' title="0.150">e</span>'
+        '<span'
+        ' style="background-color: hsl(120, 100.00%, 86.67%); opacity: 0.87"'
+        ' title="0.050">e</span>'
+    )
+
+
+def test_override_preserve_density():
+    weighted_spans = {
+        'analyzer': 'char',
+        'document': 'see',
+        'weighted_spans': [
+            ('se', [(0, 2)], 0.2),
+            ('ee', [(1, 3)], 0.1),
+        ],
+        'not_found': {'<BIAS>': 0.5}
+    }
+    s = render_weighted_spans(weighted_spans, preserve_density=False)
+    assert s.startswith(
+        '<span '
+        'style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" '
+        'title="0.500">&lt;BIAS&gt;</span>')
