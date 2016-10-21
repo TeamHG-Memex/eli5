@@ -131,6 +131,7 @@ class MultivariateKernelDensitySampler(_BaseKernelDensitySampler):
     def sample_near(self, doc, n_samples=1):
         # XXX: it doesn't sample only near the given document, it
         # samples everywhere
+        doc = np.asarray(doc)
         samples = self.kde_.sample(n_samples)
         return samples, self._similarity(doc, samples)
 
