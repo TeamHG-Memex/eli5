@@ -98,7 +98,8 @@ def _train_local_classifier(estimator,
               expand_factor=expand_factor,
               sample_weight=similarity_train)
 
-    # TODO/FIXME: score should take probabilities in account
+    # TODO/FIXME: score should take probabilities in account,
+    # i.e. use cross-entropy or MSE instead of accuracy
     return score_with_sample_weight(estimator, X_test, y_best_test,
                                     sample_weight=similarity_test)
 
