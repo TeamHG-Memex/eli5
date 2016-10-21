@@ -2,7 +2,9 @@
 from __future__ import absolute_import
 
 import numpy as np
+
 from sklearn.pipeline import Pipeline
+from sklearn.utils.metaestimators import if_delegate_has_method
 
 
 def fit_proba(clf, X, y_proba, expand_factor=10, sample_weight=None,
@@ -28,6 +30,29 @@ def fit_proba(clf, X, y_proba, expand_factor=10, sample_weight=None,
     fit_params.setdefault(param_name, sample_weight)
     clf.fit(X, y, **fit_params)
     return clf
+
+
+class _PipelinePatched(Pipeline):
+    # Patch from https://github.com/scikit-learn/scikit-learn/pull/7723.
+    # FIXME/TODO: don't use it if the fix is in upstream!
+
+    @if_delegate_has_method(delegate='_final_estimator')
+    def score(self, X, y=None, **score_params):
+        Xt = X
+        for name, transform in self.steps[:-1]:
+            if transform is not None:
+                Xt = transform.transform(Xt)
+        return self.steps[-1][-1].score(Xt, y, **score_params)
+
+
+def score_with_sample_weight(estimator, X, y=None, sample_weight=None):
+    # A workaround for https://github.com/scikit-learn/scikit-learn/pull/7723.
+    # FIXME/TODO: don't use it if the fix is in upstream!
+    if isinstance(estimator, Pipeline) and sample_weight is not None:
+        estimator = _PipelinePatched(estimator.steps)
+    if sample_weight is None:
+        return estimator.score(X, y)
+    return estimator.score(X, y, sample_weight=sample_weight)
 
 
 def expand_dataset(X, y_proba, factor=10, *arrays):

@@ -64,7 +64,7 @@ except ImportError:  # sklearn < 0.18
 
 from eli5.lime import textutils
 from eli5.lime.samplers import BaseSampler, MaskingTextSampler
-from eli5.lime.utils import rbf, fit_proba
+from eli5.lime.utils import rbf, fit_proba, score_with_sample_weight
 
 
 def _train_local_classifier(estimator,
@@ -79,8 +79,10 @@ def _train_local_classifier(estimator,
     y_best = y_proba.argmax(axis=1)
 
     (X_train, X_test,
+     similarity_train, similarity_test,
      y_proba_train, y_proba_test,
-     y_best_train, y_best_test) = train_test_split(samples, y_proba, y_best,
+     y_best_train, y_best_test) = train_test_split(samples, similarity,
+                                                   y_proba, y_best,
                                                    test_size=test_size)
 
     # XXX: in the original lime code instead of a probabilitsic classifier
@@ -94,10 +96,11 @@ def _train_local_classifier(estimator,
     # TODO: feature selection
     fit_proba(estimator, X_train, y_proba_train,
               expand_factor=expand_factor,
-              sample_weight=similarity)
+              sample_weight=similarity_train)
 
     # TODO/FIXME: score should take probabilities in account
-    return estimator.score(X_test, y_best_test)
+    return score_with_sample_weight(estimator, X_test, y_best_test,
+                                    sample_weight=similarity_test)
 
 
 def get_local_pipeline_text(text, predict_proba, n_samples=1000,
