@@ -10,6 +10,7 @@ from sklearn.feature_extraction.text import (
 )
 from sklearn.linear_model import (
     ElasticNet,
+    ElasticNetCV,
     Lars,
     Lasso,
     LinearRegression,
@@ -18,6 +19,7 @@ from sklearn.linear_model import (
     PassiveAggressiveClassifier,
     Perceptron,
     Ridge,
+    RidgeCV,
     SGDClassifier,
     SGDRegressor,
 )
@@ -225,9 +227,11 @@ def test_unsupported():
 
 @pytest.mark.parametrize(['clf'], [
     [ElasticNet(random_state=42)],
+    [ElasticNetCV(random_state=42)],
     [Lars()],
     [Lasso(random_state=42)],
     [Ridge(random_state=42)],
+    [RidgeCV()],
     [SGDRegressor(random_state=42)],
     [LinearRegression()],
     [LinearSVR()],

@@ -4,7 +4,8 @@ from singledispatch import singledispatch
 
 import numpy as np
 from sklearn.linear_model import (
-    ElasticNet,
+    ElasticNet,  # includes Lasso, MultiTaskElasticNet, etc.
+    ElasticNetCV,
     Lars,
     LinearRegression,
     LogisticRegression,
@@ -12,6 +13,7 @@ from sklearn.linear_model import (
     PassiveAggressiveClassifier,
     Perceptron,
     Ridge,
+    RidgeCV,
     SGDClassifier,
     SGDRegressor,
 )
@@ -256,10 +258,12 @@ def explain_tree_feature_importance(clf, vec=None, top=_TOP, target_names=None,
 
 
 @explain_weights.register(ElasticNet)
+@explain_weights.register(ElasticNetCV)
 @explain_weights.register(Lars)
 @explain_weights.register(LinearRegression)
 @explain_weights.register(LinearSVR)
 @explain_weights.register(Ridge)
+@explain_weights.register(RidgeCV)
 @explain_weights.register(SGDRegressor)
 def explain_linear_regressor_weights(clf, vec=None, feature_names=None,
                                      top=_TOP, target_names=None,

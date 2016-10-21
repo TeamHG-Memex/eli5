@@ -6,7 +6,8 @@ import scipy.sparse as sp
 import six
 from sklearn.feature_extraction.text import HashingVectorizer
 from sklearn.linear_model import (
-    ElasticNet,
+    ElasticNet,  # includes Lasso, MultiTaskElasticNet, etc.
+    ElasticNetCV,
     Lars,
     LinearRegression,
     LogisticRegression,
@@ -14,6 +15,7 @@ from sklearn.linear_model import (
     PassiveAggressiveClassifier,
     Perceptron,
     Ridge,
+    RidgeCV,
     SGDClassifier,
     SGDRegressor,
 )
@@ -155,10 +157,12 @@ def _handle_vec(clf, doc, vec, vectorized, feature_names):
 
 
 @explain_prediction.register(ElasticNet)
+@explain_prediction.register(ElasticNetCV)
 @explain_prediction.register(Lars)
 @explain_prediction.register(LinearRegression)
 @explain_prediction.register(LinearSVR)
 @explain_prediction.register(Ridge)
+@explain_prediction.register(RidgeCV)
 @explain_prediction.register(SGDRegressor)
 def explain_prediction_linear_regressor(
         clf, doc, vec=None, top=_TOP, target_names=None,
