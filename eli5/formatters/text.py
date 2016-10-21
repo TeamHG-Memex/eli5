@@ -109,17 +109,33 @@ def _format_feature(name):
     if isinstance(name, list) and all('name' in x and 'sign' in x for x in name):
         return _format_unhashed_feature(name)
     else:
-        return name
+        return _format_single_feature(name)
+
+
+def _format_single_feature(feature):
+    """
+    >>> _format_single_feature('ab')
+    'ab'
+    >>> _format_single_feature('a b')
+    'a b'
+    >>> _format_single_feature(' ab')
+    '" ab"'
+    >>> _format_single_feature('ab ')
+    '"ab "'
+    """
+    if feature.startswith(' ') or feature.endswith(' '):
+        feature = '"{}"'.format(feature)
+    return feature
 
 
 def _format_unhashed_feature(name, sep=' | '):
     """
     Format feature name for hashed features.
     """
-    return sep.join(map(format_signed, name))
+    return sep.join(format_signed(n, _format_single_feature) for n in name)
 
 
-def format_signed(feature):
+def format_signed(feature, formatter=None):
     """
     Format unhashed feature with sign.
 
@@ -127,6 +143,11 @@ def format_signed(feature):
     'foo'
     >>> format_signed({'name': 'foo', 'sign': -1})
     '(-)foo'
+    >>> format_signed({'name': ' foo', 'sign': -1}, lambda x: '"{}"'.format(x))
+    '(-)" foo"'
     """
     txt = '' if feature['sign'] > 0 else '(-)'
-    return ''.join([txt, feature['name']])
+    name = feature['name']
+    if formatter is not None:
+        name = formatter(name)
+    return '{}{}'.format(txt, name)

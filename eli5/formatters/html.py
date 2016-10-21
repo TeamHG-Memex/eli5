@@ -137,7 +137,7 @@ def _format_unhashed_feature(feature):
         return ''
     else:
         first, rest = feature[0], feature[1:]
-        html = html_escape(format_signed(first))
+        html = format_signed(first, _format_single_feature)
         if rest:
             html += ' <span title="{}">&hellip;</span>'.format(
                 '\n'.join(html_escape(format_signed(f)) for f in rest))
@@ -151,7 +151,24 @@ def _format_feature(feature):
             all('name' in x and 'sign' in x for x in feature)):
         return _format_unhashed_feature(feature)
     else:
-        return html_escape(feature)
+        return _format_single_feature(feature)
+
+
+def _format_single_feature(feature):
+    """
+    >>> _format_single_feature('ab')
+    'ab'
+    >>> _format_single_feature('a b')
+    'a b'
+    >>> _format_single_feature(' ab')
+    '"&nbsp;ab"'
+    >>> _format_single_feature('ab ')
+    '"ab&nbsp;"'
+    """
+    feature = html_escape(feature)
+    if feature.startswith(' ') or feature.endswith(' '):
+        feature = '"{}"'.format(feature.replace(' ', '&nbsp;'))
+    return feature
 
 
 def html_escape(text):
