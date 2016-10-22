@@ -63,8 +63,8 @@ except ImportError:  # sklearn < 0.18
     from sklearn.cross_validation import train_test_split
 
 from eli5.lime import textutils
-from eli5.lime.samplers import BaseSampler, MaskingTextSampler
-from eli5.lime.utils import rbf, fit_proba, score_with_sample_weight
+from eli5.lime.samplers import MaskingTextSampler
+from eli5.lime.utils import fit_proba, score_with_sample_weight
 
 
 def _train_local_classifier(estimator,
