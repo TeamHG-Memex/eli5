@@ -5,10 +5,11 @@ import numpy as np
 
 from sklearn.pipeline import Pipeline
 from sklearn.utils.metaestimators import if_delegate_has_method
+from sklearn.utils import shuffle as _shuffle
 
 
 def fit_proba(clf, X, y_proba, expand_factor=10, sample_weight=None,
-              **fit_params):
+              shuffle=True, **fit_params):
     """
     Fit classifier ``clf`` to return probabilities close to ``y_proba``.
 
@@ -26,6 +27,13 @@ def fit_proba(clf, X, y_proba, expand_factor=10, sample_weight=None,
             X, y = zip(*expand_dataset(X, y_proba, expand_factor))
     else:
         y = y_proba.argmax(axis=1)
+
+    if shuffle:
+        if sample_weight is not None:
+            X, y, sample_weight = _shuffle(X, y, sample_weight)
+        else:
+            X, y = _shuffle(X, y)
+
     param_name = _get_classifier_prefix(clf) + "sample_weight"
     fit_params.setdefault(param_name, sample_weight)
     clf.fit(X, y, **fit_params)
