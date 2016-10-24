@@ -96,7 +96,7 @@ def _colorize(token, weight, weight_range):
             'style="background-color: {color}; opacity: {opacity}" '
             'title="{weight:.3f}"'
             '>{token}</span>'.format(
-                color=_weight_color(weight, weight_range),
+                color=_weight_color(weight, weight_range, min_lightness=0.6),
                 opacity=_weight_opacity(weight, weight_range),
                 weight=weight,
                 token=token)
@@ -111,14 +111,14 @@ def _weight_opacity(weight, weight_range):
     return '{:.2f}'.format(min_opacity + (1 - min_opacity) * rel_weight)
 
 
-def _weight_color(weight, weight_range):
+def _weight_color(weight, weight_range, min_lightness=0.8):
     """ Return css color for given weight, where the max absolute weight
     is given by weight_range.
     """
     hue = _hue(weight)
     saturation = 1
-    min_lightness = 0.8
-    lightness = 1.0 - (1 - min_lightness) * abs(weight) / weight_range
+    rel_weight = (abs(weight) / weight_range) ** 0.7
+    lightness = 1.0 - (1 - min_lightness) * rel_weight
     return 'hsl({}, {:.2%}, {:.2%})'.format(hue, saturation, lightness)
 
 
