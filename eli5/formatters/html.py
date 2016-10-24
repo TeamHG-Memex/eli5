@@ -117,7 +117,7 @@ def _weight_color(weight, weight_range):
     """
     hue = _hue(weight)
     saturation = 1
-    min_lightness = 0.6
+    min_lightness = 0.8
     lightness = 1.0 - (1 - min_lightness) * abs(weight) / weight_range
     return 'hsl({}, {:.2%}, {:.2%})'.format(hue, saturation, lightness)
 
@@ -159,10 +159,15 @@ def _format_feature(feature, weight):
 
 
 def _format_single_feature(feature, weight):
-    style = 'background-color: hsl({}, 100%, 40%)'.format(_hue(weight))
-    return replace_starting_trailing_spaces(
-        html_escape(feature),
-        '<span style="{}">&emsp;</span>'.format(style))
+
+    def replacer(n_spaces, is_left):
+        style = '; '.join([
+            'background-color: hsl({}, 80%, 70%)'.format(_hue(weight)),
+            'margin-{}: 0.1em'.format('right' if is_left else 'left'),
+        ])
+        return '<span style="{}">{}</span>'.format(style, '&emsp;' * n_spaces)
+
+    return replace_starting_trailing_spaces(html_escape(feature), replacer)
 
 
 def html_escape(text):

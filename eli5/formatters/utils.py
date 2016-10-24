@@ -1,20 +1,19 @@
 import re
 
 
-def replace_starting_trailing_spaces(s, replace_with):
+def replace_starting_trailing_spaces(s, replacer):
     """
-    >>> replace_starting_trailing_spaces('ab', '_')
+    >>> replace_starting_trailing_spaces('ab', lambda n, l: '_' * n)
     'ab'
-    >>> replace_starting_trailing_spaces('a b', '_')
+    >>> replace_starting_trailing_spaces('a b', lambda n, l: '_' * n)
     'a b'
-    >>> replace_starting_trailing_spaces(' ab', '_')
+    >>> replace_starting_trailing_spaces(' ab', lambda n, l: '_' * n)
     '_ab'
-    >>> replace_starting_trailing_spaces('  a b   ', '_')
-    '__a b___'
+    >>> replace_starting_trailing_spaces('  a b   ', lambda n, l: '_' * (n + l))
+    '___a b___'
     """
-    repl = lambda m: m.group().replace(' ', replace_with)
-    s = re.sub('^[ ]+', repl, s)
-    s = re.sub('[ ]+$', repl, s)
+    s = re.sub('^[ ]+', lambda m: replacer(len(m.group()), True), s)
+    s = re.sub('[ ]+$', lambda m: replacer(len(m.group()), False), s)
     return s
 
 

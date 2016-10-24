@@ -116,7 +116,13 @@ def _format_feature(name):
 
 
 def _format_single_feature(feature):
-    return replace_starting_trailing_spaces(feature, '▒')
+    """
+    >>> _format_single_feature('a b')
+    'a b'
+    >>> _format_single_feature('  a b ')
+    '░░a b░'
+    """
+    return replace_starting_trailing_spaces(feature, lambda n, l: '░' * n)
 
 
 def _format_unhashed_feature(name, sep=' | '):
