@@ -117,7 +117,7 @@ def _format_feature(name):
 
 
 def _format_single_feature(feature):
-    return replace_starting_trailing_spaces(feature, lambda n, l: _SPACE * n)
+    return replace_starting_trailing_spaces(feature, lambda n, _: _SPACE * n)
 
 
 def _format_unhashed_feature(name, sep=' | '):

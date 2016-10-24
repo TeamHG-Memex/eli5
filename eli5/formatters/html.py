@@ -160,12 +160,18 @@ def _format_feature(feature, weight):
 
 def _format_single_feature(feature, weight):
 
-    def replacer(n_spaces, is_left):
+    def replacer(n_spaces, side):
+        m = '0.1em'
+        margins = {'left': (m, 0), 'right': (0, m), 'center': (m, m)}[side]
         style = '; '.join([
             'background-color: hsl({}, 80%, 70%)'.format(_hue(weight)),
-            'margin-{}: 0.1em'.format('right' if is_left else 'left'),
+            'margin: 0 {} 0 {}'.format(*margins),
         ])
-        return '<span style="{}">{}</span>'.format(style, '&emsp;' * n_spaces)
+        return '<span style="{style}" title="{title}">{spaces}</span>'.format(
+            style=style,
+            title='A space symbol' if n_spaces == 1 else
+                  '{} space symbols'.format(n_spaces),
+            spaces='&emsp;' * n_spaces)
 
     return replace_starting_trailing_spaces(html_escape(feature), replacer)
 
