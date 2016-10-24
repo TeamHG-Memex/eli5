@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
 import cgi
+import copy
 
 import numpy as np
 from jinja2 import Environment, PackageLoader
 
 from .utils import format_signed, replace_spaces
+from .text import format_signed
+from . import fields
 
 
 template_env = Environment(
@@ -21,7 +24,8 @@ template_env.filters.update(dict(
 ))
 
 
-def format_as_html(explanation, include_styles=True, force_weights=True):
+def format_as_html(explanation, include_styles=True, force_weights=True,
+                   show=fields.ALL):
     """ Format explanation as html.
     Most styles are inline, but some are included separately in <style> tag,
     you can omit them by passing ``include_styles=False`` and call
@@ -31,6 +35,11 @@ def format_as_html(explanation, include_styles=True, force_weights=True):
     in the document.
     """
     template = template_env.get_template('explain.html')
+    explanation = copy.deepcopy(explanation)
+    for field in fields.ALL:
+        if field not in show:
+            explanation.pop(field, None)
+
     return template.render(
         include_styles=include_styles,
         force_weights=force_weights,
@@ -39,6 +48,7 @@ def format_as_html(explanation, include_styles=True, force_weights=True):
         td1_styles='padding: 0 1em 0 0.5em; text-align: right; border: none;',
         tdm_styles='padding: 0 0.5em 0 0.5em; text-align: center; border: none;',
         td2_styles='padding: 0 0.5em 0 0.5em; text-align: left; border: none;',
+        show=show,
         **explanation)
 
 

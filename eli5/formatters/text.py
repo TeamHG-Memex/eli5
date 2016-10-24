@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 import six
+from . import fields
 
 from .utils import format_signed, replace_spaces
 
@@ -10,29 +11,34 @@ _ELLIPSIS = '...' if six.PY2 else '…'
 _SPACE = '_' if six.PY2 else '░'
 
 
-def format_as_text(explanation):
+def format_as_text(explanation, show=fields.ALL):
     lines = []
-    if 'method' in explanation:
-        lines.append('Explained as: {}'.format(explanation['method']))
 
-    if 'description' in explanation:
-        lines.append(explanation['description'])
+    for key in show:
+        if key not in explanation:
+            continue
 
-    if 'classes' in explanation:
-        lines.extend(_format_weights(explanation['classes']))
+        if key == 'method':
+            lines.append('Explained as: {}'.format(explanation['method']))
 
-    if 'targets' in explanation:
-        lines.extend(_format_weights(explanation['targets']))
+        if key == 'description':
+            lines.append(explanation['description'])
 
-    if 'feature_importances' in explanation:
-        sz = _maxlen(explanation['feature_importances'])
-        for name, w, std in explanation['feature_importances']:
-            lines.append('{w:0.4f} {plus} {std:0.4f} {feature}'.format(
-                feature=name.ljust(sz),
-                w=w,
-                plus=_PLUS_MINUS,
-                std=2*std,
-            ))
+        if key == 'classes':
+            lines.extend(_format_weights(explanation['classes']))
+
+        if key == 'targets':
+            lines.extend(_format_weights(explanation['targets']))
+
+        if key == 'feature_importances':
+            sz = _maxlen(explanation['feature_importances'])
+            for name, w, std in explanation['feature_importances']:
+                lines.append('{w:0.4f} {plus} {std:0.4f} {feature}'.format(
+                    feature=name.ljust(sz),
+                    w=w,
+                    plus=_PLUS_MINUS,
+                    std=2*std,
+                ))
 
     return '\n'.join(lines)
 
