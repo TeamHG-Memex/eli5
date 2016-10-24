@@ -12,7 +12,7 @@ from .utils import format_as_all
 def test_show_fields(newsgroups_train):
     docs, y, target_names = newsgroups_train
     vec = TfidfVectorizer()
-    clf = LogisticRegression()
+    clf = LogisticRegression(C=0.1)
 
     X = vec.fit_transform(docs)
     clf.fit(X, y)
@@ -22,8 +22,18 @@ def test_show_fields(newsgroups_train):
 
     assert 'Caveats' in text
     assert 'Caveats' in html
+    assert '<BIAS>' in text
+    assert 'BIAS' in html
 
     text, html = format_as_all(expl, clf, show=fields.WEIGHTS)
 
     assert 'Caveats' not in text
     assert 'Caveats' not in html
+    assert '<BIAS>' in text
+    assert 'BIAS' in html
+
+    text, html = format_as_all(expl, clf, show=fields.INFO)
+    assert 'Caveats' in text
+    assert 'Caveats' in html
+    assert '<BIAS>' not in text
+    assert 'BIAS' not in html
