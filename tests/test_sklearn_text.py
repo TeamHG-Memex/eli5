@@ -18,7 +18,7 @@ def test_weighted_spans_word():
             ('see', [(2, 5)], 0.2),
             ('lemon', [(17, 22)], 0.5),
             ('tree', [(23, 27)], -0.6)],
-        'not_found': {'bias': 0.8}}
+        'not_found': {'pos': [('bias', 0.8)], 'neg': []}}
 
 
 def test_weighted_spans_word_bigrams():
@@ -37,7 +37,7 @@ def test_weighted_spans_word_bigrams():
             ('tree', [(23, 27)], -0.6),
             ('leaning lemon', [(9, 16), (17, 22)], 0.5),
             ('lemon tree', [(17, 22), (23, 27)], 0.8)],
-        'not_found': {}}
+        'not_found': {'pos': [], 'neg': []}}
 
 
 def test_weighted_spans_word_stopwords():
@@ -54,7 +54,7 @@ def test_weighted_spans_word_stopwords():
         'weighted_spans': [
             ('lemon', [(17, 22)], 0.5),
             ('tree', [(23, 27)], -0.6)],
-        'not_found': {'bias': 0.8, 'see': 0.2}}
+        'not_found': {'pos': [('bias', 0.8), ('see', 0.2)], 'neg': []}}
 
 
 def test_weighted_spans_char():
@@ -73,7 +73,7 @@ def test_weighted_spans_char():
             ('lem', [(17, 20)], -0.6),
             ('on ', [(20, 23)], 0.8),
             ('a le', [(7, 11)], 0.5)],
-        'not_found': {}}
+        'not_found': {'pos': [], 'neg': []}}
 
 
 def test_weighted_spans_char_wb():
@@ -92,4 +92,4 @@ def test_weighted_spans_char_wb():
             ('lem', [(17, 20)], -0.6),
             ('on ', [(20, 23)], 0.8),
             (' lem', [(16, 20)], -0.4)],
-        'not_found': {'a le': 0.5}}
+        'not_found': {'pos': [('a le', 0.5)], 'neg': []}}

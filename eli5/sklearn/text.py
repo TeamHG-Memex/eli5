@@ -36,9 +36,14 @@ def get_weighted_spans(doc, vec, feature_weights):
         if weight is not None:
             found_features.add(feature)
             weighted_spans.append((feature, spans, weight))
+    not_found_items = sorted(
+        ((feature, weight) for feature, weight in feature_weights_dict.items()
+            if feature not in found_features),
+        key=lambda x: x[1], reverse=True)
     not_found = {
-        feature: weight for feature, weight in feature_weights_dict.items()
-        if feature not in found_features}
+        'pos': [(f, w) for f, w in not_found_items if w > 0],
+        'neg': [(f, w) for f, w in not_found_items if w < 0],
+    }
     return {
         'analyzer': vec.analyzer,
         'document': preprocessed_doc,

@@ -67,13 +67,9 @@ def test_render_weighted_spans_word():
             ('tree', [(23, 27)], -0.6),
             ('leaning lemon', [(9, 16), (17, 22)], 0.5),
             ('lemon tree', [(17, 22), (23, 27)], 0.8)],
-        'not_found': {'<BIAS>': 0.5}
     }
     s = render_weighted_spans(weighted_spans)
     assert s.startswith(
-        '<span'
-        ' style="background-color: hsl(120, 100.00%, 79.51%); opacity: 0.88"'
-        ' title="0.500">&lt;BIAS&gt;</span> '
         '<span style="opacity: 0.80">i</span>'
         '<span style="opacity: 0.80"> </span>'
         '<span'
@@ -82,7 +78,7 @@ def test_render_weighted_spans_word():
     )
     s_without_styles = re.sub('style=".*?"', '', s)
     assert s_without_styles == (
-         '<span  title="0.500">&lt;BIAS&gt;</span> <span >i</span>'
+         '<span >i</span>'
          '<span > </span>'
          '<span  title="0.200">s</span>'
          '<span  title="0.200">e</span>'
@@ -120,21 +116,17 @@ def test_render_weighted_spans_char():
             ('se', [(0, 2)], 0.2),
             ('ee', [(1, 3)], 0.1),
             ],
-        'not_found': {'<BIAS>': 0.5}
     }
     s = render_weighted_spans(weighted_spans)
     assert s == (
         '<span'
-        ' style="background-color: hsl(120, 100.00%, 77.78%); opacity: 0.91"'
-        ' title="0.083">&lt;BIAS&gt;</span> '
-        '<span'
-        ' style="background-color: hsl(120, 100.00%, 73.33%); opacity: 0.93"'
+        ' style="background-color: hsl(120, 100.00%, 69.88%); opacity: 0.93"'
         ' title="0.100">s</span>'
         '<span'
         ' style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00"'
         ' title="0.150">e</span>'
         '<span'
-        ' style="background-color: hsl(120, 100.00%, 86.67%); opacity: 0.87"'
+        ' style="background-color: hsl(120, 100.00%, 81.46%); opacity: 0.87"'
         ' title="0.050">e</span>'
     )
 
@@ -147,10 +139,9 @@ def test_override_preserve_density():
             ('se', [(0, 2)], 0.2),
             ('ee', [(1, 3)], 0.1),
         ],
-        'not_found': {'<BIAS>': 0.5}
     }
     s = render_weighted_spans(weighted_spans, preserve_density=False)
     assert s.startswith(
         '<span '
-        'style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" '
-        'title="0.500">&lt;BIAS&gt;</span>')
+        'style="background-color: hsl(120, 100.00%, 69.88%); opacity: 0.93" '
+        'title="0.200">s</span>')

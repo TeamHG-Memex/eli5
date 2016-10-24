@@ -75,21 +75,9 @@ def render_weighted_spans(weighted_spans_data, preserve_density=None):
             char_weights[start:end] += weight
     # TODO - can be much smarter, join spans at least
     # TODO - for longer documents, remove text without active features
-    not_found_weights = sorted(
-        (feature, weight / len(feature) if preserve_density else weight)
-        for feature, weight in weighted_spans_data['not_found'].items()
-        if not np.isclose(weight, 0.))
     weight_range = max(abs(x) for x in char_weights)
-    if not_found_weights:
-        weight_range = max(weight_range,
-                           max(abs(w) for _, w in not_found_weights))
-    hl_doc = []
-    if not_found_weights:
-        hl_doc.append(' '.join(_colorize(token, weight, weight_range)
-                               for token, weight in not_found_weights))
-    hl_doc.append(''.join(_colorize(token, weight, weight_range)
-                          for token, weight in zip(doc, char_weights)))
-    return ' '.join(hl_doc)
+    return ''.join(_colorize(token, weight, weight_range)
+                   for token, weight in zip(doc, char_weights))
 
 
 def _colorize(token, weight, weight_range):

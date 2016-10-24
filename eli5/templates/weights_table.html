@@ -1,0 +1,35 @@
+    <table class="eli5-weights" style="{{ table_styles }}">
+        <thead>
+        <tr style="{{ tr_styles }}">
+            <th style="{{ td1_styles }}">Weight</th>
+            <th style="{{ td2_styles }}">Feature</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% with weight_range = wts|weight_range %}
+
+            {% for name, coef in wts.pos %}
+                {% include "weights_table_row.html" with context %}
+            {% endfor %}
+            {% if wts.pos_remaining %}
+                <tr style="background-color: {{ wts.pos|smallest_weight_color(weight_range) }}; {{ tr_styles }}">
+                    <td colspan="2" style="{{ tdm_styles }}">
+                        <i>&hellip; {{ wts.pos_remaining }} more positive &hellip;</i>
+                    </td>
+                </tr>
+            {% endif %}
+
+            {% if wts.neg_remaining %}
+                <tr style="background-color: {{ wts.neg|smallest_weight_color(weight_range) }}; {{ tr_styles }}">
+                    <td colspan="2" style="{{ tdm_styles }}">
+                        <i>&hellip; {{ wts.neg_remaining }} more negative &hellip;</i>
+                    </td>
+                </tr>
+            {% endif %}
+            {% for name, coef in wts.neg|reverse %}
+                {% include "weights_table_row.html" with context %}
+            {% endfor %}
+
+        {% endwith %}
+        </tbody>
+    </table>
