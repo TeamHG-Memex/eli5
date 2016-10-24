@@ -1,7 +1,8 @@
 import re
 
 from eli5.formatters import format_html_styles
-from eli5.formatters.html import _format_unhashed_feature, render_weighted_spans
+from eli5.formatters.html import (
+    _format_unhashed_feature, render_weighted_spans, _format_single_feature)
 
 
 def test_render_styles():
@@ -22,6 +23,39 @@ def test_format_unhashed_feature():
         {'name': 'bar', 'sign': -1},
         {'name': 'boo', 'sign': 1},
     ], 1) == 'foo <span title="(-)bar\nboo">&hellip;</span>'
+
+
+def test_format_single_feature():
+    assert _format_single_feature('a', 1) == 'a'
+    assert _format_single_feature('<>', 1) == '&lt;&gt;'
+    assert _format_single_feature('aa bb', 1) == (
+        'aa'
+        '<span '
+        'style="background-color: hsl(120, 80%, 70%); margin: 0 0.1em 0 0.1em" '
+        'title="A space symbol">'
+        '&emsp;'
+        '</span>'
+        'bb')
+    assert _format_single_feature('  aa bb ', -1) == (
+        '<span '
+        'style="background-color: hsl(0, 80%, 70%); margin: 0 0.1em 0 0" '
+        'title="2 space symbols">'
+        '&emsp;'
+        '&emsp;'
+        '</span>'
+        'aa'
+        '<span '
+        'style="background-color: hsl(0, 80%, 70%); margin: 0 0.1em 0 0.1em" '
+        'title="A space symbol">'
+        '&emsp;'
+        '</span>'
+        'bb'
+        '<span '
+        'style="background-color: hsl(0, 80%, 70%); margin: 0 0 0 0.1em" '
+        'title="A space symbol">'
+        '&emsp;'
+        '</span>'
+    )
 
 
 def test_render_weighted_spans():
