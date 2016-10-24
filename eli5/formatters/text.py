@@ -2,8 +2,12 @@
 from __future__ import absolute_import
 import six
 
+from .utils import format_signed, replace_spaces
+
+
 _PLUS_MINUS = "+-" if six.PY2 else "±"
 _ELLIPSIS = '...' if six.PY2 else '…'
+_SPACE = '_' if six.PY2 else '░'
 
 
 def format_as_text(explanation):
@@ -109,24 +113,15 @@ def _format_feature(name):
     if isinstance(name, list) and all('name' in x and 'sign' in x for x in name):
         return _format_unhashed_feature(name)
     else:
-        return name
+        return _format_single_feature(name)
+
+
+def _format_single_feature(feature):
+    return replace_spaces(feature, lambda n, _: _SPACE * n)
 
 
 def _format_unhashed_feature(name, sep=' | '):
     """
     Format feature name for hashed features.
     """
-    return sep.join(map(format_signed, name))
-
-
-def format_signed(feature):
-    """
-    Format unhashed feature with sign.
-
-    >>> format_signed({'name': 'foo', 'sign': 1})
-    'foo'
-    >>> format_signed({'name': 'foo', 'sign': -1})
-    '(-)foo'
-    """
-    txt = '' if feature['sign'] > 0 else '(-)'
-    return ''.join([txt, feature['name']])
+    return sep.join(format_signed(n, _format_single_feature) for n in name)

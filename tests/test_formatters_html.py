@@ -1,7 +1,8 @@
 import re
 
 from eli5.formatters import format_html_styles
-from eli5.formatters.html import _format_unhashed_feature, render_weighted_spans
+from eli5.formatters.html import (
+    _format_unhashed_feature, render_weighted_spans, _format_single_feature)
 
 
 def test_render_styles():
@@ -10,18 +11,51 @@ def test_render_styles():
 
 
 def test_format_unhashed_feature():
-    assert _format_unhashed_feature([]) == ''
-    assert _format_unhashed_feature([{'name': 'foo', 'sign': 1}]) == 'foo'
-    assert _format_unhashed_feature([{'name': 'foo', 'sign': -1}]) == '(-)foo'
+    assert _format_unhashed_feature([], 1) == ''
+    assert _format_unhashed_feature([{'name': 'foo', 'sign': 1}], 1) == 'foo'
+    assert _format_unhashed_feature([{'name': 'foo', 'sign': -1}], 1) == '(-)foo'
     assert _format_unhashed_feature([
         {'name': 'foo', 'sign': 1},
         {'name': 'bar', 'sign': -1}
-        ]) == 'foo <span title="(-)bar">&hellip;</span>'
+        ], 1) == 'foo <span title="(-)bar">&hellip;</span>'
     assert _format_unhashed_feature([
         {'name': 'foo', 'sign': 1},
         {'name': 'bar', 'sign': -1},
         {'name': 'boo', 'sign': 1},
-    ]) == 'foo <span title="(-)bar\nboo">&hellip;</span>'
+    ], 1) == 'foo <span title="(-)bar\nboo">&hellip;</span>'
+
+
+def test_format_single_feature():
+    assert _format_single_feature('a', 1) == 'a'
+    assert _format_single_feature('<>', 1) == '&lt;&gt;'
+    assert _format_single_feature('aa bb', 1) == (
+        'aa'
+        '<span '
+        'style="background-color: hsl(120, 80%, 70%); margin: 0 0.1em 0 0.1em" '
+        'title="A space symbol">'
+        '&emsp;'
+        '</span>'
+        'bb')
+    assert _format_single_feature('  aa bb ', -1) == (
+        '<span '
+        'style="background-color: hsl(0, 80%, 70%); margin: 0 0.1em 0 0" '
+        'title="2 space symbols">'
+        '&emsp;'
+        '&emsp;'
+        '</span>'
+        'aa'
+        '<span '
+        'style="background-color: hsl(0, 80%, 70%); margin: 0 0.1em 0 0.1em" '
+        'title="A space symbol">'
+        '&emsp;'
+        '</span>'
+        'bb'
+        '<span '
+        'style="background-color: hsl(0, 80%, 70%); margin: 0 0 0 0.1em" '
+        'title="A space symbol">'
+        '&emsp;'
+        '</span>'
+    )
 
 
 def test_render_weighted_spans():
@@ -37,12 +71,12 @@ def test_render_weighted_spans():
     s = render_weighted_spans(weighted_spans)
     assert s.startswith(
         '<span'
-        ' style="background-color: hsl(120, 100.00%, 84.62%); opacity: 0.88"'
+        ' style="background-color: hsl(120, 100.00%, 79.51%); opacity: 0.88"'
         ' title="0.500">&lt;BIAS&gt;</span> '
         '<span style="opacity: 0.80">i</span>'
         '<span style="opacity: 0.80"> </span>'
         '<span'
-        ' style="background-color: hsl(120, 100.00%, 93.85%); opacity: 0.83"'
+        ' style="background-color: hsl(120, 100.00%, 89.21%); opacity: 0.83"'
         ' title="0.200">s</span>'
     )
     s_without_styles = re.sub('style=".*?"', '', s)
