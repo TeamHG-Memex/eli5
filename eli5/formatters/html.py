@@ -4,7 +4,7 @@ import cgi
 import numpy as np
 from jinja2 import Environment, PackageLoader
 
-from .utils import format_signed, replace_starting_trailing_spaces
+from .utils import format_signed, replace_spaces
 
 
 template_env = Environment(
@@ -173,7 +173,7 @@ def _format_single_feature(feature, weight):
                   '{} space symbols'.format(n_spaces),
             spaces='&emsp;' * n_spaces)
 
-    return replace_starting_trailing_spaces(html_escape(feature), replacer)
+    return replace_spaces(html_escape(feature), replacer)
 
 
 def html_escape(text):

@@ -2,7 +2,7 @@
 from __future__ import absolute_import
 import six
 
-from .utils import format_signed, replace_starting_trailing_spaces
+from .utils import format_signed, replace_spaces
 
 
 _PLUS_MINUS = "+-" if six.PY2 else "±"
@@ -117,7 +117,7 @@ def _format_feature(name):
 
 
 def _format_single_feature(feature):
-    return replace_starting_trailing_spaces(feature, lambda n, _: _SPACE * n)
+    return replace_spaces(feature, lambda n, _: _SPACE * n)
 
 
 def _format_unhashed_feature(name, sep=' | '):
