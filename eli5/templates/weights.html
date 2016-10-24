@@ -40,7 +40,7 @@
                         {{ "%+.3f"|format(coef) }}
                     </td>
                     <td style="{{ td2_styles }}">
-                        {{ name|format_feature }}
+                        {{ name|format_feature(coef) }}
                     </td>
                 </tr>
             {% endfor %}
@@ -65,7 +65,7 @@
                         {{ "%+.3f"|format(coef) }}
                     </td>
                     <td style="{{ td2_styles }}">
-                        {{ name|format_feature }}
+                        {{ name|format_feature(coef) }}
                     </td>
                 </tr>
             {% endfor %}

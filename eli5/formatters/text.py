@@ -2,6 +2,9 @@
 from __future__ import absolute_import
 import six
 
+from .utils import format_signed, replace_starting_trailing_spaces
+
+
 _PLUS_MINUS = "+-" if six.PY2 else "±"
 _ELLIPSIS = '...' if six.PY2 else '…'
 
@@ -113,19 +116,7 @@ def _format_feature(name):
 
 
 def _format_single_feature(feature):
-    """
-    >>> _format_single_feature('ab')
-    'ab'
-    >>> _format_single_feature('a b')
-    'a b'
-    >>> _format_single_feature(' ab')
-    '" ab"'
-    >>> _format_single_feature('ab ')
-    '"ab "'
-    """
-    if feature.startswith(' ') or feature.endswith(' '):
-        feature = '"{}"'.format(feature)
-    return feature
+    return replace_starting_trailing_spaces(feature, '▒')
 
 
 def _format_unhashed_feature(name, sep=' | '):
@@ -133,21 +124,3 @@ def _format_unhashed_feature(name, sep=' | '):
     Format feature name for hashed features.
     """
     return sep.join(format_signed(n, _format_single_feature) for n in name)
-
-
-def format_signed(feature, formatter=None):
-    """
-    Format unhashed feature with sign.
-
-    >>> format_signed({'name': 'foo', 'sign': 1})
-    'foo'
-    >>> format_signed({'name': 'foo', 'sign': -1})
-    '(-)foo'
-    >>> format_signed({'name': ' foo', 'sign': -1}, lambda x: '"{}"'.format(x))
-    '(-)" foo"'
-    """
-    txt = '' if feature['sign'] > 0 else '(-)'
-    name = feature['name']
-    if formatter is not None:
-        name = formatter(name)
-    return '{}{}'.format(txt, name)

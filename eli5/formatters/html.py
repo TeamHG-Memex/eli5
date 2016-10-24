@@ -4,7 +4,7 @@ import cgi
 import numpy as np
 from jinja2 import Environment, PackageLoader
 
-from .text import format_signed
+from .utils import format_signed, replace_starting_trailing_spaces
 
 
 template_env = Environment(
@@ -17,7 +17,7 @@ template_env.filters.update(dict(
         _weight_color(min([coef for _, coef in ws] or [0], key=abs), w_range),
     weight_range=lambda w: _weight_range(w),
     fi_weight_range=lambda w: max([abs(x[1]) for x in w] or [0]),
-    format_feature=lambda f: _format_feature(f),
+    format_feature=lambda f, w: _format_feature(f, w),
 ))
 
 
@@ -115,11 +115,15 @@ def _weight_color(weight, weight_range):
     """ Return css color for given weight, where the max absolute weight
     is given by weight_range.
     """
-    hue = 120 if weight > 0 else 0
+    hue = _hue(weight)
     saturation = 1
     min_lightness = 0.6
     lightness = 1.0 - (1 - min_lightness) * abs(weight) / weight_range
     return 'hsl({}, {:.2%}, {:.2%})'.format(hue, saturation, lightness)
+
+
+def _hue(weight):
+    return 120 if weight > 0 else 0
 
 
 def _weight_range(weights):
@@ -129,7 +133,7 @@ def _weight_range(weights):
                 for _, coef in weights.get(key, [])] or [0])
 
 
-def _format_unhashed_feature(feature):
+def _format_unhashed_feature(feature, weight):
     """ Format unhashed feature: show first (most probable) candidate,
     display other candidates in title attribute.
     """
@@ -137,38 +141,28 @@ def _format_unhashed_feature(feature):
         return ''
     else:
         first, rest = feature[0], feature[1:]
-        html = format_signed(first, _format_single_feature)
+        html = format_signed(first, lambda x: _format_single_feature(x, weight))
         if rest:
             html += ' <span title="{}">&hellip;</span>'.format(
                 '\n'.join(html_escape(format_signed(f)) for f in rest))
         return html
 
 
-def _format_feature(feature):
+def _format_feature(feature, weight):
     """ Format any feature.
     """
     if (isinstance(feature, list) and
             all('name' in x and 'sign' in x for x in feature)):
-        return _format_unhashed_feature(feature)
+        return _format_unhashed_feature(feature, weight)
     else:
-        return _format_single_feature(feature)
+        return _format_single_feature(feature, weight)
 
 
-def _format_single_feature(feature):
-    """
-    >>> _format_single_feature('ab')
-    'ab'
-    >>> _format_single_feature('a b')
-    'a b'
-    >>> _format_single_feature(' ab')
-    '"&nbsp;ab"'
-    >>> _format_single_feature('ab ')
-    '"ab&nbsp;"'
-    """
-    feature = html_escape(feature)
-    if feature.startswith(' ') or feature.endswith(' '):
-        feature = '"{}"'.format(feature.replace(' ', '&nbsp;'))
-    return feature
+def _format_single_feature(feature, weight):
+    style = 'background-color: hsl({}, 100%, 40%)'.format(_hue(weight))
+    return replace_starting_trailing_spaces(
+        html_escape(feature),
+        '<span style="{}">&emsp;</span>'.format(style))
 
 
 def html_escape(text):
