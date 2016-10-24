@@ -61,7 +61,7 @@ _BANDWIDTHS = np.hstack([
 
 class _BaseKernelDensitySampler(BaseSampler):
     def __init__(self, kde=None, metric='euclidean', fit_bandwidth=True,
-                 bandwidths=_BANDWIDTHS, sigma='distance', n_jobs=1):
+                 bandwidths=_BANDWIDTHS, sigma='bandwidth', n_jobs=1):
         if kde is None:
             kde = KernelDensity(rtol=1e-7, atol=1e-7)
         self.kde = kde
@@ -70,7 +70,7 @@ class _BaseKernelDensitySampler(BaseSampler):
         self.metric = metric
         self.n_jobs = n_jobs
         if not isinstance(sigma, (int, float)):
-            allowed = {'bandwidth', 'distance'}
+            allowed = {'bandwidth'}
             if sigma not in allowed:
                 raise ValueError("sigma must be either "
                                  "a number or one of {}".format(allowed))
@@ -93,22 +93,12 @@ class _BaseKernelDensitySampler(BaseSampler):
 
     def _similarity(self, doc, samples):
         distance = _distances(doc, samples, metric=self.metric)
-        if self.sigma == "distance":
-            self.sigma_ = abs(distance.max()) / 2
         return rbf(distance, sigma=self.sigma_)
 
     def _set_sigma(self, bandwidth):
         if self.sigma == 'bandwidth':
             # Sigma estimation using optimal bandwidth found by KDE.
-            #
-            # If all features are one-hot encoded then bandwidth is
-            # tiny, but we need a larger sigma because otherwise similarity
-            # for all examples will be close to zero.
-            #
-            # XXX: how does it work in practice? Is it worth supporting?
-            self.sigma_ = max(0.5, bandwidth * 2)
-        elif self.sigma == "distance":
-            self.sigma_ = None  # depends on sample distances
+            self.sigma_ = bandwidth
         else:
             self.sigma_ = self.sigma
 
@@ -145,7 +135,8 @@ class UnivariateKernelDensitySampler(_BaseKernelDensitySampler):
     The limitation is that variable interactions are not taken in account.
 
     Unlike KernelDensitySampler it uses different bandwidths for different
-    dimensions; because of that it can handle one-hot encoded features OK.
+    dimensions; because of that it can handle one-hot encoded features somehow
+    (make sure to at least tune the default ``sigma`` parameter).
     Also, at sampling time it replaces only random subsets
     of the features instead of generating totally new examples.
     """
