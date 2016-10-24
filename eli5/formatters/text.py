@@ -7,6 +7,7 @@ from .utils import format_signed, replace_starting_trailing_spaces
 
 _PLUS_MINUS = "+-" if six.PY2 else "±"
 _ELLIPSIS = '...' if six.PY2 else '…'
+_SPACE = '_' if six.PY2 else '░'
 
 
 def format_as_text(explanation):
@@ -116,13 +117,7 @@ def _format_feature(name):
 
 
 def _format_single_feature(feature):
-    """
-    >>> _format_single_feature('a b')
-    'a b'
-    >>> _format_single_feature('  a b ')
-    '░░a b░'
-    """
-    return replace_starting_trailing_spaces(feature, lambda n, l: '░' * n)
+    return replace_starting_trailing_spaces(feature, lambda n, l: _SPACE * n)
 
 
 def _format_unhashed_feature(name, sep=' | '):
