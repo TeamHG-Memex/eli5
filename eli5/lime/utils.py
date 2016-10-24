@@ -2,6 +2,7 @@
 from __future__ import absolute_import
 
 import numpy as np
+from scipy.stats import entropy
 
 from sklearn.pipeline import Pipeline
 from sklearn.utils.metaestimators import if_delegate_has_method
@@ -100,3 +101,9 @@ def _get_classifier_prefix(clf_or_pipeline):
     if not isinstance(clf_or_pipeline, Pipeline):
         return ''
     return clf_or_pipeline.steps[-1][0] + "__"
+
+
+def mean_kl_divergence(y_proba_pred, y_proba_target,
+                       sample_weight=None, eps=1e-9):
+    kl_elementwise = entropy(y_proba_target.T, y_proba_pred.T + eps)
+    return np.average(kl_elementwise, weights=sample_weight)

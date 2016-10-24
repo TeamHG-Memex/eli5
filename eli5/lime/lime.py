@@ -51,7 +51,7 @@ as black-box classifier, but a mistmatch between them limits explanation
 quality.
 """
 from __future__ import absolute_import
-from typing import Any, Callable
+from typing import Any, Callable, Dict
 
 import numpy as np
 from sklearn.feature_extraction.text import CountVectorizer
@@ -64,7 +64,11 @@ except ImportError:  # sklearn < 0.18
 
 from eli5.lime import textutils
 from eli5.lime.samplers import MaskingTextSampler
-from eli5.lime.utils import fit_proba, score_with_sample_weight
+from eli5.lime.utils import (
+    fit_proba,
+    score_with_sample_weight,
+    mean_kl_divergence
+)
 
 
 def _train_local_classifier(estimator,
@@ -74,16 +78,15 @@ def _train_local_classifier(estimator,
                             expand_factor=10,
                             test_size=0.3,
                             ):
-    # type: (Any, Any, np.ndarray, Callable[[Any], np.ndarray], int, float) -> float
+    # type: (Any, Any, np.ndarray, Callable[[Any], np.ndarray], int, float) -> Dict[str, float]
     y_proba = predict_proba(samples)
-    y_best = y_proba.argmax(axis=1)
 
     (X_train, X_test,
      similarity_train, similarity_test,
-     y_proba_train, y_proba_test,
-     y_best_train, y_best_test) = train_test_split(samples, similarity,
-                                                   y_proba, y_best,
-                                                   test_size=test_size)
+     y_proba_train, y_proba_test) = train_test_split(samples,
+                                                     similarity,
+                                                     y_proba,
+                                                     test_size=test_size)
 
     # XXX: in the original lime code instead of a probabilitsic classifier
     # they build several regression models which try to output probabilities.
@@ -94,22 +97,32 @@ def _train_local_classifier(estimator,
     # best answer.
 
     # TODO: feature selection
+    # Ideally, it should be supported as a Pipeline (i.e. user should
+    # be able to configure it).
     fit_proba(estimator, X_train, y_proba_train,
               expand_factor=expand_factor,
               sample_weight=similarity_train)
 
-    # TODO/FIXME: score should take probabilities in account,
-    # i.e. use cross-entropy or MSE instead of accuracy
-    return score_with_sample_weight(estimator, X_test, y_best_test,
-                                    sample_weight=similarity_test)
+    y_proba_test_pred = estimator.predict_proba(X_test)
+    return {
+        'mean_KL_divergence': mean_kl_divergence(
+            y_proba_test_pred,
+            y_proba_test,
+            sample_weight=similarity_test
+        ),
+        'score': score_with_sample_weight(estimator,
+                                          X_test,
+                                          y_proba_test.argmax(axis=1),
+                                          sample_weight=similarity_test)
+    }
 
 
 def get_local_pipeline_text(text, predict_proba, n_samples=1000,
                             expand_factor=10):
     """
     Train a classifier which approximates probabilistic text classifier locally.
-    Return (clf, vec, score) tuple with "easy" classifier, "easy" vectorizer,
-    and an estimated accuracy score of this pipeline, i.e.
+    Return (clf, vec, metrics) tuple with "easy" classifier, "easy" vectorizer,
+    and an estimated metrics of this pipeline, i.e.
     how well these "easy" vectorizer/classifier approximates text
     classifier in neighbourhood of ``text``.
     """
@@ -117,17 +130,17 @@ def get_local_pipeline_text(text, predict_proba, n_samples=1000,
         binary=True,
         token_pattern=textutils.DEFAULT_TOKEN_PATTERN,
     )
-    clf = LogisticRegression(solver='lbfgs')  # supports sample_weight
+    clf = LogisticRegression(C=100)
     pipe = make_pipeline(vec, clf)
 
     sampler = MaskingTextSampler(bow=True)
     samples, similarity = sampler.sample_near(text, n_samples=n_samples)
 
-    score = _train_local_classifier(
+    metrics = _train_local_classifier(
         estimator=pipe,
         samples=samples,
         similarity=similarity,
         predict_proba=predict_proba,
         expand_factor=expand_factor,
     )
-    return clf, vec, score
+    return clf, vec, metrics
