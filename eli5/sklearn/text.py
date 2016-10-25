@@ -22,27 +22,49 @@ def get_weighted_spans(doc, vec, feature_weights):
         else:
             return [feature]
 
+    # (group, idx) is a feature key here
     feature_weights_dict = {
-        f: weight for group in ['pos', 'neg']
-        for feature, weight in feature_weights[group]
+        f: (weight, (group, idx)) for group in ['pos', 'neg']
+        for idx, (feature, weight) in enumerate(feature_weights[group])
         for f in _get_features(feature)}
 
     span_analyzer, preprocessed_doc = _build_span_analyzer(doc, vec)
     if span_analyzer is None:
         return
+
     weighted_spans = []
+    found_features = {}
     for spans, feature in span_analyzer(preprocessed_doc):
-        weight = feature_weights_dict.get(feature)
-        if weight is not None:
+        try:
+            weight, key = feature_weights_dict[feature]
+        except KeyError:
+            pass
+        else:
             weighted_spans.append((feature, spans, weight))
-    found_features = {f for f, _, _ in weighted_spans}
-    other_items = [
-        (feature, weight) for feature, weight in feature_weights_dict.items()
-        if feature not in found_features]
-    if weighted_spans:
+            found_features[key] = weight
+
+    return {
+        'analyzer': vec.analyzer,
+        'document': preprocessed_doc,
+        'weighted_spans': weighted_spans,
+        'other': _get_other(
+            feature_weights, feature_weights_dict, found_features),
+    }
+
+
+def _get_other(feature_weights, feature_weights_dict, found_features):
+    # search for items that were not accounted at all.
+    other_items = []
+    accounted_keys = set()
+    for feature, (_, key) in feature_weights_dict.items():
+        if key not in found_features and key not in accounted_keys:
+            group, idx = key
+            other_items.append(feature_weights[group][idx])
+            accounted_keys.add(key)
+    if found_features:
         other_items.append(
             (EscapedFeatureName('Highlighted in text (sum)'),
-             sum(feature_weights_dict[f] for f in found_features)))
+             sum(found_features.values())))
     other_items.sort(key=lambda x: abs(x[1]), reverse=True)
     other = {
         'pos': [(f, w) for f, w in other_items if w >= 0],
@@ -51,12 +73,7 @@ def get_weighted_spans(doc, vec, feature_weights):
     for key in ['pos_remaining', 'neg_remaining']:
         if feature_weights.get(key):
             other[key] = feature_weights[key]
-    return {
-        'analyzer': vec.analyzer,
-        'document': preprocessed_doc,
-        'weighted_spans': weighted_spans,
-        'other': other,
-    }
+    return other
 
 
 def _build_span_analyzer(document, vec):

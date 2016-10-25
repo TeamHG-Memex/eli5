@@ -125,3 +125,38 @@ def test_weighted_spans_char_wb():
             'pos': [('a le', 5), (hl_in_text, 0)],
             'neg': [],
         }}
+
+
+def test_unhashed_features_other():
+    """ Check that when there are several candidates, they do not appear in "other"
+    if at least one is found. If none are found, they should appear in "other"
+    together.
+    """
+    doc = 'I see: a leaning lemon tree'
+    vec = CountVectorizer(analyzer='char', ngram_range=(3, 3))
+    vec.fit([doc])
+    w_spans = get_weighted_spans(
+        doc, vec,
+        {
+            'pos': [
+                ([{'name': 'foo', 'sign': 1}, {'name': 'see', 'sign': -1}], 2),
+                ([{'name': 'zoo', 'sign': 1}, {'name': 'bar', 'sign': 1}], 3),
+            ],
+            'neg': [
+                ([{'name': 'ree', 'sign': 1}, {'name': 'tre', 'sign': 1}], -4),
+            ],
+        })
+    assert w_spans == {
+        'analyzer': 'char',
+        'document': 'i see: a leaning lemon tree',
+        'weighted_spans': [
+            ('see', [(2, 5)], 2),
+            ('tre', [(23, 26)], -4),
+            ('ree', [(24, 27)], -4),
+            ],
+        'other': {
+            'pos': [
+                ([{'name': 'zoo', 'sign': 1}, {'name': 'bar', 'sign': 1}], 3),
+            ],
+            'neg': [(hl_in_text, -2)],
+        }}
