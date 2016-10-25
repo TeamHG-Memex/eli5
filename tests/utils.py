@@ -18,10 +18,11 @@ def rnd_len_arrays(dtype, min_len=0, max_len=3, elements=None):
     return lengths.flatmap(lambda n: arrays(dtype, n, elements=elements))
 
 
-def format_as_all(res, clf):
+def format_as_all(res, clf, **kwargs):
     """ Format explanaton as text and html, print text explanation, and save html.
     """
-    expl_text, expl_html = format_as_text(res), format_as_html(res)
+    expl_text = format_as_text(res, **kwargs)
+    expl_html = format_as_html(res, **kwargs)
     pprint(res)
     print(expl_text)
     _write_html(clf, expl_html, expl_text)
