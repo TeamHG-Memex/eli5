@@ -44,6 +44,9 @@ def get_weighted_spans(doc, vec, feature_weights):
         'pos': [(f, w) for f, w in not_found_items if w > 0],
         'neg': [(f, w) for f, w in not_found_items if w < 0],
     }
+    for key in ['pos_remaining', 'neg_remaining']:
+        if feature_weights.get(key):
+            not_found[key] = feature_weights[key]
     return {
         'analyzer': vec.analyzer,
         'document': preprocessed_doc,

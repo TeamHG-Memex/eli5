@@ -12,7 +12,7 @@
                 {% include "weights_table_row.html" with context %}
             {% endfor %}
             {% if wts.pos_remaining %}
-                <tr style="background-color: {{ wts.pos|smallest_weight_color(weight_range) }}; {{ tr_styles }}">
+                <tr style="background-color: {{ wts.pos|remaining_weight_color(weight_range, 'pos') }}; {{ tr_styles }}">
                     <td colspan="2" style="{{ tdm_styles }}">
                         <i>&hellip; {{ wts.pos_remaining }} more positive &hellip;</i>
                     </td>
@@ -20,7 +20,7 @@
             {% endif %}
 
             {% if wts.neg_remaining %}
-                <tr style="background-color: {{ wts.neg|smallest_weight_color(weight_range) }}; {{ tr_styles }}">
+                <tr style="background-color: {{ wts.neg|remaining_weight_color(weight_range, 'neg') }}; {{ tr_styles }}">
                     <td colspan="2" style="{{ tdm_styles }}">
                         <i>&hellip; {{ wts.neg_remaining }} more negative &hellip;</i>
                     </td>

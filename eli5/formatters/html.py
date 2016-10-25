@@ -15,8 +15,8 @@ template_env = Environment(
 template_env.filters.update(dict(
     render_weighted_spans=lambda x, pd: render_weighted_spans(x, pd),
     weight_color=lambda w, w_range: _weight_color(w, w_range),
-    smallest_weight_color=lambda ws, w_range:
-        _weight_color(min([coef for _, coef in ws] or [0], key=abs), w_range),
+    remaining_weight_color=lambda ws, w_range, pos_neg:
+        _remaining_weight_color(ws, w_range, pos_neg),
     weight_range=lambda w: _weight_range(w),
     fi_weight_range=lambda w: max([abs(x[1]) for x in w] or [0]),
     format_feature=lambda f, w: _format_feature(f, w),
@@ -137,6 +137,22 @@ def _weight_range(weights):
     """
     return max([abs(coef) for key in ['pos', 'neg']
                 for _, coef in weights.get(key, [])] or [0])
+
+
+def _remaining_weight_color(ws, weight_range, pos_neg):
+    """ Color for "remaining" row.
+    Handles a number of edge cases: if there are no weights in ws or weight_range
+    is zero, assume the worst (most intensive positive or negative color).
+    """
+    sign = {'pos': 1, 'neg': -1}[pos_neg]
+    if not ws and not weight_range:
+        color = sign
+        weight_range = 1
+    elif not ws:
+        color = sign * weight_range
+    else:
+        color = min((coef for _, coef in ws), key=abs)
+    return _weight_color(color, weight_range)
 
 
 def _format_unhashed_feature(feature, weight):
