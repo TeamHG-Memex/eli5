@@ -11,7 +11,11 @@ class EscapedFeatureName(object):
         return str(self.value)
 
     def __eq__(self, other):
-        return str(self) == other
+        return (isinstance(other, EscapedFeatureName) and
+                self.value == other.value)
+
+    def __hash__(self):
+        return hash(self.value)
 
     def __repr__(self):
         return '<{} {!r}>'.format(self.__class__.__name__, self.value)
