@@ -1,8 +1,9 @@
 import re
 
-from eli5.formatters import format_html_styles
+from eli5.formatters import format_html_styles, EscapedFeatureName
 from eli5.formatters.html import (
-    _format_unhashed_feature, render_weighted_spans, _format_single_feature)
+    _format_unhashed_feature, render_weighted_spans, _format_single_feature,
+    _format_feature)
 
 
 def test_render_styles():
@@ -23,6 +24,12 @@ def test_format_unhashed_feature():
         {'name': 'bar', 'sign': -1},
         {'name': 'boo', 'sign': 1},
     ], 1) == 'foo <span title="(-)bar\nboo">&hellip;</span>'
+
+
+def test_format_escaped_feature():
+    assert _format_feature(EscapedFeatureName('a b'), 1) == 'a b'
+    assert _format_feature('a b', 1) != 'a b'
+    assert _format_feature('a b', 1) == _format_single_feature('a b', 1)
 
 
 def test_format_single_feature():
