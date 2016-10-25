@@ -1,3 +1,4 @@
+{% if wts.pos or wts.neg or wts.neg_remaining or wts.pos_remaining %}
     <table class="eli5-weights" style="{{ table_styles }}">
         <thead>
         <tr style="{{ tr_styles }}">
@@ -33,3 +34,4 @@
         {% endwith %}
         </tbody>
     </table>
+{% endif %}
