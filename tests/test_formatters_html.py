@@ -3,7 +3,7 @@ import re
 from eli5.formatters import format_html_styles, EscapedFeatureName
 from eli5.formatters.html import (
     _format_unhashed_feature, render_weighted_spans, _format_single_feature,
-    _format_feature)
+    _format_feature, _remaining_weight_color, _weight_color)
 
 
 def test_render_styles():
@@ -152,3 +152,12 @@ def test_override_preserve_density():
         '<span '
         'style="background-color: hsl(120, 100.00%, 69.88%); opacity: 0.93" '
         'title="0.200">s</span>')
+
+
+def test_remaining_weight_color():
+    assert _remaining_weight_color([], 0, 'pos') == _weight_color(1, 1)
+    assert _remaining_weight_color([], 2, 'neg') == _weight_color(-2, 2)
+    assert _remaining_weight_color([('a', -1), ('b', -2)], 3, 'neg') == \
+        _weight_color(-1, 3)
+    assert _remaining_weight_color([('a', 1), ('b', 2)], 3, 'pos') == \
+           _weight_color(1, 3)

@@ -147,13 +147,13 @@ def _remaining_weight_color(ws, weight_range, pos_neg):
     """
     sign = {'pos': 1, 'neg': -1}[pos_neg]
     if not ws and not weight_range:
-        color = sign
+        weight = sign
         weight_range = 1
     elif not ws:
-        color = sign * weight_range
+        weight = sign * weight_range
     else:
-        color = min((coef for _, coef in ws), key=abs)
-    return _weight_color(color, weight_range)
+        weight = min((coef for _, coef in ws), key=abs)
+    return _weight_color(weight, weight_range)
 
 
 def _format_unhashed_feature(feature, weight):

@@ -93,6 +93,18 @@ def test_weighted_spans_char():
         }}
 
 
+def test_no_weighted_spans():
+    doc = 'I see: a leaning lemon tree'
+    vec = CountVectorizer(analyzer='char', ngram_range=(3, 4))
+    vec.fit([doc])
+    w_spans = get_weighted_spans(doc, vec, {'pos': [], 'neg': []})
+    assert w_spans == {
+        'analyzer': 'char',
+        'document': 'i see: a leaning lemon tree',
+        'weighted_spans': [],
+        'other': {'pos': [], 'neg': []}}
+
+
 def test_weighted_spans_char_wb():
     doc = 'I see: a leaning lemon tree'
     vec = CountVectorizer(analyzer='char_wb', ngram_range=(3, 4))
