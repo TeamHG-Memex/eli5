@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import cgi
+from collections import Counter
 
 import numpy as np
 from jinja2 import Environment, PackageLoader
@@ -68,10 +69,12 @@ def render_weighted_spans(weighted_spans_data, preserve_density=None):
     doc = weighted_spans_data['document']
     weighted_spans = weighted_spans_data['weighted_spans']
     char_weights = np.zeros(len(doc))
-    for _, spans, weight in weighted_spans:
+    feature_counts = Counter(f for f, _, _ in weighted_spans)
+    for feature, spans, weight in weighted_spans:
         for start, end in spans:
             if preserve_density:
                 weight /= (end - start)
+            weight /= feature_counts[feature]
             char_weights[start:end] += weight
     # TODO - can be much smarter, join spans at least
     # TODO - for longer documents, remove text without active features
