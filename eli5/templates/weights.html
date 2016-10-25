@@ -29,7 +29,7 @@
     {% endif %}
 
     {% if expl.weighted_spans %}
-        {% with wts = expl.weighted_spans.not_found %}
+        {% with wts = expl.weighted_spans.other %}
             {% include "weights_table.html" with context %}
         {% endwith %}
         <p>

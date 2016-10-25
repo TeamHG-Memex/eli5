@@ -30,28 +30,31 @@ def get_weighted_spans(doc, vec, feature_weights):
     if span_analyzer is None:
         return
     weighted_spans = []
-    found_features = set()
     for spans, feature in span_analyzer(preprocessed_doc):
         weight = feature_weights_dict.get(feature)
         if weight is not None:
-            found_features.add(feature)
             weighted_spans.append((feature, spans, weight))
-    not_found_items = sorted(
-        ((feature, weight) for feature, weight in feature_weights_dict.items()
-            if feature not in found_features),
-        key=lambda x: x[1], reverse=True)
-    not_found = {
-        'pos': [(f, w) for f, w in not_found_items if w > 0],
-        'neg': [(f, w) for f, w in not_found_items if w < 0],
+    found_features = {f for f, _, _ in weighted_spans}
+    other_items = [
+        (feature, weight) for feature, weight in feature_weights_dict.items()
+        if feature not in found_features]
+    if weighted_spans:
+        other_items.append(
+            ('Highlighted in text (sum)',
+             sum(feature_weights_dict[f] for f in found_features)))
+    other_items.sort(key=lambda x: abs(x[1]), reverse=True)
+    other = {
+        'pos': [(f, w) for f, w in other_items if w > 0],
+        'neg': [(f, w) for f, w in other_items if w < 0],
     }
     for key in ['pos_remaining', 'neg_remaining']:
         if feature_weights.get(key):
-            not_found[key] = feature_weights[key]
+            other[key] = feature_weights[key]
     return {
         'analyzer': vec.analyzer,
         'document': preprocessed_doc,
         'weighted_spans': weighted_spans,
-        'not_found': not_found,
+        'other': other,
     }
 
 
