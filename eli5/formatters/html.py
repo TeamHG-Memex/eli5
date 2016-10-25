@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
 import cgi
-import copy
 
 import numpy as np
 from jinja2 import Environment, PackageLoader
 
 from .utils import format_signed, replace_spaces
-from .text import format_signed
 from . import fields
 
 
