@@ -118,7 +118,7 @@ def _format_remaining(remaining, kind):
 
 def _format_feature(name):
     if isinstance(name, FormattedFeatureName):
-        return str(name)
+        return name.format()
     elif isinstance(name, list) and \
             all('name' in x and 'sign' in x for x in name):
         return _format_unhashed_feature(name)

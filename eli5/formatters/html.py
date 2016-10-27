@@ -175,7 +175,7 @@ def _format_feature(feature, weight):
     """ Format any feature.
     """
     if isinstance(feature, FormattedFeatureName):
-        return str(feature)
+        return feature.format()
     elif (isinstance(feature, list) and
             all('name' in x and 'sign' in x for x in feature)):
         return _format_unhashed_feature(feature, weight)

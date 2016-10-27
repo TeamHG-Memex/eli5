@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import six
+
 
 class FormattedFeatureName(object):
     """ Feature name that does not need any additional escaping.
@@ -7,8 +9,8 @@ class FormattedFeatureName(object):
     def __init__(self, value):
         self.value = value
 
-    def __str__(self):
-        return str(self.value)
+    def format(self):
+        return six.text_type(self.value)
 
     def __eq__(self, other):
         return (isinstance(other, FormattedFeatureName) and
