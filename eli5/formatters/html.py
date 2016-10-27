@@ -7,7 +7,7 @@ from jinja2 import Environment, PackageLoader
 
 from .utils import format_signed, replace_spaces
 from . import fields
-from .features import EscapedFeatureName
+from .features import FormattedFeatureName
 
 
 template_env = Environment(
@@ -174,7 +174,7 @@ def _format_unhashed_feature(feature, weight):
 def _format_feature(feature, weight):
     """ Format any feature.
     """
-    if isinstance(feature, EscapedFeatureName):
+    if isinstance(feature, FormattedFeatureName):
         return str(feature)
     elif (isinstance(feature, list) and
             all('name' in x and 'sign' in x for x in feature)):

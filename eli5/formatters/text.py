@@ -3,7 +3,7 @@ from __future__ import absolute_import
 import six
 
 from . import fields
-from .features import EscapedFeatureName
+from .features import FormattedFeatureName
 from .utils import format_signed, replace_spaces
 
 
@@ -117,7 +117,7 @@ def _format_remaining(remaining, kind):
 
 
 def _format_feature(name):
-    if isinstance(name, EscapedFeatureName):
+    if isinstance(name, FormattedFeatureName):
         return str(name)
     elif isinstance(name, list) and \
             all('name' in x and 'sign' in x for x in name):

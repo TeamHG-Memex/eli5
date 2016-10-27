@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
-class EscapedFeatureName(object):
+class FormattedFeatureName(object):
     """ Feature name that does not need any additional escaping.
     """
     def __init__(self, value):
@@ -11,7 +11,7 @@ class EscapedFeatureName(object):
         return str(self.value)
 
     def __eq__(self, other):
-        return (isinstance(other, EscapedFeatureName) and
+        return (isinstance(other, FormattedFeatureName) and
                 self.value == other.value)
 
     def __hash__(self):

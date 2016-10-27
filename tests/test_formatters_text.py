@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
-from eli5.formatters import EscapedFeatureName
+from eli5.formatters import FormattedFeatureName
 from eli5.formatters.text import _format_feature, _SPACE
 
 
-def test_format_escaped_feature():
-    assert _format_feature(EscapedFeatureName('a b')) == 'a b'
+def test_format_formatted_feature():
+    assert _format_feature(FormattedFeatureName('a b')) == 'a b'
     assert _format_feature('a b') == 'a{}b'.format(_SPACE)
 
 

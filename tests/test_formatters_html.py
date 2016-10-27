@@ -1,6 +1,6 @@
 import re
 
-from eli5.formatters import format_html_styles, EscapedFeatureName
+from eli5.formatters import format_html_styles, FormattedFeatureName
 from eli5.formatters.html import (
     _format_unhashed_feature, render_weighted_spans, _format_single_feature,
     _format_feature, _remaining_weight_color, _weight_color)
@@ -26,8 +26,8 @@ def test_format_unhashed_feature():
     ], 1) == 'foo <span title="(-)bar\nboo">&hellip;</span>'
 
 
-def test_format_escaped_feature():
-    assert _format_feature(EscapedFeatureName('a b'), 1) == 'a b'
+def test_format_formatted_feature():
+    assert _format_feature(FormattedFeatureName('a b'), 1) == 'a b'
     assert _format_feature('a b', 1) != 'a b'
     assert _format_feature('a b', 1) == _format_single_feature('a b', 1)
 

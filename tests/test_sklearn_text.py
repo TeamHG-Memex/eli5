@@ -1,10 +1,10 @@
 from sklearn.feature_extraction.text import CountVectorizer
 
-from eli5.formatters import EscapedFeatureName
+from eli5.formatters import FormattedFeatureName
 from eli5.sklearn.text import get_weighted_spans
 
 
-hl_in_text = EscapedFeatureName('Highlighted in text (sum)')
+hl_in_text = FormattedFeatureName('Highlighted in text (sum)')
 
 
 def test_weighted_spans_word():

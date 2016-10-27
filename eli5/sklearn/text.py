@@ -4,7 +4,7 @@ from six.moves import xrange
 from sklearn.feature_extraction.text import VectorizerMixin
 
 from eli5.sklearn.unhashing import InvertableHashingVectorizer
-from eli5.formatters import EscapedFeatureName
+from eli5.formatters import FormattedFeatureName
 
 
 def get_weighted_spans(doc, vec, feature_weights):
@@ -63,7 +63,7 @@ def _get_other(feature_weights, feature_weights_dict, found_features):
             accounted_keys.add(key)
     if found_features:
         other_items.append(
-            (EscapedFeatureName('Highlighted in text (sum)'),
+            (FormattedFeatureName('Highlighted in text (sum)'),
              sum(found_features.values())))
     other_items.sort(key=lambda x: abs(x[1]), reverse=True)
     other = {
