@@ -63,7 +63,10 @@ def explain_prediction_linear_classifier(
     X = _get_X(doc, vec=vec, vectorized=vectorized)
 
     if is_probabilistic_classifier(clf):
-        proba, = clf.predict_proba(X)
+        try:
+            proba, = clf.predict_proba(X)
+        except NotImplementedError:
+            proba = None
     else:
         proba = None
     score, = clf.decision_function(X)
