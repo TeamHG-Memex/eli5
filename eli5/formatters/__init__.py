@@ -8,3 +8,4 @@ TODO: IPython integration, customizability.
 from .text import format_as_text
 from .html import format_as_html, format_html_styles
 from . import fields
+from .features import FormattedFeatureName

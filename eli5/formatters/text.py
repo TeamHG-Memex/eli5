@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 import six
-from . import fields
 
+from . import fields
+from .features import FormattedFeatureName
 from .utils import format_signed, replace_spaces
 
 
@@ -116,7 +117,10 @@ def _format_remaining(remaining, kind):
 
 
 def _format_feature(name):
-    if isinstance(name, list) and all('name' in x and 'sign' in x for x in name):
+    if isinstance(name, FormattedFeatureName):
+        return name.format()
+    elif isinstance(name, list) and \
+            all('name' in x and 'sign' in x for x in name):
         return _format_unhashed_feature(name)
     else:
         return _format_single_feature(name)
