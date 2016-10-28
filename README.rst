@@ -30,6 +30,8 @@ Currently it allows to:
   classifiers (via feature importances);
 * debug scikit-learn pipelines which contain HashingVectorizer,
   by undoing hashing;
+* explain weights and predictions of
+  https://github.com/scikit-learn-contrib/lightning models;
 * explain predictions of any black-box classifier using LIME
   ( http://arxiv.org/abs/1602.04938 ) algorithm.
 
@@ -39,7 +41,6 @@ TODO:
 * https://github.com/TeamHG-Memex/sklearn-crfsuite
   and https://github.com/tpeng/python-crfsuite
 * https://github.com/scikit-learn-contrib/polylearn
-* https://github.com/scikit-learn-contrib/lightning
 * fasttext (?)
 * xgboost (?)
 * eli5.lime improvements
