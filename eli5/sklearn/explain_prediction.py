@@ -21,6 +21,7 @@ from sklearn.linear_model import (
     SGDRegressor,
 )
 from sklearn.svm import LinearSVC, LinearSVR
+from sklearn.multiclass import OneVsRestClassifier
 
 from eli5.sklearn.unhashing import InvertableHashingVectorizer, is_invhashing
 from eli5.sklearn.utils import (
@@ -50,6 +51,22 @@ def explain_prediction_sklearn(estimator, doc, vec=None, top=_TOP, target_names=
         "estimator": repr(estimator),
         "description": "Error: estimator %r is not supported" % estimator,
     }
+
+
+@explain_prediction.register(OneVsRestClassifier)
+def explain_prediction_ovr(clf, doc, **kwargs):
+    estimator = clf.estimator
+    func = explain_prediction.dispatch(estimator.__class__)
+    return func(clf, doc, **kwargs)
+
+
+@explain_prediction_sklearn.register(OneVsRestClassifier)
+def explain_prediction_ovr_sklearn(clf, doc, **kwargs):
+    # dispatch OvR to eli5.sklearn
+    # if explain_prediction_sklearn is called explicitly
+    estimator = clf.estimator
+    func = explain_prediction_sklearn.dispatch(estimator.__class__)
+    return func(clf, doc, **kwargs)
 
 
 @explain_prediction_sklearn.register(LogisticRegression)
