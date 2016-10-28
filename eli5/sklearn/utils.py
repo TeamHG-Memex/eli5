@@ -22,9 +22,9 @@ def is_probabilistic_classifier(clf):
     return hasattr(clf, 'predict_proba')
 
 
-def has_intercept(clf):
-    """ Return True if classifier has intercept fit. """
-    return getattr(clf, 'fit_intercept', False)
+def has_intercept(estimator):
+    """ Return True if an estimator has intercept fit. """
+    return getattr(estimator, 'fit_intercept', False)
 
 
 class FeatureNames(object):

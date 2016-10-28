@@ -4,6 +4,7 @@ from singledispatch import singledispatch
 import numpy as np
 import scipy.sparse as sp
 import six
+from sklearn.base import BaseEstimator
 from sklearn.feature_extraction.text import HashingVectorizer
 from sklearn.linear_model import (
     ElasticNet,  # includes Lasso, MultiTaskElasticNet, etc.
@@ -20,6 +21,7 @@ from sklearn.linear_model import (
     SGDRegressor,
 )
 from sklearn.svm import LinearSVC, LinearSVR
+from sklearn.multiclass import OneVsRestClassifier
 
 from eli5.sklearn.unhashing import InvertableHashingVectorizer, is_invhashing
 from eli5.sklearn.utils import (
@@ -34,27 +36,45 @@ from eli5.sklearn.utils import (
 )
 from eli5.sklearn.text import get_weighted_spans
 from eli5._feature_weights import get_top_features_dict
+from eli5.explain import explain_prediction
 
 
 _TOP = 20
 
 
+@explain_prediction.register(BaseEstimator)
 @singledispatch
-def explain_prediction(clf, doc, vec=None, top=_TOP, target_names=None,
-                       feature_names=None, vectorized=False):
-    """ Return an explanation of an estimator """
+def explain_prediction_sklearn(estimator, doc, vec=None, top=_TOP, target_names=None,
+                               feature_names=None, vectorized=False):
+    """ Return an explanation of a scikit-learn estimator """
     return {
-        "estimator": repr(clf),
-        "description": "Error: estimator %r is not supported" % clf,
+        "estimator": repr(estimator),
+        "description": "Error: estimator %r is not supported" % estimator,
     }
 
 
-@explain_prediction.register(LogisticRegression)
-@explain_prediction.register(LogisticRegressionCV)
-@explain_prediction.register(SGDClassifier)
-@explain_prediction.register(PassiveAggressiveClassifier)
-@explain_prediction.register(Perceptron)
-@explain_prediction.register(LinearSVC)
+@explain_prediction.register(OneVsRestClassifier)
+def explain_prediction_ovr(clf, doc, **kwargs):
+    estimator = clf.estimator
+    func = explain_prediction.dispatch(estimator.__class__)
+    return func(clf, doc, **kwargs)
+
+
+@explain_prediction_sklearn.register(OneVsRestClassifier)
+def explain_prediction_ovr_sklearn(clf, doc, **kwargs):
+    # dispatch OvR to eli5.sklearn
+    # if explain_prediction_sklearn is called explicitly
+    estimator = clf.estimator
+    func = explain_prediction_sklearn.dispatch(estimator.__class__)
+    return func(clf, doc, **kwargs)
+
+
+@explain_prediction_sklearn.register(LogisticRegression)
+@explain_prediction_sklearn.register(LogisticRegressionCV)
+@explain_prediction_sklearn.register(SGDClassifier)
+@explain_prediction_sklearn.register(PassiveAggressiveClassifier)
+@explain_prediction_sklearn.register(Perceptron)
+@explain_prediction_sklearn.register(LinearSVC)
 def explain_prediction_linear_classifier(
         clf, doc, vec=None, top=_TOP, target_names=None,
         feature_names=None, vectorized=False):
@@ -63,7 +83,10 @@ def explain_prediction_linear_classifier(
     X = _get_X(doc, vec=vec, vectorized=vectorized)
 
     if is_probabilistic_classifier(clf):
-        proba, = clf.predict_proba(X)
+        try:
+            proba, = clf.predict_proba(X)
+        except NotImplementedError:
+            proba = None
     else:
         proba = None
     score, = clf.decision_function(X)
@@ -156,44 +179,44 @@ def _handle_vec(clf, doc, vec, vectorized, feature_names):
     return vec, feature_names
 
 
-@explain_prediction.register(ElasticNet)
-@explain_prediction.register(ElasticNetCV)
-@explain_prediction.register(Lars)
-@explain_prediction.register(LinearRegression)
-@explain_prediction.register(LinearSVR)
-@explain_prediction.register(Ridge)
-@explain_prediction.register(RidgeCV)
-@explain_prediction.register(SGDRegressor)
+@explain_prediction_sklearn.register(ElasticNet)
+@explain_prediction_sklearn.register(ElasticNetCV)
+@explain_prediction_sklearn.register(Lars)
+@explain_prediction_sklearn.register(LinearRegression)
+@explain_prediction_sklearn.register(LinearSVR)
+@explain_prediction_sklearn.register(Ridge)
+@explain_prediction_sklearn.register(RidgeCV)
+@explain_prediction_sklearn.register(SGDRegressor)
 def explain_prediction_linear_regressor(
-        clf, doc, vec=None, top=_TOP, target_names=None,
+        reg, doc, vec=None, top=_TOP, target_names=None,
         feature_names=None, vectorized=False):
     """ Explain prediction of a linear regressor. """
-    vec, feature_names = _handle_vec(clf, doc, vec, vectorized, feature_names)
+    vec, feature_names = _handle_vec(reg, doc, vec, vectorized, feature_names)
     X = _get_X(doc, vec=vec, vectorized=vectorized)
 
-    score, = clf.predict(X)
+    score, = reg.predict(X)
 
-    if has_intercept(clf):
+    if has_intercept(reg):
         X = _add_intercept(X)
     x, = X
 
     res = {
-        "estimator": repr(clf),
+        "estimator": repr(reg),
         "method": "linear model",
         "targets": [],
     }
 
     def _weights(label_id):
-        coef = get_coef(clf, label_id)
+        coef = get_coef(reg, label_id)
         scores = _multiply(x, coef)
         return get_top_features_dict(feature_names, scores, top)
 
     def _label(label_id, label):
         return rename_label(label_id, label, target_names)
 
-    if is_multitarget_regressor(clf):
+    if is_multitarget_regressor(reg):
         if target_names is None:
-            target_names = get_target_names(clf)
+            target_names = get_target_names(reg)
         for label_id, label in enumerate(target_names):
             target_info = {
                 'target': _label(label_id, label),

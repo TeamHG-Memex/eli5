@@ -4,7 +4,7 @@ from __future__ import absolute_import
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 
-from eli5.sklearn import explain_weights
+from eli5.sklearn import explain_weights_sklearn
 from eli5.formatters import fields
 from .utils import format_as_all
 
@@ -17,7 +17,7 @@ def test_show_fields(newsgroups_train):
     X = vec.fit_transform(docs)
     clf.fit(X, y)
 
-    expl = explain_weights(clf, vec)
+    expl = explain_weights_sklearn(clf, vec)
     text, html = format_as_all(expl, clf)
 
     assert 'Caveats' in text

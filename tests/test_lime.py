@@ -5,7 +5,7 @@ from sklearn.feature_extraction.text import HashingVectorizer
 from sklearn.naive_bayes import MultinomialNB
 
 from eli5.lime import get_local_classifier_text
-from eli5.sklearn import explain_prediction
+from eli5.sklearn import explain_prediction_sklearn
 from eli5.formatters import format_as_text
 from sklearn.pipeline import make_pipeline
 
@@ -28,8 +28,8 @@ def test_lime_explain_probabilistic(newsgroups_train):
     print(score)
     assert score > 0.7
 
-    res = explain_prediction(clf_local, doc, vec_local, top=10,
-                             target_names=target_names)
+    res = explain_prediction_sklearn(clf_local, doc, vec_local, top=10,
+                                     target_names=target_names)
     expl = format_as_text(res)
     print(expl)
     assert 'file' in expl

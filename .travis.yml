@@ -9,6 +9,7 @@ branches:
 env:
     - TOXENV=py27
     - TOXENV=py35
+    - TOXENV=py35-nodeps
 
 addons:
     apt:

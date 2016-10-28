@@ -3,6 +3,8 @@ from __future__ import absolute_import
 from singledispatch import singledispatch
 
 import numpy as np
+
+from sklearn.base import BaseEstimator
 from sklearn.linear_model import (
     ElasticNet,  # includes Lasso, MultiTaskElasticNet, etc.
     ElasticNetCV,
@@ -39,6 +41,7 @@ from eli5.sklearn.utils import (
     get_target_names,
     rename_label,
 )
+from eli5.explain import explain_weights
 
 
 
@@ -90,22 +93,23 @@ all values sum to 1.
 _TOP = 20
 
 
+@explain_weights.register(BaseEstimator)
 @singledispatch
-def explain_weights(clf, vec=None, top=_TOP, target_names=None,
-                    feature_names=None, coef_scale=None):
+def explain_weights_sklearn(estimator, vec=None, top=_TOP, target_names=None,
+                            feature_names=None, coef_scale=None):
     """ Return an explanation of an estimator """
     return {
-        "estimator": repr(clf),
-        "description": "Error: estimator %r is not supported" % clf,
+        "estimator": repr(estimator),
+        "description": "Error: estimator %r is not supported" % estimator,
     }
 
 
-@explain_weights.register(LogisticRegression)
-@explain_weights.register(LogisticRegressionCV)
-@explain_weights.register(SGDClassifier)
-@explain_weights.register(PassiveAggressiveClassifier)
-@explain_weights.register(Perceptron)
-@explain_weights.register(LinearSVC)
+@explain_weights_sklearn.register(LogisticRegression)
+@explain_weights_sklearn.register(LogisticRegressionCV)
+@explain_weights_sklearn.register(SGDClassifier)
+@explain_weights_sklearn.register(PassiveAggressiveClassifier)
+@explain_weights_sklearn.register(Perceptron)
+@explain_weights_sklearn.register(LinearSVC)
 def explain_linear_classifier_weights(clf, vec=None, top=_TOP, target_names=None,
                                       feature_names=None, coef_scale=None):
     """
@@ -189,10 +193,10 @@ def explain_linear_classifier_weights(clf, vec=None, top=_TOP, target_names=None
         }
 
 
-@explain_weights.register(RandomForestClassifier)
-@explain_weights.register(ExtraTreesClassifier)
-@explain_weights.register(GradientBoostingClassifier)
-@explain_weights.register(AdaBoostClassifier)
+@explain_weights_sklearn.register(RandomForestClassifier)
+@explain_weights_sklearn.register(ExtraTreesClassifier)
+@explain_weights_sklearn.register(GradientBoostingClassifier)
+@explain_weights_sklearn.register(AdaBoostClassifier)
 def explain_rf_feature_importance(clf, vec=None, top=_TOP, target_names=None,
                                   feature_names=None, coef_scale=None):
     """
@@ -224,7 +228,7 @@ def explain_rf_feature_importance(clf, vec=None, top=_TOP, target_names=None,
     }
 
 
-@explain_weights.register(DecisionTreeClassifier)
+@explain_weights_sklearn.register(DecisionTreeClassifier)
 def explain_tree_feature_importance(clf, vec=None, top=_TOP, target_names=None,
                                     feature_names=None, coef_scale=None):
     """
@@ -257,15 +261,15 @@ def explain_tree_feature_importance(clf, vec=None, top=_TOP, target_names=None,
     }
 
 
-@explain_weights.register(ElasticNet)
-@explain_weights.register(ElasticNetCV)
-@explain_weights.register(Lars)
-@explain_weights.register(LinearRegression)
-@explain_weights.register(LinearSVR)
-@explain_weights.register(Ridge)
-@explain_weights.register(RidgeCV)
-@explain_weights.register(SGDRegressor)
-def explain_linear_regressor_weights(clf, vec=None, feature_names=None,
+@explain_weights_sklearn.register(ElasticNet)
+@explain_weights_sklearn.register(ElasticNetCV)
+@explain_weights_sklearn.register(Lars)
+@explain_weights_sklearn.register(LinearRegression)
+@explain_weights_sklearn.register(LinearSVR)
+@explain_weights_sklearn.register(Ridge)
+@explain_weights_sklearn.register(RidgeCV)
+@explain_weights_sklearn.register(SGDRegressor)
+def explain_linear_regressor_weights(reg, vec=None, feature_names=None,
                                      top=_TOP, target_names=None,
                                      coef_scale=None):
     """
@@ -311,20 +315,20 @@ def explain_linear_regressor_weights(clf, vec=None, feature_names=None,
     To print it use utilities from eli5.formatters.
     """
     feature_names, coef_scale = handle_hashing_vec(vec, feature_names,
-                                                    coef_scale)
-    feature_names = get_feature_names(clf, vec, feature_names=feature_names)
+                                                   coef_scale)
+    feature_names = get_feature_names(reg, vec, feature_names=feature_names)
     _extra_caveats = "\n" + HASHING_CAVEATS if is_invhashing(vec) else ''
 
     def _features(target_id):
-        coef = get_coef(clf, target_id, scale=coef_scale)
+        coef = get_coef(reg, target_id, scale=coef_scale)
         return get_top_features_dict(feature_names, coef, top)
 
     def _label(target_id, target):
         return rename_label(target_id, target, target_names)
 
-    if is_multitarget_regressor(clf):
+    if is_multitarget_regressor(reg):
         if target_names is None:
-            target_names = get_target_names(clf)
+            target_names = get_target_names(reg)
         return {
             'targets': [
                 {
@@ -334,7 +338,7 @@ def explain_linear_regressor_weights(clf, vec=None, feature_names=None,
                 for target_id, target in enumerate(target_names)
                 ],
             'description': DESCRIPTION_REGRESSION_MULTITARGET + _extra_caveats,
-            'estimator': repr(clf),
+            'estimator': repr(reg),
             'method': 'linear model',
         }
     else:
@@ -344,6 +348,6 @@ def explain_linear_regressor_weights(clf, vec=None, feature_names=None,
                 'feature_weights': _features(0),
             }],
             'description': DESCRIPTION_REGRESSION + _extra_caveats,
-            'estimator': repr(clf),
+            'estimator': repr(reg),
             'method': 'linear model',
         }

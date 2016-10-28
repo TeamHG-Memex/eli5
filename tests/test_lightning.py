@@ -1,0 +1,32 @@
+# -*- coding: utf-8 -*-
+from __future__ import absolute_import
+
+import pytest
+pytest.importorskip('lightning')
+
+from lightning import regression
+from sklearn.multiclass import OneVsRestClassifier
+
+from eli5.lightning import _CLASSIFIERS, _REGRESSORS
+from eli5 import explain_weights, explain_prediction
+from .test_sklearn_explain_prediction import (
+    assert_multiclass_linear_classifier_explained,
+    assert_linear_regression_explained,
+)
+
+
+@pytest.mark.parametrize(['clf'], [[clf()] for clf in _CLASSIFIERS])
+def test_explain_classifiers(newsgroups_train, clf):
+    clf = OneVsRestClassifier(clf)
+    assert_multiclass_linear_classifier_explained(newsgroups_train, clf,
+                                                  explain_prediction)
+
+
+regressors = [r for r in _REGRESSORS if r is not regression.SGDRegressor]
+
+@pytest.mark.parametrize(['reg'],
+    [[reg()] for reg in regressors] +
+    [[regression.SGDRegressor(eta0=1e-5, learning_rate='constant')]]
+)
+def test_explain_regressors(boston_train, reg):
+    assert_linear_regression_explained(boston_train, reg, explain_prediction)
