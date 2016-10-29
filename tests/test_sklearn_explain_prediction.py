@@ -23,7 +23,7 @@ from sklearn.linear_model import (
 from sklearn.svm import LinearSVC, LinearSVR
 from sklearn.multiclass import OneVsRestClassifier
 
-from eli5.sklearn import explain_prediction_sklearn
+from eli5 import explain_prediction
 from eli5.sklearn.utils import has_intercept
 from .utils import format_as_all, strip_blanks, get_all_features
 
@@ -123,7 +123,7 @@ def assert_multitarget_linear_regression_explained(reg, explain_prediction):
 ])
 def test_explain_linear(newsgroups_train, clf):
     assert_multiclass_linear_classifier_explained(newsgroups_train, clf,
-                                                  explain_prediction_sklearn)
+                                                  explain_prediction)
 
 
 @pytest.mark.parametrize(['reg'], [
@@ -138,7 +138,7 @@ def test_explain_linear(newsgroups_train, clf):
     [SGDRegressor(random_state=42)],
 ])
 def test_explain_linear_regression(boston_train, reg):
-    assert_linear_regression_explained(boston_train, reg, explain_prediction_sklearn)
+    assert_linear_regression_explained(boston_train, reg, explain_prediction)
 
 
 @pytest.mark.parametrize(['reg'], [
@@ -149,4 +149,4 @@ def test_explain_linear_regression(boston_train, reg):
     [Ridge(random_state=42)],
 ])
 def test_explain_linear_regression_multitarget(reg):
-    assert_multitarget_linear_regression_explained(reg, explain_prediction_sklearn)
+    assert_multitarget_linear_regression_explained(reg, explain_prediction)

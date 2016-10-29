@@ -34,13 +34,14 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.base import BaseEstimator
 import pytest
 
-from eli5.sklearn import explain_weights_sklearn, InvertableHashingVectorizer
+from eli5 import explain_weights
+from eli5.sklearn import InvertableHashingVectorizer
 from .utils import format_as_all, get_all_features, get_names_coefs
 
 
 def check_newsgroups_explanation_linear(clf, vec, target_names):
-    get_res = lambda: explain_weights_sklearn(
-        clf, vec, target_names=target_names, top=20)
+    get_res = lambda: explain_weights(
+        clf, vec=vec, target_names=target_names, top=20)
     res = get_res()
     expl_text, expl_html = format_as_all(res, clf)
 
@@ -120,12 +121,12 @@ def test_explain_linear_hashed_pos_neg(newsgroups_train, pass_feature_weights):
     clf.fit(vec.fit_transform(docs), y)
     ivec.fit(docs)
     if pass_feature_weights:
-        res = explain_weights_sklearn(
+        res = explain_weights(
             clf, top=(10, 10), target_names=target_names,
             feature_names=ivec.get_feature_names(always_signed=False),
             coef_scale=ivec.column_signs_)
     else:
-        res = explain_weights_sklearn(
+        res = explain_weights(
             clf, ivec, top=(10, 10), target_names=target_names)
 
     # HashingVectorizer with norm=None is "the same" as CountVectorizer,
@@ -133,8 +134,8 @@ def test_explain_linear_hashed_pos_neg(newsgroups_train, pass_feature_weights):
     count_vec = CountVectorizer()
     count_clf = LogisticRegression(random_state=42)
     count_clf.fit(count_vec.fit_transform(docs), y)
-    count_res = explain_weights_sklearn(
-        count_clf, count_vec, top=(10, 10), target_names=target_names)
+    count_res = explain_weights(
+        count_clf, vec=count_vec, top=(10, 10), target_names=target_names)
 
     for key in ['pos', 'neg']:
         values, count_values = [
@@ -163,7 +164,7 @@ def test_explain_linear_tuple_top(newsgroups_train):
     X = vec.fit_transform(docs)
     clf.fit(X, y)
 
-    res_neg = explain_weights_sklearn(clf, vec, target_names=target_names, top=(0, 10))
+    res_neg = explain_weights(clf, vec=vec, target_names=target_names, top=(0, 10))
     expl_neg, _ = format_as_all(res_neg, clf)
 
     for cl in res_neg['classes']:
@@ -172,7 +173,7 @@ def test_explain_linear_tuple_top(newsgroups_train):
 
     assert "+0." not in expl_neg
 
-    res_pos = explain_weights_sklearn(clf, vec, target_names=target_names, top=(10, 2))
+    res_pos = explain_weights(clf, vec=vec, target_names=target_names, top=(10, 2))
     format_as_all(res_pos, clf)
 
     for cl in res_pos['classes']:
@@ -193,8 +194,8 @@ def test_explain_random_forest(newsgroups_train, clf):
     X = vec.fit_transform(docs)
     clf.fit(X.toarray(), y)
 
-    get_res = lambda: explain_weights_sklearn(
-        clf, vec, target_names=target_names, top=30)
+    get_res = lambda: explain_weights(clf, vec=vec, target_names=target_names,
+                                      top=30)
     res = get_res()
     expl_text, expl_html = format_as_all(res, clf)
     for expl in [expl_text, expl_html]:
@@ -212,7 +213,7 @@ def test_explain_empty(newsgroups_train):
     X = vec.fit_transform(docs)
     clf.fit(X, y)
 
-    res = explain_weights_sklearn(clf, vec, target_names=target_names, top=20)
+    res = explain_weights(clf, vec=vec, target_names=target_names, top=20)
     format_as_all(res, clf)
 
     assert [cl['class'] for cl in res['classes']] == target_names
@@ -221,7 +222,7 @@ def test_explain_empty(newsgroups_train):
 def test_unsupported():
     vec = CountVectorizer()
     clf = BaseEstimator()
-    res = explain_weights_sklearn(clf, vec)
+    res = explain_weights(clf, vec=vec)
     assert 'Error' in res['description']
 
 
@@ -239,7 +240,7 @@ def test_unsupported():
 def test_explain_linear_regression(boston_train, clf):
     X, y, feature_names = boston_train
     clf.fit(X, y)
-    res = explain_weights_sklearn(clf)
+    res = explain_weights(clf)
     expl_text, expl_html = format_as_all(res, clf)
 
     for expl in [expl_text, expl_html]:
@@ -253,7 +254,7 @@ def test_explain_linear_regression(boston_train, clf):
     assert 'x9' in neg or 'x9' in pos
     assert '<BIAS>' in neg or '<BIAS>' in pos
 
-    assert res == explain_weights_sklearn(clf)
+    assert res == explain_weights(clf)
 
 
 @pytest.mark.parametrize(['clf'], [
@@ -267,7 +268,7 @@ def test_explain_linear_regression_multitarget(clf):
     X, y = make_regression(n_samples=100, n_targets=3, n_features=10,
                            random_state=42)
     clf.fit(X, y)
-    res = explain_weights_sklearn(clf)
+    res = explain_weights(clf)
     expl, _ = format_as_all(res, clf)
 
     assert 'x9' in expl
@@ -277,4 +278,4 @@ def test_explain_linear_regression_multitarget(clf):
     assert 'x9' in neg or 'x9' in pos
     assert '<BIAS>' in neg or '<BIAS>' in pos
 
-    assert res == explain_weights_sklearn(clf)
+    assert res == explain_weights(clf)

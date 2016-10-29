@@ -11,7 +11,7 @@ from sklearn.feature_extraction.text import CountVectorizer, HashingVectorizer
 from sklearn.linear_model import LinearRegression
 from sklearn.linear_model import LogisticRegression
 
-from eli5.sklearn import explain_prediction_sklearn
+from eli5 import explain_prediction
 from .utils import format_as_all, get_all_features, get_names_coefs
 
 
@@ -37,18 +37,18 @@ def test_explain_linear_binary(vec, newsgroups_train_binary):
     X = vec.fit_transform(docs)
     clf.fit(X, y)
 
-    get_res = lambda: explain_prediction_sklearn(
-        clf, docs[0], vec, target_names=target_names, top=20)
+    get_res = lambda: explain_prediction(
+        clf, docs[0], vec=vec, target_names=target_names, top=20)
     res = get_res()
     check_explain_linear_binary(res, clf)
     assert res == get_res()
-    res_vectorized = explain_prediction_sklearn(
-        clf, vec.transform([docs[0]])[0], vec, target_names=target_names,
+    res_vectorized = explain_prediction(
+        clf, vec.transform([docs[0]])[0], vec=vec, target_names=target_names,
         top=20, vectorized=True)
     if isinstance(vec, HashingVectorizer):
         # InvertableHashingVectorizer must be passed with vectorized=True
-        neg_vectorized = get_all_features(
-            res_vectorized['classes'][0]['feature_weights']['neg'])
+        neg_weights = res_vectorized['classes'][0]['feature_weights']['neg']
+        neg_vectorized = get_all_features(neg_weights)
         assert all(name.startswith('x') for name in neg_vectorized)
     else:
         assert res_vectorized == _without_weighted_spans(res)
@@ -64,13 +64,13 @@ def test_explain_hashing_vectorizer(newsgroups_train_binary):
     X = vec.fit_transform(docs)
     clf.fit(X, y)
 
-    get_res = lambda **kwargs: explain_prediction_sklearn(
-        clf, docs[0], ivec, target_names=target_names, top=20, **kwargs)
+    get_res = lambda **kwargs: explain_prediction(
+        clf, docs[0], vec=ivec, target_names=target_names, top=20, **kwargs)
     res = get_res()
     check_explain_linear_binary(res, clf)
     assert res == get_res()
-    res_vectorized = explain_prediction_sklearn(
-        clf, vec.transform([docs[0]])[0], ivec, target_names=target_names,
+    res_vectorized = explain_prediction(
+        clf, vec.transform([docs[0]])[0], vec=ivec, target_names=target_names,
         top=20, vectorized=True)
     pprint(res_vectorized)
     assert res_vectorized == _without_weighted_spans(res)
@@ -97,12 +97,12 @@ def test_explain_linear_dense():
     clf.fit(X, [0, 1, 1, 0])
     test_day = {'day': 'tue', 'moon': 'full'}
     target_names = ['sunny', 'shady']
-    res1 = explain_prediction_sklearn(clf, test_day, vec, target_names=target_names)
+    res1 = explain_prediction(clf, test_day, vec=vec, target_names=target_names)
     expl_text, expl_html = format_as_all(res1, clf)
     assert 'day=tue' in expl_text
     assert 'day=tue' in expl_html
     [test_day_vec] = vec.transform(test_day)
-    res2 = explain_prediction_sklearn(
+    res2 = explain_prediction(
         clf, test_day_vec, target_names=target_names,
         vectorized=True, feature_names=vec.get_feature_names())
     assert res1 == res2
@@ -111,7 +111,7 @@ def test_explain_linear_dense():
 def test_unsupported():
     vec = CountVectorizer()
     clf = BaseEstimator()
-    res = explain_prediction_sklearn(clf, 'hello, world', vec)
+    res = explain_prediction(clf, 'hello, world', vec=vec)
     assert 'Error' in res['description']
 
 
@@ -124,8 +124,8 @@ def test_explain_regression_hashing_vectorizer(newsgroups_train_binary):
     # Setting large "top" in order to compare it with CountVectorizer below
     # (due to small differences in the coefficients they might have cutoffs
     # at different points).
-    res = explain_prediction_sklearn(
-        clf, docs[0], vec, target_names=[target_names[1]], top=1000)
+    res = explain_prediction(
+        clf, docs[0], vec=vec, target_names=[target_names[1]], top=1000)
     expl, _ = format_as_all(res, clf)
     assert len(res['targets']) == 1
     e = res['targets'][0]
@@ -142,8 +142,9 @@ def test_explain_regression_hashing_vectorizer(newsgroups_train_binary):
     count_vec = CountVectorizer()
     count_clf = LinearRegression()
     count_clf.fit(count_vec.fit_transform(docs), y)
-    count_res = explain_prediction_sklearn(
-        count_clf, docs[0], count_vec, target_names=[target_names[1]], top=1000)
+    count_res = explain_prediction(
+        count_clf, docs[0], vec=count_vec, target_names=[target_names[1]],
+        top=1000)
     pprint(count_res)
     count_expl, _ = format_as_all(count_res, count_clf)
     print(count_expl)
