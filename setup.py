@@ -7,14 +7,14 @@ import os
 def get_version():
     fn = os.path.join(os.path.dirname(__file__), "eli5", "__init__.py")
     with open(fn) as f:
-        return re.findall("__version__ = '([\d\.\w]+)'", f.read())[0]
+        return re.findall("__version__ = '([\d.\w]+)'", f.read())[0]
 
 
 setup(
     name='eli5',
     version=get_version(),
-    author='Mikhail Korobov',
-    author_email='kmike84@gmail.com',
+    author='Mikhail Korobov, Konstantin Lopuhin',
+    author_email='kmike84@gmail.com, kostia.lopuhin@gmail.com',
     license='MIT license',
     long_description=open('README.rst').read() + "\n\n" + open('CHANGES.rst').read(),
     description="Debug machine learning classifiers and explain their predictions",
