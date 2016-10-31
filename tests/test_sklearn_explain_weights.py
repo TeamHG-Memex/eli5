@@ -182,15 +182,15 @@ def test_explain_linear_tuple_top(newsgroups_train):
 
 
 @pytest.mark.parametrize(['clf'], [
-    [RandomForestClassifier(n_estimators=100)],
-    [ExtraTreesClassifier(n_estimators=100)],
-    [GradientBoostingClassifier()],
-    [AdaBoostClassifier(learning_rate=0.1, n_estimators=200)],
-    [DecisionTreeClassifier()],
+    [RandomForestClassifier(n_estimators=100, random_state=42)],
+    [ExtraTreesClassifier(n_estimators=100, random_state=24)],
+    [GradientBoostingClassifier(random_state=42)],
+    [AdaBoostClassifier(learning_rate=0.1, n_estimators=200, random_state=42)],
+    [DecisionTreeClassifier(max_depth=3, random_state=42)],
 ])
 def test_explain_random_forest(newsgroups_train, clf):
     docs, y, target_names = newsgroups_train
-    vec = TfidfVectorizer()
+    vec = CountVectorizer()
     X = vec.fit_transform(docs)
     clf.fit(X.toarray(), y)
 
@@ -200,7 +200,10 @@ def test_explain_random_forest(newsgroups_train, clf):
     expl_text, expl_html = format_as_all(res, clf)
     for expl in [expl_text, expl_html]:
         assert 'feature importances' in expl
-        assert 'that' in expl  # high-ranked feature
+        assert 'god' in expl  # high-ranked feature
+
+        if isinstance(clf, DecisionTreeClassifier):
+            assert 'god >' in expl  # TODO: better HTML tree visualisation
 
     assert res == get_res()
 

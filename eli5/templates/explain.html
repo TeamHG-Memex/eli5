@@ -49,4 +49,11 @@
         </table>
     {% endif %}
 
+    {% if key == "decision_tree" and decision_tree %}
+        {# TODO - render a nice widget #}
+        <br>
+        <pre>{{ decision_tree|format_decision_tree }}</pre>
+    {% endif %}
+
+
 {% endfor %}

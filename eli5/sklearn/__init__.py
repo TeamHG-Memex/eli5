@@ -5,7 +5,7 @@ from .explain_weights import (
     explain_linear_classifier_weights,
     explain_linear_regressor_weights,
     explain_rf_feature_importance,
-    explain_tree_feature_importance,
+    explain_decision_tree,
 )
 from .explain_prediction import (
     explain_prediction_sklearn,

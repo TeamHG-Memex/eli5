@@ -28,11 +28,13 @@ from sklearn.ensemble import (
     RandomForestClassifier,
     ExtraTreesClassifier
 )
-from sklearn.tree import DecisionTreeClassifier
+from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
+from sklearn.tree.export import export_graphviz
 
 from eli5._feature_weights import get_top_features_dict
 from eli5.utils import argsort_k_largest
 from eli5.sklearn.unhashing import handle_hashing_vec, is_invhashing
+from eli5.sklearn.treeinspect import tree2dict
 from eli5.sklearn.utils import (
     get_coef,
     is_multiclass_classifier,
@@ -42,7 +44,6 @@ from eli5.sklearn.utils import (
     rename_label,
 )
 from eli5.explain import explain_weights
-
 
 
 LINEAR_CAVEATS = """
@@ -229,11 +230,9 @@ def explain_rf_feature_importance(clf, vec=None, top=_TOP, target_names=None,
 
 
 @explain_weights_sklearn.register(DecisionTreeClassifier)
-def explain_tree_feature_importance(clf, vec=None, top=_TOP, target_names=None,
-                                    feature_names=None, coef_scale=None):
+def explain_decision_tree(clf, vec=None, top=_TOP, target_names=None,
+                          feature_names=None, coef_scale=None):
     """
-    TODO/FIXME: should it be a tree instead?
-
     Return an explanation of a decision tree classifier in the
     following format (compatible with random forest explanations)::
 
@@ -241,6 +240,7 @@ def explain_tree_feature_importance(clf, vec=None, top=_TOP, target_names=None,
             "estimator": "<classifier repr>",
             "method": "<interpretation method>",
             "description": "<human readable description>",
+            "decision_tree": {...tree information},
             "feature_importances": [
                 (feature_name, importance, std_deviation),
                 ...
@@ -253,11 +253,13 @@ def explain_tree_feature_importance(clf, vec=None, top=_TOP, target_names=None,
     indices = argsort_k_largest(coef, top)
     names, values = feature_names[indices], coef[indices]
     std = np.zeros_like(values)
+    treedict = tree2dict(clf, feature_names=feature_names)
     return {
         'feature_importances': list(zip(names, values, std)),
+        'decision_tree': treedict,
         'description': DESCRIPTION_DECISION_TREE,
         'estimator': repr(clf),
-        'method': 'feature importances',
+        'method': 'decision tree',
     }
 
 
