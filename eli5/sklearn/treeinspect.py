@@ -5,6 +5,7 @@ Inspect scikit-learn decision trees.
 This is an alternative to sklearn.tree.export which doesn't require graphviz
 and provides a way to output result in text-based format.
 """
+from __future__ import absolute_import, division
 from sklearn.tree import _tree
 
 
