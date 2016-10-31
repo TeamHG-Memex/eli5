@@ -28,6 +28,11 @@ def has_intercept(estimator):
 
 
 class FeatureNames(object):
+    """
+    A list-like object with feature names. It allows
+    feature names for unknown features to be generated using
+    a provided template.
+    """
     def __init__(self, feature_names=None, bias_name=None,
                  unkn_template=None, n_features=None):
         assert (feature_names is not None or
