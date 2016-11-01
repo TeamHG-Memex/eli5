@@ -1,6 +1,6 @@
 language: python
 python: 3.5
-sudo: false
+sudo: true
 branches:
     only:
         - master
@@ -19,6 +19,10 @@ addons:
             - libatlas-base-dev
             - liblapack-dev
             - gfortran
+
+before_install:
+    - sudo apt-get -qq update
+    - if [[ "$TOXENV" != "py35-nodeps" ]]; then sudo apt-get install graphviz; fi
 
 install:
     - pip install -U pip tox codecov
