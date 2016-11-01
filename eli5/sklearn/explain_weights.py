@@ -28,8 +28,7 @@ from sklearn.ensemble import (
     RandomForestClassifier,
     ExtraTreesClassifier
 )
-from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
-from sklearn.tree.export import export_graphviz
+from sklearn.tree import DecisionTreeClassifier
 
 from eli5._feature_weights import get_top_features_dict
 from eli5.utils import argsort_k_largest
