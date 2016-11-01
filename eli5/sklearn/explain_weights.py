@@ -231,7 +231,8 @@ def explain_rf_feature_importance(clf, vec=None, top=_TOP, target_names=None,
 
 @explain_weights_sklearn.register(DecisionTreeClassifier)
 def explain_decision_tree(clf, vec=None, top=_TOP, target_names=None,
-                          feature_names=None, coef_scale=None):
+                          feature_names=None, coef_scale=None,
+                          **export_graphviz_kwargs):
     """
     Return an explanation of a decision tree classifier in the
     following format (compatible with random forest explanations)::
@@ -253,7 +254,12 @@ def explain_decision_tree(clf, vec=None, top=_TOP, target_names=None,
     indices = argsort_k_largest(coef, top)
     names, values = feature_names[indices], coef[indices]
     std = np.zeros_like(values)
-    treedict = tree2dict(clf, feature_names=feature_names)
+    export_graphviz_kwargs.setdefault("proportion", True)
+    treedict = tree2dict(clf,
+                         feature_names=feature_names,
+                         class_names=target_names,
+                         **export_graphviz_kwargs)
+
     return {
         'feature_importances': list(zip(names, values, std)),
         'decision_tree': treedict,

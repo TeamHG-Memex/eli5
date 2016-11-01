@@ -202,8 +202,8 @@ def test_explain_random_forest(newsgroups_train, clf):
         assert 'feature importances' in expl
         assert 'god' in expl  # high-ranked feature
 
-        if isinstance(clf, DecisionTreeClassifier):
-            assert 'god >' in expl  # TODO: better HTML tree visualisation
+    if isinstance(clf, DecisionTreeClassifier):
+        assert '<svg' in expl_html
 
     assert res == get_res()
 

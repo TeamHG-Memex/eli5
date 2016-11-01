@@ -6,6 +6,7 @@ from collections import Counter
 import numpy as np
 from jinja2 import Environment, PackageLoader
 
+from eli5._dot import dot2svg
 from .utils import format_signed, replace_spaces
 from . import fields
 from .features import FormattedFeatureName
@@ -205,7 +206,10 @@ def _format_single_feature(feature, weight):
 
 
 def _format_decision_tree(treedict):
-    return tree2text(treedict)
+    if 'graphviz' in treedict:
+        return dot2svg(treedict['graphviz'])
+    else:
+        return tree2text(treedict)
 
 
 def html_escape(text):

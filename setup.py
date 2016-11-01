@@ -29,6 +29,7 @@ setup(
         'singledispatch >= 3.4.0.3',
         'six',
         'typing',
+        'graphviz',
     ],
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',

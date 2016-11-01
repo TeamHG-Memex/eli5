@@ -6,24 +6,48 @@ This is an alternative to sklearn.tree.export which doesn't require graphviz
 and provides a way to output result in text-based format.
 """
 from __future__ import absolute_import, division
-from sklearn.tree import _tree
+import os
+import shutil
+from tempfile import mkdtemp
+
+from sklearn.tree import _tree, export_graphviz
 
 
-def tree2dict(decision_tree, feature_names=None):
+def tree2dict(decision_tree, feature_names=None, **export_graphviz_kwargs):
     """
     Convert DecisionTreeClassifier or DecisionTreeRegressor
     to an inspectable dictionary.
     """
     res = {
         "criterion": decision_tree.criterion,
-        "tree": _node2dict(decision_tree.tree_, 0),
+        "tree": _tree2dict(decision_tree, feature_names),
+        "graphviz": tree2dot(decision_tree,
+                             feature_names=feature_names,
+                             **export_graphviz_kwargs)
     }
+    return res
+
+
+def tree2dot(decision_tree, **export_graphviz_kwargs):
+    # use temp files to support scikit-learn < 0.18
+    path = mkdtemp()
+    try:
+        tmpfile = os.path.join(path, 'tree.dot')
+        export_graphviz(decision_tree, tmpfile, **export_graphviz_kwargs)
+        with open(tmpfile, 'rb') as f:
+            return f.read().decode('utf8')
+    finally:
+        shutil.rmtree(path)
+
+
+def _tree2dict(decision_tree, feature_names=None):
+    res = _node2dict(decision_tree.tree_, 0)
     _add_feature_names(res, feature_names)
     return res
 
 
-def _add_feature_names(treedict, feature_names=None):
-    for node in _treeiter(treedict['tree']):
+def _add_feature_names(root, feature_names=None):
+    for node in _treeiter(root):
         if not node['is_leaf']:
             feat_id = node['feature_id']
             if feature_names is None:
