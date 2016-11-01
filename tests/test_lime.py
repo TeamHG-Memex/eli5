@@ -4,7 +4,7 @@ from __future__ import absolute_import
 from sklearn.feature_extraction.text import HashingVectorizer
 from sklearn.naive_bayes import MultinomialNB
 
-from eli5.lime import get_local_classifier_text
+from eli5.lime import get_local_pipeline_text
 from eli5.sklearn import explain_prediction_sklearn
 from eli5.formatters import format_as_text
 from sklearn.pipeline import make_pipeline
@@ -20,13 +20,13 @@ def test_lime_explain_probabilistic(newsgroups_train):
 
     pipe = make_pipeline(vec, clf)
     doc = docs[0]
-    print(doc)
 
-    clf_local, vec_local, score = get_local_classifier_text(doc,
+    clf_local, vec_local, metrics = get_local_pipeline_text(doc,
                                                             pipe.predict_proba,
-                                                            n_samples=5000)
-    print(score)
-    assert score > 0.7
+                                                            n_samples=5000,
+                                                            expand_factor=10)
+    print(metrics)
+    assert metrics['score'] > 0.7
 
     res = explain_prediction_sklearn(clf_local, doc, vec_local, top=10,
                                      target_names=target_names)

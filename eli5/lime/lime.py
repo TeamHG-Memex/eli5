@@ -11,9 +11,9 @@ Input:
 Main idea:
 
 1. Generate a fake dataset from the example to explain: generated instances
-   are changed versions of the example (e.g. for text it could be the same text,
-   but with some words removed); generated labels are black-box classifier
-   predictions for these generated examples.
+   are changed versions of the example (e.g. for text it could be the same
+   text, but with some words removed); generated labels are black-box
+   classifier predictions for these generated examples.
 
 2. Train a white-box classifer on these examples (e.g. a linear model).
 
@@ -51,69 +51,78 @@ as black-box classifier, but a mistmatch between them limits explanation
 quality.
 """
 from __future__ import absolute_import
+from typing import Any, Callable, Dict
 
 import numpy as np
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.linear_model import LogisticRegression
-from sklearn.cross_validation import train_test_split
+from sklearn.pipeline import make_pipeline
+try:
+    from sklearn.model_selection import train_test_split
+except ImportError:  # sklearn < 0.18
+    from sklearn.cross_validation import train_test_split
 
 from eli5.lime import textutils
-from eli5.utils import vstack
+from eli5.lime.samplers import MaskingTextSampler
+from eli5.lime.utils import (
+    fit_proba,
+    score_with_sample_weight,
+    mean_kl_divergence
+)
 
 
-def get_local_classifier(doc,
-                         predict_proba,
-                         local_clf,
-                         local_vec,
-                         generate_perturbations,
-                         n_samples=200,
-                         expand_factor=10,
-                         test_size=0.3,
-                         ):
-    docs, similarities = generate_perturbations(doc, n_samples=n_samples)
-    y_proba = predict_proba(docs)
-    y_best = y_proba.argmax(axis=1)
+def _train_local_classifier(estimator,
+                            samples,
+                            similarity,
+                            predict_proba,
+                            expand_factor=10,
+                            test_size=0.3,
+                            ):
+    # type: (Any, Any, np.ndarray, Callable[[Any], np.ndarray], int, float) -> Dict[str, float]
+    y_proba = predict_proba(samples)
 
-    (docs_train, docs_test,
-     y_proba_train, y_proba_test,
-     y_best_train, y_best_test) = train_test_split(docs, y_proba, y_best,
-                                                   test_size=test_size)
+    (X_train, X_test,
+     similarity_train, similarity_test,
+     y_proba_train, y_proba_test) = train_test_split(samples,
+                                                     similarity,
+                                                     y_proba,
+                                                     test_size=test_size)
 
-    # scikit-learn can't optimize cross-entropy directly if target
-    # probability values are not indicator vectors. Probability information
-    # is helpful because it could be hard to get enough examples of all classes
-    # automatically. As a workaround here we're expanding the dataset
-    # according to target probabilities. Use expand_factor=None to turn
-    # it off (e.g. if probability scores are 0/1 in a first place).
-    #
     # XXX: in the original lime code instead of a probabilitsic classifier
     # they build several regression models which try to output probabilities.
     #
-    # XXX: similarities are currently unused; using sample_weights
-    # doesn't seem to improve quality. TODO: investigate it.
-    X_train = local_vec.fit_transform(docs_train)
-
-    if expand_factor:
-        X_train, y_train = zip(*expand_dataset(X_train, y_proba_train,
-                                               expand_factor))
-        X_train = vstack(X_train)
-    else:
-        y_train = y_proba_train.argmax(axis=1)
+    # XXX: Probability information is helpful because it could be hard
+    # to get enough examples of all classes automatically, so we're fitting
+    # classifier to produce the same probabilities, not only the same
+    # best answer.
 
     # TODO: feature selection
-    local_clf.fit(X_train, y_train)
+    # Ideally, it should be supported as a Pipeline (i.e. user should
+    # be able to configure it).
+    fit_proba(estimator, X_train, y_proba_train,
+              expand_factor=expand_factor,
+              sample_weight=similarity_train)
 
-    X_test = local_vec.transform(docs_test)
-    score = local_clf.score(X_test, y_best_test)
-    return local_clf, local_vec, score
+    y_proba_test_pred = estimator.predict_proba(X_test)
+    return {
+        'mean_KL_divergence': mean_kl_divergence(
+            y_proba_test_pred,
+            y_proba_test,
+            sample_weight=similarity_test
+        ),
+        'score': score_with_sample_weight(estimator,
+                                          X_test,
+                                          y_proba_test.argmax(axis=1),
+                                          sample_weight=similarity_test)
+    }
 
 
-def get_local_classifier_text(text, predict_proba, n_samples=1000,
-                              expand_factor=10):
+def get_local_pipeline_text(text, predict_proba, n_samples=1000,
+                            expand_factor=10):
     """
     Train a classifier which approximates probabilistic text classifier locally.
-    Return (clf, vec, score) tuple with "easy" classifier, "easy" vectorizer,
-    and an estimated accuracy score of this pipeline, i.e.
+    Return (clf, vec, metrics) tuple with "easy" classifier, "easy" vectorizer,
+    and an estimated metrics of this pipeline, i.e.
     how well these "easy" vectorizer/classifier approximates text
     classifier in neighbourhood of ``text``.
     """
@@ -121,27 +130,17 @@ def get_local_classifier_text(text, predict_proba, n_samples=1000,
         binary=True,
         token_pattern=textutils.DEFAULT_TOKEN_PATTERN,
     )
-    clf = LogisticRegression(solver='lbfgs')  # supports sample_weight
+    clf = LogisticRegression(C=100)
+    pipe = make_pipeline(vec, clf)
 
-    return get_local_classifier(
-        doc=text,
+    sampler = MaskingTextSampler(bow=True)
+    samples, similarity = sampler.sample_near(text, n_samples=n_samples)
+
+    metrics = _train_local_classifier(
+        estimator=pipe,
+        samples=samples,
+        similarity=similarity,
         predict_proba=predict_proba,
-        local_clf=clf,
-        local_vec=vec,
-        generate_perturbations=textutils.generate_perturbations,
-        n_samples=n_samples,
         expand_factor=expand_factor,
     )
-
-
-def expand_dataset(X, y_proba, factor=10):
-    """
-    Convert a dataset with float multiclass probabilities to a dataset
-    with indicator probabilities by duplicating X rows and sampling
-    true labels.
-    """
-    n_classes = y_proba.shape[1]
-    classes = np.arange(n_classes, dtype=int)
-    for x, probs in zip(X, y_proba):
-        for label in np.random.choice(classes, size=factor, p=probs):
-            yield x, label
+    return clf, vec, metrics

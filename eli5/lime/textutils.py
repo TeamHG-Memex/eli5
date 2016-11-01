@@ -5,6 +5,7 @@ Utilities for text generation.
 from __future__ import absolute_import
 import re
 import random
+from typing import List, Tuple
 
 import numpy as np
 
@@ -12,8 +13,9 @@ import numpy as np
 DEFAULT_TOKEN_PATTERN = r'(?u)\b\w+\b'
 
 
-def generate_perturbations(text, n_samples=500, bow=True,
-                           token_pattern=DEFAULT_TOKEN_PATTERN):
+def generate_samples(text, n_samples=500, bow=True,
+                     token_pattern=DEFAULT_TOKEN_PATTERN):
+    # type: (str, int, bool, str) -> Tuple[List[str], np.ndarray]
     """
     Return ``n_samples`` changed versions of text (with some words removed),
     along with distances between the original text and a generated
@@ -28,8 +30,8 @@ def generate_perturbations(text, n_samples=500, bow=True,
         num_tokens = len(t.split.tokens)
         res = t.replace_random_tokens(n_samples)
 
-    texts, num_removed = zip(*res)
-    similarity = cosine_similarity_vec(num_tokens, num_removed)
+    texts, num_removed_vec = zip(*res)
+    similarity = cosine_similarity_vec(num_tokens, num_removed_vec)
     return texts, similarity
 
 
@@ -55,7 +57,11 @@ class TokenizedText(object):
         By default words are replaced with '', i.e. removed.
         """
         indices = np.arange(len(self.split.tokens))
-        sizes = np.random.randint(low=1, high=indices.shape[0], size=n_samples)
+        n_tokens = indices.shape[0]
+        if not n_tokens:
+            return [('', 0)] * n_samples
+        sizes = np.random.randint(low=1, high=n_tokens + 1,
+                                  size=n_samples)
         res = []
         for size in sizes:
             s = self.split.copy()
@@ -72,7 +78,9 @@ class TokenizedText(object):
         from the text. By default words are replaced with '', i.e. removed.
         """
         vocab = set(self.split.tokens)
-        sizes = np.random.randint(low=1, high=len(vocab), size=n_samples)
+        if not vocab:
+            return [('', 0)] * n_samples
+        sizes = np.random.randint(low=1, high=len(vocab)+1, size=n_samples)
         res = []
         for size in sizes:
             to_remove = set(random.sample(vocab, size))
