@@ -34,6 +34,7 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.base import BaseEstimator
 import pytest
 
+from eli5 import _graphviz
 from eli5 import explain_weights
 from eli5.sklearn import InvertableHashingVectorizer
 from .utils import format_as_all, get_all_features, get_names_coefs
@@ -203,7 +204,10 @@ def test_explain_random_forest(newsgroups_train, clf):
         assert 'god' in expl  # high-ranked feature
 
     if isinstance(clf, DecisionTreeClassifier):
-        assert '<svg' in expl_html
+        if _graphviz.is_supported():
+            assert '<svg' in expl_html
+        else:
+            assert '<svg' not in expl_html
 
     assert res == get_res()
 

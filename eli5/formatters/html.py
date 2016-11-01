@@ -6,7 +6,7 @@ from collections import Counter
 import numpy as np
 from jinja2 import Environment, PackageLoader
 
-from eli5._dot import dot2svg
+from eli5 import _graphviz
 from .utils import format_signed, replace_spaces
 from . import fields
 from .features import FormattedFeatureName
@@ -206,8 +206,8 @@ def _format_single_feature(feature, weight):
 
 
 def _format_decision_tree(treedict):
-    if 'graphviz' in treedict:
-        return dot2svg(treedict['graphviz'])
+    if 'graphviz' in treedict and _graphviz.is_supported():
+        return _graphviz.dot2svg(treedict['graphviz'])
     else:
         return tree2text(treedict)
 
