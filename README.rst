@@ -34,11 +34,11 @@ Currently it allows to:
 * explain weights and predictions of
   https://github.com/scikit-learn-contrib/lightning models;
 * explain predictions of any black-box classifier using LIME
-  ( http://arxiv.org/abs/1602.04938 ) algorithm.
+  ( http://arxiv.org/abs/1602.04938 ) algorithm (experimental).
 
 TODO:
 
-* IPython and HTML support
+* IPython support
 * https://github.com/TeamHG-Memex/sklearn-crfsuite
   and https://github.com/tpeng/python-crfsuite
 * https://github.com/scikit-learn-contrib/polylearn
