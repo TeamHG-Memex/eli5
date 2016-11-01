@@ -5,6 +5,7 @@ import six
 from . import fields
 from .features import FormattedFeatureName
 from .utils import format_signed, replace_spaces
+from .trees import tree2text
 
 
 _PLUS_MINUS = "+-" if six.PY2 else "±"
@@ -40,6 +41,11 @@ def format_as_text(explanation, show=fields.ALL):
                     plus=_PLUS_MINUS,
                     std=2*std,
                 ))
+
+        if key == 'decision_tree':
+            treedict = explanation['decision_tree']
+            lines.append("")
+            lines.append(_format_decision_tree(treedict))
 
     return '\n'.join(lines)
 
@@ -88,6 +94,10 @@ def _format_scores(proba, score):
     if score is not None:
         scores.append("score=%0.3f" % score)
     return ", ".join(scores)
+
+
+def _format_decision_tree(treedict):
+    return tree2text(treedict)
 
 
 def _maxlen(feature_weights):

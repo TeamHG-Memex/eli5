@@ -34,6 +34,7 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.base import BaseEstimator
 import pytest
 
+from eli5 import _graphviz
 from eli5 import explain_weights
 from eli5.sklearn import InvertableHashingVectorizer
 from .utils import format_as_all, get_all_features, get_names_coefs
@@ -182,15 +183,15 @@ def test_explain_linear_tuple_top(newsgroups_train):
 
 
 @pytest.mark.parametrize(['clf'], [
-    [RandomForestClassifier(n_estimators=100)],
-    [ExtraTreesClassifier(n_estimators=100)],
-    [GradientBoostingClassifier()],
-    [AdaBoostClassifier(learning_rate=0.1, n_estimators=200)],
-    [DecisionTreeClassifier()],
+    [RandomForestClassifier(n_estimators=100, random_state=42)],
+    [ExtraTreesClassifier(n_estimators=100, random_state=24)],
+    [GradientBoostingClassifier(random_state=42)],
+    [AdaBoostClassifier(learning_rate=0.1, n_estimators=200, random_state=42)],
+    [DecisionTreeClassifier(max_depth=3, random_state=42)],
 ])
 def test_explain_random_forest(newsgroups_train, clf):
     docs, y, target_names = newsgroups_train
-    vec = TfidfVectorizer()
+    vec = CountVectorizer()
     X = vec.fit_transform(docs)
     clf.fit(X.toarray(), y)
 
@@ -200,7 +201,13 @@ def test_explain_random_forest(newsgroups_train, clf):
     expl_text, expl_html = format_as_all(res, clf)
     for expl in [expl_text, expl_html]:
         assert 'feature importances' in expl
-        assert 'that' in expl  # high-ranked feature
+        assert 'god' in expl  # high-ranked feature
+
+    if isinstance(clf, DecisionTreeClassifier):
+        if _graphviz.is_supported():
+            assert '<svg' in expl_html
+        else:
+            assert '<svg' not in expl_html
 
     assert res == get_res()
 

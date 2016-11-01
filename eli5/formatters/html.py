@@ -1,13 +1,16 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 import cgi
 from collections import Counter
 
 import numpy as np
 from jinja2 import Environment, PackageLoader
 
+from eli5 import _graphviz
 from .utils import format_signed, replace_spaces
 from . import fields
 from .features import FormattedFeatureName
+from .trees import tree2text
 
 
 template_env = Environment(
@@ -21,6 +24,7 @@ template_env.filters.update(dict(
     weight_range=lambda w: _weight_range(w),
     fi_weight_range=lambda w: max([abs(x[1]) for x in w] or [0]),
     format_feature=lambda f, w: _format_feature(f, w),
+    format_decision_tree=lambda tree: _format_decision_tree(tree),
 ))
 
 
@@ -199,6 +203,13 @@ def _format_single_feature(feature, weight):
             spaces='&emsp;' * n_spaces)
 
     return replace_spaces(html_escape(feature), replacer)
+
+
+def _format_decision_tree(treedict):
+    if 'graphviz' in treedict and _graphviz.is_supported():
+        return _graphviz.dot2svg(treedict['graphviz'])
+    else:
+        return tree2text(treedict)
 
 
 def html_escape(text):
