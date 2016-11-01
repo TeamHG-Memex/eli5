@@ -28,6 +28,7 @@ Currently it allows to:
   and regressors;
 * explain weights of scikit-learn decision trees and tree-based ensemble
   classifiers (via feature importances);
+* text-based and svg-based scikit-learn decision tree visualization;
 * debug scikit-learn pipelines which contain HashingVectorizer,
   by undoing hashing;
 * explain weights and predictions of
