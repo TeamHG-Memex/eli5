@@ -2,6 +2,7 @@
 from functools import partial
 
 import numpy as np
+import pytest
 from hypothesis import given
 from hypothesis.strategies import integers, text
 
@@ -10,6 +11,7 @@ from eli5.lime.samplers import (
     UnivariateKernelDensitySampler,
     MultivariateKernelDensitySampler
 )
+from sklearn.neighbors import KernelDensity
 
 
 @given(text(), integers(1, 3))
@@ -96,3 +98,39 @@ def test_multivariate_kde_sampler():
 
     # feature interaction should be preserved
     assert abs((feat1_sampled * 2 - feat2_sampled).mean()) < 0.05
+
+
+def test_bad_argument():
+    with pytest.raises(ValueError):
+        s = MultivariateKernelDensitySampler(sigma='foo')
+
+
+@pytest.mark.parametrize(['sampler_cls'], [
+    [MultivariateKernelDensitySampler],
+    [UnivariateKernelDensitySampler]
+])
+def test_explicit_sigma(sampler_cls):
+    X = np.array([[0, 1], [1, 1], [0, 2]])
+    s = sampler_cls(sigma=0.5)
+    s.fit(X)
+    assert s.sigma == 0.5
+    assert s.sigma_ == 0.5
+
+
+def test_sigma_bandwidth():
+    s = MultivariateKernelDensitySampler(sigma='bandwidth')
+    s.fit([[0, 1], [1, 1], [0, 2]])
+    assert s.sigma_ == s.kde_.bandwidth
+
+
+def test_fit_bandwidth():
+    kde = KernelDensity(bandwidth=100, leaf_size=10)
+    s = MultivariateKernelDensitySampler(kde=kde, fit_bandwidth=True)
+    s.fit([[0, 1], [1, 1], [0, 2]])
+    assert s.kde_.bandwidth != kde.bandwidth
+    assert s.kde_.leaf_size == kde.leaf_size
+
+    s = MultivariateKernelDensitySampler(kde=kde, fit_bandwidth=False)
+    s.fit([[0, 1], [1, 1], [0, 2]])
+    assert s.kde_.bandwidth == kde.bandwidth
+    assert s.kde_.leaf_size == kde.leaf_size
