@@ -34,7 +34,7 @@ from eli5.base import Explanation, TargetExplanation
 from eli5._feature_weights import get_top_features
 from eli5.utils import argsort_k_largest
 from eli5.sklearn.unhashing import handle_hashing_vec, is_invhashing
-from eli5.sklearn.treeinspect import tree2dict
+from eli5.sklearn.treeinspect import get_tree_info
 from eli5.sklearn.utils import (
     get_coef,
     is_multiclass_classifier,
@@ -254,14 +254,15 @@ def explain_decision_tree(clf, vec=None, top=_TOP, target_names=None,
     names, values = feature_names[indices], coef[indices]
     std = np.zeros_like(values)
     export_graphviz_kwargs.setdefault("proportion", True)
-    treedict = tree2dict(clf,
-                         feature_names=feature_names,
-                         class_names=target_names,
-                         **export_graphviz_kwargs)
+    tree_info = get_tree_info(
+        clf,
+        feature_names=feature_names,
+        class_names=target_names,
+        **export_graphviz_kwargs)
 
     return Explanation(
         feature_importances=list(zip(names, values, std)),
-        decision_tree=treedict,
+        decision_tree=tree_info,
         description=DESCRIPTION_DECISION_TREE,
         estimator=repr(clf),
         method='decision tree',

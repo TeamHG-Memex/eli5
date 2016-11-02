@@ -37,3 +37,27 @@ class WeightedSpans(object):
     document = attr.ib()
     weighted_spans = attr.ib()
     other = attr.ib(default=None)
+
+
+@attr.s
+class TreeInfo(object):
+    criterion = attr.ib()
+    tree = attr.ib()
+    graphviz = attr.ib()
+
+
+@attr.s
+class NodeInfo(object):
+    id = attr.ib()
+    is_leaf = attr.ib()
+    value = attr.ib()
+    value_ratio = attr.ib()
+    impurity = attr.ib()
+    samples = attr.ib()
+    sample_ratio = attr.ib()
+    feature_name = attr.ib(default=None)
+    # for non-leafs
+    feature_id = attr.ib(default=None)
+    threshold = attr.ib(default=None)
+    left = attr.ib(default=None)
+    right = attr.ib(default=None)
