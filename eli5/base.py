@@ -1,55 +1,60 @@
 # -*- coding: utf-8 -*-
 
 import attr
+from typing import Dict, List, Tuple, Union
 
 
 @attr.s
 class Explanation(object):
-    estimator = attr.ib()
-    description = attr.ib(default=None)
-    method = attr.ib(default=None)
-    targets = attr.ib(default=None)
-    is_regression = attr.ib(default=False)
-    feature_importances = attr.ib(default=None)
-    decision_tree = attr.ib(default=None)
+    estimator = attr.ib()  # type: str
+    description = attr.ib(default=None)  # type: str
+    method = attr.ib(default=None)  # type: str
+    targets = attr.ib(default=None)  # type: List[TargetExplanation]
+    is_regression = attr.ib(default=False)  # type: bool
+    feature_importances = attr.ib(default=None)  # type: FeatureWeights
+    decision_tree = attr.ib(default=None)  # type: TreeInfo
 
 
 @attr.s
 class TargetExplanation(object):
-    target = attr.ib()
-    feature_weights = attr.ib()
-    proba = attr.ib(default=None)
-    score = attr.ib(default=None)
-    weighted_spans = attr.ib(default=None)
+    target = attr.ib()  # type: str
+    feature_weights = attr.ib()  # type: FeatureWeights
+    proba = attr.ib(default=None)  # type: float
+    score = attr.ib(default=None)  # type: float
+    weighted_spans = attr.ib(default=None)  # type: WeightedSpans
 
+
+Feature = Union[str, Dict]
 
 @attr.s
 class FeatureWeights(object):
-    pos = attr.ib()
-    neg = attr.ib()
-    pos_remaining = attr.ib(default=0)
-    neg_remaining = attr.ib(default=0)
+    pos = attr.ib()  # type: List[Tuple[Feature, float]]
+    neg = attr.ib()  # type: List[Tuple[Feature, float]]
+    pos_remaining = attr.ib(default=0)  # type: int
+    neg_remaining = attr.ib(default=0)  # type: int
 
+
+WeightedSpan = Tuple[Feature, List[Tuple[int, int]], float]
 
 @attr.s
 class WeightedSpans(object):
-    analyzer = attr.ib()
-    document = attr.ib()
-    weighted_spans = attr.ib()
-    other = attr.ib(default=None)
+    analyzer = attr.ib()  # type: str
+    document = attr.ib()  # type: str
+    weighted_spans = attr.ib()  # type: List[WeightedSpan]
+    other = attr.ib(default=None)  # type: FeatureWeights
 
 
 @attr.s
 class TreeInfo(object):
-    criterion = attr.ib()
-    tree = attr.ib()
-    graphviz = attr.ib()
+    criterion = attr.ib()  # type: str
+    tree = attr.ib()  # type: NodeInfo
+    graphviz = attr.ib()  # type: str
 
 
 @attr.s
 class NodeInfo(object):
     id = attr.ib()
-    is_leaf = attr.ib()
+    is_leaf = attr.ib()  # type: bool
     value = attr.ib()
     value_ratio = attr.ib()
     impurity = attr.ib()
@@ -59,5 +64,5 @@ class NodeInfo(object):
     # for non-leafs
     feature_id = attr.ib(default=None)
     threshold = attr.ib(default=None)
-    left = attr.ib(default=None)
-    right = attr.ib(default=None)
+    left = attr.ib(default=None)  # type: NodeInfo
+    right = attr.ib(default=None)  # type: NodeInfo
