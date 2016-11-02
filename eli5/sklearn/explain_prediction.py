@@ -23,6 +23,7 @@ from sklearn.linear_model import (
 from sklearn.svm import LinearSVC, LinearSVR
 from sklearn.multiclass import OneVsRestClassifier
 
+from eli5.base import Explanation, FeatureWeights, TargetExplanation
 from eli5.sklearn.unhashing import InvertableHashingVectorizer, is_invhashing
 from eli5.sklearn.utils import (
     get_feature_names,
@@ -95,11 +96,11 @@ def explain_prediction_linear_classifier(
         X = _add_intercept(X)
     x, = X
 
-    res = {
-        "estimator": repr(clf),
-        "method": "linear model",
-        "classes": [],
-    }
+    res = Explanation(
+        estimator=repr(clf),
+        method='linear model',
+        targets=[],
+    )
 
     def _weights(label_id):
         coef = get_coef(clf, label_id)
@@ -111,35 +112,33 @@ def explain_prediction_linear_classifier(
 
     if is_multiclass_classifier(clf):
         for label_id, label in enumerate(clf.classes_):
-            class_info = {
-                'class': _label(label_id, label),
-                'feature_weights': _weights(label_id),
-                'score': score[label_id],
-            }
-            if proba is not None:
-                class_info['proba'] = proba[label_id]
-            _add_weighted_spans(doc, vec, class_info)
-            res['classes'].append(class_info)
+            target_expl = TargetExplanation(
+                target=_label(label_id, label),
+                feature_weights=_weights(label_id),
+                score=score[label_id],
+                proba=proba[label_id] if proba is not None else None,
+            )
+            _add_weighted_spans(doc, vec, target_expl)
+            res.targets.append(target_expl)
     else:
-        class_info = {
-            'class': _label(1, clf.classes_[1]),
-            'feature_weights': _weights(0),
-            'score': score,
-        }
-        if proba is not None:
-            class_info['proba'] = proba[1]
-        _add_weighted_spans(doc, vec, class_info)
-        res['classes'].append(class_info)
+        target_expl = TargetExplanation(
+            target=_label(1, clf.classes_[1]),
+            feature_weights=_weights(0),
+            score=score,
+            proba=proba[1] if proba is not None else None,
+        )
+        _add_weighted_spans(doc, vec, target_expl)
+        res.targets.append(target_expl)
 
     return res
 
 
-def _add_weighted_spans(doc, vec, class_info):
+def _add_weighted_spans(doc, vec, target_expl):
     if isinstance(doc, six.string_types) and vec is not None:
         weighted_spans = get_weighted_spans(
-            doc, vec, class_info['feature_weights'])
+            doc, vec, target_expl.feature_weights)
         if weighted_spans:
-            class_info['weighted_spans'] = weighted_spans
+            target_expl.weighted_spans = weighted_spans
 
 
 def _multiply(X, coef):
@@ -200,11 +199,12 @@ def explain_prediction_linear_regressor(
         X = _add_intercept(X)
     x, = X
 
-    res = {
-        "estimator": repr(reg),
-        "method": "linear model",
-        "targets": [],
-    }
+    res = Explanation(
+        estimator=repr(reg),
+        method='linear model',
+        targets=[],
+        is_regression=True,
+    )
 
     def _weights(label_id):
         coef = get_coef(reg, label_id)
@@ -218,20 +218,20 @@ def explain_prediction_linear_regressor(
         if target_names is None:
             target_names = get_target_names(reg)
         for label_id, label in enumerate(target_names):
-            target_info = {
-                'target': _label(label_id, label),
-                'feature_weights': _weights(label_id),
-                'score': score[label_id],
-            }
-            _add_weighted_spans(doc, vec, target_info)
-            res['targets'].append(target_info)
+            target_expl = TargetExplanation(
+                target=_label(label_id, label),
+                feature_weights=_weights(label_id),
+                score=score[label_id],
+            )
+            _add_weighted_spans(doc, vec, target_expl)
+            res.targets.append(target_expl)
     else:
-        target_info = {
-            'target': _label(0, 'y'),
-            'feature_weights': _weights(0),
-            'score': score,
-        }
-        _add_weighted_spans(doc, vec, target_info)
-        res['targets'].append(target_info)
+        target_expl = TargetExplanation(
+            target=_label(0, 'y'),
+            feature_weights=_weights(0),
+            score=score,
+        )
+        _add_weighted_spans(doc, vec, target_expl)
+        res.targets.append(target_expl)
 
     return res

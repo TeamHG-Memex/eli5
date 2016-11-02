@@ -344,6 +344,7 @@ def explain_linear_regressor_weights(reg, vec=None, feature_names=None,
             description=DESCRIPTION_REGRESSION_MULTITARGET + _extra_caveats,
             estimator=repr(reg),
             method='linear model',
+            is_regression=True,
         )
     else:
         return Explanation(
@@ -354,4 +355,5 @@ def explain_linear_regressor_weights(reg, vec=None, feature_names=None,
             description=DESCRIPTION_REGRESSION + _extra_caveats,
             estimator=repr(reg),
             method='linear model',
+            is_regression=True,
         )

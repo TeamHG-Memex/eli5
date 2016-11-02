@@ -3,6 +3,7 @@ import re
 from six.moves import xrange
 from sklearn.feature_extraction.text import VectorizerMixin
 
+from eli5.base import WeightedSpans, FeatureWeights
 from eli5.sklearn.unhashing import InvertableHashingVectorizer
 from eli5.formatters import FormattedFeatureName
 
@@ -25,7 +26,7 @@ def get_weighted_spans(doc, vec, feature_weights):
     # (group, idx) is a feature key here
     feature_weights_dict = {
         f: (weight, (group, idx)) for group in ['pos', 'neg']
-        for idx, (feature, weight) in enumerate(feature_weights[group])
+        for idx, (feature, weight) in enumerate(getattr(feature_weights, group))
         for f in _get_features(feature)}
 
     span_analyzer, preprocessed_doc = _build_span_analyzer(doc, vec)
@@ -43,13 +44,13 @@ def get_weighted_spans(doc, vec, feature_weights):
             weighted_spans.append((feature, spans, weight))
             found_features[key] = weight
 
-    return {
-        'analyzer': vec.analyzer,
-        'document': preprocessed_doc,
-        'weighted_spans': weighted_spans,
-        'other': _get_other(
+    return WeightedSpans(
+        analyzer=vec.analyzer,
+        document=preprocessed_doc,
+        weighted_spans=weighted_spans,
+        other=_get_other(
             feature_weights, feature_weights_dict, found_features),
-    }
+    )
 
 
 def _get_other(feature_weights, feature_weights_dict, found_features):
@@ -59,21 +60,19 @@ def _get_other(feature_weights, feature_weights_dict, found_features):
     for feature, (_, key) in feature_weights_dict.items():
         if key not in found_features and key not in accounted_keys:
             group, idx = key
-            other_items.append(feature_weights[group][idx])
+            other_items.append(getattr(feature_weights, group)[idx])
             accounted_keys.add(key)
     if found_features:
         other_items.append(
             (FormattedFeatureName('Highlighted in text (sum)'),
              sum(found_features.values())))
     other_items.sort(key=lambda x: abs(x[1]), reverse=True)
-    other = {
-        'pos': [(f, w) for f, w in other_items if w >= 0],
-        'neg': [(f, w) for f, w in other_items if w < 0],
-    }
-    for key in ['pos_remaining', 'neg_remaining']:
-        if feature_weights.get(key):
-            other[key] = feature_weights[key]
-    return other
+    return FeatureWeights(
+        pos=[(f, w) for f, w in other_items if w >= 0],
+        neg=[(f, w) for f, w in other_items if w < 0],
+        pos_remaining=feature_weights.pos_remaining,
+        neg_remaining=feature_weights.neg_remaining,
+    )
 
 
 def _build_span_analyzer(document, vec):
