@@ -82,7 +82,7 @@ def _format_weights(explanations):
             lines.append(_format_remaining(w['pos_remaining'], 'positive'))
         if w['neg_remaining']:
             lines.append(_format_remaining(w['neg_remaining'], 'negative'))
-        lines.extend(_format_feature_weights(w['neg'], sz))
+        lines.extend(_format_feature_weights(reversed(w['neg']), sz))
         lines.append("")
     return lines
 
