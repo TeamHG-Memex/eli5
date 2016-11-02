@@ -206,8 +206,8 @@ def _format_single_feature(feature, weight):
 
 
 def _format_decision_tree(treedict):
-    if 'graphviz' in treedict and _graphviz.is_supported():
-        return _graphviz.dot2svg(treedict['graphviz'])
+    if treedict.graphviz and _graphviz.is_supported():
+        return _graphviz.dot2svg(treedict.graphviz)
     else:
         return tree2text(treedict)
 
