@@ -42,10 +42,10 @@ def assert_multiclass_linear_classifier_explained(newsgroups_train, clf,
     pprint(res)
     expl_text, expl_html = format_as_all(res, clf)
 
-    for e in res['classes']:
-        if e['class'] != 'comp.graphics':
+    for e in res.targets:
+        if e.target != 'comp.graphics':
             continue
-        pos = get_all_features(e['feature_weights']['pos'])
+        pos = get_all_features(e.feature_weights.pos)
         assert 'file' in pos
 
     for expl in [expl_text, expl_html]:
@@ -62,11 +62,11 @@ def assert_linear_regression_explained(boston_train, reg, explain_prediction):
     res = explain_prediction(reg, X[0])
     expl_text, expl_html = format_as_all(res, reg)
 
-    assert len(res['targets']) == 1
-    target = res['targets'][0]
-    assert target['target'] == 'y'
-    pos, neg = (get_all_features(target['feature_weights']['pos']),
-                get_all_features(target['feature_weights']['neg']))
+    assert len(res.targets) == 1
+    target = res.targets[0]
+    assert target.target == 'y'
+    pos, neg = (get_all_features(target.feature_weights.pos),
+                get_all_features(target.feature_weights.neg))
     assert 'x11' in pos or 'x11' in neg
 
     if has_intercept(reg):
@@ -94,11 +94,11 @@ def assert_multitarget_linear_regression_explained(reg, explain_prediction):
     res = explain_prediction(reg, X[0])
     expl_text, expl_html = format_as_all(res, reg)
 
-    assert len(res['targets']) == 3
-    target = res['targets'][1]
-    assert target['target'] == 'y1'
-    pos, neg = (get_all_features(target['feature_weights']['pos']),
-                get_all_features(target['feature_weights']['neg']))
+    assert len(res.targets) == 3
+    target = res.targets[1]
+    assert target.target == 'y1'
+    pos, neg = (get_all_features(target.feature_weights.pos),
+                get_all_features(target.feature_weights.neg))
     assert 'x8' in pos or 'x8' in neg
     assert '<BIAS>' in pos or '<BIAS>' in neg
 

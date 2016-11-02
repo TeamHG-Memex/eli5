@@ -30,10 +30,11 @@ from sklearn.ensemble import (
 )
 from sklearn.tree import DecisionTreeClassifier
 
-from eli5._feature_weights import get_top_features_dict
+from eli5.base import Explanation, TargetExplanation
+from eli5._feature_weights import get_top_features
 from eli5.utils import argsort_k_largest
 from eli5.sklearn.unhashing import handle_hashing_vec, is_invhashing
-from eli5.sklearn.treeinspect import tree2dict
+from eli5.sklearn.treeinspect import get_tree_info
 from eli5.sklearn.utils import (
     get_coef,
     is_multiclass_classifier,
@@ -98,10 +99,10 @@ _TOP = 20
 def explain_weights_sklearn(estimator, vec=None, top=_TOP, target_names=None,
                             feature_names=None, coef_scale=None):
     """ Return an explanation of an estimator """
-    return {
-        "estimator": repr(estimator),
-        "description": "Error: estimator %r is not supported" % estimator,
-    }
+    return Explanation(
+        estimator=repr(estimator),
+        description="Error: estimator %r is not supported" % estimator,
+    )
 
 
 @explain_weights_sklearn.register(LogisticRegression)
@@ -116,41 +117,38 @@ def explain_linear_classifier_weights(clf, vec=None, top=_TOP, target_names=None
     Return an explanation of a linear classifier weights in the following
     format::
 
-        {
-            "estimator": "<classifier repr>",
-            "method": "<interpretation method>",
-            "description": "<human readable description>",
-            "classes": [
-                {
-                    "class": <class name>,
-                    "feature_weights": [
-                        {
-                            # positive weights
-                            "pos": [
-                                (feature_name, coefficient),
-                                ...
-                            ],
+        Explanation(
+            estimator="<classifier repr>",
+            method="<interpretation method>",
+            description="<human readable description>",
+            targets=[
+                TargetExplanation(
+                    target="<class name>",
+                    feature_weights=FeatureWeights(
+                        # positive weights
+                        pos=[
+                            (feature_name, coefficient),
+                            ...
+                        ],
 
-                            # negative weights
-                            "neg": [
-                                (feature_name, coefficient),
-                                ...
-                            ],
+                        # negative weights
+                        neg=[
+                            (feature_name, coefficient),
+                            ...
+                        ],
 
-                            # A number of features not shown
-                            "pos_remaining": <int>,
-                            "neg_remaining": <int>,
+                        # A number of features not shown
+                        pos_remaining = <int>,
+                        neg_remaining = <int>,
 
-                            # Sum of feature weights not shown
-                            # "pos_remaining_sum": <float>,
-                            # "neg_remaining_sum": <float>,
-                        },
-                        ...
-                    ]
-                },
+                        # Sum of feature weights not shown
+                        # pos_remaining_sum = <float>,
+                        # neg_remaining_sum = <float>,
+                    ),
+                ),
                 ...
             ]
-        }
+        )
 
     To print it use utilities from eli5.formatters.
     """
@@ -161,36 +159,38 @@ def explain_linear_classifier_weights(clf, vec=None, top=_TOP, target_names=None
 
     def _features(label_id):
         coef = get_coef(clf, label_id, scale=coef_scale)
-        return get_top_features_dict(feature_names, coef, top)
+        return get_top_features(feature_names, coef, top)
 
     def _label(label_id, label):
         return rename_label(label_id, label, target_names)
 
     if is_multiclass_classifier(clf):
-        return {
-            'classes': [
-                {
-                    'class': _label(label_id, label),
-                    'feature_weights': _features(label_id)
-                }
+        return Explanation(
+            targets=[
+                TargetExplanation(
+                    target=_label(label_id, label),
+                    feature_weights=_features(label_id)
+                )
                 for label_id, label in enumerate(clf.classes_)
             ],
-            'description': DESCRIPTION_CLF_MULTICLASS + _extra_caveats,
-            'estimator': repr(clf),
-            'method': 'linear model',
-        }
+            description=DESCRIPTION_CLF_MULTICLASS + _extra_caveats,
+            estimator=repr(clf),
+            method='linear model',
+        )
     else:
         # for binary classifiers scikit-learn stores a single coefficient
         # vector, which corresponds to clf.classes_[1].
-        return {
-            'classes': [{
-                'class': _label(1, clf.classes_[1]),
-                'feature_weights': _features(0),
-            }],
-            'description': DESCRIPTION_CLF_BINARY + _extra_caveats,
-            'estimator': repr(clf),
-            'method': 'linear model',
-        }
+        return Explanation(
+            targets=[
+                TargetExplanation(
+                    target=_label(1, clf.classes_[1]),
+                    feature_weights=_features(0),
+                )
+            ],
+            description=DESCRIPTION_CLF_BINARY + _extra_caveats,
+            estimator=repr(clf),
+            method='linear model',
+        )
 
 
 @explain_weights_sklearn.register(RandomForestClassifier)
@@ -203,15 +203,15 @@ def explain_rf_feature_importance(clf, vec=None, top=_TOP, target_names=None,
     Return an explanation of a tree-based ensemble classifier in the
     following format::
 
-        {
-            "estimator": "<classifier repr>",
-            "method": "<interpretation method>",
-            "description": "<human readable description>",
-            "feature_importances": [
+        Explanation(
+            estimator="<classifier repr>",
+            method="<interpretation method>",
+            description="<human readable description>",
+            feature_importances=[
                 (feature_name, importance, std_deviation),
                 ...
             ]
-        }
+        )
     """
     feature_names = get_feature_names(clf, vec, feature_names=feature_names)
     coef = clf.feature_importances_
@@ -220,12 +220,12 @@ def explain_rf_feature_importance(clf, vec=None, top=_TOP, target_names=None,
 
     indices = argsort_k_largest(coef, top)
     names, values, std = feature_names[indices], coef[indices], coef_std[indices]
-    return {
-        'feature_importances': list(zip(names, values, std)),
-        'description': DESCRIPTION_RANDOM_FOREST,
-        'estimator': repr(clf),
-        'method': 'feature importances',
-    }
+    return Explanation(
+        feature_importances=list(zip(names, values, std)),
+        description=DESCRIPTION_RANDOM_FOREST,
+        estimator=repr(clf),
+        method='feature importances',
+    )
 
 
 @explain_weights_sklearn.register(DecisionTreeClassifier)
@@ -236,16 +236,16 @@ def explain_decision_tree(clf, vec=None, top=_TOP, target_names=None,
     Return an explanation of a decision tree classifier in the
     following format (compatible with random forest explanations)::
 
-        {
-            "estimator": "<classifier repr>",
-            "method": "<interpretation method>",
-            "description": "<human readable description>",
-            "decision_tree": {...tree information},
-            "feature_importances": [
+        Explanation(
+            estimator="<classifier repr>",
+            method="<interpretation method>",
+            description="<human readable description>",
+            decision_tree={...tree information},
+            feature_importances=[
                 (feature_name, importance, std_deviation),
                 ...
             ]
-        }
+        )
 
     """
     feature_names = get_feature_names(clf, vec, feature_names=feature_names)
@@ -254,18 +254,19 @@ def explain_decision_tree(clf, vec=None, top=_TOP, target_names=None,
     names, values = feature_names[indices], coef[indices]
     std = np.zeros_like(values)
     export_graphviz_kwargs.setdefault("proportion", True)
-    treedict = tree2dict(clf,
-                         feature_names=feature_names,
-                         class_names=target_names,
-                         **export_graphviz_kwargs)
+    tree_info = get_tree_info(
+        clf,
+        feature_names=feature_names,
+        class_names=target_names,
+        **export_graphviz_kwargs)
 
-    return {
-        'feature_importances': list(zip(names, values, std)),
-        'decision_tree': treedict,
-        'description': DESCRIPTION_DECISION_TREE,
-        'estimator': repr(clf),
-        'method': 'decision tree',
-    }
+    return Explanation(
+        feature_importances=list(zip(names, values, std)),
+        decision_tree=tree_info,
+        description=DESCRIPTION_DECISION_TREE,
+        estimator=repr(clf),
+        method='decision tree',
+    )
 
 
 @explain_weights_sklearn.register(ElasticNet)
@@ -283,41 +284,38 @@ def explain_linear_regressor_weights(reg, vec=None, feature_names=None,
     Return an explanation of a linear regressor weights in the following
     format::
 
-        {
-            "estimator": "<regressor repr>",
-            "method": "<interpretation method>",
-            "description": "<human readable description>",
-            "targets": [
-                {
-                    "target": "<target name>",
-                    "feature_weights": [
-                        {
-                            # positive weights
-                            "pos": [
-                                (feature_name, coefficient),
-                                ...
-                            ],
+        Explanation(
+            estimator="<regressor repr>",
+            method="<interpretation method>",
+            description="<human readable description>",
+            targets=[
+                TargetExplanation(
+                    target="<target name>",
+                    feature_weights=FeatureWeights(
+                        # positive weights
+                        pos=[
+                            (feature_name, coefficient),
+                            ...
+                        ],
 
-                            # negative weights
-                            "neg": [
-                                (feature_name, coefficient),
-                                ...
-                            ],
+                        # negative weights
+                        neg=[
+                            (feature_name, coefficient),
+                            ...
+                        ],
 
-                            # A number of features not shown
-                            "pos_remaining": <int>,
-                            "neg_remaining": <int>,
+                        # A number of features not shown
+                        pos_remaining = <int>,
+                        neg_remaining = <int>,
 
-                            # Sum of feature weights not shown
-                            # "pos_remaining_sum": <float>,
-                            # "neg_remaining_sum": <float>,
-                        },
-                        ...
-                    ]
-                },
+                        # Sum of feature weights not shown
+                        # pos_remaining_sum = <float>,
+                        # neg_remaining_sum = <float>,
+                    ),
+                ),
                 ...
             ]
-        }
+        )
 
     To print it use utilities from eli5.formatters.
     """
@@ -328,7 +326,7 @@ def explain_linear_regressor_weights(reg, vec=None, feature_names=None,
 
     def _features(target_id):
         coef = get_coef(reg, target_id, scale=coef_scale)
-        return get_top_features_dict(feature_names, coef, top)
+        return get_top_features(feature_names, coef, top)
 
     def _label(target_id, target):
         return rename_label(target_id, target, target_names)
@@ -336,25 +334,27 @@ def explain_linear_regressor_weights(reg, vec=None, feature_names=None,
     if is_multitarget_regressor(reg):
         if target_names is None:
             target_names = get_target_names(reg)
-        return {
-            'targets': [
-                {
-                    'target': _label(target_id, target),
-                    'feature_weights': _features(target_id)
-                }
+        return Explanation(
+            targets=[
+                TargetExplanation(
+                    target=_label(target_id, target),
+                    feature_weights=_features(target_id)
+                )
                 for target_id, target in enumerate(target_names)
                 ],
-            'description': DESCRIPTION_REGRESSION_MULTITARGET + _extra_caveats,
-            'estimator': repr(reg),
-            'method': 'linear model',
-        }
+            description=DESCRIPTION_REGRESSION_MULTITARGET + _extra_caveats,
+            estimator=repr(reg),
+            method='linear model',
+            is_regression=True,
+        )
     else:
-        return {
-            'targets': [{
-                'target': _label(0, 'y'),
-                'feature_weights': _features(0),
-            }],
-            'description': DESCRIPTION_REGRESSION + _extra_caveats,
-            'estimator': repr(reg),
-            'method': 'linear model',
-        }
+        return Explanation(
+            targets=[TargetExplanation(
+                target=_label(0, 'y'),
+                feature_weights=_features(0),
+            )],
+            description=DESCRIPTION_REGRESSION + _extra_caveats,
+            estimator=repr(reg),
+            method='linear model',
+            is_regression=True,
+        )

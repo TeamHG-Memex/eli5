@@ -50,7 +50,7 @@ def format_as_html(explanation, include_styles=True, force_weights=True,
         tdm_styles='padding: 0 0.5em 0 0.5em; text-align: center; border: none;',
         td2_styles='padding: 0 0.5em 0 0.5em; text-align: left; border: none;',
         show=show,
-        **explanation)
+        expl=explanation)
 
 
 def format_html_styles():
@@ -70,9 +70,9 @@ def render_weighted_spans(weighted_spans_data, preserve_density=None):
     and not preserved for "word" analyzers.
     """
     if preserve_density is None:
-        preserve_density = weighted_spans_data['analyzer'].startswith('char')
-    doc = weighted_spans_data['document']
-    weighted_spans = weighted_spans_data['weighted_spans']
+        preserve_density = weighted_spans_data.analyzer.startswith('char')
+    doc = weighted_spans_data.document
+    weighted_spans = weighted_spans_data.weighted_spans
     char_weights = np.zeros(len(doc))
     feature_counts = Counter(f for f, _, _ in weighted_spans)
     for feature, spans, weight in weighted_spans:
@@ -140,8 +140,8 @@ def _hue(weight):
 def _weight_range(weights):
     """ Max absolute feature for pos and neg weights.
     """
-    return max([abs(coef) for key in ['pos', 'neg']
-                for _, coef in weights.get(key, [])] or [0])
+    return max([abs(coef) for lst in [weights.pos, weights.neg]
+                for _, coef in lst or []] or [0])
 
 
 def _remaining_weight_color(ws, weight_range, pos_neg):
@@ -206,8 +206,8 @@ def _format_single_feature(feature, weight):
 
 
 def _format_decision_tree(treedict):
-    if 'graphviz' in treedict and _graphviz.is_supported():
-        return _graphviz.dot2svg(treedict['graphviz'])
+    if treedict.graphviz and _graphviz.is_supported():
+        return _graphviz.dot2svg(treedict.graphviz)
     else:
         return tree2text(treedict)
 

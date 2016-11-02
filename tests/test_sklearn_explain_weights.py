@@ -46,9 +46,9 @@ def check_newsgroups_explanation_linear(clf, vec, target_names):
     res = get_res()
     expl_text, expl_html = format_as_all(res, clf)
 
-    assert [cl['class'] for cl in res['classes']] == target_names
+    assert [cl.target for cl in res.targets] == target_names
 
-    _top = partial(top_pos_neg, res['classes'], 'class')
+    _top = partial(top_pos_neg, res)
     pos, neg = _top('sci.space')
     assert 'space' in pos
 
@@ -140,7 +140,7 @@ def test_explain_linear_hashed_pos_neg(newsgroups_train, pass_feature_weights):
 
     for key in ['pos', 'neg']:
         values, count_values = [
-            sorted(get_names_coefs(r['classes'][0]['feature_weights'][key]))
+            sorted(get_names_coefs(getattr(r.targets[0].feature_weights, key)))
             for r in [res, count_res]]
         assert len(values) == len(count_values)
         for (name, coef), (count_name, count_coef) in zip(values, count_values):
@@ -148,13 +148,12 @@ def test_explain_linear_hashed_pos_neg(newsgroups_train, pass_feature_weights):
             assert abs(coef - count_coef) < 0.05
 
 
-def top_pos_neg(classes, key, class_name):
-    for expl in classes:
-        if expl[key] != class_name:
-            continue
-        pos = get_all_features(expl['feature_weights']['pos'])
-        neg = get_all_features(expl['feature_weights']['neg'])
-        return pos, neg
+def top_pos_neg(expl, target_name):
+    for target in expl.targets:
+        if target.target == target_name:
+            pos = get_all_features(target.feature_weights.pos)
+            neg = get_all_features(target.feature_weights.neg)
+            return pos, neg
 
 
 def test_explain_linear_tuple_top(newsgroups_train):
@@ -168,18 +167,18 @@ def test_explain_linear_tuple_top(newsgroups_train):
     res_neg = explain_weights(clf, vec=vec, target_names=target_names, top=(0, 10))
     expl_neg, _ = format_as_all(res_neg, clf)
 
-    for cl in res_neg['classes']:
-        assert len(cl['feature_weights']['pos']) == 0
-        assert len(cl['feature_weights']['neg']) == 10
+    for target in res_neg.targets:
+        assert len(target.feature_weights.pos) == 0
+        assert len(target.feature_weights.neg) == 10
 
     assert "+0." not in expl_neg
 
     res_pos = explain_weights(clf, vec=vec, target_names=target_names, top=(10, 2))
     format_as_all(res_pos, clf)
 
-    for cl in res_pos['classes']:
-        assert len(cl['feature_weights']['pos']) == 10
-        assert len(cl['feature_weights']['neg']) == 2
+    for target in res_pos.targets:
+        assert len(target.feature_weights.pos) == 10
+        assert len(target.feature_weights.neg) == 2
 
 
 @pytest.mark.parametrize(['clf'], [
@@ -223,14 +222,14 @@ def test_explain_empty(newsgroups_train):
     res = explain_weights(clf, vec=vec, target_names=target_names, top=20)
     format_as_all(res, clf)
 
-    assert [cl['class'] for cl in res['classes']] == target_names
+    assert [t.target for t in res.targets] == target_names
 
 
 def test_unsupported():
     vec = CountVectorizer()
     clf = BaseEstimator()
     res = explain_weights(clf, vec=vec)
-    assert 'Error' in res['description']
+    assert 'Error' in res.description
 
 
 @pytest.mark.parametrize(['clf'], [
@@ -256,7 +255,7 @@ def test_explain_linear_regression(boston_train, clf):
     assert '<BIAS>' in expl_text
     assert '&lt;BIAS&gt;' in expl_html
 
-    pos, neg = top_pos_neg(res['targets'], 'target', 'y')
+    pos, neg = top_pos_neg(res, 'y')
     assert 'x12' in pos or 'x12' in neg
     assert 'x9' in neg or 'x9' in pos
     assert '<BIAS>' in neg or '<BIAS>' in pos
@@ -281,7 +280,7 @@ def test_explain_linear_regression_multitarget(clf):
     assert 'x9' in expl
     assert '<BIAS>' in expl
 
-    pos, neg = top_pos_neg(res['targets'], 'target', 'y2')
+    pos, neg = top_pos_neg(res, 'y2')
     assert 'x9' in neg or 'x9' in pos
     assert '<BIAS>' in neg or '<BIAS>' in pos
 
