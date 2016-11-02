@@ -46,8 +46,7 @@ def test_formatter_order(boston_train):
     res = explain_prediction_sklearn(reg, X[0], top=(3, 3))
     expl_text, expl_html = format_as_all(res, reg)
     neg_weights = get_all_features(
-        res['targets'][0]['feature_weights']['neg'],
-        with_weights=True)
+        res.targets[0].feature_weights.neg, with_weights=True)
     assert neg_weights['x10'] < neg_weights['x12']
     for expl in [expl_text, expl_html]:
         assert expl.find('x10') > expl.find('x12')

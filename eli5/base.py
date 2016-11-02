@@ -14,7 +14,6 @@ class Explanation(object):
     decision_tree = attr.ib(default=None)
 
 
-# TODO - split into two classes?
 @attr.s
 class TargetExplanation(object):
     target = attr.ib()
@@ -28,8 +27,8 @@ class TargetExplanation(object):
 class FeatureWeights(object):
     pos = attr.ib()
     neg = attr.ib()
-    pos_remaining = attr.ib()
-    neg_remaining = attr.ib()
+    pos_remaining = attr.ib(default=0)
+    neg_remaining = attr.ib(default=0)
 
 
 @attr.s
@@ -37,4 +36,4 @@ class WeightedSpans(object):
     analyzer = attr.ib()
     document = attr.ib()
     weighted_spans = attr.ib()
-    other = attr.ib()
+    other = attr.ib(default=None)

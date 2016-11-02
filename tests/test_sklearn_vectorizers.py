@@ -2,6 +2,7 @@
 from __future__ import absolute_import
 from pprint import pprint
 
+import attr
 import pytest
 
 from eli5.sklearn import InvertableHashingVectorizer
@@ -17,10 +18,10 @@ from .utils import format_as_all, get_all_features, get_names_coefs
 
 def check_explain_linear_binary(res, clf):
     expl_text, expl_html = format_as_all(res, clf)
-    assert len(res['classes']) == 1
-    e = res['classes'][0]
-    assert e['class'] == 'comp.graphics'
-    neg = get_all_features(e['feature_weights']['neg'])
+    assert len(res.targets) == 1
+    e = res.targets[0]
+    assert e.target == 'comp.graphics'
+    neg = get_all_features(e.feature_weights.neg)
     assert 'objective' in neg
     for expl in [expl_text, expl_html]:
         assert 'comp.graphics' in expl
@@ -47,7 +48,7 @@ def test_explain_linear_binary(vec, newsgroups_train_binary):
         top=20, vectorized=True)
     if isinstance(vec, HashingVectorizer):
         # InvertableHashingVectorizer must be passed with vectorized=True
-        neg_weights = res_vectorized['classes'][0]['feature_weights']['neg']
+        neg_weights = res_vectorized.targets[0].feature_weights.neg
         neg_vectorized = get_all_features(neg_weights)
         assert all(name.startswith('x') for name in neg_vectorized)
     else:
@@ -80,10 +81,8 @@ def test_explain_hashing_vectorizer(newsgroups_train_binary):
 
 
 def _without_weighted_spans(res):
-    res = dict(res)
-    res['classes'] = [{k: v for k, v in d.items() if k != 'weighted_spans'}
-                       for d in res['classes']]
-    return res
+    return attr.assoc(res, targets=[
+        attr.assoc(target, weighted_spans=None) for target in res.targets])
 
 
 def test_explain_linear_dense():
@@ -112,7 +111,7 @@ def test_unsupported():
     vec = CountVectorizer()
     clf = BaseEstimator()
     res = explain_prediction(clf, 'hello, world', vec=vec)
-    assert 'Error' in res['description']
+    assert 'Error' in res.description
 
 
 def test_explain_regression_hashing_vectorizer(newsgroups_train_binary):
@@ -127,10 +126,10 @@ def test_explain_regression_hashing_vectorizer(newsgroups_train_binary):
     res = explain_prediction(
         clf, docs[0], vec=vec, target_names=[target_names[1]], top=1000)
     expl, _ = format_as_all(res, clf)
-    assert len(res['targets']) == 1
-    e = res['targets'][0]
-    assert e['target'] == 'comp.graphics'
-    neg = get_all_features(e['feature_weights']['neg'])
+    assert len(res.targets) == 1
+    e = res.targets[0]
+    assert e.target == 'comp.graphics'
+    neg = get_all_features(e.feature_weights.neg)
     assert 'objective' in neg
     assert 'that' in neg
     assert 'comp.graphics' in expl
@@ -151,7 +150,7 @@ def test_explain_regression_hashing_vectorizer(newsgroups_train_binary):
 
     for key in ['pos', 'neg']:
         values, count_values = [
-            sorted(get_names_coefs(r['targets'][0]['feature_weights'][key]))
+            sorted(get_names_coefs(getattr(r.targets[0].feature_weights, key)))
             for r in [res, count_res]]
         assert len(values) == len(count_values)
         for (name, coef), (count_name, count_coef) in zip(values, count_values):
