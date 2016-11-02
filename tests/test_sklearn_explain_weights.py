@@ -56,7 +56,7 @@ def check_newsgroups_explanation_linear(clf, vec, target_names):
     assert 'atheists' in pos
 
     pos, neg = _top('talk.religion.misc')
-    assert 'jesus' in pos
+    assert 'jesus' in pos or 'christians' in pos
 
     for expl in [expl_text, expl_html]:
         assert 'space' in expl
@@ -68,15 +68,15 @@ def check_newsgroups_explanation_linear(clf, vec, target_names):
 
 
 @pytest.mark.parametrize(['clf'], [
-    [LogisticRegression()],
-    [LogisticRegression(multi_class='multinomial', solver='lbfgs')],
-    [LogisticRegression(fit_intercept=False)],
-    [LogisticRegressionCV()],
+    [LogisticRegression(random_state=42)],
+    [LogisticRegression(random_state=42, multi_class='multinomial', solver='lbfgs')],
+    [LogisticRegression(random_state=42, fit_intercept=False)],
+    [LogisticRegressionCV(random_state=42)],
     [SGDClassifier(random_state=42)],
-    [SGDClassifier(loss='log', random_state=42)],
-    [PassiveAggressiveClassifier()],
-    [Perceptron()],
-    [LinearSVC()],
+    [SGDClassifier(random_state=42, loss='log')],
+    [PassiveAggressiveClassifier(random_state=42)],
+    [Perceptron(random_state=42)],
+    [LinearSVC(random_state=42)],
 ])
 def test_explain_linear(newsgroups_train, clf):
     docs, y, target_names = newsgroups_train
@@ -89,10 +89,10 @@ def test_explain_linear(newsgroups_train, clf):
 
 
 @pytest.mark.parametrize(['clf'], [
-    [LogisticRegression()],
-    [LogisticRegression(fit_intercept=False)],
+    [LogisticRegression(random_state=42)],
+    [LogisticRegression(random_state=42, fit_intercept=False)],
     [SGDClassifier(random_state=42)],
-    [LinearSVC()],
+    [LinearSVC(random_state=42)],
 ])
 def test_explain_linear_hashed(newsgroups_train, clf):
     docs, y, target_names = newsgroups_train
@@ -160,7 +160,7 @@ def top_pos_neg(classes, key, class_name):
 def test_explain_linear_tuple_top(newsgroups_train):
     docs, y, target_names = newsgroups_train
     vec = TfidfVectorizer()
-    clf = LogisticRegression()
+    clf = LogisticRegression(random_state=42)
 
     X = vec.fit_transform(docs)
     clf.fit(X, y)
@@ -213,7 +213,7 @@ def test_explain_random_forest(newsgroups_train, clf):
 
 
 def test_explain_empty(newsgroups_train):
-    clf = LogisticRegression(C=0.01, penalty='l1')
+    clf = LogisticRegression(C=0.01, penalty='l1', random_state=42)
     docs, y, target_names = newsgroups_train
     vec = TfidfVectorizer()
 
@@ -242,7 +242,7 @@ def test_unsupported():
     [RidgeCV()],
     [SGDRegressor(random_state=42)],
     [LinearRegression()],
-    [LinearSVR()],
+    [LinearSVR(random_state=42)],
 ])
 def test_explain_linear_regression(boston_train, clf):
     X, y, feature_names = boston_train
