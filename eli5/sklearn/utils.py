@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import numpy as np
+from sklearn.multiclass import OneVsRestClassifier
 
 
 def is_multiclass_classifier(clf):
@@ -19,7 +20,13 @@ def is_multitarget_regressor(clf):
 
 def is_probabilistic_classifier(clf):
     """ Return True if a classifier can return probabilities """
-    return hasattr(clf, 'predict_proba')
+    if not hasattr(clf, 'predict_proba'):
+        return False
+    if isinstance(clf, OneVsRestClassifier):
+        # It currently has a predict_proba method, but does not check if
+        # wrapped estimator has a predict_proba method.
+        return hasattr(clf.estimator, 'predict_proba')
+    return True
 
 
 def has_intercept(estimator):
