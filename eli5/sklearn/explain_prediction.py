@@ -48,10 +48,10 @@ _TOP = 20
 def explain_prediction_sklearn(estimator, doc, vec=None, top=_TOP, target_names=None,
                                feature_names=None, vectorized=False):
     """ Return an explanation of a scikit-learn estimator """
-    return {
-        "estimator": repr(estimator),
-        "description": "Error: estimator %r is not supported" % estimator,
-    }
+    return Explanation(
+        estimator=repr(estimator),
+        description="Error: estimator %r is not supported" % estimator,
+    )
 
 
 @explain_prediction.register(OneVsRestClassifier)
