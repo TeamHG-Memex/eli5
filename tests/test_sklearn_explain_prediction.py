@@ -132,7 +132,7 @@ def test_explain_linear(newsgroups_train, clf):
     [Lars()],
     [Lasso(random_state=42)],
     [LinearRegression()],
-    [LinearSVR()],
+    [LinearSVR(random_state=42)],
     [Ridge(random_state=42)],
     [RidgeCV()],
     [SGDRegressor(random_state=42)],

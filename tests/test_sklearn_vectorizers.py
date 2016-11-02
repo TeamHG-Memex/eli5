@@ -87,7 +87,7 @@ def _without_weighted_spans(res):
 
 
 def test_explain_linear_dense():
-    clf = LogisticRegression()
+    clf = LogisticRegression(random_state=42)
     data = [{'day': 'mon', 'moon': 'full'},
             {'day': 'tue', 'moon': 'rising'},
             {'day': 'tue', 'moon': 'rising'},
