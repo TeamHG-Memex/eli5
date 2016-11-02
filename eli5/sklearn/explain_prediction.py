@@ -35,7 +35,7 @@ from eli5.sklearn.utils import (
     rename_label,
 )
 from eli5.sklearn.text import get_weighted_spans
-from eli5._feature_weights import get_top_features_dict
+from eli5._feature_weights import get_top_features
 from eli5.explain import explain_prediction
 
 
@@ -104,7 +104,7 @@ def explain_prediction_linear_classifier(
     def _weights(label_id):
         coef = get_coef(clf, label_id)
         scores = _multiply(x, coef)
-        return get_top_features_dict(feature_names, scores, top)
+        return get_top_features(feature_names, scores, top)
 
     def _label(label_id, label):
         return rename_label(label_id, label, target_names)
@@ -209,7 +209,7 @@ def explain_prediction_linear_regressor(
     def _weights(label_id):
         coef = get_coef(reg, label_id)
         scores = _multiply(x, coef)
-        return get_top_features_dict(feature_names, scores, top)
+        return get_top_features(feature_names, scores, top)
 
     def _label(label_id, label):
         return rename_label(label_id, label, target_names)
