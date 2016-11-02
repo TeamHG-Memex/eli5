@@ -70,9 +70,9 @@ def render_weighted_spans(weighted_spans_data, preserve_density=None):
     and not preserved for "word" analyzers.
     """
     if preserve_density is None:
-        preserve_density = weighted_spans_data['analyzer'].startswith('char')
-    doc = weighted_spans_data['document']
-    weighted_spans = weighted_spans_data['weighted_spans']
+        preserve_density = weighted_spans_data.analyzer.startswith('char')
+    doc = weighted_spans_data.document
+    weighted_spans = weighted_spans_data.weighted_spans
     char_weights = np.zeros(len(doc))
     feature_counts = Counter(f for f, _, _ in weighted_spans)
     for feature, spans, weight in weighted_spans:
