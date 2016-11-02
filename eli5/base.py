@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
-import attr
 from typing import Dict, List, Tuple, Union
+
+import attr
 
 
 @attr.s
