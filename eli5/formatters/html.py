@@ -50,7 +50,7 @@ def format_as_html(explanation, include_styles=True, force_weights=True,
         tdm_styles='padding: 0 0.5em 0 0.5em; text-align: center; border: none;',
         td2_styles='padding: 0 0.5em 0 0.5em; text-align: left; border: none;',
         show=show,
-        **explanation)
+        expl=explanation)
 
 
 def format_html_styles():
@@ -140,8 +140,8 @@ def _hue(weight):
 def _weight_range(weights):
     """ Max absolute feature for pos and neg weights.
     """
-    return max([abs(coef) for key in ['pos', 'neg']
-                for _, coef in weights.get(key, [])] or [0])
+    return max([abs(coef) for lst in [weights.pos, weights.neg]
+                for _, coef in lst or []] or [0])
 
 
 def _remaining_weight_color(ws, weight_range, pos_neg):

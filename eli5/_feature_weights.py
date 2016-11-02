@@ -2,10 +2,11 @@
 from __future__ import absolute_import
 import numpy as np
 
+from eli5.base import FeatureWeights
 from .utils import argsort_k_largest, argsort_k_smallest, mask
 
 
-def get_top_features(feature_names, coef, top):
+def _get_top_features(feature_names, coef, top):
     """
     Return a ``(pos, neg)`` tuple. ``pos`` and ``neg`` are lists of
     ``(name, value)`` tuples for features with positive and negative
@@ -31,20 +32,20 @@ def get_top_features(feature_names, coef, top):
     return pos, neg
 
 
-def get_top_features_dict(feature_names, coef, top):
-    pos, neg = get_top_features(feature_names, coef, top)
+def get_top_features(feature_names, coef, top):
+    pos, neg = _get_top_features(feature_names, coef, top)
     pos_coef = coef > 0
     neg_coef = coef < 0
     # pos_sum = sum(w for name, w in pos or [['', 0]])
     # neg_sum = sum(w for name, w in neg or [['', 0]])
-    return {
-        'pos': pos,
-        'neg': neg,
-        'pos_remaining': pos_coef.sum() - len(pos),
-        'neg_remaining': neg_coef.sum() - len(neg),
-        # 'pos_remaining_sum': coef[pos_coef].sum() - pos_sum,
-        # 'neg_remaining_sum': coef[neg_coef].sum() - neg_sum,
-    }
+    return FeatureWeights(
+         pos=pos,
+         neg=neg,
+         pos_remaining=pos_coef.sum() - len(pos),
+         neg_remaining=neg_coef.sum() - len(neg),
+         # pos_remaining_sum=coef[pos_coef].sum() - pos_sum,
+         # neg_remaining_sum=coef[neg_coef].sum() - neg_sum,
+    )
 
 
 def _get_top_abs_features(feature_names, coef, k):

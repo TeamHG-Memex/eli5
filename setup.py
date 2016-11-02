@@ -23,6 +23,7 @@ setup(
     include_package_data=True,
     packages=find_packages(exclude=['tests']),
     install_requires=[
+        'attrs',
         'jinja2',
         'numpy >= 1.9.0',
         'scipy',

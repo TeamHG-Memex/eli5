@@ -1,39 +1,39 @@
-{% for expl in explanations %}
+{% for target in expl.targets %}
 
     <p>
         <b>
-            {% if expl.class is defined %}
-                y={{ expl.class }}
-            {% elif expl.target is defined %}
-                {{ expl.target }}
+            {% if expl.is_regression -%}
+                {{ target.target }}
+            {% else %}
+                y={{ target.target }}
             {% endif %}
         </b>
-        {% if expl.proba is defined or expl.score is defined %}
+        {% if target.proba is not none or target.score is not none %}
             {% set comma = joiner(", ") %}
             (
-            {%- if expl.proba is defined -%}
-                {{ comma() }}probability <b>{{ "%0.3f"|format(expl.proba) }}</b>
+            {%- if target.proba is not none -%}
+                {{ comma() }}probability <b>{{ "%0.3f"|format(target.proba) }}</b>
             {%- endif -%}
-            {%- if expl.score is defined -%}
-                {{ comma() }}score <b>{{ "%0.3f"|format(expl.score) }}</b>
+            {%- if target.score is not none -%}
+                {{ comma() }}score <b>{{ "%0.3f"|format(target.score) }}</b>
             {%- endif -%}
             )
         {% endif %}
         top features
     </p>
 
-    {% if force_weights or not expl.weighted_spans is defined %}
-        {% with wts = expl.feature_weights %}
+    {% if force_weights or not target.weighted_spans %}
+        {% with wts = target.feature_weights %}
             {% include "weights_table.html" with context %}
         {% endwith %}
     {% endif %}
 
-    {% if expl.weighted_spans %}
-        {% with wts = expl.weighted_spans.other %}
+    {% if target.weighted_spans %}
+        {% with wts = target.weighted_spans.other %}
             {% include "weights_table.html" with context %}
         {% endwith %}
         <p>
-            {{ expl.weighted_spans|render_weighted_spans(preserve_density) }}
+            {{ target.weighted_spans|render_weighted_spans(preserve_density) }}
         </p>
     {% endif %}
 

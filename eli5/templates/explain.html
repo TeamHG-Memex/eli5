@@ -3,28 +3,20 @@
 {% endif %}
 
 {% for key in show %}
-    {% if key == "method" and method %}
-        <p>Explained as: {{ method }}</p>
+    {% if key == "method" and expl.method %}
+        <p>Explained as: {{ expl.method }}</p>
     {% endif %}
 
-    {% if key == "description" and description %}
+    {% if key == "description" and expl.description %}
         {# TODO - have a structured prepresentation and convert it to html and text #}
-        <pre>{{ description }}</pre>
+        <pre>{{ expl.description }}</pre>
     {% endif %}
 
-    {% if key == "classes" and classes %}
-        {% with explanations = classes %}
+    {% if key == "targets" and expl.targets %}
         {% include "weights.html" with context %}
-        {% endwith %}
     {% endif %}
 
-    {% if key == "targets" and targets %}
-        {% with explanations = targets %}
-            {% include "weights.html" with context %}
-        {% endwith %}
-    {% endif %}
-
-    {% if key == "feature_importances" and feature_importances %}
+    {% if key == "feature_importances" and expl.feature_importances %}
         <table class="eli5-weights" style="{{ table_styles }}">
             <thead>
             <tr style="{{ tr_styles }}">
@@ -33,8 +25,8 @@
             </tr>
             </thead>
             <tbody>
-            {% with weight_range = feature_importances|fi_weight_range %}
-                {% for name, w, std in feature_importances %}
+            {% with weight_range = expl.feature_importances|fi_weight_range %}
+                {% for name, w, std in expl.feature_importances %}
                     <tr style="background-color: {{ w|weight_color(weight_range) }}; {{ tr_styles }}">
                         <td style="{{ td1_styles }}">
                             {{ "%0.4f"|format(w) }} &plusmn; {{ "%0.4f"|format(2 * std) }}
@@ -49,10 +41,10 @@
         </table>
     {% endif %}
 
-    {% if key == "decision_tree" and decision_tree %}
+    {% if key == "decision_tree" and expl.decision_tree %}
         {# TODO - render a nice widget #}
         <br>
-        <pre>{{ decision_tree|format_decision_tree }}</pre>
+        <pre>{{ expl.decision_tree|format_decision_tree }}</pre>
     {% endif %}
 
 
