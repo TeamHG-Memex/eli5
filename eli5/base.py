@@ -14,6 +14,10 @@ class Explanation(object):
     feature_importances = attr.ib(default=None)  # type: FeatureWeights
     decision_tree = attr.ib(default=None)  # type: TreeInfo
 
+    def _repr_html_(self):
+        from eli5.formatters import format_as_html, fields
+        return format_as_html(self, force_weights=False, show=fields.WEIGHTS)
+
 
 @attr.s
 class TargetExplanation(object):
