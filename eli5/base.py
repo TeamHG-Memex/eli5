@@ -14,8 +14,8 @@ class Explanation(object):
     decision_tree = attr.ib(default=None)
 
     def _repr_html_(self):
-        from eli5.formatters import format_as_html
-        return format_as_html(self, force_weights=False)
+        from eli5.formatters import format_as_html, fields
+        return format_as_html(self, force_weights=False, show=fields.WEIGHTS)
 
 
 @attr.s
