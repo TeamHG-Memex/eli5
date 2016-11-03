@@ -4,10 +4,9 @@ Utilities to reverse transformation done by FeatureHasher or HashingVectorizer.
 """
 from __future__ import absolute_import
 
-from functools import partial
 from collections import defaultdict, Counter
 from itertools import chain
-from typing import List, Iterable
+from typing import List, Iterable, Any
 
 import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
@@ -40,7 +39,7 @@ class InvertableHashingVectorizer(BaseEstimator, TransformerMixin):
     """
     def __init__(self, vec,
                  unkn_template="FEATURE[%d]"):
-        # type: (HashingVectorizer, str, bool) -> None
+        # type: (HashingVectorizer, str) -> None
         self.vec = vec
         self.unkn_template = unkn_template
         self.unhasher = FeatureUnhasher(
@@ -102,7 +101,7 @@ class FeatureUnhasher(BaseEstimator):
     Class for recovering a mapping used by FeatureHasher.
     """
     def __init__(self, hasher, unkn_template="FEATURE[%d]"):
-        # type: (FeatureHasher) -> None
+        # type: (FeatureHasher, str) -> None
         if hasher.input_type != 'string':
             raise ValueError("FeatureUnhasher only supports hashers with "
                              "input_type 'string', got %r." % hasher.input_type)
@@ -110,17 +109,17 @@ class FeatureUnhasher(BaseEstimator):
         self.n_features = self.hasher.n_features
         self.unkn_template = unkn_template
         self._attributes_dirty = True
-        self._term_counts = Counter()
+        self._term_counts = Counter()  # type: Counter
 
     def fit(self, X, y=None):
-        # type: (Iterable[str], None) -> FeatureUnhasher
+        # type: (Iterable[str], Any) -> FeatureUnhasher
         self._term_counts.clear()
         self.partial_fit(X, y)
         self.recalculate_attributes(force=True)
         return self
 
     def partial_fit(self, X, y=None):
-        # type: (Iterable[str], None) -> FeatureUnhasher
+        # type: (Iterable[str], Any) -> FeatureUnhasher
         self._term_counts.update(X)
         self._attributes_dirty = True
         return self
