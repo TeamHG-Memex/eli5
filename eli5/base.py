@@ -46,7 +46,7 @@ Feature = Union[str, Dict]  # Dict is currently used for unhashed features
 class FeatureWeights(object):
     """ Weights for top features, :pos: for positive and :neg: for negative,
     sorted by descending absolute value.
-    Number of remaining positive and negative features are store in
+    Number of remaining positive and negative features are stored in
     :pos_remaining: and :neg_remaining: attributes.
     """
     pos = attr.ib()  # type: List[Tuple[Feature, float]]
@@ -67,8 +67,8 @@ class WeightedSpans(object):
     """ Features highlighted in text. :analyzer: is a type of the analyzer
     (for example "char" or "word"), and :document: is a pre-processed document
     before applying the analyzed. :weighted_spans: holds a list of spans
-    (see above) for features found in text (span indices correspond to :document:),
-    and :other: holds weights for features not highlighted in text.
+    (see above) for features found in text (span indices correspond to
+    :document:), and :other: holds weights for features not highlighted in text.
     """
     analyzer = attr.ib()  # type: str
     document = attr.ib()  # type: str
@@ -78,9 +78,9 @@ class WeightedSpans(object):
 
 @attr.s
 class TreeInfo(object):
-    """ Information about the decision tree. :criterion: is the name of the function
-    to measure the quality of a split, :tree: holds all nodes of the tree, and
-    :graphviz: is the tree rendered in graphviz .dot format.
+    """ Information about the decision tree. :criterion: is the name of
+    the function to measure the quality of a split, :tree: holds all nodes
+    of the tree, and :graphviz: is the tree rendered in graphviz .dot format.
     """
     criterion = attr.ib()  # type: str
     tree = attr.ib()  # type: NodeInfo
