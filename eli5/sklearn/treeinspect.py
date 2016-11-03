@@ -30,15 +30,8 @@ def get_tree_info(decision_tree, feature_names=None, **export_graphviz_kwargs):
 
 
 def tree2dot(decision_tree, **export_graphviz_kwargs):
-    # use temp files to support scikit-learn < 0.18
-    path = mkdtemp()
-    try:
-        tmpfile = os.path.join(path, 'tree.dot')
-        export_graphviz(decision_tree, tmpfile, **export_graphviz_kwargs)
-        with open(tmpfile, 'rb') as f:
-            return f.read().decode('utf8')
-    finally:
-        shutil.rmtree(path)
+    return export_graphviz(decision_tree, out_file=None,
+                           **export_graphviz_kwargs)
 
 
 def _get_root_node_info(decision_tree, feature_names=None):

@@ -10,10 +10,7 @@ from eli5.lime.utils import rbf
 from sklearn.base import BaseEstimator, clone
 from sklearn.neighbors import KernelDensity
 from sklearn.metrics import pairwise_distances
-try:
-    from sklearn.model_selection import GridSearchCV, KFold
-except ImportError:  # scikit-learn < 0.18
-    from sklearn.cross_validation import GridSearchCV, KFold
+from sklearn.model_selection import GridSearchCV, KFold
 
 from .textutils import generate_samples, DEFAULT_TOKEN_PATTERN
 
