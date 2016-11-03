@@ -17,7 +17,11 @@ class Explanation(object):
 
     def _repr_html_(self):
         from eli5.formatters import format_as_html, fields
-        return format_as_html(self, force_weights=False, show=fields.WEIGHTS)
+        if self.targets or self.feature_importances or self.decision_tree:
+            show = fields.WEIGHTS
+        else:
+            show = fields.ALL
+        return format_as_html(self, force_weights=False, show=show)
 
 
 @attr.s
