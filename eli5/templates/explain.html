@@ -47,5 +47,10 @@
         <pre>{{ expl.decision_tree|format_decision_tree }}</pre>
     {% endif %}
 
-
 {% endfor %}
+
+{% if expl.error %}
+    <div style="background-color: #fdd; padding: 0.5em;">
+        Error: {{ expl.error }}
+    </div>
+{% endif %}

@@ -9,6 +9,7 @@ import attr
 class Explanation(object):
     estimator = attr.ib()  # type: str
     description = attr.ib(default=None)  # type: str
+    error = attr.ib(default=None)  # type: str
     method = attr.ib(default=None)  # type: str
     targets = attr.ib(default=None)  # type: List[TargetExplanation]
     is_regression = attr.ib(default=False)  # type: bool
