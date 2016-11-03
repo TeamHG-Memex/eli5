@@ -57,10 +57,7 @@ import numpy as np
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import make_pipeline
-try:
-    from sklearn.model_selection import train_test_split
-except ImportError:  # sklearn < 0.18
-    from sklearn.cross_validation import train_test_split
+from sklearn.model_selection import train_test_split
 
 from eli5.lime import textutils
 from eli5.lime.samplers import MaskingTextSampler
