@@ -2,6 +2,7 @@
 
 from sklearn.linear_model import LinearRegression
 from sklearn.tree import DecisionTreeRegressor
+from sklearn.base import BaseEstimator
 
 from eli5.sklearn import explain_weights_sklearn
 
@@ -16,12 +17,8 @@ def test_repr_html(boston_train):
     assert 'BIAS' in html
 
 
-class MyNotSupportedRegressor(object):
-    pass
-
-
 def test_repr_html_error():
-    reg = MyNotSupportedRegressor()
+    reg = BaseEstimator()
     res = explain_weights_sklearn(reg)
     html = res._repr_html_()
-    assert 'MyNotSupportedRegressor' in html
+    assert 'BaseEstimator' in html

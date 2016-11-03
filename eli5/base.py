@@ -9,6 +9,7 @@ import attr
 class Explanation(object):
     estimator = attr.ib()  # type: str
     description = attr.ib(default=None)  # type: str
+    error = attr.ib(default=None)  # type: str
     method = attr.ib(default=None)  # type: str
     targets = attr.ib(default=None)  # type: List[TargetExplanation]
     is_regression = attr.ib(default=False)  # type: bool
@@ -17,11 +18,7 @@ class Explanation(object):
 
     def _repr_html_(self):
         from eli5.formatters import format_as_html, fields
-        if self.targets or self.feature_importances or self.decision_tree:
-            show = fields.WEIGHTS
-        else:
-            show = fields.ALL
-        return format_as_html(self, force_weights=False, show=show)
+        return format_as_html(self, force_weights=False, show=fields.WEIGHTS)
 
 
 @attr.s

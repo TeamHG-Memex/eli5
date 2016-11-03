@@ -111,7 +111,10 @@ def test_unsupported():
     vec = CountVectorizer()
     clf = BaseEstimator()
     res = explain_prediction(clf, 'hello, world', vec=vec)
-    assert 'Error' in res.description
+    assert 'BaseEstimator' in res.error
+    for expl in format_as_all(res, clf):
+        assert 'Error' in expl
+        assert 'BaseEstimator' in expl
 
 
 def test_explain_regression_hashing_vectorizer(newsgroups_train_binary):

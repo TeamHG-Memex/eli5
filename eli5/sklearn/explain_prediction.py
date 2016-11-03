@@ -50,7 +50,7 @@ def explain_prediction_sklearn(estimator, doc, vec=None, top=_TOP, target_names=
     """ Return an explanation of a scikit-learn estimator """
     return Explanation(
         estimator=repr(estimator),
-        description="Error: estimator %r is not supported" % estimator,
+        error="estimator %r is not supported" % estimator,
     )
 
 

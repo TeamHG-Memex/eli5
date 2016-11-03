@@ -22,6 +22,9 @@ def format_as_text(expl, show=fields.ALL):
     if 'description' in show and expl.description:
         lines.append(expl.description)
 
+    if expl.error:  # always shown
+        lines.append('Error: {}'.format(expl.error))
+
     if 'targets' in show and expl.targets:
         lines.extend(_format_weights(expl))
 

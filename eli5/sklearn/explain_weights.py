@@ -101,7 +101,7 @@ def explain_weights_sklearn(estimator, vec=None, top=_TOP, target_names=None,
     """ Return an explanation of an estimator """
     return Explanation(
         estimator=repr(estimator),
-        description="Error: estimator %r is not supported" % estimator,
+        error="estimator %r is not supported" % estimator,
     )
 
 
