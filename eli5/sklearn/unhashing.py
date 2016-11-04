@@ -6,7 +6,7 @@ from __future__ import absolute_import
 
 from collections import defaultdict, Counter
 from itertools import chain
-from typing import List, Iterable, Any
+from typing import List, Iterable, Any, Dict
 
 import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
@@ -183,7 +183,7 @@ def _get_collisions(indices):
     Return a dict ``{column_id: [possible term ids]}``
     with collision information.
     """
-    collisions = defaultdict(list)
+    collisions = defaultdict(list)  # type: Dict[int, List[int]]
     for term_id, hash_id in enumerate(indices):
         collisions[hash_id].append(term_id)
     return dict(collisions)

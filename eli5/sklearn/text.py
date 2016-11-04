@@ -1,4 +1,5 @@
 import re
+from typing import Set, Tuple
 
 from six.moves import xrange
 from sklearn.feature_extraction.text import VectorizerMixin
@@ -56,7 +57,7 @@ def get_weighted_spans(doc, vec, feature_weights):
 def _get_other(feature_weights, feature_weights_dict, found_features):
     # search for items that were not accounted at all.
     other_items = []
-    accounted_keys = set()
+    accounted_keys = set()  # type: Set[Tuple[str, int]]
     for feature, (_, key) in feature_weights_dict.items():
         if key not in found_features and key not in accounted_keys:
             group, idx = key

@@ -2,7 +2,7 @@
 from __future__ import absolute_import
 import abc
 import six
-from typing import Tuple
+from typing import List, Tuple
 
 import numpy as np
 
@@ -145,8 +145,8 @@ class UnivariateKernelDensitySampler(_BaseKernelDensitySampler):
     of the features instead of generating totally new examples.
     """
     def fit(self, X, y=None):
-        self.kdes_ = []
-        self.grids_ = []
+        self.kdes_ = []  # type: List[KernelDensity]
+        self.grids_ = []  # type: List[GridSearchCV]
         num_features = X.shape[-1]
         for i in range(num_features):
             grid, kde = self._fit_kde(self.kde, X[:, i].reshape(-1, 1))
