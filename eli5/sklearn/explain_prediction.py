@@ -45,8 +45,9 @@ _TOP = 20
 
 @explain_prediction.register(BaseEstimator)
 @singledispatch
-def explain_prediction_sklearn(estimator, doc, vec=None, top=_TOP, target_names=None,
-                               feature_names=None, vectorized=False):
+def explain_prediction_sklearn(estimator, doc, vec=None, top=_TOP,
+                               target_names=None, feature_names=None,
+                               vectorized=False):
     """ Return an explanation of a scikit-learn estimator """
     return Explanation(
         estimator=repr(estimator),
