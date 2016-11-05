@@ -16,36 +16,59 @@ _SPACE = '_' if six.PY2 else '░'
 def format_as_text(expl, show=fields.ALL):
     lines = []
 
-    if 'method' in show and expl.method:
-        lines.append('Explained as: {}'.format(expl.method))
-
-    if 'description' in show and expl.description:
-        lines.append(expl.description)
-
     if expl.error:  # always shown
-        lines.append('Error: {}'.format(expl.error))
+        lines.extend(_error_lines(expl))
 
-    if 'targets' in show and expl.targets:
-        lines.extend(_format_weights(expl))
+    for key in show:
+        if not getattr(expl, key, None):
+            continue
 
-    if 'feature_importances' in show and expl.feature_importances:
-        sz = _maxlen(expl.feature_importances)
-        for name, w, std in expl.feature_importances:
-            lines.append('{w:0.4f} {plus} {std:0.4f} {feature}'.format(
-                feature=name.ljust(sz),
-                w=w,
-                plus=_PLUS_MINUS,
-                std=2*std,
-            ))
+        if key == 'method':
+            lines.extend(_method_lines(expl))
 
-    if 'decision_tree' in show and expl.decision_tree:
-        lines.append("")
-        lines.append(_format_decision_tree(expl.decision_tree))
+        if key == 'description':
+            lines.extend(_description_lines(expl))
+
+        if key == 'targets':
+            lines.extend(_targets_lines(expl))
+
+        if key == 'feature_importances':
+            lines.extend(_feature_importances_lines(expl))
+
+        if key == 'decision_tree':
+            lines.extend(_decision_tree_lines(expl))
 
     return '\n'.join(lines)
 
 
-def _format_weights(explanation):
+def _method_lines(explanation):
+    return ['Explained as: {}'.format(explanation.method)]
+
+
+def _description_lines(explanation):
+    return [explanation.description]
+
+
+def _error_lines(explanation):
+    return ['Error: {}'.format(explanation.error)]
+
+
+def _feature_importances_lines(explanation):
+    sz = _maxlen(explanation.feature_importances)
+    for name, w, std in explanation.feature_importances:
+        yield '{w:0.4f} {plus} {std:0.4f} {feature}'.format(
+            feature=name.ljust(sz),
+            w=w,
+            plus=_PLUS_MINUS,
+            std=2*std,
+        )
+
+
+def _decision_tree_lines(explanation):
+    return ["", tree2text(explanation.decision_tree)]
+
+
+def _targets_lines(explanation):
     lines = []
     sz = _max_feature_size(explanation.targets)
     for target in explanation.targets:
@@ -78,10 +101,6 @@ def _format_scores(proba, score):
     if score is not None:
         scores.append("score=%0.3f" % score)
     return ", ".join(scores)
-
-
-def _format_decision_tree(treedict):
-    return tree2text(treedict)
 
 
 def _maxlen(feature_weights):
