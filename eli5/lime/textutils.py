@@ -4,7 +4,7 @@ Utilities for text generation.
 """
 from __future__ import absolute_import
 import re
-from typing import List, Tuple
+from typing import List, Tuple, Any
 
 import numpy as np
 from sklearn.utils import check_random_state
@@ -15,7 +15,7 @@ DEFAULT_TOKEN_PATTERN = r'(?u)\b\w+\b'
 def generate_samples(text, n_samples=500, bow=True,
                      token_pattern=DEFAULT_TOKEN_PATTERN,
                      random_state=None):
-    # type: (str, int, bool, str) -> Tuple[List[str], np.ndarray]
+    # type: (str, int, bool, str, Any) -> Tuple[List[str], np.ndarray]
     """
     Return ``n_samples`` changed versions of text (with some words removed),
     along with distances between the original text and a generated
