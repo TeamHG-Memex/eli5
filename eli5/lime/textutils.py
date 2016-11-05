@@ -49,7 +49,8 @@ class TokenizedText(object):
     def __init__(self, text, token_pattern=DEFAULT_TOKEN_PATTERN):
         self.text = text
         self.split = SplitResult.fromtext(text, token_pattern)
-        
+        self._vocab = None
+
     def replace_random_tokens(self, n_samples, replacement=''):
         """ 
         Return a list of ``(text, replaced_count)`` tuples with
@@ -77,19 +78,24 @@ class TokenizedText(object):
         If a word is replaced, all duplicate words are also replaced
         from the text. By default words are replaced with '', i.e. removed.
         """
-        vocab = set(self.split.tokens)
-        if not vocab:
+        if not self.vocab:
             return [('', 0)] * n_samples
-        sizes = np.random.randint(low=1, high=len(vocab)+1, size=n_samples)
+        sizes = np.random.randint(low=1, high=len(self.vocab)+1, size=n_samples)
         res = []
         for size in sizes:
-            to_remove = set(random.sample(vocab, size))
+            to_remove = set(random.sample(self.vocab, size))
             parts = [
                 p if p not in to_remove else replacement
                 for p in self.split.parts
             ]
             res.append(("".join(parts), size))
         return res
+
+    @property
+    def vocab(self):
+        if self._vocab is None:
+            self._vocab = list(set(self.split.tokens))
+        return self._vocab
 
 
 class SplitResult(object):
