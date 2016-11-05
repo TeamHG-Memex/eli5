@@ -11,6 +11,7 @@ from sklearn.base import BaseEstimator, clone
 from sklearn.neighbors import KernelDensity
 from sklearn.metrics import pairwise_distances
 from sklearn.model_selection import GridSearchCV, KFold
+from sklearn.utils import check_random_state
 
 from .textutils import generate_samples, DEFAULT_TOKEN_PATTERN
 
@@ -37,15 +38,18 @@ class MaskingTextSampler(BaseSampler):
     """
     Sampler for text data. It randomly removes words from text.
     """
-    def __init__(self, token_pattern=None, bow=True):
+    def __init__(self, token_pattern=None, bow=True, random_state=None):
         self.token_pattern = token_pattern or DEFAULT_TOKEN_PATTERN
         self.bow = bow
+        self.random_state = random_state
+        self.rng_ = check_random_state(self.random_state)
 
     def sample_near(self, doc, n_samples=1):
         docs, similarity = generate_samples(doc,
                                             n_samples=n_samples,
                                             bow=self.bow,
-                                            token_pattern=self.token_pattern)
+                                            token_pattern=self.token_pattern,
+                                            random_state=self.rng_)
         # XXX: should it use RBF kernel as well, instead of raw
         # cosine similarity?
         return list(docs), similarity
@@ -58,7 +62,8 @@ _BANDWIDTHS = np.hstack([
 
 class _BaseKernelDensitySampler(BaseSampler):
     def __init__(self, kde=None, metric='euclidean', fit_bandwidth=True,
-                 bandwidths=_BANDWIDTHS, sigma='bandwidth', n_jobs=1):
+                 bandwidths=_BANDWIDTHS, sigma='bandwidth', n_jobs=1,
+                 random_state=None):
         if kde is None:
             kde = KernelDensity(rtol=1e-7, atol=1e-7)
         self.kde = kde
@@ -72,10 +77,12 @@ class _BaseKernelDensitySampler(BaseSampler):
                 raise ValueError("sigma must be either "
                                  "a number or one of {}".format(allowed))
         self.sigma = sigma
+        self.random_state = random_state
+        self.rng_ = check_random_state(self.random_state)
 
     def _get_grid(self):
         param_grid = {'bandwidth': self.bandwidths}
-        cv = KFold(n_splits=3, shuffle=True)  # shuffle data by default
+        cv = KFold(n_splits=3, shuffle=True, random_state=self.rng_)
         return GridSearchCV(self.kde, param_grid=param_grid, n_jobs=self.n_jobs,
                             cv=cv)
 
@@ -119,7 +126,7 @@ class MultivariateKernelDensitySampler(_BaseKernelDensitySampler):
         # XXX: it doesn't sample only near the given document, it
         # samples everywhere
         doc = np.asarray(doc)
-        samples = self.kde_.sample(n_samples)
+        samples = self.kde_.sample(n_samples, random_state=self.rng_)
         return samples, self._similarity(doc, samples)
 
 
@@ -155,13 +162,14 @@ class UnivariateKernelDensitySampler(_BaseKernelDensitySampler):
         """
         doc = np.asarray(doc)
         num_features = len(self.kdes_)
-        sizes = np.random.randint(low=1, high=num_features + 1, size=n_samples)
+        sizes = self.rng_.randint(low=1, high=num_features + 1, size=n_samples)
         samples = []
         for size in sizes:
-            to_change = np.random.choice(num_features, size, replace=False)
+            to_change = self.rng_.choice(num_features, size, replace=False)
             new_doc = doc.copy()
             for i in to_change:
-                new_doc[i] = self.kdes_[i].sample().ravel()
+                kde = self.kdes_[i]
+                new_doc[i] = kde.sample(random_state=self.rng_).ravel()
             samples.append(new_doc)
         samples = np.asarray(samples)
         return samples, self._similarity(doc, samples)

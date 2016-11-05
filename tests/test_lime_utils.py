@@ -34,7 +34,7 @@ def test_fit_proba():
 
     # fit on probabilities
     clf2 = LogisticRegression(C=10, random_state=42)
-    fit_proba(clf2, X, y_proba, expand_factor=200)
+    fit_proba(clf2, X, y_proba, expand_factor=200, random_state=42)
     y_pred2 = clf2.predict_proba(X)[:,1]
     mae2 = mean_absolute_error(y_proba[:,1], y_pred2)
     print(y_pred2, mae2)
@@ -44,7 +44,8 @@ def test_fit_proba():
     # let's get 3th example really right
     sample_weight = np.array([0.1, 0.1, 0.1, 10.0, 0.1])
     clf3 = LogisticRegression(C=10, random_state=42)
-    fit_proba(clf3, X, y_proba, expand_factor=200, sample_weight=sample_weight)
+    fit_proba(clf3, X, y_proba, expand_factor=200, sample_weight=sample_weight,
+              random_state=42)
     y_pred3 = clf3.predict_proba(X)[:,1]
     print(y_pred3)
 
@@ -54,6 +55,7 @@ def test_fit_proba():
 
     # without expand_factor it is just clf.fit
     clf4 = LogisticRegression(C=10, random_state=42)
-    fit_proba(clf4, X, y_proba, expand_factor=None)
+    fit_proba(clf4, X, y_proba, expand_factor=None,
+              random_state=42)
     y_pred4 = clf4.predict_proba(X)[:,1]
     assert np.allclose(y_pred, y_pred4)

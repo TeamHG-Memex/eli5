@@ -58,6 +58,7 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import make_pipeline
 from sklearn.model_selection import train_test_split
+from sklearn.utils import check_random_state
 
 from eli5.lime import textutils
 from eli5.lime.samplers import MaskingTextSampler
@@ -74,8 +75,10 @@ def _train_local_classifier(estimator,
                             predict_proba,
                             expand_factor=10,
                             test_size=0.3,
+                            random_state=None,
                             ):
-    # type: (Any, Any, np.ndarray, Callable[[Any], np.ndarray], int, float) -> Dict[str, float]
+    # type: (Any, Any, np.ndarray, Callable[[Any], np.ndarray], int, float, Any) -> Dict[str, float]
+    rng = check_random_state(random_state)
     y_proba = predict_proba(samples)
 
     (X_train, X_test,
@@ -83,7 +86,8 @@ def _train_local_classifier(estimator,
      y_proba_train, y_proba_test) = train_test_split(samples,
                                                      similarity,
                                                      y_proba,
-                                                     test_size=test_size)
+                                                     test_size=test_size,
+                                                     random_state=rng)
 
     # XXX: in the original lime code instead of a probabilitsic classifier
     # they build several regression models which try to output probabilities.
@@ -98,7 +102,8 @@ def _train_local_classifier(estimator,
     # be able to configure it).
     fit_proba(estimator, X_train, y_proba_train,
               expand_factor=expand_factor,
-              sample_weight=similarity_train)
+              sample_weight=similarity_train,
+              random_state=rng)
 
     y_proba_test_pred = estimator.predict_proba(X_test)
     return {
@@ -115,7 +120,7 @@ def _train_local_classifier(estimator,
 
 
 def get_local_pipeline_text(text, predict_proba, n_samples=1000,
-                            expand_factor=10):
+                            expand_factor=10, random_state=None):
     """
     Train a classifier which approximates probabilistic text classifier locally.
     Return (clf, vec, metrics) tuple with "easy" classifier, "easy" vectorizer,
@@ -123,14 +128,15 @@ def get_local_pipeline_text(text, predict_proba, n_samples=1000,
     how well these "easy" vectorizer/classifier approximates text
     classifier in neighbourhood of ``text``.
     """
+    rng = check_random_state(random_state)
     vec = CountVectorizer(
         binary=True,
         token_pattern=textutils.DEFAULT_TOKEN_PATTERN,
     )
-    clf = LogisticRegression(C=100)
+    clf = LogisticRegression(C=100, random_state=rng)
     pipe = make_pipeline(vec, clf)
 
-    sampler = MaskingTextSampler(bow=True)
+    sampler = MaskingTextSampler(bow=True, random_state=rng)
     samples, similarity = sampler.sample_near(text, n_samples=n_samples)
 
     metrics = _train_local_classifier(
@@ -139,5 +145,6 @@ def get_local_pipeline_text(text, predict_proba, n_samples=1000,
         similarity=similarity,
         predict_proba=predict_proba,
         expand_factor=expand_factor,
+        random_state=rng,
     )
     return clf, vec, metrics

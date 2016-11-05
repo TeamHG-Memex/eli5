@@ -5,12 +5,13 @@ import numpy as np
 from scipy.stats import entropy
 
 from sklearn.pipeline import Pipeline
+from sklearn.utils import check_random_state
 from sklearn.utils.metaestimators import if_delegate_has_method
 from sklearn.utils import shuffle as _shuffle
 
 
 def fit_proba(clf, X, y_proba, expand_factor=10, sample_weight=None,
-              shuffle=True, **fit_params):
+              shuffle=True, random_state=None, **fit_params):
     """
     Fit classifier ``clf`` to return probabilities close to ``y_proba``.
 
@@ -20,20 +21,28 @@ def fit_proba(clf, X, y_proba, expand_factor=10, sample_weight=None,
     Use expand_factor=None to turn it off
     (e.g. if probability scores are 0/1 in a first place).
     """
+    rng = check_random_state(random_state)
     if expand_factor:
         if sample_weight is not None:
-            X, y, sample_weight = zip(*expand_dataset(X, y_proba, expand_factor,
-                                                      sample_weight))
+            X, y, sample_weight = zip(*expand_dataset(X, y_proba,
+                                                      expand_factor,
+                                                      random_state=rng,
+                                                      extra_arrays=[
+                                                          sample_weight
+                                                      ]))
         else:
-            X, y = zip(*expand_dataset(X, y_proba, expand_factor))
+            X, y = zip(*expand_dataset(X, y_proba,
+                                       random_state=rng,
+                                       extra_arrays=[expand_factor]))
     else:
         y = y_proba.argmax(axis=1)
 
     if shuffle:
         if sample_weight is not None:
-            X, y, sample_weight = _shuffle(X, y, sample_weight)
+            X, y, sample_weight = _shuffle(X, y, sample_weight,
+                                           random_state=rng)
         else:
-            X, y = _shuffle(X, y)
+            X, y = _shuffle(X, y, random_state=rng)
 
     param_name = _get_classifier_prefix(clf) + "sample_weight"
     fit_params.setdefault(param_name, sample_weight)
@@ -64,18 +73,20 @@ def score_with_sample_weight(estimator, X, y=None, sample_weight=None):
     return estimator.score(X, y, sample_weight=sample_weight)
 
 
-def expand_dataset(X, y_proba, factor=10, *arrays):
+def expand_dataset(X, y_proba, factor=10, random_state=None, extra_arrays=None):
     """
     Convert a dataset with float multiclass probabilities to a dataset
     with indicator probabilities by duplicating X rows and sampling
     true labels.
     """
+    rng = check_random_state(random_state)
+    extra_arrays = extra_arrays or []
     n_classes = y_proba.shape[1]
     classes = np.arange(n_classes, dtype=int)
-    for el in zip(X, y_proba, *arrays):
+    for el in zip(X, y_proba, *extra_arrays):
         x, probs = el[0:2]
         rest = el[2:]
-        for label in np.random.choice(classes, size=factor, p=probs):
+        for label in rng.choice(classes, size=factor, p=probs):
             yield (x, label) + rest
 
 

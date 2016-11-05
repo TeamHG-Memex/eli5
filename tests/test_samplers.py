@@ -134,3 +134,40 @@ def test_fit_bandwidth():
     s.fit([[0, 1], [1, 1], [0, 2]])
     assert s.kde_.bandwidth == kde.bandwidth
     assert s.kde_.leaf_size == kde.leaf_size
+
+
+@pytest.mark.parametrize(['sampler_cls', 'doc'], [
+    [MultivariateKernelDensitySampler, [0, 1]],
+    [UnivariateKernelDensitySampler, [0, 1]],
+    [MaskingTextSampler, 'foo bar baz egg spam']
+])
+def test_random_state(sampler_cls, doc):
+
+    def _create_sampler(*args, **kwargs):
+        X = np.array([[0, 1], [1, 1], [0, 2], [1, 3], [1, 4]])
+        s = sampler_cls(*args, **kwargs)
+        if hasattr(s, 'fit'):
+            s.fit(X)
+        return s
+
+    def _sample(sampler):
+        samples0, sim0 = sampler.sample_near(doc, n_samples=1)
+        samples1, sim1 = sampler.sample_near(doc, n_samples=1)
+        samples, sim = sampler.sample_near(doc, n_samples=1000)
+        # random state should change between calls
+        assert not np.array_equal(samples0, samples1)
+        return samples
+
+    s1 = _create_sampler(random_state=42)
+    s2 = _create_sampler(random_state=42)
+    s3 = _create_sampler(random_state=24)
+
+    samples1 = _sample(s1)
+    samples2 = _sample(s2)
+    samples3 = _sample(s3)
+
+    # samples must be the same for all instances with the same random state
+    assert np.array_equal(samples1, samples2)
+
+    # if random state changes, samples should change
+    assert not np.array_equal(samples1, samples3)
