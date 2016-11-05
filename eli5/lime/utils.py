@@ -25,15 +25,15 @@ def fit_proba(clf, X, y_proba, expand_factor=10, sample_weight=None,
     if expand_factor:
         if sample_weight is not None:
             X, y, sample_weight = zip(*expand_dataset(X, y_proba,
-                                                      expand_factor,
+                                                      factor=expand_factor,
                                                       random_state=rng,
                                                       extra_arrays=[
                                                           sample_weight
                                                       ]))
         else:
             X, y = zip(*expand_dataset(X, y_proba,
-                                       random_state=rng,
-                                       extra_arrays=[expand_factor]))
+                                       factor=expand_factor,
+                                       random_state=rng))
     else:
         y = y_proba.argmax(axis=1)
 
