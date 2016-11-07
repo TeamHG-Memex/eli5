@@ -36,7 +36,8 @@ class Explanation(object):
         self.highlight_spaces = highlight_spaces
 
     def _repr_html_(self):
-        from eli5.formatters import format_as_html, fields
+        from eli5.formatters import fields
+        from eli5.formatters.html import format_as_html
         return format_as_html(self, force_weights=False, show=fields.WEIGHTS)
 
 

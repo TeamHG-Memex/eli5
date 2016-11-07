@@ -1,4 +1,7 @@
 import re
+from typing import Union
+
+from eli5.base import Explanation
 
 
 def replace_spaces(s, replacer):
@@ -61,7 +64,7 @@ def should_highlight_spaces(explanation):
 
 
 def _has_invisible_spaces(name):
-    # type: (Union[str, Dict]) -> bool
+    # type: (Union[str, List[Dict]]) -> bool
     if isinstance(name, list):
         return any(_has_invisible_spaces(n['name']) for n in name)
     return name.startswith(' ') or name.endswith(' ')
