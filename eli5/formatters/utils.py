@@ -1,4 +1,7 @@
 import re
+from typing import Union
+
+from eli5.base import Explanation
 
 
 def replace_spaces(s, replacer):
@@ -26,7 +29,7 @@ def replace_spaces(s, replacer):
     return re.sub(r'[ ]+', replace, s)
 
 
-def format_signed(feature, formatter=None):
+def format_signed(feature, formatter=None, **kwargs):
     """
     Format unhashed feature with sign.
 
@@ -40,5 +43,28 @@ def format_signed(feature, formatter=None):
     txt = '' if feature['sign'] > 0 else '(-)'
     name = feature['name']
     if formatter is not None:
-        name = formatter(name)
+        name = formatter(name, **kwargs)
     return '{}{}'.format(txt, name)
+
+
+def should_highlight_spaces(explanation):
+    # type: (Explanation) -> bool
+    hl_spaces = explanation.highlight_spaces
+    if explanation.feature_importances:
+        hl_spaces = hl_spaces or any(
+            _has_invisible_spaces(name)
+            for name, _, _ in explanation.feature_importances)
+    if explanation.targets:
+        hl_spaces = hl_spaces or any(
+            _has_invisible_spaces(name)
+            for target in explanation.targets
+            for weights in [target.feature_weights.pos, target.feature_weights.neg]
+            for name, _ in weights)
+    return hl_spaces
+
+
+def _has_invisible_spaces(name):
+    # type: (Union[str, List[Dict]]) -> bool
+    if isinstance(name, list):
+        return any(_has_invisible_spaces(n['name']) for n in name)
+    return name.startswith(' ') or name.endswith(' ')

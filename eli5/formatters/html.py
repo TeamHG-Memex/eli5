@@ -7,7 +7,7 @@ import numpy as np
 from jinja2 import Environment, PackageLoader
 
 from eli5 import _graphviz
-from .utils import format_signed, replace_spaces
+from .utils import format_signed, replace_spaces, should_highlight_spaces
 from . import fields
 from .features import FormattedFeatureName
 from .trees import tree2text
@@ -23,13 +23,13 @@ template_env.filters.update(dict(
         _remaining_weight_color(ws, w_range, pos_neg),
     weight_range=lambda w: _weight_range(w),
     fi_weight_range=lambda w: max([abs(x[1]) for x in w] or [0]),
-    format_feature=lambda f, w: _format_feature(f, w),
+    format_feature=lambda f, w, hl: _format_feature(f, w, hl_spaces=hl),
     format_decision_tree=lambda tree: _format_decision_tree(tree),
 ))
 
 
 def format_as_html(explanation, include_styles=True, force_weights=True,
-                   show=fields.ALL, preserve_density=None):
+                   show=fields.ALL, preserve_density=None, highlight_spaces=None):
     """ Format explanation as html.
     Most styles are inline, but some are included separately in <style> tag,
     you can omit them by passing ``include_styles=False`` and call
@@ -37,8 +37,14 @@ def format_as_html(explanation, include_styles=True, force_weights=True,
     With ``force_weights=False``, weights will not be displayed in a table for
     predictions where it is possible to show feature weights highlighted
     in the document.
+    If ``highlight_spaces`` is None (default), spaces will be highlighted in
+    feature names only if there are any spaces at the start or at the end of the
+    feature. Setting it to True forces space highlighting, and setting it to False
+    turns it off.
     """
     template = template_env.get_template('explain.html')
+    if highlight_spaces is None:
+        highlight_spaces = should_highlight_spaces(explanation)
 
     return template.render(
         include_styles=include_styles,
@@ -50,7 +56,9 @@ def format_as_html(explanation, include_styles=True, force_weights=True,
         tdm_styles='padding: 0 0.5em 0 0.5em; text-align: center; border: none;',
         td2_styles='padding: 0 0.5em 0 0.5em; text-align: left; border: none;',
         show=show,
-        expl=explanation)
+        expl=explanation,
+        hl_spaces=highlight_spaces,
+    )
 
 
 def format_html_styles():
@@ -160,7 +168,7 @@ def _remaining_weight_color(ws, weight_range, pos_neg):
     return _weight_color(weight, weight_range)
 
 
-def _format_unhashed_feature(feature, weight):
+def _format_unhashed_feature(feature, weight, hl_spaces):
     """ Format unhashed feature: show first (most probable) candidate,
     display other candidates in title attribute.
     """
@@ -168,26 +176,30 @@ def _format_unhashed_feature(feature, weight):
         return ''
     else:
         first, rest = feature[0], feature[1:]
-        html = format_signed(first, lambda x: _format_single_feature(x, weight))
+        html = format_signed(
+            first, lambda x: _format_single_feature(x, weight, hl_spaces))
         if rest:
             html += ' <span title="{}">&hellip;</span>'.format(
                 '\n'.join(html_escape(format_signed(f)) for f in rest))
         return html
 
 
-def _format_feature(feature, weight):
+def _format_feature(feature, weight, hl_spaces):
     """ Format any feature.
     """
     if isinstance(feature, FormattedFeatureName):
         return feature.format()
     elif (isinstance(feature, list) and
             all('name' in x and 'sign' in x for x in feature)):
-        return _format_unhashed_feature(feature, weight)
+        return _format_unhashed_feature(feature, weight, hl_spaces=hl_spaces)
     else:
-        return _format_single_feature(feature, weight)
+        return _format_single_feature(feature, weight, hl_spaces=hl_spaces)
 
 
-def _format_single_feature(feature, weight):
+def _format_single_feature(feature, weight, hl_spaces):
+    feature = html_escape(feature)
+    if not hl_spaces:
+        return feature
 
     def replacer(n_spaces, side):
         m = '0.1em'
@@ -202,7 +214,7 @@ def _format_single_feature(feature, weight):
                   '{} space symbols'.format(n_spaces),
             spaces='&emsp;' * n_spaces)
 
-    return replace_spaces(html_escape(feature), replacer)
+    return replace_spaces(feature, replacer)
 
 
 def _format_decision_tree(treedict):

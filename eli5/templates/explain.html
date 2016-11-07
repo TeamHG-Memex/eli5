@@ -32,7 +32,7 @@
                             {{ "%0.4f"|format(w) }} &plusmn; {{ "%0.4f"|format(2 * std) }}
                         </td>
                         <td style="{{ td2_styles }}">
-                            {{ name|format_feature(w) }}
+                            {{ name|format_feature(w, hl_spaces) }}
                         </td>
                     </tr>
                 {% endfor %}

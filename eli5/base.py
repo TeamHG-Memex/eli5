@@ -26,6 +26,7 @@ class Explanation(object):
                  targets=None,  # type: List[TargetExplanation]
                  feature_importances=None,  # type: List[FeatureImportance]
                  decision_tree=None,  # type: TreeInfo
+                 highlight_spaces=None,
                  ):
         self.estimator = estimator
         self.description = description
@@ -35,9 +36,11 @@ class Explanation(object):
         self.targets = targets
         self.feature_importances = feature_importances
         self.decision_tree = decision_tree
+        self.highlight_spaces = highlight_spaces
 
     def _repr_html_(self):
-        from eli5.formatters import format_as_html, fields
+        from eli5.formatters import fields
+        from eli5.formatters.html import format_as_html
         return format_as_html(self, force_weights=False, show=fields.WEIGHTS)
 
 
