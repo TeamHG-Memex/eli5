@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 import six
+from typing import List
 
 from . import fields
 from .features import FormattedFeatureName
@@ -14,7 +15,7 @@ _SPACE = '_' if six.PY2 else '░'
 
 
 def format_as_text(expl, show=fields.ALL):
-    lines = []
+    lines = []  # type: List[str]
 
     if expl.error:  # always shown
         lines.extend(_error_lines(expl))

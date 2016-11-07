@@ -96,7 +96,7 @@ def get_feature_names(clf, vec=None, bias_name='<BIAS>', feature_names=None):
         if feature_names.n_features != num_features:
             raise ValueError("feature_names has a wrong n_features: "
                              "expected=%d, got=%d" % (num_features,
-                                                      len(feature_names)))
+                                                      feature_names.n_features))
         # Make a shallow copy setting proper bias_name
         return FeatureNames(
             feature_names.feature_names,
