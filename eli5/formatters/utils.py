@@ -62,6 +62,6 @@ def should_highlight_spaces(explanation):
 
 def _has_invisible_spaces(name):
     # type: (Union[str, Dict]) -> bool
-    if isinstance(name, dict):
-        name = name['name']
+    if isinstance(name, list):
+        return any(_has_invisible_spaces(n['name']) for n in name)
     return name.startswith(' ') or name.endswith(' ')

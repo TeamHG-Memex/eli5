@@ -12,31 +12,43 @@ def test_render_styles():
     assert styles.strip().startswith('<style')
 
 
+def format_unhashed_feature(feature, weight=1, hl_spaces=True):
+    return _format_unhashed_feature(feature, weight=weight, hl_spaces=hl_spaces)
+
+
+def format_feature(feature, weight=1, hl_spaces=True):
+    return _format_feature(feature, weight=weight, hl_spaces=hl_spaces)
+
+
+def format_single_feature(feature, weight=1, hl_spaces=True):
+    return _format_single_feature(feature, weight=weight, hl_spaces=hl_spaces)
+
+
 def test_format_unhashed_feature():
-    assert _format_unhashed_feature([], 1) == ''
-    assert _format_unhashed_feature([{'name': 'foo', 'sign': 1}], 1) == 'foo'
-    assert _format_unhashed_feature([{'name': 'foo', 'sign': -1}], 1) == '(-)foo'
-    assert _format_unhashed_feature([
+    assert format_unhashed_feature([]) == ''
+    assert format_unhashed_feature([{'name': 'foo', 'sign': 1}]) == 'foo'
+    assert format_unhashed_feature([{'name': 'foo', 'sign': -1}]) == '(-)foo'
+    assert format_unhashed_feature([
         {'name': 'foo', 'sign': 1},
         {'name': 'bar', 'sign': -1}
-        ], 1) == 'foo <span title="(-)bar">&hellip;</span>'
-    assert _format_unhashed_feature([
+        ]) == 'foo <span title="(-)bar">&hellip;</span>'
+    assert format_unhashed_feature([
         {'name': 'foo', 'sign': 1},
         {'name': 'bar', 'sign': -1},
         {'name': 'boo', 'sign': 1},
-    ], 1) == 'foo <span title="(-)bar\nboo">&hellip;</span>'
+        ]) == 'foo <span title="(-)bar\nboo">&hellip;</span>'
 
 
 def test_format_formatted_feature():
-    assert _format_feature(FormattedFeatureName('a b'), 1) == 'a b'
-    assert _format_feature('a b', 1) != 'a b'
-    assert _format_feature('a b', 1) == _format_single_feature('a b', 1)
+    assert format_feature(FormattedFeatureName('a b')) == 'a b'
+    assert format_feature('a b') != 'a b'
+    assert format_feature('a b') == format_single_feature('a b')
 
 
 def test_format_single_feature():
-    assert _format_single_feature('a', 1) == 'a'
-    assert _format_single_feature('<>', 1) == '&lt;&gt;'
-    assert _format_single_feature('aa bb', 1) == (
+    assert format_single_feature('a') == 'a'
+    assert format_single_feature('<>') == '&lt;&gt;'
+    assert format_single_feature('aa bb') == (
         'aa'
         '<span '
         'style="background-color: hsl(120, 80%, 70%); margin: 0 0.1em 0 0.1em" '
@@ -44,7 +56,7 @@ def test_format_single_feature():
         '&emsp;'
         '</span>'
         'bb')
-    assert _format_single_feature('  aa bb ', -1) == (
+    assert format_single_feature('  aa bb ', weight=-1) == (
         '<span '
         'style="background-color: hsl(0, 80%, 70%); margin: 0 0.1em 0 0" '
         'title="2 space symbols">'
