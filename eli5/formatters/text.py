@@ -5,7 +5,7 @@ from typing import List
 
 from . import fields
 from .features import FormattedFeatureName
-from .utils import format_signed, replace_spaces
+from .utils import format_signed, replace_spaces, should_highlight_spaces
 from .trees import tree2text
 
 
@@ -14,8 +14,11 @@ _ELLIPSIS = '...' if six.PY2 else '…'
 _SPACE = '_' if six.PY2 else '░'
 
 
-def format_as_text(expl, show=fields.ALL):
+def format_as_text(expl, show=fields.ALL, highlight_spaces=None):
     lines = []  # type: List[str]
+
+    if highlight_spaces is None:
+        highlight_spaces = should_highlight_spaces(expl)
 
     if expl.error:  # always shown
         lines.extend(_error_lines(expl))
@@ -31,10 +34,11 @@ def format_as_text(expl, show=fields.ALL):
             lines.extend(_description_lines(expl))
 
         if key == 'targets':
-            lines.extend(_targets_lines(expl))
+            lines.extend(_targets_lines(expl, hl_spaces=highlight_spaces))
 
         if key == 'feature_importances':
-            lines.extend(_feature_importances_lines(expl))
+            lines.extend(_feature_importances_lines(
+                expl, hl_spaces=highlight_spaces))
 
         if key == 'decision_tree':
             lines.extend(_decision_tree_lines(expl))
@@ -54,11 +58,11 @@ def _error_lines(explanation):
     return ['Error: {}'.format(explanation.error)]
 
 
-def _feature_importances_lines(explanation):
+def _feature_importances_lines(explanation, hl_spaces):
     sz = _maxlen(explanation.feature_importances)
     for name, w, std in explanation.feature_importances:
         yield '{w:0.4f} {plus} {std:0.4f} {feature}'.format(
-            feature=name.ljust(sz),
+            feature=_format_feature(name, hl_spaces).ljust(sz),
             w=w,
             plus=_PLUS_MINUS,
             std=2*std,
@@ -69,7 +73,7 @@ def _decision_tree_lines(explanation):
     return ["", tree2text(explanation.decision_tree)]
 
 
-def _targets_lines(explanation):
+def _targets_lines(explanation, hl_spaces):
     lines = []
     sz = _max_feature_size(explanation.targets)
     for target in explanation.targets:
@@ -85,12 +89,13 @@ def _targets_lines(explanation):
         lines.append("-" * (sz + 10))
 
         w = target.feature_weights
-        lines.extend(_format_feature_weights(w.pos, sz))
+        lines.extend(_format_feature_weights(w.pos, sz, hl_spaces=hl_spaces))
         if w.pos_remaining:
             lines.append(_format_remaining(w.pos_remaining, 'positive'))
         if w.neg_remaining:
             lines.append(_format_remaining(w.neg_remaining, 'negative'))
-        lines.extend(_format_feature_weights(reversed(w.neg), sz))
+        lines.extend(
+            _format_feature_weights(reversed(w.neg), sz, hl_spaces=hl_spaces))
         lines.append("")
     return lines
 
@@ -107,7 +112,8 @@ def _format_scores(proba, score):
 def _maxlen(feature_weights):
     if not feature_weights:
         return 0
-    return max(len(_format_feature(it[0])) for it in feature_weights)
+    return max(len(_format_feature(it[0], hl_spaces=False))
+               for it in feature_weights)
 
 
 def _max_feature_size(explanation):
@@ -116,10 +122,12 @@ def _max_feature_size(explanation):
     return max(_max_feature_length(e.feature_weights) for e in explanation)
 
 
-def _format_feature_weights(feature_weights, sz):
-    return ['{weight:+8.3f}  {feature}'.format(
-        weight=coef, feature=_format_feature(name).ljust(sz))
-            for name, coef in feature_weights]
+def _format_feature_weights(feature_weights, sz, hl_spaces):
+    return [
+        '{weight:+8.3f}  {feature}'.format(
+            weight=coef,
+            feature=_format_feature(name, hl_spaces=hl_spaces).ljust(sz))
+        for name, coef in feature_weights]
 
 
 def _format_remaining(remaining, kind):
@@ -130,22 +138,27 @@ def _format_remaining(remaining, kind):
     )
 
 
-def _format_feature(name):
+def _format_feature(name, hl_spaces):
     if isinstance(name, FormattedFeatureName):
         return name.format()
     elif isinstance(name, list) and \
             all('name' in x and 'sign' in x for x in name):
-        return _format_unhashed_feature(name)
+        return _format_unhashed_feature(name, hl_spaces=hl_spaces)
     else:
-        return _format_single_feature(name)
+        return _format_single_feature(name, hl_spaces=hl_spaces)
 
 
-def _format_single_feature(feature):
-    return replace_spaces(feature, lambda n, _: _SPACE * n)
+def _format_single_feature(feature, hl_spaces):
+    if hl_spaces:
+        return replace_spaces(feature, lambda n, _: _SPACE * n)
+    else:
+        return feature
 
 
-def _format_unhashed_feature(name, sep=' | '):
+def _format_unhashed_feature(name, hl_spaces, sep=' | '):
     """
     Format feature name for hashed features.
     """
-    return sep.join(format_signed(n, _format_single_feature) for n in name)
+    return sep.join(
+        format_signed(n, _format_single_feature, hl_spaces=hl_spaces)
+        for n in name)

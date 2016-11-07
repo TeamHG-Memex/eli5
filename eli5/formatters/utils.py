@@ -26,7 +26,7 @@ def replace_spaces(s, replacer):
     return re.sub(r'[ ]+', replace, s)
 
 
-def format_signed(feature, formatter=None):
+def format_signed(feature, formatter=None, **kwargs):
     """
     Format unhashed feature with sign.
 
@@ -40,5 +40,28 @@ def format_signed(feature, formatter=None):
     txt = '' if feature['sign'] > 0 else '(-)'
     name = feature['name']
     if formatter is not None:
-        name = formatter(name)
+        name = formatter(name, **kwargs)
     return '{}{}'.format(txt, name)
+
+
+def should_highlight_spaces(explanation):
+    # type: (Explanation) -> bool
+    hl_spaces = explanation.highlight_spaces
+    if explanation.feature_importances:
+        hl_spaces = hl_spaces or any(
+            _has_invisible_spaces(name)
+            for name, _, _ in explanation.feature_importances)
+    if explanation.targets:
+        hl_spaces = hl_spaces or any(
+            _has_invisible_spaces(name)
+            for target in explanation.targets
+            for weights in [target.feature_weights.pos, target.feature_weights.neg]
+            for name, _ in weights)
+    return hl_spaces
+
+
+def _has_invisible_spaces(name):
+    # type: (Union[str, Dict]) -> bool
+    if isinstance(name, dict):
+        name = name['name']
+    return name.startswith(' ') or name.endswith(' ')
