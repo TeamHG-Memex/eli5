@@ -15,6 +15,12 @@ _SPACE = '_' if six.PY2 else '░'
 
 
 def format_as_text(expl, show=fields.ALL, highlight_spaces=None):
+    """ Format explanation as text.
+    If ``highlight_spaces`` is None (default), spaces will be highlighted in
+    feature names only if there are any spaces at the start or at the end of the
+    feature. Setting it to True forces space highlighting, and setting it to False
+    turns it off.
+    """
     lines = []  # type: List[str]
 
     if highlight_spaces is None:

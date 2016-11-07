@@ -37,6 +37,10 @@ def format_as_html(explanation, include_styles=True, force_weights=True,
     With ``force_weights=False``, weights will not be displayed in a table for
     predictions where it is possible to show feature weights highlighted
     in the document.
+    If ``highlight_spaces`` is None (default), spaces will be highlighted in
+    feature names only if there are any spaces at the start or at the end of the
+    feature. Setting it to True forces space highlighting, and setting it to False
+    turns it off.
     """
     template = template_env.get_template('explain.html')
     if highlight_spaces is None:
