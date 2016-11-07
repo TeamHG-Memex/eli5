@@ -9,6 +9,9 @@ from .base_utils import attrs
 # creating attr.ib entries based on the signature of __init__.
 
 
+FeatureImportance = Tuple[str, float, float]  # name, value, std
+
+
 @attrs
 class Explanation(object):
     """ An explanation for classifier or regressor,
@@ -21,7 +24,7 @@ class Explanation(object):
                  method=None,  # type: str
                  is_regression=False,  # type: bool
                  targets=None,  # type: List[TargetExplanation]
-                 feature_importances=None,  # type: FeatureWeights
+                 feature_importances=None,  # type: List[FeatureImportance]
                  decision_tree=None,  # type: TreeInfo
                  ):
         self.estimator = estimator
