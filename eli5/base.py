@@ -5,6 +5,10 @@ from typing import Dict, List, Tuple, Union
 from .base_utils import attrs
 
 
+# @attrs decorator used in this file calls @attr.s(slots=True),
+# creating attr.ib entries based on the signature of __init__.
+
+
 @attrs
 class Explanation(object):
     """ An explanation for classifier or regressor,

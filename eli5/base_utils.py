@@ -4,7 +4,10 @@ import attr
 
 
 def attrs(class_):
-    """ Like attr.s, but with attributes extracted from __init__ method signature.
+    """ Like attr.s with slots=True,
+    but with attributes extracted from __init__ method signature.
+    slots=True ensures that signature matches what really happens
+    (we can't define different attributes on self).
     It is useful if we still want __init__ for proper type-checking and
     do not want to repeat attribute definitions in the class body.
     """
@@ -21,4 +24,4 @@ def attrs(class_):
         if idx >= defaults_shift:
             attrib_kwargs['default'] = init_args.defaults[idx - defaults_shift]
         these[arg] = attr.ib(**attrib_kwargs)
-    return attr.s(class_, these=these, init=False, **attrs_kwargs)
+    return attr.s(class_, these=these, init=False, slots=True, **attrs_kwargs)

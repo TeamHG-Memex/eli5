@@ -1,4 +1,5 @@
 import attr
+import pytest
 
 from eli5.base_utils import attrs
 
@@ -48,3 +49,14 @@ def test_attrs_with_repr():
 
     assert hash(WithRepr(1)) == hash(WithRepr(1))
     assert repr(WithRepr(2)) == 'foo'
+
+
+def test_bad_init():
+
+    @attrs
+    class BadInit(object):
+        def __init__(self, x):
+            self._x = x
+
+    with pytest.raises(AttributeError):
+        BadInit(1)
