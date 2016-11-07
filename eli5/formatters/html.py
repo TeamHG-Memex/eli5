@@ -29,7 +29,7 @@ template_env.filters.update(dict(
 
 
 def format_as_html(explanation, include_styles=True, force_weights=True,
-                   show=fields.ALL, preserve_density=None, higlight_spaces=None):
+                   show=fields.ALL, preserve_density=None, highlight_spaces=None):
     """ Format explanation as html.
     Most styles are inline, but some are included separately in <style> tag,
     you can omit them by passing ``include_styles=False`` and call
@@ -39,8 +39,8 @@ def format_as_html(explanation, include_styles=True, force_weights=True,
     in the document.
     """
     template = template_env.get_template('explain.html')
-    if higlight_spaces is None:
-        higlight_spaces = should_highlight_spaces(explanation)
+    if highlight_spaces is None:
+        highlight_spaces = should_highlight_spaces(explanation)
 
     return template.render(
         include_styles=include_styles,
@@ -53,7 +53,7 @@ def format_as_html(explanation, include_styles=True, force_weights=True,
         td2_styles='padding: 0 0.5em 0 0.5em; text-align: left; border: none;',
         show=show,
         expl=explanation,
-        hl_spaces=higlight_spaces,
+        hl_spaces=highlight_spaces,
     )
 
 
