@@ -1,0 +1,19 @@
+<b>
+    {% if expl.is_regression %}
+        {{ target.target }}
+    {% else %}
+        y={{ target.target }}
+    {% endif %}
+</b>
+{% if target.proba is not none or target.score is not none %}
+    {% set comma = joiner(", ") %}
+    (
+    {%- if target.proba is not none -%}
+        {{ comma() }}probability <b>{{ "%0.3f"|format(target.proba) }}</b>
+    {%- endif -%}
+    {%- if target.score is not none -%}
+        {{ comma() }}score <b>{{ "%0.3f"|format(target.score) }}</b>
+    {%- endif -%}
+    )
+{% endif %}
+top features

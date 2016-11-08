@@ -1,0 +1,8 @@
+{% if target.weighted_spans %}
+    {% with wts = target.weighted_spans.other %}
+        {% include "weights_table.html" with context %}
+    {% endwith %}
+    <p>
+        {{ target.weighted_spans|render_weighted_spans(preserve_density) }}
+    </p>
+{% endif %}
