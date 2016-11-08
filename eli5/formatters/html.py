@@ -161,6 +161,8 @@ def _hue(weight):
 def _weight_range(weights):
     """ Max absolute feature for pos and neg weights.
     """
+    if isinstance(weights, list):
+        return max([_weight_range(t.feature_weights) for t in weights] or [0])
     return max([abs(coef) for lst in [weights.pos, weights.neg]
                 for _, coef in lst or []] or [0])
 

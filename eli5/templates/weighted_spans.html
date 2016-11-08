@@ -1,5 +1,6 @@
 {% if target.weighted_spans %}
     {% with wts = target.weighted_spans.other %}
+        {% set w_range = wts|weight_range %}
         {% include "weights_table.html" with context %}
     {% endwith %}
     <p>

@@ -29,9 +29,9 @@
             </tr>
             </thead>
             <tbody>
-            {% with weight_range = expl.feature_importances|fi_weight_range %}
+            {% with w_range = expl.feature_importances|fi_weight_range %}
                 {% for name, w, std in expl.feature_importances %}
-                    <tr style="background-color: {{ w|weight_color(weight_range) }}; {{ tr_styles }}">
+                    <tr style="background-color: {{ w|weight_color(w_range) }}; {{ tr_styles }}">
                         <td style="{{ td1_styles }}">
                             {{ "%0.4f"|format(w) }} &plusmn; {{ "%0.4f"|format(2 * std) }}
                         </td>

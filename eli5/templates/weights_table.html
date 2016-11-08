@@ -21,31 +21,28 @@
         </tr>
         </thead>
         <tbody>
-        {% with weight_range = wts|weight_range %}
+        {% for name, coef in wts.pos %}
+            {% include "weights_table_row.html" with context %}
+        {% endfor %}
+        {% if wts.pos_remaining %}
+            <tr style="background-color: {{ wts.pos|remaining_weight_color(w_range, 'pos') }}; {{ tr_styles }}">
+                <td colspan="2" style="{{ tdm_styles }}">
+                    <i>&hellip; {{ wts.pos_remaining }} more positive &hellip;</i>
+                </td>
+            </tr>
+        {% endif %}
 
-            {% for name, coef in wts.pos %}
-                {% include "weights_table_row.html" with context %}
-            {% endfor %}
-            {% if wts.pos_remaining %}
-                <tr style="background-color: {{ wts.pos|remaining_weight_color(weight_range, 'pos') }}; {{ tr_styles }}">
-                    <td colspan="2" style="{{ tdm_styles }}">
-                        <i>&hellip; {{ wts.pos_remaining }} more positive &hellip;</i>
-                    </td>
-                </tr>
-            {% endif %}
+        {% if wts.neg_remaining %}
+            <tr style="background-color: {{ wts.neg|remaining_weight_color(w_range, 'neg') }}; {{ tr_styles }}">
+                <td colspan="2" style="{{ tdm_styles }}">
+                    <i>&hellip; {{ wts.neg_remaining }} more negative &hellip;</i>
+                </td>
+            </tr>
+        {% endif %}
+        {% for name, coef in wts.neg|reverse %}
+            {% include "weights_table_row.html" with context %}
+        {% endfor %}
 
-            {% if wts.neg_remaining %}
-                <tr style="background-color: {{ wts.neg|remaining_weight_color(weight_range, 'neg') }}; {{ tr_styles }}">
-                    <td colspan="2" style="{{ tdm_styles }}">
-                        <i>&hellip; {{ wts.neg_remaining }} more negative &hellip;</i>
-                    </td>
-                </tr>
-            {% endif %}
-            {% for name, coef in wts.neg|reverse %}
-                {% include "weights_table_row.html" with context %}
-            {% endfor %}
-
-        {% endwith %}
         </tbody>
     </table>
 {% endif %}

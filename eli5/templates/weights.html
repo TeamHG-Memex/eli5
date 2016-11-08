@@ -3,16 +3,18 @@
     {% if force_weights or not (expl.targets|get_top_target).weighted_spans %}
         <table style="{{ dense_multitarget_table_styles }}">
             <tr>
-                {% for target in expl.targets %}
-                    <td style="{{ dense_multitarget_td_styles }}">
-                        {% if force_weights or not target.weighted_spans %}
-                            {% with wts = target.feature_weights %}
-                                {% set inline_target_header = True %}
-                                {% include "weights_table.html" with context %}
-                            {% endwith %}
-                        {% endif %}
-                    </td>
-                {% endfor %}
+                {% with w_range = expl.targets|weight_range %}
+                    {% for target in expl.targets %}
+                        <td style="{{ dense_multitarget_td_styles }}">
+                            {% if force_weights or not target.weighted_spans %}
+                                {% with wts = target.feature_weights %}
+                                    {% set inline_target_header = True %}
+                                    {% include "weights_table.html" with context %}
+                                {% endwith %}
+                            {% endif %}
+                        </td>
+                    {% endfor %}
+                {% endwith %}
             </tr>
         </table>
     {% endif %}
@@ -30,6 +32,7 @@
         {% if force_weights or not target.weighted_spans %}
             {% with wts = target.feature_weights %}
                 {% set inline_target_header = False %}
+                {% set w_range = wts|weight_range %}
                 {% include "weights_table.html" with context %}
             {% endwith %}
         {% endif %}
