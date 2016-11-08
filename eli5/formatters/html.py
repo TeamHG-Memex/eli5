@@ -2,13 +2,11 @@
 from __future__ import absolute_import
 import cgi
 from collections import Counter
-from typing import Union
 
 import numpy as np
 from jinja2 import Environment, PackageLoader
 
 from eli5 import _graphviz
-from eli5.base import TargetExplanation
 from .utils import format_signed, replace_spaces, should_highlight_spaces
 from . import fields
 from .features import FormattedFeatureName
@@ -28,13 +26,12 @@ template_env.filters.update(dict(
     fi_weight_range=lambda w: max([abs(x[1]) for x in w] or [0]),
     format_feature=lambda f, w, hl: _format_feature(f, w, hl_spaces=hl),
     format_decision_tree=lambda tree: _format_decision_tree(tree),
-    get_top_target=lambda targets: _get_top_target(targets),
 ))
 
 
 def format_as_html(explanation, include_styles=True, force_weights=True,
                    show=fields.ALL, preserve_density=None,
-                   highlight_spaces=None, dense_multitarget=False):
+                   highlight_spaces=None, horizontal_layout=True):
     """ Format explanation as html.
     Most styles are inline, but some are included separately in <style> tag,
     you can omit them by passing ``include_styles=False`` and call
@@ -46,8 +43,8 @@ def format_as_html(explanation, include_styles=True, force_weights=True,
     feature names only if there are any spaces at the start or at the end of the
     feature. Setting it to True forces space highlighting, and setting it to
     False turns it off.
-    ``dense_multitarget`` set to True displays a multitarget classifier weights
-    in a single table, and shows highlighted document only for winning target.
+    If ``horizontal_multitarget`` is True (default), multitarget classifier
+    weights are laid out horizontally.
     """
     template = template_env.get_template('explain.html')
     if highlight_spaces is None:
@@ -70,7 +67,9 @@ def format_as_html(explanation, include_styles=True, force_weights=True,
         show=show,
         expl=explanation,
         hl_spaces=highlight_spaces,
-        dense_multitarget=dense_multitarget,
+        horizontal_layout=horizontal_layout,
+        any_weighted_spans=any(
+            t.weighted_spans for t in (explanation.targets or [])),
     )
 
 
@@ -241,11 +240,3 @@ def _format_decision_tree(treedict):
 
 def html_escape(text):
     return cgi.escape(text, quote=True)
-
-
-def _get_top_target(targets):
-    # type: (List[TargetExplanation]) -> Union[None, TargetExplanation]
-    if all(t.proba is not None for t in targets):
-        return max(targets, key=lambda t: t.proba)
-    elif all(t.score is not None for t in targets):
-        return max(targets, key=lambda t: t.score)

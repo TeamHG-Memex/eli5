@@ -184,9 +184,9 @@ def test_remaining_weight_color():
 
 
 @pytest.mark.parametrize(
-    ['force_weights', 'dense_multitarget'],
+    ['force_weights', 'horizontal_layout'],
     [[f, d] for f in [True, False] for d in [True, False]])
-def test_format_html_options(force_weights, dense_multitarget):
+def test_format_html_options(force_weights, horizontal_layout):
     # test options that are not tested elsewhere
     X, y = make_regression(n_samples=100, n_targets=3, n_features=10,
                            random_state=42)
@@ -194,7 +194,7 @@ def test_format_html_options(force_weights, dense_multitarget):
     reg.fit(X, y)
     res = explain_weights_sklearn(reg)
     kwargs = dict(
-        force_weights=force_weights, dense_multitarget=dense_multitarget)
+        force_weights=force_weights, horizontal_layout=horizontal_layout)
     postfix = '_' + '_'.join(
         '{}-{}'.format(k, v) for k, v in sorted(kwargs.items()))
     print(kwargs, postfix)

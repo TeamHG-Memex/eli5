@@ -1,6 +1,6 @@
-{% if dense_multitarget %}
+{% if horizontal_layout and expl.targets|length > 1 %}
 
-    {% if force_weights or not (expl.targets|get_top_target).weighted_spans %}
+    {% if force_weights or not any_weighted_spans %}
         <table style="{{ dense_multitarget_table_styles }}">
             <tr>
                 {% with w_range = expl.targets|weight_range %}
@@ -19,11 +19,9 @@
         </table>
     {% endif %}
 
-    {% with target = expl.targets|get_top_target %}
-        {% if target %}
-            {% include "weighted_spans.html" with context %}
-        {% endif %}
-    {% endwith %}
+    {% for target in expl.targets %}
+        {% include "weighted_spans.html" with context %}
+    {% endfor %}
 
 {% else %}
 
