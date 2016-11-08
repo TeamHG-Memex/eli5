@@ -25,7 +25,7 @@ def format_as_all(res, clf, **kwargs):
     expl_html = format_as_html(res, **kwargs)
     pprint(res)
     print(expl_text)
-    _write_html(clf, expl_html, expl_text)
+    write_html(clf, expl_html, expl_text)
     return expl_text, expl_html
 
 
@@ -35,7 +35,7 @@ def strip_blanks(html):
     return html.replace(' ', '').replace('\n', '')
 
 
-def _write_html(clf, html, text):
+def write_html(clf, html, text, postfix=''):
     """ Write to html file in .html directory. Filename is generated from calling
     function name and module, and clf class name.
     This is useful to check and debug format_as_html function.
@@ -46,8 +46,8 @@ def _write_html(clf, html, text):
     except AttributeError:
         test_name, test_file = caller[3], caller[1]
     test_file = os.path.basename(test_file).rsplit('.', 1)[0]
-    filename = '{}_{}_{}.html'.format(
-        test_file, test_name, clf.__class__.__name__)
+    filename = '{}_{}_{}{}.html'.format(
+        test_file, test_name, clf.__class__.__name__, postfix)
     dirname = '.html'
     if not os.path.isdir(dirname):
         os.mkdir(dirname)
