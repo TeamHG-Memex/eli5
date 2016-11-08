@@ -70,7 +70,7 @@ def _error_lines(explanation):
 def _feature_importances_lines(explanation, hl_spaces):
     sz = _maxlen(explanation.feature_importances)
     for name, w, std in explanation.feature_importances:
-        yield '{w:0.4f} {plus} {std:0.4f} {feature}'.format(
+        yield u'{w:0.4f} {plus} {std:0.4f} {feature}'.format(
             feature=_format_feature(name, hl_spaces).ljust(sz),
             w=w,
             plus=_PLUS_MINUS,
@@ -145,7 +145,7 @@ def _max_feature_size(explanation):
 
 def _format_feature_weights(feature_weights, sz, hl_spaces):
     return [
-        '{weight:+8.3f}  {feature}'.format(
+        u'{weight:+8.3f}  {feature}'.format(
             weight=coef,
             feature=_format_feature(name, hl_spaces=hl_spaces).ljust(sz))
         for name, coef in feature_weights]
@@ -160,6 +160,8 @@ def _format_remaining(remaining, kind):
 
 
 def _format_feature(name, hl_spaces):
+    if isinstance(name, bytes):
+        name = name.decode('utf8')
     if isinstance(name, FormattedFeatureName):
         return name.format()
     elif isinstance(name, list) and \
