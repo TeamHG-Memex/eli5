@@ -31,6 +31,7 @@ setup(
         'six',
         'typing',
         'graphviz',
+        'tabulate',
     ],
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
