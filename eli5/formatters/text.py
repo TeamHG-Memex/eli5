@@ -39,6 +39,9 @@ def format_as_text(expl, show=fields.ALL, highlight_spaces=None):
         if key == 'description':
             lines.extend(_description_lines(expl))
 
+        if key == 'transition_features':
+            lines.extend(_transition_features_lines(expl))
+
         if key == 'targets':
             lines.extend(_targets_lines(expl, hl_spaces=highlight_spaces))
 
@@ -77,6 +80,18 @@ def _feature_importances_lines(explanation, hl_spaces):
 
 def _decision_tree_lines(explanation):
     return ["", tree2text(explanation.decision_tree)]
+
+
+def _transition_features_lines(explanation):
+    from tabulate import tabulate
+    tf = explanation.transition_features
+    return [
+        "",
+        "Transition features:",
+        tabulate(tf.coef, headers=tf.class_names, showindex=tf.class_names,
+                 floatfmt="0.3f"),
+        ""
+    ]
 
 
 def _targets_lines(explanation, hl_spaces):

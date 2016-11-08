@@ -27,6 +27,7 @@ class Explanation(object):
                  feature_importances=None,  # type: List[FeatureImportance]
                  decision_tree=None,  # type: TreeInfo
                  highlight_spaces=None,
+                 transition_features=None,  # type: TransitionFeatureWeights
                  ):
         self.estimator = estimator
         self.description = description
@@ -37,6 +38,7 @@ class Explanation(object):
         self.feature_importances = feature_importances
         self.decision_tree = decision_tree
         self.highlight_spaces = highlight_spaces
+        self.transition_features = transition_features
 
     def _repr_html_(self):
         from eli5.formatters import fields
@@ -111,6 +113,17 @@ class WeightedSpans(object):
         self.document = document
         self.weighted_spans = weighted_spans
         self.other = other
+
+
+@attrs
+class TransitionFeatureWeights(object):
+    """ Weights matrix for transition features. """
+    def __init__(self,
+                 class_names,  # type: List[str],
+                 coef,
+                 ):
+        self.class_names = class_names
+        self.coef = coef
 
 
 @attrs
