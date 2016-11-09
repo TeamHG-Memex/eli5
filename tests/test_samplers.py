@@ -53,7 +53,7 @@ def test_univariate_kde_sampler():
     feat2 = np.random.randint(0, 2, size=100)
     X = np.array([feat1, feat2]).T
 
-    s = UnivariateKernelDensitySampler()
+    s = UnivariateKernelDensitySampler(random_state=42)
     s.fit(X)
 
     # second feature is categorical, it should use a small bandwidth
@@ -85,7 +85,7 @@ def test_multivariate_kde_sampler():
     feat2 = feat1 * 2 + np.random.normal(size=500) * 0.01
     X = np.array([feat1, feat2]).T
 
-    s = MultivariateKernelDensitySampler()
+    s = MultivariateKernelDensitySampler(random_state=42)
     s.fit(X)
 
     # no extreme bandwidths
