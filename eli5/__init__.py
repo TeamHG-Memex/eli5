@@ -14,3 +14,11 @@ try:
 except ImportError as e:
     # lightning is not available
     pass
+
+try:
+    from .sklearn_crfsuite import (
+        explain_weights_sklearn_crfsuite
+    )
+except ImportError as e:
+    # sklearn-crfsuite is not available
+    pass

@@ -16,6 +16,7 @@ from .trees import tree2text
 template_env = Environment(
     loader=PackageLoader('eli5', 'templates'),
     extensions=['jinja2.ext.with_'])
+template_env.globals.update(zip=zip, numpy=np)
 template_env.filters.update(dict(
     render_weighted_spans=lambda x, pd: render_weighted_spans(x, pd),
     weight_color=lambda w, w_range: _weight_color(w, w_range),

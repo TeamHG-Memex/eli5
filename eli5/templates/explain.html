@@ -12,6 +12,10 @@
         <pre>{{ expl.description }}</pre>
     {% endif %}
 
+    {% if key == "transition_features" and expl.transition_features %}
+        {% include "transition_features.html" with context %}
+    {% endif %}
+
     {% if key == "targets" and expl.targets %}
         {% include "weights.html" with context %}
     {% endif %}
