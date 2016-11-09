@@ -33,18 +33,20 @@ Currently it allows to:
   by undoing hashing;
 * explain weights and predictions of
   https://github.com/scikit-learn-contrib/lightning models;
+* explain weights of https://github.com/TeamHG-Memex/sklearn-crfsuite
+  CRF models;
 * explain predictions of any black-box classifier using LIME
   ( http://arxiv.org/abs/1602.04938 ) algorithm (experimental).
 
 TODO:
 
-* IPython support
-* https://github.com/TeamHG-Memex/sklearn-crfsuite
-  and https://github.com/tpeng/python-crfsuite
+* IPython interactive widgets
+* eli5.lime improvements
+* explain predictions of https://github.com/TeamHG-Memex/sklearn-crfsuite
+  models
 * https://github.com/scikit-learn-contrib/polylearn
 * fasttext (?)
 * xgboost (?)
-* eli5.lime improvements
 * image input
 * built-in support for non-text data in eli5.lime
 * tensorflow, theano, lasagne, keras
