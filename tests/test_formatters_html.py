@@ -1,10 +1,17 @@
 import re
 
+import pytest
+from sklearn.datasets import make_regression
+from sklearn.linear_model import LinearRegression
+
 from eli5.base import WeightedSpans
-from eli5.formatters import format_html_styles, FormattedFeatureName
+from eli5 import explain_weights_sklearn, explain_prediction_sklearn
+from eli5.formatters import (
+    format_as_text, format_as_html, format_html_styles, FormattedFeatureName)
 from eli5.formatters.html import (
     _format_unhashed_feature, render_weighted_spans, _format_single_feature,
     _format_feature, _remaining_weight_color, _weight_color)
+from .utils import write_html
 
 
 def test_render_styles():
@@ -174,3 +181,27 @@ def test_remaining_weight_color():
         _weight_color(-1, 3)
     assert _remaining_weight_color([('a', 1), ('b', 2)], 3, 'pos') == \
            _weight_color(1, 3)
+
+
+@pytest.mark.parametrize(
+    ['force_weights', 'horizontal_layout'],
+    [[f, d] for f in [True, False] for d in [True, False]])
+def test_format_html_options(force_weights, horizontal_layout):
+    # test options that are not tested elsewhere
+    X, y = make_regression(n_samples=100, n_targets=3, n_features=10,
+                           random_state=42)
+    reg = LinearRegression()
+    reg.fit(X, y)
+    res = explain_weights_sklearn(reg)
+    kwargs = dict(
+        force_weights=force_weights, horizontal_layout=horizontal_layout)
+    postfix = '_' + '_'.join(
+        '{}-{}'.format(k, v) for k, v in sorted(kwargs.items()))
+    print(kwargs, postfix)
+    # just check that it does not crash
+    expl = format_as_html(res, **kwargs)
+    write_html(reg, expl, format_as_text(res), postfix=postfix)
+    pred_res = explain_prediction_sklearn(reg, X[0])
+    pred_expl = format_as_html(pred_res, **kwargs)
+    write_html(reg, pred_expl, format_as_text(pred_res),
+               postfix='_expl' + postfix)

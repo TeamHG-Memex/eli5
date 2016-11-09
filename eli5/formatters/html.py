@@ -30,7 +30,8 @@ template_env.filters.update(dict(
 
 
 def format_as_html(explanation, include_styles=True, force_weights=True,
-                   show=fields.ALL, preserve_density=None, highlight_spaces=None):
+                   show=fields.ALL, preserve_density=None,
+                   highlight_spaces=None, horizontal_layout=True):
     """ Format explanation as html.
     Most styles are inline, but some are included separately in <style> tag,
     you can omit them by passing ``include_styles=False`` and call
@@ -40,8 +41,10 @@ def format_as_html(explanation, include_styles=True, force_weights=True,
     in the document.
     If ``highlight_spaces`` is None (default), spaces will be highlighted in
     feature names only if there are any spaces at the start or at the end of the
-    feature. Setting it to True forces space highlighting, and setting it to False
-    turns it off.
+    feature. Setting it to True forces space highlighting, and setting it to
+    False turns it off.
+    If ``horizontal_layout`` is True (default), multiclass classifier
+    weights are laid out horizontally.
     """
     template = template_env.get_template('explain.html')
     if highlight_spaces is None:
@@ -56,9 +59,17 @@ def format_as_html(explanation, include_styles=True, force_weights=True,
         td1_styles='padding: 0 1em 0 0.5em; text-align: right; border: none;',
         tdm_styles='padding: 0 0.5em 0 0.5em; text-align: center; border: none;',
         td2_styles='padding: 0 0.5em 0 0.5em; text-align: left; border: none;',
+        horizontal_layout_table_styles=
+        'border-collapse: collapse; border: none;',
+        horizontal_layout_td_styles='padding: 0px; border: 1px solid black;',
+        tddm_header_styles='text-align: center; padding: 0.5em; '
+                           'border: none; border-bottom: 1px solid black;',
         show=show,
         expl=explanation,
         hl_spaces=highlight_spaces,
+        horizontal_layout=horizontal_layout,
+        any_weighted_spans=any(
+            t.weighted_spans for t in (explanation.targets or [])),
     )
 
 
@@ -149,6 +160,8 @@ def _hue(weight):
 def _weight_range(weights):
     """ Max absolute feature for pos and neg weights.
     """
+    if isinstance(weights, list):
+        return max([_weight_range(t.feature_weights) for t in weights] or [0])
     return max([abs(coef) for lst in [weights.pos, weights.neg]
                 for _, coef in lst or []] or [0])
 

@@ -1,40 +1,41 @@
-{% for target in expl.targets %}
+{% if horizontal_layout and expl.targets|length > 1 %}
 
-    <p>
-        <b>
-            {% if expl.is_regression %}
-                {{ target.target }}
-            {% else %}
-                y={{ target.target }}
-            {% endif %}
-        </b>
-        {% if target.proba is not none or target.score is not none %}
-            {% set comma = joiner(", ") %}
-            (
-            {%- if target.proba is not none -%}
-                {{ comma() }}probability <b>{{ "%0.3f"|format(target.proba) }}</b>
-            {%- endif -%}
-            {%- if target.score is not none -%}
-                {{ comma() }}score <b>{{ "%0.3f"|format(target.score) }}</b>
-            {%- endif -%}
-            )
+    {% if force_weights or not any_weighted_spans %}
+        <table style="{{ horizontal_layout_table_styles }}">
+            <tr>
+                {% with w_range = expl.targets|weight_range %}
+                    {% for target in expl.targets %}
+                        <td style="{{ horizontal_layout_td_styles }}">
+                            {% if force_weights or not target.weighted_spans %}
+                                {% with wts = target.feature_weights %}
+                                    {% set inline_target_header = True %}
+                                    {% include "weights_table.html" with context %}
+                                {% endwith %}
+                            {% endif %}
+                        </td>
+                    {% endfor %}
+                {% endwith %}
+            </tr>
+        </table>
+    {% endif %}
+
+    {% for target in expl.targets %}
+        {% include "weighted_spans.html" with context %}
+    {% endfor %}
+
+{% else %}
+
+    {% for target in expl.targets %}
+
+        {% if force_weights or not target.weighted_spans %}
+            {% with wts = target.feature_weights %}
+                {% set inline_target_header = False %}
+                {% set w_range = wts|weight_range %}
+                {% include "weights_table.html" with context %}
+            {% endwith %}
         {% endif %}
-        top features
-    </p>
 
-    {% if force_weights or not target.weighted_spans %}
-        {% with wts = target.feature_weights %}
-            {% include "weights_table.html" with context %}
-        {% endwith %}
-    {% endif %}
+        {% include "weighted_spans.html" with context %}
 
-    {% if target.weighted_spans %}
-        {% with wts = target.weighted_spans.other %}
-            {% include "weights_table.html" with context %}
-        {% endwith %}
-        <p>
-            {{ target.weighted_spans|render_weighted_spans(preserve_density) }}
-        </p>
-    {% endif %}
-
-{% endfor %}
+    {% endfor %}
+{% endif %}
