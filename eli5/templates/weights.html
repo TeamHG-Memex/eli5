@@ -1,11 +1,11 @@
 {% if horizontal_layout and expl.targets|length > 1 %}
 
     {% if force_weights or not any_weighted_spans %}
-        <table style="{{ dense_multitarget_table_styles }}">
+        <table style="{{ horizontal_layout_table_styles }}">
             <tr>
                 {% with w_range = expl.targets|weight_range %}
                     {% for target in expl.targets %}
-                        <td style="{{ dense_multitarget_td_styles }}">
+                        <td style="{{ horizontal_layout_td_styles }}">
                             {% if force_weights or not target.weighted_spans %}
                                 {% with wts = target.feature_weights %}
                                     {% set inline_target_header = True %}

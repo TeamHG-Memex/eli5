@@ -43,7 +43,7 @@ def format_as_html(explanation, include_styles=True, force_weights=True,
     feature names only if there are any spaces at the start or at the end of the
     feature. Setting it to True forces space highlighting, and setting it to
     False turns it off.
-    If ``horizontal_multitarget`` is True (default), multitarget classifier
+    If ``horizontal_layout`` is True (default), multiclass classifier
     weights are laid out horizontally.
     """
     template = template_env.get_template('explain.html')
@@ -59,9 +59,9 @@ def format_as_html(explanation, include_styles=True, force_weights=True,
         td1_styles='padding: 0 1em 0 0.5em; text-align: right; border: none;',
         tdm_styles='padding: 0 0.5em 0 0.5em; text-align: center; border: none;',
         td2_styles='padding: 0 0.5em 0 0.5em; text-align: left; border: none;',
-        dense_multitarget_table_styles=
+        horizontal_layout_table_styles=
         'border-collapse: collapse; border: none;',
-        dense_multitarget_td_styles='padding: 0px; border: 1px solid black;',
+        horizontal_layout_td_styles='padding: 0px; border: 1px solid black;',
         tddm_header_styles='text-align: center; padding: 0.5em; '
                            'border: none; border-bottom: 1px solid black;',
         show=show,
