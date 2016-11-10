@@ -181,6 +181,19 @@ def test_explain_linear_tuple_top(newsgroups_train):
         assert len(target.feature_weights.neg) == 2
 
 
+def test_explain_linear_feature_re(newsgroups_train):
+    clf = LogisticRegression(random_state=42)
+    docs, y, target_names = newsgroups_train
+    vec = CountVectorizer()
+    X = vec.fit_transform(docs)
+    clf.fit(X, y)
+    res = explain_weights(clf, vec=vec, feature_re='^ath')
+    for expl in format_as_all(res, clf):
+        assert 'atheists' in expl
+        assert 'atheism' in expl
+        assert 'space' not in expl
+
+
 @pytest.mark.parametrize(['clf'], [
     [RandomForestClassifier(n_estimators=100, random_state=42)],
     [ExtraTreesClassifier(n_estimators=100, random_state=24)],
@@ -209,6 +222,23 @@ def test_explain_random_forest(newsgroups_train, clf):
             assert '<svg' not in expl_html
 
     assert res == get_res()
+
+
+@pytest.mark.parametrize(['clf'], [
+    [RandomForestClassifier(n_estimators=100, random_state=42)],
+    [DecisionTreeClassifier(max_depth=3, random_state=42)],
+])
+def test_explain_random_forest_and_tree_feature_re(newsgroups_train, clf):
+    docs, y, target_names = newsgroups_train
+    vec = CountVectorizer()
+    X = vec.fit_transform(docs)
+    clf.fit(X.toarray(), y)
+    res = explain_weights(
+        clf, vec=vec, target_names=target_names, feature_re='^un')
+    res.decision_tree = None  # does not respect feature_re
+    for expl in format_as_all(res, clf):
+        assert 'under' in expl
+        assert 'god' not in expl  # filtered out
 
 
 def test_explain_empty(newsgroups_train):
@@ -264,6 +294,16 @@ def test_explain_linear_regression(boston_train, clf):
     assert '<BIAS>' in neg or '<BIAS>' in pos
 
     assert res == explain_weights(clf)
+
+
+def test_explain_linear_regression_feature_re(boston_train):
+    clf = ElasticNet(random_state=42)
+    X, y, feature_names = boston_train
+    clf.fit(X, y)
+    res = explain_weights(clf, feature_re='^x[1-5]$')
+    for expl in format_as_all(res, clf):
+        assert 'x5' in expl
+        assert 'x12' not in expl
 
 
 @pytest.mark.parametrize(['clf'], [

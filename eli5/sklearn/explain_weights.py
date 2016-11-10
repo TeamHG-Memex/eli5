@@ -97,7 +97,8 @@ _TOP = 20
 @explain_weights.register(BaseEstimator)
 @singledispatch
 def explain_weights_sklearn(estimator, vec=None, top=_TOP, target_names=None,
-                            feature_names=None, coef_scale=None):
+                            feature_names=None, coef_scale=None,
+                            feature_re=None):
     """ Return an explanation of an estimator """
     return Explanation(
         estimator=repr(estimator),
@@ -112,7 +113,8 @@ def explain_weights_sklearn(estimator, vec=None, top=_TOP, target_names=None,
 @explain_weights_sklearn.register(Perceptron)
 @explain_weights_sklearn.register(LinearSVC)
 def explain_linear_classifier_weights(clf, vec=None, top=_TOP, target_names=None,
-                                      feature_names=None, coef_scale=None):
+                                      feature_names=None, coef_scale=None,
+                                      feature_re=None):
     """
     Return an explanation of a linear classifier weights in the following
     format::
@@ -159,7 +161,7 @@ def explain_linear_classifier_weights(clf, vec=None, top=_TOP, target_names=None
 
     def _features(label_id):
         coef = get_coef(clf, label_id, scale=coef_scale)
-        return get_top_features(feature_names, coef, top)
+        return get_top_features(feature_names, coef, top, feature_re)
 
     def _label(label_id, label):
         return rename_label(label_id, label, target_names)
@@ -198,7 +200,8 @@ def explain_linear_classifier_weights(clf, vec=None, top=_TOP, target_names=None
 @explain_weights_sklearn.register(GradientBoostingClassifier)
 @explain_weights_sklearn.register(AdaBoostClassifier)
 def explain_rf_feature_importance(clf, vec=None, top=_TOP, target_names=None,
-                                  feature_names=None, coef_scale=None):
+                                  feature_names=None, coef_scale=None,
+                                  feature_re=None):
     """
     Return an explanation of a tree-based ensemble classifier in the
     following format::
@@ -218,6 +221,11 @@ def explain_rf_feature_importance(clf, vec=None, top=_TOP, target_names=None,
     trees = np.array(clf.estimators_).ravel()
     coef_std = np.std([tree.feature_importances_ for tree in trees], axis=0)
 
+    if feature_re is not None:
+        feature_names, flt_indices = feature_names.filtered_by_re(feature_re)
+        coef = coef[flt_indices]
+        coef_std = coef_std[flt_indices]
+
     indices = argsort_k_largest(coef, top)
     names, values, std = feature_names[indices], coef[indices], coef_std[indices]
     return Explanation(
@@ -231,6 +239,7 @@ def explain_rf_feature_importance(clf, vec=None, top=_TOP, target_names=None,
 @explain_weights_sklearn.register(DecisionTreeClassifier)
 def explain_decision_tree(clf, vec=None, top=_TOP, target_names=None,
                           feature_names=None, coef_scale=None,
+                          feature_re=None,
                           **export_graphviz_kwargs):
     """
     Return an explanation of a decision tree classifier in the
@@ -250,13 +259,17 @@ def explain_decision_tree(clf, vec=None, top=_TOP, target_names=None,
     """
     feature_names = get_feature_names(clf, vec, feature_names=feature_names)
     coef = clf.feature_importances_
+    tree_feature_names = feature_names
+    if feature_re is not None:
+        feature_names, flt_indices = feature_names.filtered_by_re(feature_re)
+        coef = coef[flt_indices]
     indices = argsort_k_largest(coef, top)
     names, values = feature_names[indices], coef[indices]
     std = np.zeros_like(values)
     export_graphviz_kwargs.setdefault("proportion", True)
     tree_info = get_tree_info(
         clf,
-        feature_names=feature_names,
+        feature_names=tree_feature_names,
         class_names=target_names,
         **export_graphviz_kwargs)
 
@@ -279,7 +292,7 @@ def explain_decision_tree(clf, vec=None, top=_TOP, target_names=None,
 @explain_weights_sklearn.register(SGDRegressor)
 def explain_linear_regressor_weights(reg, vec=None, feature_names=None,
                                      top=_TOP, target_names=None,
-                                     coef_scale=None):
+                                     coef_scale=None, feature_re=None):
     """
     Return an explanation of a linear regressor weights in the following
     format::
@@ -326,7 +339,7 @@ def explain_linear_regressor_weights(reg, vec=None, feature_names=None,
 
     def _features(target_id):
         coef = get_coef(reg, target_id, scale=coef_scale)
-        return get_top_features(feature_names, coef, top)
+        return get_top_features(feature_names, coef, top, feature_re)
 
     def _label(target_id, target):
         return rename_label(target_id, target, target_names)

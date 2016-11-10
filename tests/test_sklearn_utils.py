@@ -10,6 +10,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.naive_bayes import GaussianNB, BernoulliNB
 from sklearn.tree import DecisionTreeClassifier
 
+from eli5._feature_names import FeatureNames
 from eli5.sklearn.utils import (
     get_feature_names,
     get_target_names,
@@ -17,7 +18,6 @@ from eli5.sklearn.utils import (
     is_multiclass_classifier,
     is_multitarget_regressor,
     get_num_features,
-    FeatureNames,
 )
 
 
