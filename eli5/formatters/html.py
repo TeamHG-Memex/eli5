@@ -61,7 +61,8 @@ def format_as_html(explanation, include_styles=True, force_weights=True,
         td2_styles='padding: 0 0.5em 0 0.5em; text-align: left; border: none;',
         horizontal_layout_table_styles=
         'border-collapse: collapse; border: none;',
-        horizontal_layout_td_styles='padding: 0px; border: 1px solid black;',
+        horizontal_layout_td_styles=
+        'padding: 0px; border: 1px solid black; vertical-align: top;',
         tddm_header_styles='text-align: center; padding: 0.5em; '
                            'border: none; border-bottom: 1px solid black;',
         show=show,
