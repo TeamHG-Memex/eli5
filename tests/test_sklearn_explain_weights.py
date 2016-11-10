@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 from functools import partial
+import re
 
 from sklearn.datasets import make_regression
 from sklearn.feature_extraction.text import (
@@ -181,12 +182,18 @@ def test_explain_linear_tuple_top(newsgroups_train):
         assert len(target.feature_weights.neg) == 2
 
 
-def test_explain_linear_feature_re(newsgroups_train):
+@pytest.mark.parametrize(['vec'], [
+    [CountVectorizer()],
+    [HashingVectorizer(norm=None)],
+])
+def test_explain_linear_feature_re(newsgroups_train, vec):
     clf = LogisticRegression(random_state=42)
     docs, y, target_names = newsgroups_train
-    vec = CountVectorizer()
     X = vec.fit_transform(docs)
     clf.fit(X, y)
+    if isinstance(vec, HashingVectorizer):
+        vec = InvertableHashingVectorizer(vec)
+        vec.fit(docs)
     res = explain_weights(clf, vec=vec, feature_re='^ath')
     for expl in format_as_all(res, clf):
         assert 'atheists' in expl
@@ -300,10 +307,11 @@ def test_explain_linear_regression_feature_re(boston_train):
     clf = ElasticNet(random_state=42)
     X, y, feature_names = boston_train
     clf.fit(X, y)
-    res = explain_weights(clf, feature_re='^x[1-5]$')
+    res = explain_weights(clf, feature_names=feature_names,
+                          feature_re=re.compile('ratio$', re.I))
     for expl in format_as_all(res, clf):
-        assert 'x5' in expl
-        assert 'x12' not in expl
+        assert 'PTRATIO' in expl
+        assert 'LSTAT' not in expl
 
 
 @pytest.mark.parametrize(['clf'], [
