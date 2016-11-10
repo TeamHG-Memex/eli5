@@ -63,8 +63,7 @@ class FeatureNames(object):
             indexed_names = six.iteritems(self.feature_names)
         elif self.feature_names is None:
             indexed_names = []
-        else:
-            assert False, 'should be checked in __init__'
+        assert indexed_names is not None
         if isinstance(feature_re, six.string_types):
             filter_fn = lambda x: re.search(feature_re, x, re.U)
         else:
@@ -74,7 +73,6 @@ class FeatureNames(object):
                 indices.append(idx)
                 filtered_feature_names.append(name)
         return (
-
             FeatureNames(
                 filtered_feature_names,
                 bias_name=self.bias_name,
