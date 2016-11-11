@@ -157,11 +157,16 @@ def explain_linear_classifier_weights(clf, vec=None, top=_TOP, target_names=None
     feature_names, coef_scale = handle_hashing_vec(vec, feature_names,
                                                    coef_scale)
     feature_names = get_feature_names(clf, vec, feature_names=feature_names)
+    if feature_re is not None:
+        feature_names, flt_indices = feature_names.filtered_by_re(feature_re)
+
     _extra_caveats = "\n" + HASHING_CAVEATS if is_invhashing(vec) else ''
 
     def _features(label_id):
         coef = get_coef(clf, label_id, scale=coef_scale)
-        return get_top_features(feature_names, coef, top, feature_re)
+        if feature_re is not None:
+            coef = coef[flt_indices]
+        return get_top_features(feature_names, coef, top)
 
     def _label(label_id, label):
         return rename_label(label_id, label, target_names)
@@ -335,11 +340,15 @@ def explain_linear_regressor_weights(reg, vec=None, feature_names=None,
     feature_names, coef_scale = handle_hashing_vec(vec, feature_names,
                                                    coef_scale)
     feature_names = get_feature_names(reg, vec, feature_names=feature_names)
+    if feature_re is not None:
+        feature_names, flt_indices = feature_names.filtered_by_re(feature_re)
     _extra_caveats = "\n" + HASHING_CAVEATS if is_invhashing(vec) else ''
 
     def _features(target_id):
         coef = get_coef(reg, target_id, scale=coef_scale)
-        return get_top_features(feature_names, coef, top, feature_re)
+        if feature_re is not None:
+            coef = coef[flt_indices]
+        return get_top_features(feature_names, coef, top)
 
     def _label(target_id, target):
         return rename_label(target_id, target, target_names)

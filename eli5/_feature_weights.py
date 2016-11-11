@@ -32,10 +32,7 @@ def _get_top_features(feature_names, coef, top):
     return pos, neg
 
 
-def get_top_features(feature_names, coef, top, feature_re=None):
-    if feature_re is not None:
-        feature_names, flt_indices = feature_names.filtered_by_re(feature_re)
-        coef = coef[flt_indices]
+def get_top_features(feature_names, coef, top):
     pos, neg = _get_top_features(feature_names, coef, top)
     pos_coef = coef > 0
     neg_coef = coef < 0
