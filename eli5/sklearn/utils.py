@@ -73,10 +73,10 @@ def get_feature_names(clf, vec=None, bias_name='<BIAS>', feature_names=None):
         return FeatureNames(feature_names, bias_name=bias_name)
 
 
-def get_target_names(clf):
+def get_default_target_names(clf):
     """
-    Return a vector of target names: y if the is only one target,
-    and y0, ... if there are multiple targets.
+    Return a vector of target names: "y" if there is only one target,
+    and "y0", "y1", ... if there are multiple targets.
     """
     if len(clf.coef_.shape) == 1:
         target_names = ['y']

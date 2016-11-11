@@ -28,7 +28,7 @@ from eli5.sklearn.unhashing import InvertableHashingVectorizer, is_invhashing
 from eli5.sklearn.utils import (
     get_feature_names,
     get_coef,
-    get_target_names,
+    get_default_target_names,
     is_multiclass_classifier,
     is_multitarget_regressor,
     is_probabilistic_classifier,
@@ -217,7 +217,7 @@ def explain_prediction_linear_regressor(
 
     if is_multitarget_regressor(reg):
         if target_names is None:
-            target_names = get_target_names(reg)
+            target_names = get_default_target_names(reg)
         for label_id, label in enumerate(target_names):
             target_expl = TargetExplanation(
                 target=_label(label_id, label),

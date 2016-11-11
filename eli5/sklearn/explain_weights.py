@@ -40,7 +40,7 @@ from eli5.sklearn.utils import (
     is_multiclass_classifier,
     is_multitarget_regressor,
     get_feature_names,
-    get_target_names,
+    get_default_target_names,
     rename_label,
 )
 from eli5.explain import explain_weights
@@ -355,7 +355,7 @@ def explain_linear_regressor_weights(reg, vec=None, feature_names=None,
 
     if is_multitarget_regressor(reg):
         if target_names is None:
-            target_names = get_target_names(reg)
+            target_names = get_default_target_names(reg)
         return Explanation(
             targets=[
                 TargetExplanation(
