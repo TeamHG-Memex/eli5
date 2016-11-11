@@ -2,6 +2,8 @@
 import numpy as np
 from sklearn.multiclass import OneVsRestClassifier
 
+from eli5._feature_names import FeatureNames
+
 
 def is_multiclass_classifier(clf):
     """
@@ -32,46 +34,6 @@ def is_probabilistic_classifier(clf):
 def has_intercept(estimator):
     """ Return True if an estimator has intercept fit. """
     return getattr(estimator, 'fit_intercept', False)
-
-
-class FeatureNames(object):
-    """
-    A list-like object with feature names. It allows
-    feature names for unknown features to be generated using
-    a provided template.
-    """
-    def __init__(self, feature_names=None, bias_name=None,
-                 unkn_template=None, n_features=None):
-        assert (feature_names is not None or
-                (unkn_template is not None and n_features))
-        self.feature_names = feature_names
-        self.unkn_template = unkn_template
-        self.n_features = n_features or len(feature_names)
-        self.bias_name = bias_name
-
-    def __repr__(self):
-        return '<FeatureNames: {} features {} bias>'.format(
-            self.n_features, 'with' if self.has_bias else 'without')
-
-    def __len__(self):
-        return self.n_features + bool(self.has_bias)
-
-    def __getitem__(self, idx):
-        if isinstance(idx, np.ndarray):
-            return [self[i] for i in idx]
-        n = len(self)
-        if self.has_bias and idx == n - 1:
-            return self.bias_name
-        if 0 <= idx < n:
-            try:
-                return self.feature_names[idx]
-            except (TypeError, KeyError, IndexError):
-                return self.unkn_template % idx
-        raise IndexError('Feature index out of range')
-
-    @property
-    def has_bias(self):
-        return self.bias_name is not None
 
 
 def get_feature_names(clf, vec=None, bias_name='<BIAS>', feature_names=None):

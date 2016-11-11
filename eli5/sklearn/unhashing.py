@@ -12,7 +12,7 @@ import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.feature_extraction.text import HashingVectorizer, FeatureHasher
 
-from eli5.sklearn.utils import FeatureNames
+from eli5._feature_names import FeatureNames
 
 
 class InvertableHashingVectorizer(BaseEstimator, TransformerMixin):
