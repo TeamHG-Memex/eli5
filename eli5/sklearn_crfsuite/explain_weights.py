@@ -8,17 +8,26 @@ from pycrfsuite import Trainer
 
 from eli5.base import Explanation, TargetExplanation, TransitionFeatureWeights
 from eli5.explain import explain_weights
+from eli5._feature_names import FeatureNames
 from eli5._feature_weights import get_top_features
 
 
 @explain_weights.register(CRF)
-def explain_weights_sklearn_crfsuite(crf, top=20):
+def explain_weights_sklearn_crfsuite(crf, top=20, feature_re=None):
     feature_names = np.array(crf.attributes_)
     state_coef = crf_state_coef(crf).todense().A
     transition_coef = crf_transition_coef(crf)
 
+    if feature_re:
+        state_feature_names, flt_indices = (
+            FeatureNames(feature_names).filtered_by_re(feature_re))
+        state_feature_names = np.array(state_feature_names.feature_names)
+        state_coef = state_coef[:, flt_indices]
+    else:
+        state_feature_names = feature_names
+
     def _features(label_id):
-        return get_top_features(feature_names, state_coef[label_id], top)
+        return get_top_features(state_feature_names, state_coef[label_id], top)
 
     return Explanation(
         targets=[

@@ -46,3 +46,14 @@ def test_sklearn_crfsuite(xseq, yseq):
     html_nospaces = html.replace(' ', '').replace("\n", '')
     assert u'солнце:не светит' in html
     assert '<th>sunny</th><th>rainy</th>' in html_nospaces
+
+
+def test_sklearn_crfsuite_feature_re(xseq, yseq):
+    crf = CRF(c1=0.0, c2=0.1, max_iterations=50)
+    crf.fit([xseq], [yseq])
+
+    expl = explain_weights(crf, feature_re=u'(солн|clean)')
+    for expl in format_as_all(expl, crf):
+        assert u'солн' in expl
+        assert u'clean' in expl
+        assert 'walk' not in expl
