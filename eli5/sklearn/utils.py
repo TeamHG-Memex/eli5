@@ -73,16 +73,19 @@ def get_feature_names(clf, vec=None, bias_name='<BIAS>', feature_names=None):
         return FeatureNames(feature_names, bias_name=bias_name)
 
 
-def get_default_target_names(clf):
+def get_default_target_names(estimator):
     """
     Return a vector of target names: "y" if there is only one target,
     and "y0", "y1", ... if there are multiple targets.
     """
-    if len(clf.coef_.shape) == 1:
+    if len(estimator.coef_.shape) == 1:
         target_names = ['y']
     else:
-        num_targets, _ = clf.coef_.shape
-        target_names = ['y%d' % i for i in range(num_targets)]
+        num_targets, _ = estimator.coef_.shape
+        if num_targets == 1:
+            target_names = ['y']
+        else:
+            target_names = ['y%d' % i for i in range(num_targets)]
     return np.array(target_names)
 
 
@@ -123,15 +126,6 @@ def get_coef(clf, label_id, scale=None):
     else:
         bias = clf.intercept_[label_id]
     return np.hstack([coef, bias])
-
-
-def rename_label(label_id, label, target_names):
-    """ Rename label according to target_names """
-    if target_names is None:
-        return label
-    if isinstance(target_names, dict):
-        return target_names[label]
-    return target_names[label_id]
 
 
 def get_num_features(clf):

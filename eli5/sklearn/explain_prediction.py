@@ -23,7 +23,8 @@ from sklearn.linear_model import (
 from sklearn.svm import LinearSVC, LinearSVR
 from sklearn.multiclass import OneVsRestClassifier
 
-from eli5.base import Explanation, FeatureWeights, TargetExplanation
+from eli5.base import Explanation, TargetExplanation
+from eli5.utils import get_display_names
 from eli5.sklearn.unhashing import InvertableHashingVectorizer, is_invhashing
 from eli5.sklearn.utils import (
     get_feature_names,
@@ -33,7 +34,6 @@ from eli5.sklearn.utils import (
     is_multitarget_regressor,
     is_probabilistic_classifier,
     has_intercept,
-    rename_label,
 )
 from eli5.sklearn.text import get_weighted_spans
 from eli5._feature_weights import get_top_features
@@ -45,8 +45,12 @@ _TOP = 20
 
 @explain_prediction.register(BaseEstimator)
 @singledispatch
-def explain_prediction_sklearn(estimator, doc, vec=None, top=_TOP,
-                               target_names=None, feature_names=None,
+def explain_prediction_sklearn(estimator, doc,
+                               vec=None,
+                               top=_TOP,
+                               target_names=None,
+                               target_order=None,
+                               feature_names=None,
                                vectorized=False):
     """ Return an explanation of a scikit-learn estimator """
     return Explanation(
@@ -77,9 +81,13 @@ def explain_prediction_ovr_sklearn(clf, doc, **kwargs):
 @explain_prediction_sklearn.register(PassiveAggressiveClassifier)
 @explain_prediction_sklearn.register(Perceptron)
 @explain_prediction_sklearn.register(LinearSVC)
-def explain_prediction_linear_classifier(
-        clf, doc, vec=None, top=_TOP, target_names=None,
-        feature_names=None, vectorized=False):
+def explain_prediction_linear_classifier(clf, doc,
+                                         vec=None,
+                                         top=_TOP,
+                                         target_names=None,
+                                         target_order=None,
+                                         feature_names=None,
+                                         vectorized=False):
     """ Explain prediction of a linear classifier. """
     vec, feature_names = _handle_vec(clf, doc, vec, vectorized, feature_names)
     X = _get_X(doc, vec=vec, vectorized=vectorized)
@@ -108,13 +116,12 @@ def explain_prediction_linear_classifier(
         scores = _multiply(x, coef)
         return get_top_features(feature_names, scores, top)
 
-    def _label(label_id, label):
-        return rename_label(label_id, label, target_names)
+    display_names = get_display_names(clf.classes_, target_names, target_order)
 
     if is_multiclass_classifier(clf):
-        for label_id, label in enumerate(clf.classes_):
+        for label_id, label in display_names:
             target_expl = TargetExplanation(
-                target=_label(label_id, label),
+                target=label,
                 feature_weights=_weights(label_id),
                 score=score[label_id],
                 proba=proba[label_id] if proba is not None else None,
@@ -123,7 +130,7 @@ def explain_prediction_linear_classifier(
             res.targets.append(target_expl)
     else:
         target_expl = TargetExplanation(
-            target=_label(1, clf.classes_[1]),
+            target=display_names[1][1],
             feature_weights=_weights(0),
             score=score,
             proba=proba[1] if proba is not None else None,
@@ -187,9 +194,13 @@ def _handle_vec(clf, doc, vec, vectorized, feature_names):
 @explain_prediction_sklearn.register(Ridge)
 @explain_prediction_sklearn.register(RidgeCV)
 @explain_prediction_sklearn.register(SGDRegressor)
-def explain_prediction_linear_regressor(
-        reg, doc, vec=None, top=_TOP, target_names=None,
-        feature_names=None, vectorized=False):
+def explain_prediction_linear_regressor(reg, doc,
+                                        vec=None,
+                                        top=_TOP,
+                                        target_names=None,
+                                        target_order=None,
+                                        feature_names=None,
+                                        vectorized=False):
     """ Explain prediction of a linear regressor. """
     vec, feature_names = _handle_vec(reg, doc, vec, vectorized, feature_names)
     X = _get_X(doc, vec=vec, vectorized=vectorized)
@@ -212,15 +223,13 @@ def explain_prediction_linear_regressor(
         scores = _multiply(x, coef)
         return get_top_features(feature_names, scores, top)
 
-    def _label(label_id, label):
-        return rename_label(label_id, label, target_names)
+    names = get_default_target_names(reg)
+    display_names = get_display_names(names, target_names, target_order)
 
     if is_multitarget_regressor(reg):
-        if target_names is None:
-            target_names = get_default_target_names(reg)
-        for label_id, label in enumerate(target_names):
+        for label_id, label in display_names:
             target_expl = TargetExplanation(
-                target=_label(label_id, label),
+                target=label,
                 feature_weights=_weights(label_id),
                 score=score[label_id],
             )
@@ -228,7 +237,7 @@ def explain_prediction_linear_regressor(
             res.targets.append(target_expl)
     else:
         target_expl = TargetExplanation(
-            target=_label(0, 'y'),
+            target=display_names[0][1],
             feature_weights=_weights(0),
             score=score,
         )

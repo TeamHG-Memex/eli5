@@ -40,3 +40,50 @@ def vstack(blocks, format=None, dtype=None):
         return sp.vstack(blocks, format=format, dtype=dtype)
     else:
         return np.vstack(blocks)
+
+
+def get_value_indices(names, lookups):
+    """
+    >>> get_value_indices(['foo', 'bar', 'baz'], ['bar', 'foo'])
+    [1, 0]
+    >>> get_value_indices(['foo', 'bar', 'baz'], ['spam'])
+    Traceback (most recent call last):
+    ...
+    KeyError: 'spam'
+    """
+    positions = {name: idx for idx, name in enumerate(names)}
+    return [positions[name] for name in lookups]
+
+
+def get_display_names(original_names=None, target_names=None, target_order=None):
+    """
+    Return a list of (class_id, display_name) tuples.
+
+    Provide display names:
+    >>> get_display_names([0, 2], target_names=['foo', 'bar'])
+    [(0, 'foo'), (1, 'bar')]
+
+    Change order of labels:
+    >>> get_display_names(['x', 'y'], target_order=['y', 'x'])
+    [(1, 'y'), (0, 'x')]
+
+    Provide display names, choose only a subset of labels:
+    >>> get_display_names([0, 2], target_names=['foo', 'bar'], target_order=[2])
+    [(1, 'bar')]
+    """
+    if target_names is not None:
+        if original_names is not None:
+            if len(target_names) != len(original_names):
+                raise ValueError("target_names must have the same length as "
+                                 "original names: expected {}, got {}".format(
+                                     len(original_names), len(target_names)
+                                 ))
+        display_names = target_names
+    else:
+        display_names = original_names
+
+    if target_order is None:
+        target_order = original_names
+
+    class_indices = get_value_indices(original_names, target_order)
+    return list(zip(class_indices, [display_names[i] for i in class_indices]))
