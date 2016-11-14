@@ -74,7 +74,10 @@ class InvertableHashingVectorizer(BaseEstimator, TransformerMixin):
         unprocessed classifier coefficients, and always_signed=False
         if you've taken care of :attr:`column_signs_`.
         """
-        return self.unhasher.get_feature_names(always_signed=always_signed)
+        return self.unhasher.get_feature_names(
+            always_signed=always_signed,
+            always_positive=self._always_positive(),
+        )
 
     def _get_terms_iter(self, X):
         analyze = self.vec.build_analyzer()
@@ -92,8 +95,13 @@ class InvertableHashingVectorizer(BaseEstimator, TransformerMixin):
           for this column, or when there is no known term which maps to this
           column.
         """
+        if self._always_positive():
+            return np.ones(self.n_features)
         self.unhasher.recalculate_attributes()
         return self.unhasher.column_signs_
+
+    def _always_positive(self):
+        return self.vec.binary or self.vec.non_negative
 
 
 class FeatureUnhasher(BaseEstimator):
@@ -124,17 +132,21 @@ class FeatureUnhasher(BaseEstimator):
         self._attributes_dirty = True
         return self
 
-    def get_feature_names(self, always_signed=True):
+    def get_feature_names(self, always_signed=True, always_positive=False):
         self.recalculate_attributes()
 
         # lists of names with signs of known features
         column_ids, term_names, term_signs = self._get_collision_info()
         feature_names = {}
         for col_id, names, signs in zip(column_ids, term_names, term_signs):
-            if not always_signed and _invert_signs(signs):
-                signs = [-sign for sign in signs]
-            feature_names[col_id] = [{'name': name, 'sign': sign}
-                                     for name, sign in zip(names, signs)]
+            if always_positive:
+                feature_names[col_id] = [{'name': name, 'sign': 1}
+                                         for name in names]
+            else:
+                if not always_signed and _invert_signs(signs):
+                    signs = [-sign for sign in signs]
+                feature_names[col_id] = [{'name': name, 'sign': sign}
+                                         for name, sign in zip(names, signs)]
         return FeatureNames(
             feature_names,
             n_features=self.n_features,
