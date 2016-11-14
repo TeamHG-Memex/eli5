@@ -8,11 +8,23 @@ from sklearn.feature_extraction.text import HashingVectorizer
 from eli5.sklearn.unhashing import InvertableHashingVectorizer
 
 
-@pytest.mark.parametrize('always_signed', [True, False])
-def test_invertable_hashing_vectorizer(always_signed):
+@pytest.mark.parametrize(
+    ['always_signed', 'binary', 'non_negative'], [
+        [True, False, False],
+        [False, False, False],
+        [False, True, False],
+        [True, True, False],
+
+        [False, True, True],
+        [False, False, True],
+        [True, False, True],
+    ],
+)
+def test_invertable_hashing_vectorizer(always_signed, binary, non_negative):
     n_features = 8
     n_words = 4 * n_features
-    vec = HashingVectorizer(n_features=n_features)
+    vec = HashingVectorizer(n_features=n_features, binary=binary,
+                            non_negative=non_negative)
     words = ['word_{}'.format(i) for i in range(n_words)]
     corpus = [w for i, word in enumerate(words, 1) for w in repeat(word, i)]
     split = len(corpus) // 2
