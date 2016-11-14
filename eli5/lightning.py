@@ -20,7 +20,7 @@ from eli5.explain import explain_prediction, explain_weights
 def explain_weights_lightning(estimator, vec=None, top=20, target_names=None,
                               target_order=None, feature_names=None,
                               coef_scale=None):
-    """ Return an explanation of a lightning estimator """
+    """ Return an explanation of a lightning estimator weights """
     return {
         "estimator": repr(estimator),
         "description": "Error: estimator %r is not supported" % estimator,
@@ -33,7 +33,7 @@ def explain_prediction_lightning(estimator, doc, vec=None, top=20,
                                  target_names=None, target_order=None,
                                  feature_names=None, vectorized=False,
                                  coef_scale=None):
-    """ Return an explanation of a lightning estimator """
+    """ Return an explanation of a lightning estimator predictions """
     return {
         "estimator": repr(estimator),
         "description": "Error: estimator %r is not supported" % estimator,

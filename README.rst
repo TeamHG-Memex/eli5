@@ -15,7 +15,7 @@ ELI5
    :alt: Code Coverage
 
 .. image:: https://readthedocs.org/projects/eli5/badge/?version=latest
-   :target: http://eli5.readthedocs.org/en/latest/?badge=latest
+   :target: http://eli5.readthedocs.io/en/latest/?badge=latest
    :alt: Documentation
 
 
@@ -57,4 +57,4 @@ TODO:
 
 License is MIT.
 
-Check `docs <http://eli5.readthedocs.org/>`_ for more (sorry, also TODO).
+Check `docs <http://eli5.readthedocs.io/>`_ for more (sorry, also TODO).
