@@ -57,3 +57,15 @@ def test_sklearn_crfsuite_feature_re(xseq, yseq):
         assert u'солн' in expl
         assert u'clean' in expl
         assert 'walk' not in expl
+
+
+def test_sklearn_targets(xseq, yseq):
+    crf = CRF(c1=0.0, c2=0.1, max_iterations=50)
+    crf.fit([xseq], [yseq])
+    res = explain_weights(crf,
+                          target_names={'sunny': u'☀'},
+                          target_order=['rainy', 'sunny'])
+    for expl in format_as_all(res, crf):
+        assert u'☀' in expl
+        assert expl.index('rainy') < expl.index(u'☀')
+
