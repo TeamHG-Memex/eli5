@@ -13,24 +13,22 @@ Welcome to ELI5's documentation!
    :target: http://codecov.io/github/TeamHG-Memex/eli5?branch=master
    :alt: Code Coverage
 
-ELI5 is a Python library which allows to visualize and debug
+ELI5_ is a Python library which allows to visualize and debug
 various Machine Learning models using unified API. It has
 built-in support for several ML frameworks and provides a way to
 explain black-box models.
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
-   install
    overview
+   libraries/index
+   lime
    contribute
-   api/index
+   autodocs/index
    changes
 
-Indices and tables
-==================
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+License is MIT.
 
+.. _ELI5: https://github.com/TeamHG-Memex/eli5
