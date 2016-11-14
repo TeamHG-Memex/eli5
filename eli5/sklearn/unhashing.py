@@ -3,7 +3,6 @@
 Utilities to reverse transformation done by FeatureHasher or HashingVectorizer.
 """
 from __future__ import absolute_import
-
 from collections import defaultdict, Counter
 from itertools import chain
 from typing import List, Iterable, Any, Dict
