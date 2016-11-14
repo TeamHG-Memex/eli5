@@ -18,6 +18,7 @@ def explain_weights_sklearn_crfsuite(crf,
                                      target_names=None,
                                      target_order=None,
                                      feature_re=None):
+    """ Explain sklearn_crfsuite.CRF weights """
     feature_names = np.array(crf.attributes_)
     state_coef = crf_state_coef(crf).todense().A
     transition_coef = crf_transition_coef(crf)

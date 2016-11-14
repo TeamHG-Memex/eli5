@@ -19,7 +19,29 @@
 #
 # import os
 # import sys
-# sys.path.insert(0, os.path.abspath('.'))
+# sys.path.insert(0, os.path.abspath('..'))
+
+
+from unittest.mock import MagicMock
+
+class Mock(MagicMock):
+    @classmethod
+    def __getattr__(cls, name):
+        if name == '_mock_methods':
+            raise AttributeError()
+        return Mock()
+
+
+MOCK_MODULES = [
+    'lightning',
+    'lightning.impl',
+    'lightning.impl.base',
+    'sklearn_crfsuite',
+    'IPython',
+    'IPython.display',
+]
+sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
+
 
 # -- General configuration ------------------------------------------------
 
