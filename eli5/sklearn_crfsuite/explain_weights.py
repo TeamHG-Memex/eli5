@@ -107,7 +107,8 @@ def filter_transition_coefs(transition_coef, indices):
 
 def ner_default_target_order(crf_classes):
     """
-    Return default order of labels for NER tasks
+    Return default order of labels for NER tasks:
+
     >>> ner_default_target_order(['B-ORG', 'B-PER', 'O', 'I-PER'])
     ['O', 'B-ORG', 'B-PER', 'I-PER']
     """
