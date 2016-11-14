@@ -70,8 +70,14 @@ def get_display_names(original_names=None, target_names=None, target_order=None)
     Provide display names, choose only a subset of labels:
     >>> get_display_names([0, 2], target_names=['foo', 'bar'], target_order=[2])
     [(1, 'bar')]
+
+    target_names can be a dictionary with {old_name: new_name} labels:
+    >>> get_display_names(['x', 'y'], target_order=['y', 'x'],
+    ...                   target_names={'x': 'X'})
+    [(1, 'y'), (0, 'X')]
+
     """
-    if target_names is not None:
+    if isinstance(target_names, (list, tuple, np.ndarray)):
         if original_names is not None:
             if len(target_names) != len(original_names):
                 raise ValueError("target_names must have the same length as "
@@ -86,4 +92,7 @@ def get_display_names(original_names=None, target_names=None, target_order=None)
         target_order = original_names
 
     class_indices = get_value_indices(original_names, target_order)
-    return list(zip(class_indices, [display_names[i] for i in class_indices]))
+    names = [display_names[i] for i in class_indices]
+    if isinstance(target_names, dict):
+        names = [target_names.get(name, name) for name in names]
+    return list(zip(class_indices, names))
