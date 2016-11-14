@@ -4,16 +4,20 @@ from __future__ import absolute_import
 import numpy as np
 from scipy import sparse as sp
 from sklearn_crfsuite import CRF
-from pycrfsuite import Trainer
 
 from eli5.base import Explanation, TargetExplanation, TransitionFeatureWeights
 from eli5.explain import explain_weights
+from eli5.utils import get_display_names
 from eli5._feature_names import FeatureNames
 from eli5._feature_weights import get_top_features
 
 
 @explain_weights.register(CRF)
-def explain_weights_sklearn_crfsuite(crf, top=20, feature_re=None):
+def explain_weights_sklearn_crfsuite(crf,
+                                     top=20,
+                                     target_names=None,
+                                     target_order=None,
+                                     feature_re=None):
     feature_names = np.array(crf.attributes_)
     state_coef = crf_state_coef(crf).todense().A
     transition_coef = crf_transition_coef(crf)
@@ -29,16 +33,23 @@ def explain_weights_sklearn_crfsuite(crf, top=20, feature_re=None):
     def _features(label_id):
         return get_top_features(state_feature_names, state_coef[label_id], top)
 
+    if target_order is None:
+        target_order = ner_default_target_order(crf.classes_)
+
+    display_names = get_display_names(crf.classes_, target_names, target_order)
+    indices, names = zip(*display_names)
+    transition_coef = filter_transition_coefs(transition_coef, indices)
+
     return Explanation(
         targets=[
             TargetExplanation(
                 target=label,
                 feature_weights=_features(label_id)
             )
-            for label_id, label in enumerate(crf.classes_)
+            for label_id, label in zip(indices, names)
         ],
         transition_features=TransitionFeatureWeights(
-            class_names=crf.classes_,
+            class_names=names,
             coef=transition_coef,
         ),
         estimator=repr(crf),
@@ -70,3 +81,38 @@ def crf_transition_coef(crf):
             coef[i, j] = w
 
     return coef
+
+
+def filter_transition_coefs(transition_coef, indices):
+    """
+    >>> coef = np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]])
+    >>> filter_transition_coefs(coef, [0])
+    array([[0]])
+    >>> filter_transition_coefs(coef, [1, 2])
+    array([[4, 5],
+    ...    [7, 8]])
+    >>> filter_transition_coefs(coef, [2, 0])
+    array([[8, 6],
+    ...    [2, 0]])
+    >>> filter_transition_coefs(coef, [0, 1, 2])
+    array([[0, 1, 2],
+    ...    [3, 4, 5],
+    ...    [6, 7, 8]])
+    """
+    indices = np.array(indices)
+    rows = transition_coef[indices]
+    return rows[:,indices]
+
+
+def ner_default_target_order(crf_classes):
+    """
+    Return default order of labels for NER tasks
+    >>> ner_default_target_order(['B-ORG', 'B-PER', 'O', 'I-PER'])
+    ['O', 'B-ORG', 'B-PER', 'I-PER']
+    """
+    def key(cls):
+        if len(cls) > 2 and cls[1] == '-':
+            # group names like B-ORG and I-ORG together
+            return cls.split('-', 1)[1], cls
+        return '', cls
+    return sorted(crf_classes, key=key)
