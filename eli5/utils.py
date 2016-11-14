@@ -76,12 +76,16 @@ def get_display_names(original_names=None, target_names=None, target_order=None)
     ...                   target_names={'x': 'X'})
     [(1, 'y'), (0, 'X')]
 
+    >>> get_display_names(['x', 'y'], target_names=['foo'])
+    Traceback (most recent call last):
+    ...
+    ValueError: target_names must have the same length as original names (expected 2, got 1)
     """
     if isinstance(target_names, (list, tuple, np.ndarray)):
         if original_names is not None:
             if len(target_names) != len(original_names):
                 raise ValueError("target_names must have the same length as "
-                                 "original names: expected {}, got {}".format(
+                                 "original names (expected {}, got {})".format(
                                      len(original_names), len(target_names)
                                  ))
         display_names = target_names
