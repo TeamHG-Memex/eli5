@@ -40,12 +40,12 @@ def test_sklearn_crfsuite(xseq, yseq):
     assert "y='sunny' top features" in text
     assert "y='rainy' top features" in text
     assert "Transition features" in text
-    assert "sunny    0.696   -0.130" in text
+    assert "sunny   -0.130    0.696" in text
     assert u'+0.124  солнце:не светит' in text
 
     html_nospaces = html.replace(' ', '').replace("\n", '')
     assert u'солнце:не светит' in html
-    assert '<th>sunny</th><th>rainy</th>' in html_nospaces
+    assert '<th>rainy</th><th>sunny</th>' in html_nospaces
 
 
 def test_sklearn_crfsuite_feature_re(xseq, yseq):
@@ -59,13 +59,21 @@ def test_sklearn_crfsuite_feature_re(xseq, yseq):
         assert 'walk' not in expl
 
 
-def test_sklearn_targets(xseq, yseq):
+@pytest.mark.parametrize(['target_order'], [
+    [['rainy', 'sunny']],
+    [['sunny', 'rainy']],
+])
+def test_sklearn_targets(xseq, yseq, target_order):
     crf = CRF(c1=0.0, c2=0.1, max_iterations=50)
     crf.fit([xseq], [yseq])
+
     res = explain_weights(crf,
                           target_names={'sunny': u'☀'},
-                          target_order=['rainy', 'sunny'])
+                          target_order=target_order)
     for expl in format_as_all(res, crf):
         assert u'☀' in expl
-        assert expl.index('rainy') < expl.index(u'☀')
+        if target_order[0] == 'rainy':
+            assert expl.index('rainy') < expl.index(u'☀')
+        else:
+            assert expl.index('rainy') > expl.index(u'☀')
 
