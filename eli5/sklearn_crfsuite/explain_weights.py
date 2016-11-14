@@ -34,6 +34,9 @@ def explain_weights_sklearn_crfsuite(crf,
     def _features(label_id):
         return get_top_features(state_feature_names, state_coef[label_id], top)
 
+    if target_order is None:
+        target_order = ner_default_target_order(crf.classes_)
+
     display_names = get_display_names(crf.classes_, target_names, target_order)
     indices, names = zip(*display_names)
     transition_coef = filter_transition_coefs(transition_coef, indices)
@@ -100,3 +103,17 @@ def filter_transition_coefs(transition_coef, indices):
     indices = np.array(indices)
     rows = transition_coef[indices]
     return rows[:,indices]
+
+
+def ner_default_target_order(crf_classes):
+    """
+    Return default order of labels for NER tasks
+    >>> ner_default_target_order(['B-ORG', 'B-PER', 'O', 'I-PER'])
+    ['O', 'B-ORG', 'B-PER', 'I-PER']
+    """
+    def key(cls):
+        if len(cls) > 2 and cls[1] == '-':
+            # group names like B-ORG and I-ORG together
+            return cls.split('-', 1)[1], cls
+        return '', cls
+    return sorted(crf_classes, key=key)
