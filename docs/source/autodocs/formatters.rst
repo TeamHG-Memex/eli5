@@ -1,3 +1,5 @@
+.. module:: eli5.formatters
+
 eli5.formatters
 ===============
 

@@ -56,8 +56,8 @@ There are two main ways to look at a classification or a regression model:
 2. inspect an individual prediction of a model, try to figure out why
    the model makes the decision it makes.
 
-For (1) ELI5 provides ``eli5.explain_weights`` function; for (2) it provides
-``eli5.explain_prediction`` function.
+For (1) ELI5 provides :func:`eli5.explain_weights` function; for (2)
+it provides :func:`eli5.explain_prediction` function.
 
 If the ML library you're working with is supported then you usually
 can enter the following in IPython Notebook::
@@ -72,13 +72,16 @@ and get an explanation like this:
 Supported arguments and the exact way the classifier is visualized depends
 on a library.
 
-To explain an individual prediction (2) use ``eli5.explain_prediction``
+To explain an individual prediction (2) use :func:`eli5.explain_prediction`
 function. Exact parameters depend on a classifier and on input data kind
 (text, tabular, images). For example, you may get text highlighted like this
 if you're using one of the scikit-learn_ vectorizers with char ngrams:
 
 .. image:: static/char-ngrams.png
 
+To learn more, check example IPython
+`notebooks <https://github.com/TeamHG-Memex/eli5/tree/master/notebooks>`_
+and read documentation sections specific to your framework.
 
 Why?
 ----
@@ -87,7 +90,7 @@ For some of classifiers inspection and debugging is easy, for others
 this is hard. It is not a rocket science to take coefficients
 of a linear classifier, relate them to feature names and show in
 an HTML table. ELI5 aims to handle not only simple cases,
-but even for simple cases having unified API for inspection has a value:
+but even for simple cases having a unified API for inspection has a value:
 
 * you can call a ready-made function from ELI5 and get a nicely formatted
   result immediately;
