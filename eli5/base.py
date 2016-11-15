@@ -4,13 +4,11 @@ from typing import Dict, List, Tuple, Union
 import attr
 
 from .base_utils import attrs, numpy_to_python
+from .formatters.features import FormattedFeatureName
 
 
 # @attrs decorator used in this file calls @attr.s(slots=True),
 # creating attr.ib entries based on the signature of __init__.
-
-
-FeatureImportance = Tuple[str, float, float]  # name, value, std
 
 
 @attrs
@@ -25,7 +23,7 @@ class Explanation(object):
                  method=None,  # type: str
                  is_regression=False,  # type: bool
                  targets=None,  # type: List[TargetExplanation]
-                 feature_importances=None,  # type: List[FeatureImportance]
+                 feature_importances=None,  # type: List[FeatureWeight]
                  decision_tree=None,  # type: TreeInfo
                  highlight_spaces=None,
                  transition_features=None,  # type: TransitionFeatureWeights
@@ -74,7 +72,8 @@ class TargetExplanation(object):
         self.weighted_spans = weighted_spans
 
 
-Feature = Union[str, Dict]  # Dict is currently used for unhashed features
+# List is currently used for unhashed features
+Feature = Union[str, List, FormattedFeatureName]
 
 
 @attrs
@@ -85,8 +84,8 @@ class FeatureWeights(object):
     :pos_remaining: and :neg_remaining: attributes.
     """
     def __init__(self,
-                 pos,  # type: List[Tuple[Feature, float]]
-                 neg,  # type: List[Tuple[Feature, float]]
+                 pos,  # type: List[FeatureWeight]
+                 neg,  # type: List[FeatureWeight]
                  pos_remaining=0,  # type: int
                  neg_remaining=0,  # type: int
                  ):
@@ -94,6 +93,18 @@ class FeatureWeights(object):
         self.neg = neg
         self.pos_remaining = pos_remaining
         self.neg_remaining = neg_remaining
+
+
+@attrs
+class FeatureWeight(object):
+    def __init__(self,
+                 feature,  # type: Feature
+                 weight,  # type: float
+                 std=None,  # type: float
+                 ):
+        self.feature = feature
+        self.weight = weight
+        self.std = std
 
 
 WeightedSpan = Tuple[

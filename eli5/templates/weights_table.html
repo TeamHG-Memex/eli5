@@ -21,7 +21,7 @@
         </tr>
         </thead>
         <tbody>
-        {% for name, coef in wts.pos %}
+        {% for fw in wts.pos %}
             {% include "weights_table_row.html" with context %}
         {% endfor %}
         {% if wts.pos_remaining %}
@@ -39,7 +39,7 @@
                 </td>
             </tr>
         {% endif %}
-        {% for name, coef in wts.neg|reverse %}
+        {% for fw in wts.neg|reverse %}
             {% include "weights_table_row.html" with context %}
         {% endfor %}
 
