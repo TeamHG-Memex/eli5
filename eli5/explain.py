@@ -24,7 +24,7 @@ def explain_weights(estimator, **kwargs):
         Number of features to show. When ``top`` is int, ``top`` features with
         a highest absolute values are shown. When it is (pos, neg) tuple,
         no more than ``pos`` positive features and no more than ``neg``
-        negative features is shown.
+        negative features is shown. ``None`` value means no limit.
 
         This argument may be supported or not, depending on estimator type.
 
@@ -90,7 +90,7 @@ def explain_prediction(estimator, doc, **kwargs):
         Number of features to show. When ``top`` is int, ``top`` features with
         a highest absolute values are shown. When it is (pos, neg) tuple,
         no more than ``pos`` positive features and no more than ``neg``
-        negative features is shown.
+        negative features is shown. ``None`` value means no limit (default).
 
         This argument may be supported or not, depending on estimator type.
 

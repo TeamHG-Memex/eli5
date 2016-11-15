@@ -29,7 +29,7 @@ def explain_weights_lightning(estimator, vec=None, top=20, target_names=None,
 
 @explain_prediction.register(BaseEstimator)
 @singledispatch
-def explain_prediction_lightning(estimator, doc, vec=None, top=20,
+def explain_prediction_lightning(estimator, doc, vec=None, top=None,
                                  target_names=None, target_order=None,
                                  feature_names=None, vectorized=False,
                                  coef_scale=None):

@@ -31,5 +31,15 @@ def test_argsort_k_smallest_zero(x):
 
 
 @given(rnd_len_arrays(np.float32, 0, 5))
+def test_argsort_k_smallest_None(x):
+    assert len(argsort_k_smallest(x, None)) == len(x)
+
+
+@given(rnd_len_arrays(np.float32, 0, 5))
 def test_argsort_k_largest_zero(x):
     assert len(argsort_k_largest(x, 0)) == 0
+
+
+@given(rnd_len_arrays(np.float32, 0, 5))
+def test_argsort_k_largest_None(x):
+    assert len(argsort_k_largest(x, None)) == len(x)

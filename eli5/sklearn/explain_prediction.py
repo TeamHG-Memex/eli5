@@ -40,14 +40,11 @@ from eli5._feature_weights import get_top_features
 from eli5.explain import explain_prediction
 
 
-_TOP = 20
-
-
 @explain_prediction.register(BaseEstimator)
 @singledispatch
 def explain_prediction_sklearn(estimator, doc,
                                vec=None,
-                               top=_TOP,
+                               top=None,
                                target_names=None,
                                target_order=None,
                                feature_names=None,
@@ -83,7 +80,7 @@ def explain_prediction_ovr_sklearn(clf, doc, **kwargs):
 @explain_prediction_sklearn.register(LinearSVC)
 def explain_prediction_linear_classifier(clf, doc,
                                          vec=None,
-                                         top=_TOP,
+                                         top=None,
                                          target_names=None,
                                          target_order=None,
                                          feature_names=None,
@@ -196,7 +193,7 @@ def _handle_vec(clf, doc, vec, vectorized, feature_names):
 @explain_prediction_sklearn.register(SGDRegressor)
 def explain_prediction_linear_regressor(reg, doc,
                                         vec=None,
-                                        top=_TOP,
+                                        top=None,
                                         target_names=None,
                                         target_order=None,
                                         feature_names=None,

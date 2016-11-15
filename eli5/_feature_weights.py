@@ -22,7 +22,8 @@ def _get_top_features(feature_names, coef, top):
       If ``top`` is a number, ``top`` features with largest absolute
       coefficients are returned. If it is a ``(num_pos, num_neg)`` tuple,
       the function returns no more than ``num_pos`` positive features and
-      no more than ``num_neg`` negative features.
+      no more than ``num_neg`` negative features. ``None`` value means
+      'no limit'.
     """
     if isinstance(top, (list, tuple)):
         num_pos, num_neg = list(top)  # "list" is just for mypy
