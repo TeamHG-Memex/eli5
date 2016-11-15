@@ -31,6 +31,9 @@ def attrs(class_):
     return attr.s(class_, these=these, init=False, slots=True, **attrs_kwargs)
 
 
+_numpy_string_types = (np.string_, np.unicode_) if six.PY2 else np.str_
+
+
 def numpy_to_python(obj):
     """ Convert an nested dict/list/tuple that might contain numpy objects
     to their python equivalents. Return converted object.
@@ -41,7 +44,7 @@ def numpy_to_python(obj):
         return [numpy_to_python(x) for x in obj]
     elif isinstance(obj, FormattedFeatureName):
         return obj.value
-    elif isinstance(obj, np.str_):
+    elif isinstance(obj, _numpy_string_types):
         return six.text_type(obj)
     elif hasattr(obj, 'dtype') and np.isscalar(obj):
         if np.issubdtype(obj, float):
