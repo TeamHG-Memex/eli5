@@ -42,6 +42,7 @@ MOCK_MODULES = [
     'sklearn_crfsuite',
     'IPython',
     'IPython.display',
+    'typing',
 ]
 sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 
