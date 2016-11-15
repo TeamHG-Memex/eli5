@@ -2,6 +2,7 @@
 from __future__ import print_function
 import os
 import inspect
+import json
 from pprint import pprint
 
 from hypothesis.strategies import integers
@@ -19,11 +20,14 @@ def rnd_len_arrays(dtype, min_len=0, max_len=3, elements=None):
 
 
 def format_as_all(res, clf, **kwargs):
-    """ Format explanaton as text and html, print text explanation, and save html.
+    """ Format explanation as text and html, check JSON-encoding,
+    print text explanation, save html, return text and html.
     """
+    expl_dict = res.asdict()
+    pprint(expl_dict)
+    json.dumps(expl_dict)  # check that it can be serialized to JSON
     expl_text = format_as_text(res, **kwargs)
     expl_html = format_as_html(res, **kwargs)
-    pprint(res)
     print(expl_text)
     write_html(clf, expl_html, expl_text)
     return expl_text, expl_html

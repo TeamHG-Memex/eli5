@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
-
 from typing import Dict, List, Tuple, Union
 
-from .base_utils import attrs
+import attr
+
+from .base_utils import attrs, numpy_to_python
 
 
 # @attrs decorator used in this file calls @attr.s(slots=True),
@@ -40,7 +41,14 @@ class Explanation(object):
         self.highlight_spaces = highlight_spaces
         self.transition_features = transition_features
 
+    def asdict(self):
+        """ Return a dictionary representing the explanation that can be JSON-encoded.
+        """
+        return numpy_to_python(attr.asdict(self))
+
     def _repr_html_(self):
+        """ HTML formatting for the notebook.
+        """
         from eli5.formatters import fields
         from eli5.formatters.html import format_as_html
         return format_as_html(self, force_weights=False, show=fields.WEIGHTS)
