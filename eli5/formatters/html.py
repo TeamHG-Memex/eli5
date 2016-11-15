@@ -19,10 +19,10 @@ template_env = Environment(
 template_env.globals.update(zip=zip, numpy=np)
 template_env.filters.update(dict(
     render_weighted_spans=lambda x, pd: render_weighted_spans(x, pd),
-    weight_color=lambda w, w_range: _weight_color(w, w_range),
+    weight_color=lambda w, w_range: format_hsl(weight_color_hsl(w, w_range)),
     remaining_weight_color=lambda ws, w_range, pos_neg:
-        _remaining_weight_color(ws, w_range, pos_neg),
-    weight_range=lambda w: _weight_range(w),
+        format_hsl(remaining_weight_color_hsl(ws, w_range, pos_neg)),
+    weight_range=lambda w: get_weight_range(w),
     fi_weight_range=lambda w: max([abs(x[1]) for x in w] or [0]),
     format_feature=lambda f, w, hl: _format_feature(f, w, hl_spaces=hl),
     format_decision_tree=lambda tree: _format_decision_tree(tree),
@@ -128,7 +128,8 @@ def _colorize(token, weight, weight_range):
             'style="background-color: {color}; opacity: {opacity}" '
             'title="{weight:.3f}"'
             '>{token}</span>'.format(
-                color=_weight_color(weight, weight_range, min_lightness=0.6),
+                color=format_hsl(
+                    weight_color_hsl(weight, weight_range, min_lightness=0.6)),
                 opacity=_weight_opacity(weight, weight_range),
                 weight=weight,
                 token=token)
@@ -143,14 +144,21 @@ def _weight_opacity(weight, weight_range):
     return '{:.2f}'.format(min_opacity + (1 - min_opacity) * rel_weight)
 
 
-def _weight_color(weight, weight_range, min_lightness=0.8):
-    """ Return css color for given weight, where the max absolute weight
-    is given by weight_range.
+def weight_color_hsl(weight, weight_range, min_lightness=0.8):
+    """ Return HSL color components for given weight,
+    where the max absolute weight is given by weight_range.
     """
     hue = _hue(weight)
     saturation = 1
     rel_weight = (abs(weight) / weight_range) ** 0.7
     lightness = 1.0 - (1 - min_lightness) * rel_weight
+    return hue, saturation, lightness
+
+
+def format_hsl(hsl_color):
+    """ Format hsl color as css color string.
+    """
+    hue, saturation, lightness = hsl_color
     return 'hsl({}, {:.2%}, {:.2%})'.format(hue, saturation, lightness)
 
 
@@ -158,16 +166,16 @@ def _hue(weight):
     return 120 if weight > 0 else 0
 
 
-def _weight_range(weights):
+def get_weight_range(weights):
     """ Max absolute feature for pos and neg weights.
     """
     if isinstance(weights, list):
-        return max([_weight_range(t.feature_weights) for t in weights] or [0])
+        return max([get_weight_range(t.feature_weights) for t in weights] or [0])
     return max([abs(coef) for lst in [weights.pos, weights.neg]
                 for _, coef in lst or []] or [0])
 
 
-def _remaining_weight_color(ws, weight_range, pos_neg):
+def remaining_weight_color_hsl(ws, weight_range, pos_neg):
     """ Color for "remaining" row.
     Handles a number of edge cases: if there are no weights in ws or weight_range
     is zero, assume the worst (most intensive positive or negative color).
@@ -180,7 +188,7 @@ def _remaining_weight_color(ws, weight_range, pos_neg):
         weight = sign * weight_range
     else:
         weight = min((coef for _, coef in ws), key=abs)
-    return _weight_color(weight, weight_range)
+    return weight_color_hsl(weight, weight_range)
 
 
 def _format_unhashed_feature(feature, weight, hl_spaces):
