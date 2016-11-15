@@ -21,8 +21,11 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath('../..'))
 
+try:
+    from unittest.mock import MagicMock
+except ImportError:  # python 2
+    from mock import MagicMock
 
-from unittest.mock import MagicMock
 
 class Mock(MagicMock):
     @classmethod
