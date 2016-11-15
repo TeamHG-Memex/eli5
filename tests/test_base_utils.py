@@ -1,7 +1,8 @@
 import attr
 import pytest
+import numpy as np
 
-from eli5.base_utils import attrs
+from eli5.base_utils import attrs, numpy_to_python
 
 
 def test_attrs_with_default():
@@ -60,3 +61,13 @@ def test_bad_init():
 
     with pytest.raises(AttributeError):
         BadInit(1)
+
+
+def test_numpy_to_python():
+    assert numpy_to_python({
+        'x': np.int32(12),
+        'y': [np.ones(2)],
+    }) == {
+        'x': 12,
+        'y': [[1.0, 1.0]],
+    }
