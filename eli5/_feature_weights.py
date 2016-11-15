@@ -3,7 +3,7 @@ from __future__ import absolute_import
 
 import numpy as np
 
-from eli5.base import FeatureWeights
+from eli5.base import FeatureWeights, FeatureWeight
 from .utils import argsort_k_largest, argsort_k_smallest, mask
 
 
@@ -66,16 +66,16 @@ def _get_top_negative_features(feature_names, coef, k):
 
 
 def _positive(features):
-    return [(name, value) for (name, value) in features if value > 0]
+    return [fw for fw in features if fw.weight > 0]
 
 
 def _negative(features):
-    return [(name, value) for (name, value) in features if value < 0]
+    return [fw for fw in features if fw.weight < 0]
 
 
 def _features(indices, feature_names, coef):
     names = mask(feature_names, indices)
     values = mask(coef, indices)
-    return list(zip(names, values))
+    return [FeatureWeight(name, weight) for name, weight in zip(names, values)]
 
 

@@ -64,17 +64,19 @@ def write_html(clf, html, text, postfix=''):
 
 
 def get_all_features(feature_weights, with_weights=False):
-    """ Collect a set of all features from feature weights.
+    """ Collect a dict of all features and their weights.
     """
     features = {}
-    for name, value in feature_weights:
-        if isinstance(name, list):
-            features.update((f['name'], value) for f in name)
+    for fw in feature_weights:
+        if isinstance(fw.feature, list):
+            features.update((f['name'], fw.weight) for f in fw.feature)
         else:
-            features[name] = value
+            features[fw.feature] = fw.weight
     return features if with_weights else set(features)
 
 
 def get_names_coefs(feature_weights):
-    return [(format_signed(name[0]) if isinstance(name, list) else name,
-             coef) for name, coef in feature_weights]
+    return [(format_signed(fw.feature[0]) if isinstance(fw.feature, list)
+             else fw.feature,
+             fw.weight)
+            for fw in feature_weights]

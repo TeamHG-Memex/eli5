@@ -23,7 +23,7 @@ template_env.filters.update(dict(
     remaining_weight_color=lambda ws, w_range, pos_neg:
         format_hsl(remaining_weight_color_hsl(ws, w_range, pos_neg)),
     weight_range=lambda w: get_weight_range(w),
-    fi_weight_range=lambda w: max([abs(x[1]) for x in w] or [0]),
+    fi_weight_range=lambda w: max([abs(fw.weight) for fw in w] or [0]),
     format_feature=lambda f, w, hl: _format_feature(f, w, hl_spaces=hl),
     format_decision_tree=lambda tree: _format_decision_tree(tree),
 ))
@@ -171,8 +171,8 @@ def get_weight_range(weights):
     """
     if isinstance(weights, list):
         return max([get_weight_range(t.feature_weights) for t in weights] or [0])
-    return max([abs(coef) for lst in [weights.pos, weights.neg]
-                for _, coef in lst or []] or [0])
+    return max([abs(fw.weight) for lst in [weights.pos, weights.neg]
+                for fw in lst or []] or [0])
 
 
 def remaining_weight_color_hsl(ws, weight_range, pos_neg):
@@ -187,7 +187,7 @@ def remaining_weight_color_hsl(ws, weight_range, pos_neg):
     elif not ws:
         weight = sign * weight_range
     else:
-        weight = min((coef for _, coef in ws), key=abs)
+        weight = min((fw.weight for fw in ws), key=abs)
     return weight_color_hsl(weight, weight_range)
 
 

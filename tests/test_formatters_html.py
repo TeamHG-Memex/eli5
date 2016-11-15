@@ -4,7 +4,7 @@ import pytest
 from sklearn.datasets import make_regression
 from sklearn.linear_model import LinearRegression
 
-from eli5.base import WeightedSpans
+from eli5.base import WeightedSpans, FeatureWeight
 from eli5 import explain_weights_sklearn, explain_prediction_sklearn
 from eli5.formatters import (
     format_as_text, format_as_html, format_html_styles, FormattedFeatureName)
@@ -175,12 +175,13 @@ def test_override_preserve_density():
 
 
 def test_remaining_weight_color():
+    FW = FeatureWeight
     assert remaining_weight_color_hsl([], 0, 'pos') == weight_color_hsl(1, 1)
     assert remaining_weight_color_hsl([], 2, 'neg') == weight_color_hsl(-2, 2)
-    assert remaining_weight_color_hsl([('a', -1), ('b', -2)], 3, 'neg') == \
-           weight_color_hsl(-1, 3)
-    assert remaining_weight_color_hsl([('a', 1), ('b', 2)], 3, 'pos') == \
-           weight_color_hsl(1, 3)
+    assert (remaining_weight_color_hsl([FW('a', -1), FW('b', -2)], 3, 'neg') ==
+            weight_color_hsl(-1, 3))
+    assert (remaining_weight_color_hsl([FW('a', 1), FW('b', 2)], 3, 'pos') ==
+            weight_color_hsl(1, 3))
 
 
 @pytest.mark.parametrize(

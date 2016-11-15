@@ -1,8 +1,8 @@
-<tr style="background-color: {{ coef|weight_color(w_range) }}; {{ tr_styles }}">
+<tr style="background-color: {{ fw.weight|weight_color(w_range) }}; {{ tr_styles }}">
     <td style="{{ td1_styles }}">
-        {{ "%+.3f"|format(coef) }}
+        {{ "%+.3f"|format(fw.weight) }}
     </td>
     <td style="{{ td2_styles }}">
-        {{ name|format_feature(coef, hl_spaces) }}
+        {{ fw.feature|format_feature(fw.weight, hl_spaces) }}
     </td>
 </tr>

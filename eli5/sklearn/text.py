@@ -4,7 +4,7 @@ from typing import Set, Tuple
 from six.moves import xrange
 from sklearn.feature_extraction.text import VectorizerMixin
 
-from eli5.base import WeightedSpans, FeatureWeights
+from eli5.base import WeightedSpans, FeatureWeights, FeatureWeight
 from eli5.sklearn.unhashing import InvertableHashingVectorizer
 from eli5.formatters import FormattedFeatureName
 
@@ -26,9 +26,9 @@ def get_weighted_spans(doc, vec, feature_weights):
 
     # (group, idx) is a feature key here
     feature_weights_dict = {
-        f: (weight, (group, idx)) for group in ['pos', 'neg']
-        for idx, (feature, weight) in enumerate(getattr(feature_weights, group))
-        for f in _get_features(feature)}
+        f: (fw.weight, (group, idx)) for group in ['pos', 'neg']
+        for idx, fw in enumerate(getattr(feature_weights, group))
+        for f in _get_features(fw.feature)}
 
     span_analyzer, preprocessed_doc = _build_span_analyzer(doc, vec)
     if span_analyzer is None:
@@ -64,13 +64,13 @@ def _get_other(feature_weights, feature_weights_dict, found_features):
             other_items.append(getattr(feature_weights, group)[idx])
             accounted_keys.add(key)
     if found_features:
-        other_items.append(
-            (FormattedFeatureName('Highlighted in text (sum)'),
-             sum(found_features.values())))
-    other_items.sort(key=lambda x: abs(x[1]), reverse=True)
+        other_items.append(FeatureWeight(
+            FormattedFeatureName('Highlighted in text (sum)'),
+            sum(found_features.values())))
+    other_items.sort(key=lambda x: abs(x.weight), reverse=True)
     return FeatureWeights(
-        pos=[(f, w) for f, w in other_items if w >= 0],
-        neg=[(f, w) for f, w in other_items if w < 0],
+        pos=[fw for fw in other_items if fw.weight >= 0],
+        neg=[fw for fw in other_items if fw.weight < 0],
         pos_remaining=feature_weights.pos_remaining,
         neg_remaining=feature_weights.neg_remaining,
     )

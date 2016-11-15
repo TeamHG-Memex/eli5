@@ -52,14 +52,14 @@ def should_highlight_spaces(explanation):
     hl_spaces = explanation.highlight_spaces
     if explanation.feature_importances:
         hl_spaces = hl_spaces or any(
-            _has_invisible_spaces(name)
-            for name, _, _ in explanation.feature_importances)
+            _has_invisible_spaces(fw.feature)
+            for fw in explanation.feature_importances)
     if explanation.targets:
         hl_spaces = hl_spaces or any(
-            _has_invisible_spaces(name)
+            _has_invisible_spaces(fw.feature)
             for target in explanation.targets
             for weights in [target.feature_weights.pos, target.feature_weights.neg]
-            for name, _ in weights)
+            for fw in weights)
     return hl_spaces
 
 
