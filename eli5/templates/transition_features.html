@@ -12,11 +12,11 @@
     </thead>
     <tbody>
         {% with weight_range = numpy.abs(coef).max() %}
-            {% for class_name, row in zip(classes, coef) %}
+            {% for class_from, row in zip(classes, coef) %}
                 <tr>
-                    <th>{{ class_name|e }}</th>
-                    {% for value in row %}
-                        <td style="background-color: {{ value|weight_color(weight_range) }}">
+                    <th>{{ class_from|e }}</th>
+                    {% for class_to, value in zip(classes, row) %}
+                        <td style="background-color: {{ value|weight_color(weight_range) }}" title="{{ class_from|e }} &rArr; {{ class_to|e }}">
                             {{ value | round(3) }}
                         </td>
                     {% endfor %}
