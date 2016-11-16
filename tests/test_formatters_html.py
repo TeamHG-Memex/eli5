@@ -10,8 +10,16 @@ from eli5.formatters import (
     format_as_text, format_as_html, format_html_styles, FormattedFeatureName)
 from eli5.formatters.html import (
     _format_unhashed_feature, render_weighted_spans, _format_single_feature,
-    _format_feature, remaining_weight_color_hsl, weight_color_hsl)
+    _format_feature, remaining_weight_color_hsl, weight_color_hsl,
+    get_char_weights)
 from .utils import write_html
+
+
+def _render_weighted_spans(weighted_spans_data, preserve_density=None):
+    char_weights = get_char_weights(weighted_spans_data, preserve_density)
+    weight_range = max(abs(x) for x in char_weights)
+    return render_weighted_spans(
+        weighted_spans_data.document, char_weights, weight_range)
 
 
 def test_render_styles():
@@ -95,7 +103,7 @@ def test_render_weighted_spans_word():
             ('leaning lemon', [(9, 16), (17, 22)], 0.5),
             ('lemon tree', [(17, 22), (23, 27)], 0.8)],
     )
-    s = render_weighted_spans(weighted_spans)
+    s = _render_weighted_spans(weighted_spans)
     assert s.startswith(
         '<span style="opacity: 0.80">i</span>'
         '<span style="opacity: 0.80"> </span>'
@@ -144,7 +152,7 @@ def test_render_weighted_spans_char():
             ('ee', [(1, 3)], 0.1),
             ],
     )
-    s = render_weighted_spans(weighted_spans)
+    s = _render_weighted_spans(weighted_spans)
     assert s == (
         '<span'
         ' style="background-color: hsl(120, 100.00%, 69.88%); opacity: 0.93"'
@@ -167,7 +175,7 @@ def test_override_preserve_density():
             ('ee', [(1, 3)], 0.1),
         ],
     )
-    s = render_weighted_spans(weighted_spans, preserve_density=False)
+    s = _render_weighted_spans(weighted_spans, preserve_density=False)
     assert s.startswith(
         '<span '
         'style="background-color: hsl(120, 100.00%, 69.88%); opacity: 0.93" '
