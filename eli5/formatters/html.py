@@ -88,7 +88,7 @@ def format_as_html(explanation, include_styles=True, force_weights=True,
             get_weight_range(t.feature_weights) for t in targets),
         other_weight_range=max_or_0(
             get_weight_range(t.weighted_spans.other)
-             for t in targets if t.weighted_spans and t.weighted_spans.other),
+            for t in targets if t.weighted_spans and t.weighted_spans.other),
         targets_with_rendered_weighted_spans=list(
             zip(targets, rendered_weighted_spans)),
     )
@@ -196,8 +196,6 @@ def _hue(weight):
 def get_weight_range(weights):
     """ Max absolute feature for pos and neg weights.
     """
-    if isinstance(weights, list):
-        return max_or_0(get_weight_range(t.feature_weights) for t in weights)
     return max_or_0(abs(fw.weight) for lst in [weights.pos, weights.neg]
                     for fw in lst or [])
 
