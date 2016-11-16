@@ -39,8 +39,8 @@ def explain_weights(estimator, **kwargs):
     target_order : list, optional
         Order of class/target names to show. This argument can be also used
         to show information only for a subset of classes. It should be a list
-        of class / target names which match names provided by an estimator
-        (i.e. not names defined by ``target_names`` parameter).
+        of class / target names which match either names provided by
+        an estimator or names defined in ``target_names`` parameter.
 
         This argument may be supported or not, depending on estimator type.
 
@@ -105,8 +105,8 @@ def explain_prediction(estimator, doc, **kwargs):
     target_order : list, optional
         Order of class/target names to show. This argument can be also used
         to show information only for a subset of classes. It should be a list
-        of class / target names which match names provided by an estimator
-        (i.e. not names defined by ``target_names`` parameter).
+        of class / target names which match either names provided by
+        an estimator or names defined in ``target_names`` parameter.
 
         This argument may be supported or not, depending on estimator type.
 
