@@ -3,7 +3,7 @@
     {% if force_weights or not any_weighted_spans %}
         <table style="{{ horizontal_layout_table_styles }}">
             <tr>
-                {% with w_range = expl.targets|weight_range %}
+                {% with w_range = target_weight_range %}
                     {% for target in expl.targets %}
                         <td style="{{ horizontal_layout_td_styles }}">
                             {% if force_weights or not target.weighted_spans %}
@@ -19,18 +19,18 @@
         </table>
     {% endif %}
 
-    {% for target in expl.targets %}
+    {% for target, rendered_weighted_spans in targets_with_rendered_weighted_spans %}
         {% include "weighted_spans.html" with context %}
     {% endfor %}
 
 {% else %}
 
-    {% for target in expl.targets %}
+    {% for target, rendered_weighted_spans in targets_with_rendered_weighted_spans %}
 
         {% if force_weights or not target.weighted_spans %}
             {% with wts = target.feature_weights %}
                 {% set inline_target_header = False %}
-                {% set w_range = wts|weight_range %}
+                {% set w_range = target_weight_range %}
                 {% include "weights_table.html" with context %}
             {% endwith %}
         {% endif %}

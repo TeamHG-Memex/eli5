@@ -29,18 +29,16 @@
             </tr>
             </thead>
             <tbody>
-            {% with w_range = expl.feature_importances|fi_weight_range %}
-                {% for fw in expl.feature_importances %}
-                    <tr style="background-color: {{ fw.weight|weight_color(w_range) }}; {{ tr_styles }}">
-                        <td style="{{ td1_styles }}">
-                            {{ "%0.4f"|format(fw.weight) }} &plusmn; {{ "%0.4f"|format(2 * fw.std) }}
-                        </td>
-                        <td style="{{ td2_styles }}">
-                            {{ fw.feature|format_feature(fw.weight, hl_spaces) }}
-                        </td>
-                    </tr>
-                {% endfor %}
-            {% endwith %}
+            {% for fw in expl.feature_importances %}
+                <tr style="background-color: {{ fw.weight|weight_color(feat_imp_weight_range) }}; {{ tr_styles }}">
+                    <td style="{{ td1_styles }}">
+                        {{ "%0.4f"|format(fw.weight) }} &plusmn; {{ "%0.4f"|format(2 * fw.std) }}
+                    </td>
+                    <td style="{{ td2_styles }}">
+                        {{ fw.feature|format_feature(fw.weight, hl_spaces) }}
+                    </td>
+                </tr>
+            {% endfor %}
             </tbody>
         </table>
     {% endif %}

@@ -18,12 +18,9 @@ template_env = Environment(
     extensions=['jinja2.ext.with_'])
 template_env.globals.update(zip=zip, numpy=np)
 template_env.filters.update(dict(
-    render_weighted_spans=lambda x, pd: render_weighted_spans(x, pd),
     weight_color=lambda w, w_range: format_hsl(weight_color_hsl(w, w_range)),
     remaining_weight_color=lambda ws, w_range, pos_neg:
         format_hsl(remaining_weight_color_hsl(ws, w_range, pos_neg)),
-    weight_range=lambda w: get_weight_range(w),
-    fi_weight_range=lambda w: max([abs(fw.weight) for fw in w] or [0]),
     format_feature=lambda f, w, hl: _format_feature(f, w, hl_spaces=hl),
     format_decision_tree=lambda tree: _format_decision_tree(tree),
 ))
@@ -50,10 +47,25 @@ def format_as_html(explanation, include_styles=True, force_weights=True,
     if highlight_spaces is None:
         highlight_spaces = should_highlight_spaces(explanation)
 
+    targets = explanation.targets or []
+
+    any_weighted_spans = any(t.weighted_spans for t in targets)
+    spans_char_weights = [
+        get_char_weights(t.weighted_spans, preserve_density=preserve_density)
+        if t.weighted_spans else None
+        for t in targets]
+    spans_weight_range = max_or_0(
+        abs(x) for char_weights in spans_char_weights
+        for x in (char_weights if char_weights is not None else []))
+    rendered_weighted_spans = [
+        render_weighted_spans(
+            t.weighted_spans.document, char_weights, spans_weight_range)
+        if t.weighted_spans else None
+        for t, char_weights in zip(targets, spans_char_weights)]
+
     return template.render(
         include_styles=include_styles,
         force_weights=force_weights,
-        preserve_density=preserve_density,
         table_styles='border-collapse: collapse; border: none;',
         tr_styles='border: none;',
         td1_styles='padding: 0 1em 0 0.5em; text-align: right; border: none;',
@@ -69,9 +81,22 @@ def format_as_html(explanation, include_styles=True, force_weights=True,
         expl=explanation,
         hl_spaces=highlight_spaces,
         horizontal_layout=horizontal_layout,
-        any_weighted_spans=any(
-            t.weighted_spans for t in (explanation.targets or [])),
+        any_weighted_spans=any_weighted_spans,
+        feat_imp_weight_range=max_or_0(
+            abs(fw.weight) for fw in (explanation.feature_importances or [])),
+        target_weight_range=max_or_0(
+            get_weight_range(t.feature_weights) for t in targets),
+        other_weight_range=max_or_0(
+            get_weight_range(t.weighted_spans.other)
+             for t in targets if t.weighted_spans and t.weighted_spans.other),
+        targets_with_rendered_weighted_spans=list(
+            zip(targets, rendered_weighted_spans)),
     )
+
+
+def max_or_0(it):
+    lst = list(it)
+    return max(lst) if lst else 0
 
 
 def format_html_styles():
@@ -81,8 +106,8 @@ def format_html_styles():
     return template_env.get_template('styles.html').render()
 
 
-def render_weighted_spans(weighted_spans_data, preserve_density=None):
-    """ Render text document with highlighted features.
+def get_char_weights(weighted_spans_data, preserve_density=None):
+    """ Return character weights for a text document with highlighted features.
     If preserve_density is True, then color for longer fragments will be
     less intensive than for shorter fragments, so that "sum" of intensities
     will correspond to feature weight.
@@ -92,9 +117,8 @@ def render_weighted_spans(weighted_spans_data, preserve_density=None):
     """
     if preserve_density is None:
         preserve_density = weighted_spans_data.analyzer.startswith('char')
-    doc = weighted_spans_data.document
     weighted_spans = weighted_spans_data.weighted_spans
-    char_weights = np.zeros(len(doc))
+    char_weights = np.zeros(len(weighted_spans_data.document))
     feature_counts = Counter(f for f, _, _ in weighted_spans)
     for feature, spans, weight in weighted_spans:
         for start, end in spans:
@@ -102,9 +126,12 @@ def render_weighted_spans(weighted_spans_data, preserve_density=None):
                 weight /= (end - start)
             weight /= feature_counts[feature]
             char_weights[start:end] += weight
+    return char_weights
+
+
+def render_weighted_spans(doc, char_weights, weight_range):
     # TODO - can be much smarter, join spans at least
     # TODO - for longer documents, remove text without active features
-    weight_range = max(abs(x) for x in char_weights)
     return ''.join(_colorize(token, weight, weight_range)
                    for token, weight in zip(doc, char_weights))
 
@@ -170,9 +197,9 @@ def get_weight_range(weights):
     """ Max absolute feature for pos and neg weights.
     """
     if isinstance(weights, list):
-        return max([get_weight_range(t.feature_weights) for t in weights] or [0])
-    return max([abs(fw.weight) for lst in [weights.pos, weights.neg]
-                for fw in lst or []] or [0])
+        return max_or_0(get_weight_range(t.feature_weights) for t in weights)
+    return max_or_0(abs(fw.weight) for lst in [weights.pos, weights.neg]
+                    for fw in lst or [])
 
 
 def remaining_weight_color_hsl(ws, weight_range, pos_neg):
