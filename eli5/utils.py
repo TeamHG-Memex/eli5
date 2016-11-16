@@ -42,22 +42,15 @@ def vstack(blocks, format=None, dtype=None):
         return np.vstack(blocks)
 
 
-def get_value_indices(names, lookups):
-    """
-    >>> get_value_indices(['foo', 'bar', 'baz'], ['bar', 'foo'])
-    [1, 0]
-    >>> get_value_indices(['foo', 'bar', 'baz'], ['spam'])
-    Traceback (most recent call last):
-    ...
-    KeyError: 'spam'
-    """
-    positions = {name: idx for idx, name in enumerate(names)}
-    return [positions[name] for name in lookups]
-
-
 def get_display_names(original_names=None, target_names=None, target_order=None):
     """
     Return a list of (class_id, display_name) tuples.
+
+    target_order can be written using both names from target_names and
+    from original_names:
+    >>> get_display_names(['x', 'y'], target_order=['y', 'X'],
+    ...                   target_names={'x': 'X'})
+    [(1, 'y'), (0, 'X')]
 
     Provide display names:
     >>> get_display_names([0, 2], target_names=['foo', 'bar'])
@@ -76,6 +69,7 @@ def get_display_names(original_names=None, target_names=None, target_order=None)
     ...                   target_names={'x': 'X'})
     [(1, 'y'), (0, 'X')]
 
+    Error is raised when target_names format is invalid:
     >>> get_display_names(['x', 'y'], target_names=['foo'])
     Traceback (most recent call last):
     ...
@@ -89,14 +83,38 @@ def get_display_names(original_names=None, target_names=None, target_order=None)
                                      len(original_names), len(target_names)
                                  ))
         display_names = target_names
+    elif isinstance(target_names, dict):
+        display_names = [target_names.get(name, name)
+                         for name in original_names]
     else:
         display_names = original_names
 
     if target_order is None:
         target_order = original_names
 
-    class_indices = get_value_indices(original_names, target_order)
+    class_indices = _get_value_indices(original_names, display_names,
+                                       target_order)
     names = [display_names[i] for i in class_indices]
-    if isinstance(target_names, dict):
-        names = [target_names.get(name, name) for name in names]
     return list(zip(class_indices, names))
+
+
+def _get_value_indices(names1, names2, lookups):
+    """
+    >>> _get_value_indices(['foo', 'bar', 'baz'], ['foo', 'bar', 'baz'],
+    ...                    ['bar', 'foo'])
+    [1, 0]
+    >>> _get_value_indices(['foo', 'bar', 'baz'], ['FOO', 'bar', 'baz'],
+    ...                    ['bar', 'FOO'])
+    [1, 0]
+    >>> _get_value_indices(['foo', 'bar', 'BAZ'], ['foo', 'BAZ', 'baz'],
+    ...                    ['BAZ', 'foo'])
+    [2, 0]
+    >>> _get_value_indices(['foo', 'bar', 'baz'], ['foo', 'bar', 'baz'],
+    ...                    ['spam'])
+    Traceback (most recent call last):
+    ...
+    KeyError: 'spam'
+    """
+    positions = {name: idx for idx, name in enumerate(names2)}
+    positions.update({name: idx for idx, name in enumerate(names1)})
+    return [positions[name] for name in lookups]
