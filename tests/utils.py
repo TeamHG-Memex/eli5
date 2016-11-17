@@ -8,7 +8,7 @@ from pprint import pprint
 from hypothesis.strategies import integers
 from hypothesis.extra.numpy import arrays
 
-from eli5.formatters import format_as_text, format_as_html
+from eli5.formatters import format_as_text, format_as_html, format_as_dict
 from eli5.formatters.html import html_escape
 from eli5.formatters.text import format_signed
 
@@ -23,7 +23,7 @@ def format_as_all(res, clf, **kwargs):
     """ Format explanation as text and html, check JSON-encoding,
     print text explanation, save html, return text and html.
     """
-    expl_dict = res.asdict()
+    expl_dict = format_as_dict(res)
     pprint(expl_dict)
     json.dumps(expl_dict)  # check that it can be serialized to JSON
     expl_text = format_as_text(res, **kwargs)
