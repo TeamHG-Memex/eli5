@@ -1,14 +1,15 @@
 import numpy as np
 
-from eli5.base import Explanation, TargetExplanation, FeatureWeights, FeatureWeight
-from eli5.formatters.as_dict import numpy_to_python, format_as_dict
+from eli5.base import (
+    Explanation, TargetExplanation, FeatureWeights, FeatureWeight)
+from eli5.formatters.as_dict import format_as_dict, _numpy_to_python
 
 
 # format_as_dict is called in eli5.tests.utils.format_as_all
 
 
 def test_numpy_to_python():
-    assert numpy_to_python({
+    assert _numpy_to_python({
         'x': np.int32(12),
         'y': [np.ones(2)],
     }) == {

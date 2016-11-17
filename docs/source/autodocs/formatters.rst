@@ -14,3 +14,9 @@ eli5.formatters.text
 
 .. automodule:: eli5.formatters.text
     :members:
+
+eli5.formatters.as_dict
+-----------------------
+
+.. automodule:: eli5.formatters.as_dict
+    :members:
