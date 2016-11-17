@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 from typing import Dict, List, Tuple, Union
 
-import attr
-
-from .base_utils import attrs, numpy_to_python
+from .base_utils import attrs
 from .formatters.features import FormattedFeatureName
 
 
@@ -38,11 +36,6 @@ class Explanation(object):
         self.decision_tree = decision_tree
         self.highlight_spaces = highlight_spaces
         self.transition_features = transition_features
-
-    def asdict(self):
-        """ Return a dictionary representing the explanation that can be JSON-encoded.
-        """
-        return numpy_to_python(attr.asdict(self))
 
     def _repr_html_(self):
         """ HTML formatting for the notebook.
