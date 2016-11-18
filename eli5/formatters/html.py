@@ -46,25 +46,9 @@ def format_as_html(explanation, include_styles=True, force_weights=True,
     template = template_env.get_template('explain.html')
     if highlight_spaces is None:
         highlight_spaces = should_highlight_spaces(explanation)
-
     targets = explanation.targets or []
     if len(targets) == 1:
         horizontal_layout = False
-
-    any_weighted_spans = any(t.weighted_spans for t in targets)
-    spans_char_weights = [
-        get_char_weights(t.weighted_spans, preserve_density=preserve_density)
-        if t.weighted_spans else None
-        for t in targets]
-    spans_weight_range = max_or_0(
-        abs(x) for char_weights in spans_char_weights
-        for x in (char_weights if char_weights is not None else []))
-    rendered_weighted_spans = [
-        render_weighted_spans(
-            t.weighted_spans.document, char_weights, spans_weight_range)
-        if t.weighted_spans else None
-        for t, char_weights in zip(targets, spans_char_weights)]
-
 
     return template.render(
         include_styles=include_styles,
@@ -84,22 +68,20 @@ def format_as_html(explanation, include_styles=True, force_weights=True,
         expl=explanation,
         hl_spaces=highlight_spaces,
         horizontal_layout=horizontal_layout,
-        any_weighted_spans=any_weighted_spans,
+        any_weighted_spans=any(t.weighted_spans for t in targets),
         feat_imp_weight_range=max_or_0(
             abs(fw.weight) for fw in (explanation.feature_importances or [])),
         target_weight_range=max_or_0(
             get_weight_range(t.feature_weights) for t in targets),
-        other_weight_range=max_or_0(
-            get_weight_range(t.weighted_spans.other)
-            for t in targets if t.weighted_spans and t.weighted_spans.other),
-        targets_with_rendered_weighted_spans=list(
-            zip(targets, rendered_weighted_spans)),
+        other_weight_range=1,
+        # TODO
+      # max_or_0(
+      #     get_weight_range(t.weighted_spans.other)
+      #     for t in targets if t.weighted_spans and t.weighted_spans.other),
+        targets_with_rendered_weighted_spans=list(zip(
+            targets,
+            render_targets_weighted_spans(targets, preserve_density))),
     )
-
-
-def max_or_0(it):
-    lst = list(it)
-    return max(lst) if lst else 0
 
 
 def format_html_styles():
@@ -107,6 +89,26 @@ def format_html_styles():
     use with ``format_as_html(explanation, include_styles=False)``.
     """
     return template_env.get_template('styles.html').render()
+
+
+def render_targets_weighted_spans(targets, preserve_density):
+    spans_char_weights = [
+        [get_char_weights(ws, preserve_density=preserve_density)
+         for ws in t.weighted_spans] if t.weighted_spans else None
+        for t in targets]
+    # TODO - comment
+    max_idx = max_or_0(len(ch_w or []) for ch_w in spans_char_weights)
+    spans_weight_ranges = [
+        max_or_0(abs(x) for char_weights in spans_char_weights
+                 for x in (char_weights[idx] if char_weights is not None else []))
+        for idx in range(max_idx)]
+    return [
+        '<br/>'.join(  # TODO - add name
+            render_weighted_spans(ws.document, ch_w, w_range)
+            for ws, ch_w, w_range in zip(
+                t.weighted_spans, char_weights, spans_weight_ranges))
+        if t.weighted_spans else None
+        for t, char_weights in zip(targets, spans_char_weights)]
 
 
 def get_char_weights(weighted_spans_data, preserve_density=None):
@@ -277,3 +279,8 @@ def _format_decision_tree(treedict):
 
 def html_escape(text):
     return cgi.escape(text, quote=True)
+
+
+def max_or_0(it):
+    lst = list(it)
+    return max(lst) if lst else 0

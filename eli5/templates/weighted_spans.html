@@ -1,8 +1,11 @@
 {% if target.weighted_spans %}
-    {% with wts = target.weighted_spans.other %}
-        {% set w_range = other_weight_range %}
-        {% include "weights_table.html" with context %}
-    {% endwith %}
+    {# TODO - well, I don't known, merge them? #}
+    {% for weighted_spans in target.weighted_spans %}
+        {% with wts = weighted_spans.other %}
+            {% set w_range = other_weight_range %}
+            {% include "weights_table.html" with context %}
+        {% endwith %}
+    {% endfor %}
     <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
         {{ rendered_weighted_spans }}
     </p>

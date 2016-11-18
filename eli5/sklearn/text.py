@@ -1,8 +1,9 @@
 import re
-from typing import Set, Tuple
+from typing import List, Optional, Set, Tuple
 
 from six.moves import xrange
 from sklearn.feature_extraction.text import VectorizerMixin
+from sklearn.pipeline import FeatureUnion
 
 from eli5.base import WeightedSpans, FeatureWeights, FeatureWeight
 from eli5.sklearn.unhashing import InvertableHashingVectorizer
@@ -10,9 +11,12 @@ from eli5.formatters import FormattedFeatureName
 
 
 def get_weighted_spans(doc, vec, feature_weights):
+    # type: (Any, Any, FeatureWeights) -> Optional[List[WeightedSpans]]
     """ If possible, return a dict with preprocessed document and a list
     of spans with weights, corresponding to features in the document.
     """
+    if isinstance(vec, FeatureUnion):
+        return get_weighted_spans_from_union(doc, vec, feature_weights)
     if isinstance(vec, InvertableHashingVectorizer):
         vec = vec.vec
     if not isinstance(vec, VectorizerMixin):
@@ -45,13 +49,69 @@ def get_weighted_spans(doc, vec, feature_weights):
             weighted_spans.append((feature, spans, weight))
             found_features[key] = weight
 
-    return WeightedSpans(
+    return [WeightedSpans(
         analyzer=vec.analyzer,
         document=preprocessed_doc,
         weighted_spans=weighted_spans,
         other=_get_other(
             feature_weights, feature_weights_dict, found_features),
-    )
+    )]
+
+
+def get_weighted_spans_from_union(doc, vec_union, all_feature_weights):
+    weighted_spans = []  # type: List[WeightedSpans]
+    for vec_name, vec in vec_union.transformer_list:
+
+        vec_prefix = '{}__'.format(vec_name)
+        # TODO - unhashed support (?)
+        transform_fw_lst = lambda fw_lst: [
+            FeatureWeight(fw.feature[len(vec_prefix):], fw.weight, fw.std)
+            for fw in fw_lst if fw.feature.startswith(vec_prefix)]
+        feature_weights = FeatureWeights(
+            pos=transform_fw_lst(all_feature_weights.pos),
+            neg=transform_fw_lst(all_feature_weights.neg),
+            pos_remaining=all_feature_weights.pos_remaining,
+            neg_remaining=all_feature_weights.neg_remaining,
+        )
+        wspans = get_weighted_spans(doc, vec, feature_weights)
+        if wspans is not None:
+            for ws in wspans:
+                if ws.vec_name is None:
+                    ws.vec_name = vec_name
+                weighted_spans.append(ws)
+
+    return weighted_spans or None
+
+"""
+        shifted_weighted_spans = []
+        document_parts = []
+        for vec_name, ws in named_weighted_spans:
+            document_parts.append('{}{}: '.format(
+                '\n' if document_parts else '',  # FIXME?
+                vec_name,
+            ))
+            shift = sum(map(len, document_parts))
+            shifted_weighted_spans.extend(
+                (f, [(s + shift, e + shift) for s, e in spans], w)
+                for f, spans, w in ws.weighted_spans)
+            document_parts.append(ws.document)
+        document = ''.join(document_parts)  # don't change "''" (spans!)
+
+        return WeightedSpans(
+            analyzer=', '.join(sorted(
+                {ws.analyzer for _, ws in named_weighted_spans})),
+            document=document,
+            weighted_spans=shifted_weighted_spans,
+            other=FeatureWeights(
+                pos=[fw for _, ws in named_weighted_spans
+                     for fw in ws.other.pos],
+                neg=[fw for _, ws in named_weighted_spans
+                     for fw in ws.other.neg],
+                pos_remaining=all_feature_weights.pos_remaining,
+                neg_remaining=all_feature_weights.neg_remaining,
+            ),
+        )
+"""
 
 
 def _get_other(feature_weights, feature_weights_dict, found_features):

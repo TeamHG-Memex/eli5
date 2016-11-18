@@ -56,7 +56,7 @@ class TargetExplanation(object):
                  feature_weights,  # type: FeatureWeights
                  proba=None,  # type: float
                  score=None,  # type: float
-                 weighted_spans=None,  # type: WeightedSpans
+                 weighted_spans=None,  # type: List[WeightedSpans]
                  ):
         self.target = target
         self.feature_weights = feature_weights
@@ -120,11 +120,13 @@ class WeightedSpans(object):
                  document,  # type: str
                  weighted_spans,  # type: List[WeightedSpan]
                  other=None,  # type: FeatureWeights
+                 vec_name=None,  # type: str
                  ):
         self.analyzer = analyzer
         self.document = document
         self.weighted_spans = weighted_spans
         self.other = other
+        self.vec_name = vec_name
 
 
 @attrs

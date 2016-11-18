@@ -139,7 +139,7 @@ def explain_prediction_linear_classifier(clf, doc,
 
 
 def _add_weighted_spans(doc, vec, target_expl):
-    if isinstance(doc, six.string_types) and vec is not None:
+    if vec is not None:
         weighted_spans = get_weighted_spans(
             doc, vec, target_expl.feature_weights)
         if weighted_spans:
