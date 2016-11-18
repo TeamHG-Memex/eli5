@@ -59,20 +59,20 @@ def test_sklearn_crfsuite_feature_re(xseq, yseq):
         assert 'walk' not in expl
 
 
-@pytest.mark.parametrize(['target_order'], [
+@pytest.mark.parametrize(['targets'], [
     [['rainy', 'sunny']],
     [['sunny', 'rainy']],
 ])
-def test_sklearn_targets(xseq, yseq, target_order):
+def test_sklearn_targets(xseq, yseq, targets):
     crf = CRF(c1=0.0, c2=0.1, max_iterations=50)
     crf.fit([xseq], [yseq])
 
     res = explain_weights(crf,
                           target_names={'sunny': u'☀'},
-                          target_order=target_order)
+                          targets=targets)
     for expl in format_as_all(res, crf):
         assert u'☀' in expl
-        if target_order[0] == 'rainy':
+        if targets[0] == 'rainy':
             assert expl.index('rainy') < expl.index(u'☀')
         else:
             assert expl.index('rainy') > expl.index(u'☀')

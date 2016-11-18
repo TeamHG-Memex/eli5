@@ -18,7 +18,7 @@ from eli5.explain import explain_prediction, explain_weights
 @explain_weights.register(BaseEstimator)
 @singledispatch
 def explain_weights_lightning(estimator, vec=None, top=20, target_names=None,
-                              target_order=None, feature_names=None,
+                              targets=None, feature_names=None,
                               coef_scale=None):
     """ Return an explanation of a lightning estimator weights """
     return {
@@ -30,7 +30,7 @@ def explain_weights_lightning(estimator, vec=None, top=20, target_names=None,
 @explain_prediction.register(BaseEstimator)
 @singledispatch
 def explain_prediction_lightning(estimator, doc, vec=None, top=None,
-                                 target_names=None, target_order=None,
+                                 target_names=None, targets=None,
                                  feature_names=None, vectorized=False,
                                  coef_scale=None):
     """ Return an explanation of a lightning estimator predictions """

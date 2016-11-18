@@ -97,7 +97,7 @@ _TOP = 20
 @singledispatch
 def explain_weights_sklearn(estimator, vec=None, top=_TOP,
                             target_names=None,
-                            target_order=None,
+                            targets=None,
                             feature_names=None, coef_scale=None,
                             feature_re=None):
     """ Return an explanation of an estimator """
@@ -117,7 +117,7 @@ def explain_linear_classifier_weights(clf,
                                       vec=None,
                                       top=_TOP,
                                       target_names=None,
-                                      target_order=None,
+                                      targets=None,
                                       feature_names=None,
                                       coef_scale=None,
                                       feature_re=None):
@@ -174,7 +174,7 @@ def explain_linear_classifier_weights(clf,
             coef = coef[flt_indices]
         return get_top_features(feature_names, coef, top)
 
-    display_names = get_display_names(clf.classes_, target_names, target_order)
+    display_names = get_display_names(clf.classes_, target_names, targets)
     if is_multiclass_classifier(clf):
         return Explanation(
             targets=[
@@ -212,7 +212,7 @@ def explain_rf_feature_importance(clf,
                                   vec=None,
                                   top=_TOP,
                                   target_names=None,  # ignored
-                                  target_order=None,  # ignored
+                                  targets=None,       # ignored
                                   feature_names=None,
                                   feature_re=None):
     """
@@ -254,7 +254,7 @@ def explain_decision_tree(clf,
                           vec=None,
                           top=_TOP,
                           target_names=None,
-                          target_order=None,  # ignored
+                          targets=None,  # ignored
                           feature_names=None,
                           feature_re=None,
                           **export_graphviz_kwargs):
@@ -311,7 +311,7 @@ def explain_linear_regressor_weights(reg,
                                      vec=None,
                                      top=_TOP,
                                      target_names=None,
-                                     target_order=None,
+                                     targets=None,
                                      feature_names=None,
                                      coef_scale=None,
                                      feature_re=None):
@@ -368,7 +368,7 @@ def explain_linear_regressor_weights(reg,
         return get_top_features(feature_names, coef, top)
 
     display_names = get_display_names(get_default_target_names(reg),
-                                      target_names, target_order)
+                                      target_names, targets)
     if is_multitarget_regressor(reg):
         return Explanation(
             targets=[

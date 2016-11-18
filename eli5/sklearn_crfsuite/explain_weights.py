@@ -16,7 +16,7 @@ from eli5._feature_weights import get_top_features
 def explain_weights_sklearn_crfsuite(crf,
                                      top=20,
                                      target_names=None,
-                                     target_order=None,
+                                     targets=None,
                                      feature_re=None):
     """ Explain sklearn_crfsuite.CRF weights """
     feature_names = np.array(crf.attributes_)
@@ -34,10 +34,10 @@ def explain_weights_sklearn_crfsuite(crf,
     def _features(label_id):
         return get_top_features(state_feature_names, state_coef[label_id], top)
 
-    if target_order is None:
-        target_order = ner_default_target_order(crf.classes_)
+    if targets is None:
+        targets = sorted_for_ner(crf.classes_)
 
-    display_names = get_display_names(crf.classes_, target_names, target_order)
+    display_names = get_display_names(crf.classes_, target_names, targets)
     indices, names = zip(*display_names)
     transition_coef = filter_transition_coefs(transition_coef, indices)
 
@@ -105,11 +105,11 @@ def filter_transition_coefs(transition_coef, indices):
     return rows[:,indices]
 
 
-def ner_default_target_order(crf_classes):
+def sorted_for_ner(crf_classes):
     """
-    Return default order of labels for NER tasks:
+    Return labels sorted in a default order suitable for NER tasks:
 
-    >>> ner_default_target_order(['B-ORG', 'B-PER', 'O', 'I-PER'])
+    >>> sorted_for_ner(['B-ORG', 'B-PER', 'O', 'I-PER'])
     ['O', 'B-ORG', 'B-PER', 'I-PER']
     """
     def key(cls):

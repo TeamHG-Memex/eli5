@@ -42,13 +42,13 @@ def vstack(blocks, format=None, dtype=None):
         return np.vstack(blocks)
 
 
-def get_display_names(original_names=None, target_names=None, target_order=None):
+def get_display_names(original_names=None, target_names=None, targets=None):
     """
     Return a list of (class_id, display_name) tuples.
 
-    target_order can be written using both names from target_names and
-    from original_names:
-    >>> get_display_names(['x', 'y'], target_order=['y', 'X'],
+    ``targets`` can be written using both names from ``target_names` and
+    from ``original_names``:
+    >>> get_display_names(['x', 'y'], targets=['y', 'X'],
     ...                   target_names={'x': 'X'})
     [(1, 'y'), (0, 'X')]
 
@@ -57,15 +57,15 @@ def get_display_names(original_names=None, target_names=None, target_order=None)
     [(0, 'foo'), (1, 'bar')]
 
     Change order of labels:
-    >>> get_display_names(['x', 'y'], target_order=['y', 'x'])
+    >>> get_display_names(['x', 'y'], targets=['y', 'x'])
     [(1, 'y'), (0, 'x')]
 
     Provide display names, choose only a subset of labels:
-    >>> get_display_names([0, 2], target_names=['foo', 'bar'], target_order=[2])
+    >>> get_display_names([0, 2], target_names=['foo', 'bar'], targets=[2])
     [(1, 'bar')]
 
     target_names can be a dictionary with {old_name: new_name} labels:
-    >>> get_display_names(['x', 'y'], target_order=['y', 'x'],
+    >>> get_display_names(['x', 'y'], targets=['y', 'x'],
     ...                   target_names={'x': 'X'})
     [(1, 'y'), (0, 'X')]
 
@@ -89,11 +89,11 @@ def get_display_names(original_names=None, target_names=None, target_order=None)
     else:
         display_names = original_names
 
-    if target_order is None:
-        target_order = original_names
+    if targets is None:
+        targets = original_names
 
     class_indices = _get_value_indices(original_names, display_names,
-                                       target_order)
+                                       targets)
     names = [display_names[i] for i in class_indices]
     return list(zip(class_indices, names))
 
