@@ -55,7 +55,9 @@ def _get_top_abs_features(feature_names, coef, k):
     k = nnz if k is None else min(nnz, k)
     indices = argsort_k_largest(np.abs(coef), k)
     features = _features(indices, feature_names, coef)
-    return _positive(features), _negative(features)
+    pos = [fw for fw in features if fw.weight > 0]
+    neg = [fw for fw in features if fw.weight < 0]
+    return pos, neg
 
 
 def _get_top_positive_features(feature_names, coef, k):
@@ -70,14 +72,6 @@ def _get_top_negative_features(feature_names, coef, k):
     k = num_negative if k is None else min(num_negative, k)
     indices = argsort_k_smallest(coef, k)
     return _features(indices, feature_names, coef)
-
-
-def _positive(features):
-    return [fw for fw in features if fw.weight > 0]
-
-
-def _negative(features):
-    return [fw for fw in features if fw.weight < 0]
 
 
 def _features(indices, feature_names, coef):
