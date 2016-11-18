@@ -194,11 +194,23 @@ def test_explain_linear_feature_re(newsgroups_train, vec):
     if isinstance(vec, HashingVectorizer):
         vec = InvertableHashingVectorizer(vec)
         vec.fit(docs)
+
     res = explain_weights(clf, vec=vec, feature_re='^ath')
-    for expl in format_as_all(res, clf):
+    text_expl, _ = expls = format_as_all(res, clf)
+    for expl in expls:
         assert 'atheists' in expl
         assert 'atheism' in expl
         assert 'space' not in expl
+        assert 'BIAS' not in expl
+
+    res = explain_weights(clf, vec=vec, feature_re='(^ath|^<BIAS>$)')
+    text_expl, _ = expls = format_as_all(res, clf)
+    for expl in expls:
+        assert 'atheists' in expl
+        assert 'atheism' in expl
+        assert 'space' not in expl
+        assert 'BIAS' in expl
+    assert '<BIAS>' in text_expl
 
 
 @pytest.mark.parametrize(['clf'], [

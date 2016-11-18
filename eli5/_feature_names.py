@@ -36,10 +36,9 @@ class FeatureNames(object):
     def __getitem__(self, idx):
         if isinstance(idx, np.ndarray):
             return [self[i] for i in idx]
-        n = len(self)
-        if self.has_bias and idx == n - 1:
+        if self.has_bias and idx == self.bias_idx:
             return self.bias_name
-        if 0 <= idx < n:
+        if 0 <= idx < self.n_features:
             try:
                 return self.feature_names[idx]
             except (TypeError, KeyError, IndexError):
@@ -49,6 +48,11 @@ class FeatureNames(object):
     @property
     def has_bias(self):
         return self.bias_name is not None
+
+    @property
+    def bias_idx(self):
+        if self.has_bias:
+            return self.n_features
 
     def filtered_by_re(self, feature_re):
         """ Return feature names filtered by a regular expression ``feature_re``,
@@ -72,6 +76,8 @@ class FeatureNames(object):
             if any(filter_fn(n) for n in _feature_names(name)):
                 indices.append(idx)
                 filtered_feature_names.append(name)
+        if self.has_bias and filter_fn(self.bias_name):
+            indices.append(self.bias_idx)
         return (
             FeatureNames(
                 filtered_feature_names,
