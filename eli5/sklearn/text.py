@@ -82,37 +82,6 @@ def get_weighted_spans_from_union(doc, vec_union, all_feature_weights):
 
     return weighted_spans or None
 
-"""
-        shifted_weighted_spans = []
-        document_parts = []
-        for vec_name, ws in named_weighted_spans:
-            document_parts.append('{}{}: '.format(
-                '\n' if document_parts else '',  # FIXME?
-                vec_name,
-            ))
-            shift = sum(map(len, document_parts))
-            shifted_weighted_spans.extend(
-                (f, [(s + shift, e + shift) for s, e in spans], w)
-                for f, spans, w in ws.weighted_spans)
-            document_parts.append(ws.document)
-        document = ''.join(document_parts)  # don't change "''" (spans!)
-
-        return WeightedSpans(
-            analyzer=', '.join(sorted(
-                {ws.analyzer for _, ws in named_weighted_spans})),
-            document=document,
-            weighted_spans=shifted_weighted_spans,
-            other=FeatureWeights(
-                pos=[fw for _, ws in named_weighted_spans
-                     for fw in ws.other.pos],
-                neg=[fw for _, ws in named_weighted_spans
-                     for fw in ws.other.neg],
-                pos_remaining=all_feature_weights.pos_remaining,
-                neg_remaining=all_feature_weights.neg_remaining,
-            ),
-        )
-"""
-
 
 def _get_other(feature_weights, feature_weights_dict, found_features):
     # search for items that were not accounted at all.

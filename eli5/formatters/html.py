@@ -2,11 +2,13 @@
 from __future__ import absolute_import
 import cgi
 from collections import Counter
+import copy
 
 import numpy as np
 from jinja2 import Environment, PackageLoader
 
 from eli5 import _graphviz
+from eli5.base import WeightedSpans, FeatureWeights
 from .utils import format_signed, replace_spaces, should_highlight_spaces
 from . import fields
 from .features import FormattedFeatureName
@@ -50,6 +52,11 @@ def format_as_html(explanation, include_styles=True, force_weights=True,
     if len(targets) == 1:
         horizontal_layout = False
 
+    rendered_weighted_spans = (
+        render_targets_weighted_spans(targets, preserve_density))
+    weighted_spans_others = [
+        merge_weighted_spans_others(t.weighted_spans) for t in targets]
+
     return template.render(
         include_styles=include_styles,
         force_weights=force_weights,
@@ -73,14 +80,11 @@ def format_as_html(explanation, include_styles=True, force_weights=True,
             abs(fw.weight) for fw in (explanation.feature_importances or [])),
         target_weight_range=max_or_0(
             get_weight_range(t.feature_weights) for t in targets),
-        other_weight_range=1,
-        # TODO
-      # max_or_0(
-      #     get_weight_range(t.weighted_spans.other)
-      #     for t in targets if t.weighted_spans and t.weighted_spans.other),
-        targets_with_rendered_weighted_spans=list(zip(
-            targets,
-            render_targets_weighted_spans(targets, preserve_density))),
+        other_weight_range=max_or_0(
+            get_weight_range(other)
+            for other in weighted_spans_others if other),
+        targets_with_weighted_spans=list(
+            zip(targets, rendered_weighted_spans, weighted_spans_others)),
     )
 
 
@@ -98,17 +102,50 @@ def render_targets_weighted_spans(targets, preserve_density):
         for t in targets]
     # TODO - comment
     max_idx = max_or_0(len(ch_w or []) for ch_w in spans_char_weights)
-    spans_weight_ranges = [
-        max_or_0(abs(x) for char_weights in spans_char_weights
-                 for x in (char_weights[idx] if char_weights is not None else []))
-        for idx in range(max_idx)]
+    spans_weight_ranges = [max_or_0(
+        abs(x) for char_weights in spans_char_weights
+        for x in (char_weights[idx] if char_weights is not None else []))
+                           for idx in range(max_idx)]
     return [
-        '<br/>'.join(  # TODO - add name
-            render_weighted_spans(ws.document, ch_w, w_range)
+        '<br/>'.join(
+            '{}{}'.format(
+                '<b>{}:</b> '.format(ws.vec_name) if ws.vec_name else '',
+                render_weighted_spans(ws.document, ch_w, w_range))
             for ws, ch_w, w_range in zip(
                 t.weighted_spans, char_weights, spans_weight_ranges))
         if t.weighted_spans else None
         for t, char_weights in zip(targets, spans_char_weights)]
+
+
+def merge_weighted_spans_others(weighted_spans):
+    if not weighted_spans:
+        return None
+    if len(weighted_spans) == 1:
+        return weighted_spans[0].other
+    return FeatureWeights(
+        pos=[_renamed(fw, ws) for ws in weighted_spans
+             for fw in ws.other.pos],
+        neg=[_renamed(fw, ws) for ws in weighted_spans
+             for fw in ws.other.neg],
+        # All should be the same, so min is fine
+        pos_remaining=min(ws.other.pos_remaining for ws in weighted_spans),
+        neg_remaining=min(ws.other.neg_remaining for ws in weighted_spans),
+    )
+
+
+def _renamed(fw, ws):
+    if not ws.vec_name:
+        return fw
+    fw = copy.copy(fw)
+    renamed = lambda x: '{}: {}'.format(ws.vec_name, x)
+    if isinstance(fw.feature, FormattedFeatureName):
+        fw.feature = FormattedFeatureName(renamed(fw.feature.value))
+    elif isinstance(fw.feature, list):
+        fw.feature = [
+            {'name': renamed(x['name']), 'sing': x['sign']} for x in fw.feature]
+    else:
+        fw.feature = renamed(fw.feature)
+    return fw
 
 
 def get_char_weights(weighted_spans_data, preserve_density=None):
