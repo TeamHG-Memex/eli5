@@ -31,9 +31,9 @@ following machine learning frameworks and packages:
 * sklearn-crfsuite_. ELI5 allows to check weights of sklearn_crfsuite.CRF
   models.
 
-ELI5 also provides an alternative implementation of LIME_ algorithm,
-which allows to explain predictions of any black-box classifier. This feature
-is currently experimental.
+ELI5 also provides an alternative implementation of :ref:`LIME <eli5-lime>`
+algorithm, which allows to explain predictions of any black-box classifier.
+This feature is currently experimental.
 
 Explanation and formatting are separated; you can get text-based explanation
 to display in console, HTML version embeddable in an IPython notebook
@@ -43,7 +43,6 @@ rendering and formatting on a client.
 .. _lightning: https://github.com/scikit-learn-contrib/lightning
 .. _scikit-learn: https://github.com/scikit-learn/scikit-learn
 .. _sklearn-crfsuite: https://github.com/TeamHG-Memex/sklearn-crfsuite
-.. _LIME: http://arxiv.org/abs/1602.04938
 .. _ELI5: https://github.com/TeamHG-Memex/eli5
 
 Basic Usage
@@ -97,7 +96,8 @@ but even for simple cases having a unified API for inspection has a value:
 * formatting code can be reused between machine learning frameworks;
 * 'drill down' code like feature filtering or text highlighting can be reused;
 * there are lots of gotchas and small differences which ELI5 takes care of;
-* algorithms like LIME_ try to explain a black-box classifier
-  through a locally-fit simple, interpretable classifier. It means that
-  with each additional supported "simple" classifier/regressor
+* algorithms like :ref:`LIME <eli5-lime>`
+  (`paper <http://arxiv.org/abs/1602.04938>`_) try to explain a black-box
+  classifier through a locally-fit simple, interpretable classifier.
+  It means that with each additional supported "simple" classifier/regressor
   algorithms like LIME are getting more options automatically.

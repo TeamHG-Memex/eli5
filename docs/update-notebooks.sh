@@ -22,3 +22,12 @@ jupyter nbconvert \
 
 sed -i '' 's/class="eli5-transition-features"/class="docutils"/g' \
     source/_notebooks/debug-sklearn-crfsuite.rst
+
+
+# LIME
+#jupyter nbconvert \
+#        --to rst \
+#        '../notebooks/LIME and synthetic data.ipynb'
+#rm -r source/_notebooks/LIME
+#mv '../notebooks/LIME and synthetic data_files' 'source/_notebooks/LIME and synthetic data_files'
+#mv '../notebooks/LIME and synthetic data.rst' source/_notebooks/lime-synthetic.rst

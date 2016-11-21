@@ -1,3 +1,5 @@
+.. module:: eli5.lime
+
 eli5.lime
 =========
 
