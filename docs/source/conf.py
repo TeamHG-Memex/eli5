@@ -49,6 +49,11 @@ sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 
 # -- General configuration ------------------------------------------------
 
+
+def setup(app):
+    # see https://github.com/snide/sphinx_rtd_theme/issues/117
+    app.add_stylesheet("rtfd_overrides.css")
+
 # If your documentation needs a minimal Sphinx version, state it here.
 #
 # needs_sphinx = '1.0'
@@ -160,6 +165,12 @@ napoleon_use_param = False
 napoleon_use_rtype = False
 
 add_module_names = False
+
+html_context = {
+    'css_files': [
+        '_static/rtd_overrides.css',  # overrides for wide tables in RTD theme
+    ],
+}
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the

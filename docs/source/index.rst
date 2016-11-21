@@ -22,6 +22,7 @@ explain black-box models.
    :maxdepth: 2
 
    overview
+   tutorials/index
    libraries/index
    lime
    contribute

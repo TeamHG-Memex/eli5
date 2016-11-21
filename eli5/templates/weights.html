@@ -1,7 +1,7 @@
 {% if horizontal_layout and expl.targets|length > 1 %}
 
     {% if force_weights or not any_weighted_spans %}
-        <table style="{{ horizontal_layout_table_styles }}">
+        <table class="eli5-weights-wrapper" style="{{ horizontal_layout_table_styles }}">
             <tr>
                 {% with w_range = target_weight_range %}
                     {% for target in expl.targets %}
