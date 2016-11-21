@@ -23,7 +23,6 @@ explain black-box models.
 
    overview
    tutorials/index
-   libraries/index
    lime
    contribute
    autodocs/index

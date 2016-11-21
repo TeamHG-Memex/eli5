@@ -1,4 +1,0 @@
-lightning
-=========
-
-TODO

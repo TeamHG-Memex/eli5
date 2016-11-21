@@ -1,6 +1,8 @@
 API
 ===
 
+API documentation is auto-generated.
+
 .. toctree::
    :maxdepth: 2
 

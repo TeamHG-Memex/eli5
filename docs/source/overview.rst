@@ -79,7 +79,7 @@ if you're using one of the scikit-learn_ vectorizers with char ngrams:
 
 .. image:: static/char-ngrams.png
 
-To learn more, check example IPython
+To learn more, follow the :ref:`Tutorials`, check example IPython
 `notebooks <https://github.com/TeamHG-Memex/eli5/tree/master/notebooks>`_
 and read documentation sections specific to your framework.
 
