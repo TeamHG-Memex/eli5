@@ -1,5 +1,5 @@
 import re
-from typing import List, Optional, Set, Tuple
+from typing import Any, List, Optional, Set, Tuple
 
 from six.moves import xrange
 from sklearn.feature_extraction.text import VectorizerMixin
@@ -20,7 +20,7 @@ def get_weighted_spans(doc, vec, feature_weights):
     if isinstance(vec, InvertableHashingVectorizer):
         vec = vec.vec
     if not isinstance(vec, VectorizerMixin):
-        return
+        return None
 
     def _get_features(feature):
         if isinstance(feature, list):
@@ -36,7 +36,7 @@ def get_weighted_spans(doc, vec, feature_weights):
 
     span_analyzer, preprocessed_doc = _build_span_analyzer(doc, vec)
     if span_analyzer is None:
-        return
+        return None
 
     weighted_spans = []
     found_features = {}

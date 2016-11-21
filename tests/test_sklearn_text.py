@@ -19,7 +19,7 @@ def test_weighted_spans_word():
             neg=[FW('tree', -6)],
             neg_remaining=10
         ))
-    assert w_spans == WeightedSpans(
+    assert w_spans == [WeightedSpans(
         analyzer='word',
         document='i see: a leaning lemon tree',
         weighted_spans=[
@@ -30,7 +30,7 @@ def test_weighted_spans_word():
             pos=[FW('bias', 8), FW(hl_in_text, 0)],
             neg=[],
             neg_remaining=10,
-        ))
+        ))]
 
 
 def test_weighted_spans_word_bigrams():
@@ -42,7 +42,7 @@ def test_weighted_spans_word_bigrams():
         FeatureWeights(
             pos=[FW('see', 2), FW('leaning lemon', 5), FW('lemon tree', 8)],
             neg=[FW('tree', -6)]))
-    assert w_spans == WeightedSpans(
+    assert w_spans == [WeightedSpans(
         analyzer='word',
         document='i see: a leaning lemon tree',
         weighted_spans=[
@@ -53,7 +53,7 @@ def test_weighted_spans_word_bigrams():
         other=FeatureWeights(
             pos=[FW(hl_in_text, 9)],
             neg=[],
-        ))
+        ))]
 
 
 def test_weighted_spans_word_stopwords():
@@ -65,7 +65,7 @@ def test_weighted_spans_word_stopwords():
         FeatureWeights(
             pos=[FW('see', 2), FW('lemon', 5), FW('bias', 8)],
             neg=[FW('tree', -6)]))
-    assert w_spans == WeightedSpans(
+    assert w_spans == [WeightedSpans(
         analyzer='word',
         document='i see: a leaning lemon tree',
         weighted_spans=[
@@ -74,7 +74,7 @@ def test_weighted_spans_word_stopwords():
         other=FeatureWeights(
             pos=[FW('bias', 8), FW('see', 2)],
             neg=[FW(hl_in_text, -1)],
-        ))
+        ))]
 
 
 def test_weighted_spans_char():
@@ -86,7 +86,7 @@ def test_weighted_spans_char():
         FeatureWeights(
             pos=[FW('see', 2), FW('a le', 5), FW('on ', 8)],
             neg=[FW('lem', -6)]))
-    assert w_spans == WeightedSpans(
+    assert w_spans == [WeightedSpans(
         analyzer='char',
         document='i see: a leaning lemon tree',
         weighted_spans=[
@@ -97,7 +97,7 @@ def test_weighted_spans_char():
         other=FeatureWeights(
             pos=[FW(hl_in_text, 9)],
             neg=[],
-        ))
+        ))]
 
 
 def test_no_weighted_spans():
@@ -105,11 +105,11 @@ def test_no_weighted_spans():
     vec = CountVectorizer(analyzer='char', ngram_range=(3, 4))
     vec.fit([doc])
     w_spans = get_weighted_spans(doc, vec, FeatureWeights(pos=[], neg=[]))
-    assert w_spans == WeightedSpans(
+    assert w_spans == [WeightedSpans(
         analyzer='char',
         document='i see: a leaning lemon tree',
         weighted_spans=[],
-        other=FeatureWeights(pos=[], neg=[]))
+        other=FeatureWeights(pos=[], neg=[]))]
 
 
 def test_weighted_spans_char_wb():
@@ -121,7 +121,7 @@ def test_weighted_spans_char_wb():
         FeatureWeights(
             pos=[FW('see', 2), FW('a le', 5), FW('on ', 8)],
             neg=[FW('lem', -6), FW(' lem', -4)]))
-    assert w_spans == WeightedSpans(
+    assert w_spans == [WeightedSpans(
         analyzer='char_wb',
         document='i see: a leaning lemon tree',
         weighted_spans=[
@@ -132,7 +132,7 @@ def test_weighted_spans_char_wb():
         other=FeatureWeights(
             pos=[FW('a le', 5), FW(hl_in_text, 0)],
             neg=[],
-        ))
+        ))]
 
 
 def test_unhashed_features_other():
@@ -154,7 +154,7 @@ def test_unhashed_features_other():
                 FW([{'name': 'ree', 'sign': 1}, {'name': 'tre', 'sign': 1}], -4),
             ],
         ))
-    assert w_spans == WeightedSpans(
+    assert w_spans == [WeightedSpans(
         analyzer='char',
         document='i see: a leaning lemon tree',
         weighted_spans=[
@@ -167,4 +167,4 @@ def test_unhashed_features_other():
                 FW([{'name': 'zoo', 'sign': 1}, {'name': 'bar', 'sign': 1}], 3),
             ],
             neg=[FW(hl_in_text, -2)],
-        ))
+        ))]

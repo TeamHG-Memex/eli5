@@ -3,7 +3,6 @@ from singledispatch import singledispatch
 
 import numpy as np
 import scipy.sparse as sp
-import six
 from sklearn.base import BaseEstimator
 from sklearn.feature_extraction.text import HashingVectorizer
 from sklearn.linear_model import (
@@ -123,7 +122,7 @@ def explain_prediction_linear_classifier(clf, doc,
                 score=score[label_id],
                 proba=proba[label_id] if proba is not None else None,
             )
-            _add_weighted_spans(doc, vec, target_expl)
+            _add_weighted_spans(doc, vec, vectorized, target_expl)
             res.targets.append(target_expl)
     else:
         target_expl = TargetExplanation(
@@ -132,14 +131,14 @@ def explain_prediction_linear_classifier(clf, doc,
             score=score,
             proba=proba[1] if proba is not None else None,
         )
-        _add_weighted_spans(doc, vec, target_expl)
+        _add_weighted_spans(doc, vec, vectorized, target_expl)
         res.targets.append(target_expl)
 
     return res
 
 
-def _add_weighted_spans(doc, vec, target_expl):
-    if vec is not None:
+def _add_weighted_spans(doc, vec, vectorized, target_expl):
+    if vec is not None and not vectorized:
         weighted_spans = get_weighted_spans(
             doc, vec, target_expl.feature_weights)
         if weighted_spans:
@@ -230,7 +229,7 @@ def explain_prediction_linear_regressor(reg, doc,
                 feature_weights=_weights(label_id),
                 score=score[label_id],
             )
-            _add_weighted_spans(doc, vec, target_expl)
+            _add_weighted_spans(doc, vec, vectorized, target_expl)
             res.targets.append(target_expl)
     else:
         target_expl = TargetExplanation(
@@ -238,7 +237,7 @@ def explain_prediction_linear_regressor(reg, doc,
             feature_weights=_weights(0),
             score=score,
         )
-        _add_weighted_spans(doc, vec, target_expl)
+        _add_weighted_spans(doc, vec, vectorized, target_expl)
         res.targets.append(target_expl)
 
     return res
