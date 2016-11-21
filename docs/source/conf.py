@@ -166,11 +166,11 @@ napoleon_use_rtype = False
 
 add_module_names = False
 
-html_context = {
-    'css_files': [
-        '_static/rtd_overrides.css',  # overrides for wide tables in RTD theme
-    ],
-}
+# html_context = {
+#     'css_files': [
+#         '_static/rtd_overrides.css',  # overrides for wide tables in RTD theme
+#     ],
+# }
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
