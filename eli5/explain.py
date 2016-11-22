@@ -50,6 +50,9 @@ def explain_weights(estimator, **kwargs):
 
         This argument may be supported or not, depending on estimator type.
 
+    feature_re : str, optional
+        Only feature names which match ``feature_re`` regex are returned.
+
     **kwargs: dict
         Keyword arguments. All keyword arguments are passed to
         concrete explain_weights... implementations.
