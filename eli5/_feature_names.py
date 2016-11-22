@@ -18,9 +18,16 @@ class FeatureNames(object):
                     (unkn_template is not None and n_features)):
             raise ValueError(
                 'Pass feature_names or unkn_template and n_features')
-        if feature_names is not None and (
-                not isinstance(feature_names, (list, dict, np.ndarray))):
-            raise TypeError('Unexpected feature_names type')
+        if feature_names is not None:
+            if not isinstance(feature_names, (list, dict, np.ndarray)):
+                raise TypeError('Unexpected feature_names type')
+            if n_features is not None and n_features != len(feature_names):
+                if not isinstance(feature_names, dict):
+                    raise ValueError(
+                        'n_features should match feature_names length')
+                elif unkn_template is None:
+                    raise ValueError(
+                        'unkn_template should be set for sparse features')
         self.feature_names = feature_names
         self.unkn_template = unkn_template
         self.n_features = n_features or len(feature_names)
@@ -34,6 +41,8 @@ class FeatureNames(object):
         return self.n_features + int(self.has_bias)
 
     def __getitem__(self, idx):
+        if isinstance(idx, slice):
+            return self._slice(idx)
         if isinstance(idx, np.ndarray):
             return [self[i] for i in idx]
         if self.has_bias and idx == self.bias_idx:
@@ -44,6 +53,19 @@ class FeatureNames(object):
             except (TypeError, KeyError, IndexError):
                 return self.unkn_template % idx
         raise IndexError('Feature index out of range')
+
+    def _slice(self, aslice):
+        if isinstance(self.feature_names, (list, np.ndarray)):
+            # Fast path without going through __getitem__
+            if self.has_bias:
+                lst = list(self.feature_names)
+                lst.append(self.bias_name)
+            else:
+                lst = self.feature_names
+            return lst[aslice]
+        else:
+            indices = range(len(self))[aslice]
+            return [self[idx] for idx in indices]
 
     @property
     def has_bias(self):
