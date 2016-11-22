@@ -1,6 +1,10 @@
 import pytest
+import numpy as np
 
 from eli5._feature_names import FeatureNames
+
+
+# See also test_sklearn_utils.py::test_get_feature_names
 
 
 def test_feature_names_filter_by_re():
@@ -30,11 +34,31 @@ def test_init():
         FeatureNames(unkn_template='%d')
     with pytest.raises(ValueError):
         FeatureNames(n_features=10)
+    with pytest.raises(ValueError):
+        FeatureNames(['a'], n_features=10)
     with pytest.raises(TypeError):
         FeatureNames({'a', 'b'})
+    with pytest.raises(ValueError):
+        FeatureNames({0: 'a', 1: 'b'}, n_features=10)
     FeatureNames(unkn_template='%d', n_features=10)
     FeatureNames(['a', 'b'])
     FeatureNames({0: 'a', 1: 'b'})
+    FeatureNames({0: 'a', 1: 'b'}, n_features=10, unkn_template='x%d')
 
 
-# See also test_sklearn_utils.py::test_get_feature_names
+def test_slice():
+    FN = FeatureNames
+    assert FN(['one', 'two', 'three'])[1:] == ['two', 'three']
+    assert FN(['one', 'two', 'three'])[:-2] == ['one']
+    assert FN(['one', 'two', 'three'])[1:] == ['two', 'three']
+    assert FN({1: 'one'}, n_features=3, unkn_template='x%d')[:] \
+        == ['x0', 'one', 'x2']
+    assert FN({1: 'one'}, n_features=3, unkn_template='x%d',
+              bias_name='bias')[-3:] \
+        == ['one', 'x2', 'bias']
+    assert FN(['one', 'two', 'three'], bias_name='bias')[-1:] == ['bias']
+    assert FN(np.array(['one', 'two', 'three']), bias_name='bias')[-1:] \
+        == ['bias']
+    assert FN(np.array(['one', 'two', 'three']), bias_name='bias')[-2:] \
+        == ['three', 'bias']
+    assert list(FN(np.array(['one', 'two', 'three']))[-2:]) == ['two', 'three']
