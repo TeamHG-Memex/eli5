@@ -24,8 +24,8 @@ explain black-box models.
    overview
    tutorials/index
    lime
-   contribute
    autodocs/index
+   contribute
    changes
 
 
