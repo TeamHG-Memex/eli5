@@ -62,8 +62,12 @@ def explain_weights(estimator, **kwargs):
     Explanation
         :class:`~Explanation` result. Use one of the formatting functions from
         :mod:`eli5.formatters` to print it in a human-readable form.
-        Explanation instances also have repr which works well with
-        IPython notebook.
+
+        Explanation instances have repr which works well with
+        IPython notebook, but it can be a better idea to use
+        :func:`eli5.show_weights` instead of :func:`eli5.explain_weights`
+        if you work with IPython: :func:`eli5.show_weights` allows to customize
+        formatting without a need to import :mod:`eli5.formatters` functions.
     """
     return Explanation(
         estimator=repr(estimator),
@@ -128,8 +132,13 @@ def explain_prediction(estimator, doc, **kwargs):
     Explanation
         :class:`~.Explanation` result. Use one of the formatting functions from
         :mod:`eli5.formatters` to print it in a human-readable form.
-        Explanation instances also have repr which works well with
-        IPython notebook.
+
+        Explanation instances have repr which works well with
+        IPython notebook, but it can be a better idea to use
+        :func:`eli5.show_prediction` instead of :func:`eli5.explain_prediction`
+        if you work with IPython: :func:`eli5.show_prediction` allows to
+        customize formatting without a need to import :mod:`eli5.formatters`
+        functions.
     """
     return Explanation(
         estimator=repr(estimator),

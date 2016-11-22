@@ -10,3 +10,6 @@ The following functions are exposed to a top level, e.g.
 
 .. autofunction:: eli5.explain_prediction
 
+.. autofunction:: eli5.show_weights
+
+.. autofunction:: eli5.show_prediction
