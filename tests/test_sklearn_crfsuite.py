@@ -2,6 +2,8 @@
 from __future__ import absolute_import
 
 import pytest
+pytest.importorskip('sklearn_crfsuite')
+
 from sklearn_crfsuite import CRF
 
 from eli5 import explain_weights
