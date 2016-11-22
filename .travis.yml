@@ -11,6 +11,7 @@ env:
     - TOXENV=py35
     - TOXENV=py35-nodeps
     - TOXENV=mypy
+    - TOXENV=docs
 
 addons:
     apt:

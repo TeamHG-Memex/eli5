@@ -54,6 +54,8 @@ def setup(app):
     # see https://github.com/snide/sphinx_rtd_theme/issues/117
     app.add_stylesheet("rtfd_overrides.css")
 
+suppress_warnings = ['image.nonlocal_uri']
+
 # If your documentation needs a minimal Sphinx version, state it here.
 #
 # needs_sphinx = '1.0'
