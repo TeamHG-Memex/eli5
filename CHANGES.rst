@@ -1,6 +1,38 @@
 Changelog
 =========
 
+0.1 (TBA)
+---------
+
+* HTML output;
+* IPython integration;
+* JSON output;
+* visualization of scikit-learn text vectorizers;
+* `sklearn-crfsuite <https://github.com/TeamHG-Memex/sklearn-crfsuite>`_
+  support;
+* `lightning <https://github.com/scikit-learn-contrib/lightning>`_ support;
+* top-level :func:`eli5.explain_weights` and :func:`eli5.explain_prediction`
+  functions;
+* :ref:`eli5.lime <eli5-lime>` improvements: samplers for non-text data,
+  bug fixes, docs;
+* HashingVectorizer is supported for regression tasks;
+* performance improvements - feature names are lazy;
+* sklearn ElasticNetCV and RidgeCV support;
+* it is now possible to customize formatting output - show/hide sections,
+  change layout;
+* sklearn OneVsRestClassifier support;
+* sklearn DecisionTreeClassifier visualization (text-based or svg-based);
+* dropped support for scikit-learn < 0.18;
+* basic mypy type annotations;
+* ``feature_re`` argument of :func:`eli5.explain_weights`
+  allows to show only a subset of features;
+* ``target_names`` argument of :func:`eli5.explain_weights`
+  allows to change display names of targets/classes;
+* ``targets`` argument of :func:`eli5.explain_weights` allows to
+  show a subset of targets/classes and change their display order;
+* documentation.
+
+
 0.0.6 (2016-10-12)
 ------------------
 
