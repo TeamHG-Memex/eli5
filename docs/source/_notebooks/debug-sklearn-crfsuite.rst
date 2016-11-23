@@ -176,7 +176,7 @@ eli5.explain\_weights:
 
 .. code:: python
 
-    eli5.explain_weights(crf, top=30)
+    eli5.show_weights(crf, top=30)
 
 
 
@@ -200,7 +200,7 @@ eli5.explain\_weights:
             
     
     
-    <table class="docutils">
+    <table class="docutils" style="margin-bottom: 0.5em;">
         <thead>
             <tr>
                 <td>From \ To</td>
@@ -619,7 +619,100 @@ eli5.explain\_weights:
             
     
         
-            <table class="eli5-weights-wrapper" style="border-collapse: collapse; border: none;">
+            <table class="eli5-weights-wrapper" style="border-collapse: collapse; border: none; margin-bottom: 1.5em;">
+                <tr>
+                    
+                        <td style="padding: 0.5em; border: 1px solid black; text-align: center;">
+                            <b>
+        
+            y=O
+        
+    </b>
+    
+    top features
+                        </td>
+                    
+                        <td style="padding: 0.5em; border: 1px solid black; text-align: center;">
+                            <b>
+        
+            y=B-LOC
+        
+    </b>
+    
+    top features
+                        </td>
+                    
+                        <td style="padding: 0.5em; border: 1px solid black; text-align: center;">
+                            <b>
+        
+            y=I-LOC
+        
+    </b>
+    
+    top features
+                        </td>
+                    
+                        <td style="padding: 0.5em; border: 1px solid black; text-align: center;">
+                            <b>
+        
+            y=B-MISC
+        
+    </b>
+    
+    top features
+                        </td>
+                    
+                        <td style="padding: 0.5em; border: 1px solid black; text-align: center;">
+                            <b>
+        
+            y=I-MISC
+        
+    </b>
+    
+    top features
+                        </td>
+                    
+                        <td style="padding: 0.5em; border: 1px solid black; text-align: center;">
+                            <b>
+        
+            y=B-ORG
+        
+    </b>
+    
+    top features
+                        </td>
+                    
+                        <td style="padding: 0.5em; border: 1px solid black; text-align: center;">
+                            <b>
+        
+            y=I-ORG
+        
+    </b>
+    
+    top features
+                        </td>
+                    
+                        <td style="padding: 0.5em; border: 1px solid black; text-align: center;">
+                            <b>
+        
+            y=B-PER
+        
+    </b>
+    
+    top features
+                        </td>
+                    
+                        <td style="padding: 0.5em; border: 1px solid black; text-align: center;">
+                            <b>
+        
+            y=I-PER
+        
+    </b>
+    
+    top features
+                        </td>
+                    
+                </tr>
                 <tr>
                     
                         
@@ -628,24 +721,10 @@ eli5.explain\_weights:
                                     
                                         
                                         
-    
         
-    
-        <table class="eli5-weights" style="border-collapse: collapse; border: none;">
+        <table class="eli5-weights"
+               style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
             <thead>
-            
-                <tr style="border: none;">
-                    <td colspan="2" style="text-align: center; padding: 0.5em; border: none; border-bottom: 1px solid black;">
-                        <b>
-        
-            y=O
-        
-    </b>
-    
-    top features
-                    </td>
-                </tr>
-            
             <tr style="border: none;">
                 <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
@@ -694,7 +773,7 @@ eli5.explain\_weights:
             +2.297
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            word.lower():,
+            postag:Fc
         </td>
     </tr>
             
@@ -703,7 +782,7 @@ eli5.explain\_weights:
             +2.297
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag:Fc
+            word.lower():,
         </td>
     </tr>
             
@@ -721,7 +800,7 @@ eli5.explain\_weights:
             +2.124
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag:CC
+            postag[:2]:CC
         </td>
     </tr>
             
@@ -730,7 +809,7 @@ eli5.explain\_weights:
             +2.124
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag[:2]:CC
+            postag:CC
         </td>
     </tr>
             
@@ -775,7 +854,7 @@ eli5.explain\_weights:
             +1.610
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag:Fg
+            word.lower():-
         </td>
     </tr>
             
@@ -784,7 +863,7 @@ eli5.explain\_weights:
             +1.610
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            word.lower():-
+            postag:Fg
         </td>
     </tr>
             
@@ -811,6 +890,15 @@ eli5.explain\_weights:
             +1.582
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            postag:Fp
+        </td>
+    </tr>
+            
+                <tr style="background-color: hsl(120, 100.00%, 92.28%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            +1.582
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.lower():.
         </td>
     </tr>
@@ -821,15 +909,6 @@ eli5.explain\_weights:
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word[-3:]:.
-        </td>
-    </tr>
-            
-                <tr style="background-color: hsl(120, 100.00%, 92.28%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +1.582
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag:Fp
         </td>
     </tr>
             
@@ -847,7 +926,7 @@ eli5.explain\_weights:
             +1.187
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag:CS
+            postag[:2]:CS
         </td>
     </tr>
             
@@ -856,16 +935,7 @@ eli5.explain\_weights:
             +1.187
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag[:2]:CS
-        </td>
-    </tr>
-            
-                <tr style="background-color: hsl(120, 100.00%, 93.83%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +1.150
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag:Fpa
+            postag:CS
         </td>
     </tr>
             
@@ -884,6 +954,15 @@ eli5.explain\_weights:
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word[-3:]:(
+        </td>
+    </tr>
+            
+                <tr style="background-color: hsl(120, 100.00%, 93.83%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            +1.150
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            postag:Fpa
         </td>
     </tr>
             
@@ -908,7 +987,7 @@ eli5.explain\_weights:
             -2.106
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag:NP
+            postag[:2]:NP
         </td>
     </tr>
             
@@ -917,7 +996,7 @@ eli5.explain\_weights:
             -2.106
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag[:2]:NP
+            postag:NP
         </td>
     </tr>
             
@@ -952,24 +1031,10 @@ eli5.explain\_weights:
                                     
                                         
                                         
-    
         
-    
-        <table class="eli5-weights" style="border-collapse: collapse; border: none;">
+        <table class="eli5-weights"
+               style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
             <thead>
-            
-                <tr style="border: none;">
-                    <td colspan="2" style="text-align: center; padding: 0.5em; border: none; border-bottom: 1px solid black;">
-                        <b>
-        
-            y=B-LOC
-        
-    </b>
-    
-    top features
-                    </td>
-                </tr>
-            
             <tr style="border: none;">
                 <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
@@ -1081,15 +1146,6 @@ eli5.explain\_weights:
             +0.420
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag:Fg
-        </td>
-    </tr>
-            
-                <tr style="background-color: hsl(120, 100.00%, 96.95%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +0.420
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:postag[:2]:Fg
         </td>
     </tr>
@@ -1100,6 +1156,15 @@ eli5.explain\_weights:
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.lower():-
+        </td>
+    </tr>
+            
+                <tr style="background-color: hsl(120, 100.00%, 96.95%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            +0.420
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            -1:postag:Fg
         </td>
     </tr>
             
@@ -1126,7 +1191,7 @@ eli5.explain\_weights:
             +0.389
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag:Fpa
+            -1:word.lower():(
         </td>
     </tr>
             
@@ -1135,7 +1200,7 @@ eli5.explain\_weights:
             +0.389
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:word.lower():(
+            -1:postag:Fpa
         </td>
     </tr>
             
@@ -1153,7 +1218,7 @@ eli5.explain\_weights:
             +0.385
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag[:2]:NC
+            postag:NC
         </td>
     </tr>
             
@@ -1178,7 +1243,7 @@ eli5.explain\_weights:
             -0.389
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag[:2]:Fe
+            -1:postag:Fe
         </td>
     </tr>
             
@@ -1196,7 +1261,7 @@ eli5.explain\_weights:
             -0.389
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag:Fe
+            -1:postag[:2]:Fe
         </td>
     </tr>
             
@@ -1241,7 +1306,7 @@ eli5.explain\_weights:
             -0.986
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag:SP
+            postag[:2]:SP
         </td>
     </tr>
             
@@ -1250,7 +1315,7 @@ eli5.explain\_weights:
             -0.986
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag[:2]:SP
+            postag:SP
         </td>
     </tr>
             
@@ -1276,24 +1341,10 @@ eli5.explain\_weights:
                                     
                                         
                                         
-    
         
-    
-        <table class="eli5-weights" style="border-collapse: collapse; border: none;">
+        <table class="eli5-weights"
+               style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
             <thead>
-            
-                <tr style="border: none;">
-                    <td colspan="2" style="text-align: center; padding: 0.5em; border: none; border-bottom: 1px solid black;">
-                        <b>
-        
-            y=I-LOC
-        
-    </b>
-    
-    top features
-                    </td>
-                </tr>
-            
             <tr style="border: none;">
                 <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
@@ -1484,7 +1535,7 @@ eli5.explain\_weights:
             -0.206
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag:Z
+            -1:postag[:2]:Z
         </td>
     </tr>
             
@@ -1493,16 +1544,7 @@ eli5.explain\_weights:
             -0.206
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag[:2]:Z
-        </td>
-    </tr>
-            
-                <tr style="background-color: hsl(0, 100.00%, 98.10%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            -0.213
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag:CC
+            -1:postag:Z
         </td>
     </tr>
             
@@ -1512,6 +1554,15 @@ eli5.explain\_weights:
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:postag[:2]:CC
+        </td>
+    </tr>
+            
+                <tr style="background-color: hsl(0, 100.00%, 98.10%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            -0.213
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            -1:postag:CC
         </td>
     </tr>
             
@@ -1556,7 +1607,7 @@ eli5.explain\_weights:
             -0.366
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            +1:postag:AQ
+            +1:postag[:2]:AQ
         </td>
     </tr>
             
@@ -1565,7 +1616,7 @@ eli5.explain\_weights:
             -0.366
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            +1:postag[:2]:AQ
+            +1:postag:AQ
         </td>
     </tr>
             
@@ -1600,24 +1651,10 @@ eli5.explain\_weights:
                                     
                                         
                                         
-    
         
-    
-        <table class="eli5-weights" style="border-collapse: collapse; border: none;">
+        <table class="eli5-weights"
+               style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
             <thead>
-            
-                <tr style="border: none;">
-                    <td colspan="2" style="text-align: center; padding: 0.5em; border: none; border-bottom: 1px solid black;">
-                        <b>
-        
-            y=B-MISC
-        
-    </b>
-    
-    top features
-                    </td>
-                </tr>
-            
             <tr style="border: none;">
                 <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
@@ -1648,7 +1685,7 @@ eli5.explain\_weights:
             +0.606
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            word[-3:]:&quot;
+            postag[:2]:Fe
         </td>
     </tr>
             
@@ -1657,7 +1694,7 @@ eli5.explain\_weights:
             +0.606
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            word.lower():&quot;
+            word[-3:]:&quot;
         </td>
     </tr>
             
@@ -1675,7 +1712,7 @@ eli5.explain\_weights:
             +0.606
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag[:2]:Fe
+            word.lower():&quot;
         </td>
     </tr>
             
@@ -1693,7 +1730,7 @@ eli5.explain\_weights:
             +0.508
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:word.lower():&quot;
+            -1:postag[:2]:Fe
         </td>
     </tr>
             
@@ -1702,7 +1739,7 @@ eli5.explain\_weights:
             +0.508
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag[:2]:Fe
+            -1:word.lower():&quot;
         </td>
     </tr>
             
@@ -1720,7 +1757,7 @@ eli5.explain\_weights:
             +0.484
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag:DA
+            -1:postag[:2]:DA
         </td>
     </tr>
             
@@ -1729,7 +1766,7 @@ eli5.explain\_weights:
             +0.484
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag[:2]:DA
+            -1:postag:DA
         </td>
     </tr>
             
@@ -1837,7 +1874,7 @@ eli5.explain\_weights:
             +0.284
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            +1:postag:NC
+            +1:postag[:2]:NC
         </td>
     </tr>
             
@@ -1846,7 +1883,7 @@ eli5.explain\_weights:
             +0.284
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            +1:postag[:2]:NC
+            +1:postag:NC
         </td>
     </tr>
             
@@ -1889,7 +1926,7 @@ eli5.explain\_weights:
             -0.908
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag:SP
+            postag[:2]:SP
         </td>
     </tr>
             
@@ -1898,7 +1935,7 @@ eli5.explain\_weights:
             -0.908
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag[:2]:SP
+            postag:SP
         </td>
     </tr>
             
@@ -1924,24 +1961,10 @@ eli5.explain\_weights:
                                     
                                         
                                         
-    
         
-    
-        <table class="eli5-weights" style="border-collapse: collapse; border: none;">
+        <table class="eli5-weights"
+               style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
             <thead>
-            
-                <tr style="border: none;">
-                    <td colspan="2" style="text-align: center; padding: 0.5em; border: none; border-bottom: 1px solid black;">
-                        <b>
-        
-            y=I-MISC
-        
-    </b>
-    
-    top features
-                    </td>
-                </tr>
-            
             <tr style="border: none;">
                 <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
@@ -1972,15 +1995,6 @@ eli5.explain\_weights:
             +0.597
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            +1:word.lower():&quot;
-        </td>
-    </tr>
-            
-                <tr style="background-color: hsl(120, 100.00%, 96.10%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +0.597
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             +1:postag[:2]:Fe
         </td>
     </tr>
@@ -1994,12 +2008,12 @@ eli5.explain\_weights:
         </td>
     </tr>
             
-                <tr style="background-color: hsl(120, 100.00%, 97.21%); border: none;">
+                <tr style="background-color: hsl(120, 100.00%, 96.10%); border: none;">
         <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +0.369
+            +0.597
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag:NC
+            +1:word.lower():&quot;
         </td>
     </tr>
             
@@ -2009,6 +2023,15 @@ eli5.explain\_weights:
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:postag[:2]:NC
+        </td>
+    </tr>
+            
+                <tr style="background-color: hsl(120, 100.00%, 97.21%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            +0.369
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            -1:postag:NC
         </td>
     </tr>
             
@@ -2248,24 +2271,10 @@ eli5.explain\_weights:
                                     
                                         
                                         
-    
         
-    
-        <table class="eli5-weights" style="border-collapse: collapse; border: none;">
+        <table class="eli5-weights"
+               style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
             <thead>
-            
-                <tr style="border: none;">
-                    <td colspan="2" style="text-align: center; padding: 0.5em; border: none; border-bottom: 1px solid black;">
-                        <b>
-        
-            y=B-ORG
-        
-    </b>
-    
-    top features
-                    </td>
-                </tr>
-            
             <tr style="border: none;">
                 <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
@@ -2341,7 +2350,7 @@ eli5.explain\_weights:
             +0.671
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            word.lower():pp
+            word[-3:]:PP
         </td>
     </tr>
             
@@ -2350,7 +2359,7 @@ eli5.explain\_weights:
             +0.671
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            word[-3:]:PP
+            word.lower():pp
         </td>
     </tr>
             
@@ -2438,7 +2447,7 @@ eli5.explain\_weights:
             -0.430
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag[:2]:AQ
+            -1:postag:AQ
         </td>
     </tr>
             
@@ -2447,7 +2456,7 @@ eli5.explain\_weights:
             -0.430
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag:AQ
+            -1:postag[:2]:AQ
         </td>
     </tr>
             
@@ -2465,7 +2474,7 @@ eli5.explain\_weights:
             -0.455
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag:Z
+            postag[:2]:Z
         </td>
     </tr>
             
@@ -2474,7 +2483,7 @@ eli5.explain\_weights:
             -0.455
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag[:2]:Z
+            postag:Z
         </td>
     </tr>
             
@@ -2546,7 +2555,7 @@ eli5.explain\_weights:
             -1.289
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag[:2]:SP
+            postag:SP
         </td>
     </tr>
             
@@ -2555,7 +2564,7 @@ eli5.explain\_weights:
             -1.289
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag:SP
+            postag[:2]:SP
         </td>
     </tr>
             
@@ -2572,24 +2581,10 @@ eli5.explain\_weights:
                                     
                                         
                                         
-    
         
-    
-        <table class="eli5-weights" style="border-collapse: collapse; border: none;">
+        <table class="eli5-weights"
+               style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
             <thead>
-            
-                <tr style="border: none;">
-                    <td colspan="2" style="text-align: center; padding: 0.5em; border: none; border-bottom: 1px solid black;">
-                        <b>
-        
-            y=I-ORG
-        
-    </b>
-    
-    top features
-                    </td>
-                </tr>
-            
             <tr style="border: none;">
                 <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
@@ -2656,7 +2651,7 @@ eli5.explain\_weights:
             +0.428
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag:SP
+            -1:postag[:2]:SP
         </td>
     </tr>
             
@@ -2665,7 +2660,7 @@ eli5.explain\_weights:
             +0.428
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag[:2]:SP
+            -1:postag:SP
         </td>
     </tr>
             
@@ -2719,7 +2714,7 @@ eli5.explain\_weights:
             +0.336
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag:AQ
+            postag[:2]:AQ
         </td>
     </tr>
             
@@ -2728,16 +2723,7 @@ eli5.explain\_weights:
             +0.336
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag[:2]:AQ
-        </td>
-    </tr>
-            
-                <tr style="background-color: hsl(120, 100.00%, 97.41%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +0.332
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            +1:postag:Fpa
+            postag:AQ
         </td>
     </tr>
             
@@ -2747,6 +2733,15 @@ eli5.explain\_weights:
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             +1:word.lower():(
+        </td>
+    </tr>
+            
+                <tr style="background-color: hsl(120, 100.00%, 97.41%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            +0.332
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            +1:postag:Fpa
         </td>
     </tr>
             
@@ -2789,7 +2784,7 @@ eli5.explain\_weights:
             -0.304
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag[:2]:NP
+            postag:NP
         </td>
     </tr>
             
@@ -2798,7 +2793,7 @@ eli5.explain\_weights:
             -0.304
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag:NP
+            postag[:2]:NP
         </td>
     </tr>
             
@@ -2816,7 +2811,7 @@ eli5.explain\_weights:
             -0.384
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            +1:postag[:2]:NC
+            +1:postag:NC
         </td>
     </tr>
             
@@ -2825,7 +2820,7 @@ eli5.explain\_weights:
             -0.384
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            +1:postag:NC
+            +1:postag[:2]:NC
         </td>
     </tr>
             
@@ -2843,7 +2838,7 @@ eli5.explain\_weights:
             -0.507
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            +1:postag[:2]:AQ
+            +1:postag:AQ
         </td>
     </tr>
             
@@ -2852,7 +2847,7 @@ eli5.explain\_weights:
             -0.507
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            +1:postag:AQ
+            +1:postag[:2]:AQ
         </td>
     </tr>
             
@@ -2896,24 +2891,10 @@ eli5.explain\_weights:
                                     
                                         
                                         
-    
         
-    
-        <table class="eli5-weights" style="border-collapse: collapse; border: none;">
+        <table class="eli5-weights"
+               style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
             <thead>
-            
-                <tr style="border: none;">
-                    <td colspan="2" style="text-align: center; padding: 0.5em; border: none; border-bottom: 1px solid black;">
-                        <b>
-        
-            y=B-PER
-        
-    </b>
-    
-    top features
-                    </td>
-                </tr>
-            
             <tr style="border: none;">
                 <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
@@ -2953,7 +2934,7 @@ eli5.explain\_weights:
             +0.589
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag:NP
+            postag[:2]:NP
         </td>
     </tr>
             
@@ -2962,7 +2943,7 @@ eli5.explain\_weights:
             +0.589
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag[:2]:NP
+            postag:NP
         </td>
     </tr>
             
@@ -3034,7 +3015,7 @@ eli5.explain\_weights:
             +0.452
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag:Fc
+            -1:postag[:2]:Fc
         </td>
     </tr>
             
@@ -3052,7 +3033,7 @@ eli5.explain\_weights:
             +0.452
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag[:2]:Fc
+            -1:postag:Fc
         </td>
     </tr>
             
@@ -3086,6 +3067,15 @@ eli5.explain\_weights:
             -0.475
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            -1:postag:Fe
+        </td>
+    </tr>
+            
+                <tr style="background-color: hsl(0, 100.00%, 96.68%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            -0.475
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:postag[:2]:Fe
         </td>
     </tr>
@@ -3096,15 +3086,6 @@ eli5.explain\_weights:
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.lower():&quot;
-        </td>
-    </tr>
-            
-                <tr style="background-color: hsl(0, 100.00%, 96.68%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            -0.475
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag:Fe
         </td>
     </tr>
             
@@ -3140,7 +3121,7 @@ eli5.explain\_weights:
             -0.712
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag:SP
+            postag[:2]:SP
         </td>
     </tr>
             
@@ -3149,7 +3130,7 @@ eli5.explain\_weights:
             -0.712
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag[:2]:SP
+            postag:SP
         </td>
     </tr>
             
@@ -3167,7 +3148,7 @@ eli5.explain\_weights:
             -0.818
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag[:2]:DA
+            -1:postag:DA
         </td>
     </tr>
             
@@ -3176,7 +3157,7 @@ eli5.explain\_weights:
             -0.818
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag:DA
+            -1:postag[:2]:DA
         </td>
     </tr>
             
@@ -3220,24 +3201,10 @@ eli5.explain\_weights:
                                     
                                         
                                         
-    
         
-    
-        <table class="eli5-weights" style="border-collapse: collapse; border: none;">
+        <table class="eli5-weights"
+               style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
             <thead>
-            
-                <tr style="border: none;">
-                    <td colspan="2" style="text-align: center; padding: 0.5em; border: none; border-bottom: 1px solid black;">
-                        <b>
-        
-            y=I-PER
-        
-    </b>
-    
-    top features
-                    </td>
-                </tr>
-            
             <tr style="border: none;">
                 <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
@@ -3392,7 +3359,7 @@ eli5.explain\_weights:
             -0.301
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag:NP
+            postag[:2]:NP
         </td>
     </tr>
             
@@ -3401,7 +3368,7 @@ eli5.explain\_weights:
             -0.301
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag[:2]:NP
+            postag:NP
         </td>
     </tr>
             
@@ -3411,6 +3378,24 @@ eli5.explain\_weights:
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word[-3:]:ión
+        </td>
+    </tr>
+            
+                <tr style="background-color: hsl(0, 100.00%, 97.56%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            -0.305
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            postag:Fe
+        </td>
+    </tr>
+            
+                <tr style="background-color: hsl(0, 100.00%, 97.56%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            -0.305
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            word.lower():&quot;
         </td>
     </tr>
             
@@ -3437,24 +3422,6 @@ eli5.explain\_weights:
             -0.305
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            word.lower():&quot;
-        </td>
-    </tr>
-            
-                <tr style="background-color: hsl(0, 100.00%, 97.56%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            -0.305
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag:Fe
-        </td>
-    </tr>
-            
-                <tr style="background-color: hsl(0, 100.00%, 97.56%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            -0.305
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             +1:word.lower():que
         </td>
     </tr>
@@ -3473,7 +3440,7 @@ eli5.explain\_weights:
             -0.377
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            +1:postag:Z
+            +1:postag[:2]:Z
         </td>
     </tr>
             
@@ -3482,7 +3449,7 @@ eli5.explain\_weights:
             -0.377
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            +1:postag[:2]:Z
+            +1:postag:Z
         </td>
     </tr>
             
@@ -3631,7 +3598,7 @@ observed in training data. Let's check how does it affect the result:
 
 .. code:: python
 
-    eli5.explain_weights(crf, top=5)
+    eli5.show_weights(crf, top=5, show=['transition_features'])
 
 
 
@@ -3655,7 +3622,7 @@ observed in training data. Let's check how does it affect the result:
             
     
     
-    <table class="docutils">
+    <table class="docutils" style="margin-bottom: 0.5em;">
         <thead>
             <tr>
                 <td>From \ To</td>
@@ -4064,970 +4031,6 @@ observed in training data. Let's check how does it affect the result:
         
     
     
-        
-    
-        
-    
-        
-    
-        
-            
-    
-        
-            <table class="eli5-weights-wrapper" style="border-collapse: collapse; border: none;">
-                <tr>
-                    
-                        
-                            <td style="padding: 0px; border: 1px solid black; vertical-align: top;">
-                                
-                                    
-                                        
-                                        
-    
-        
-    
-        <table class="eli5-weights" style="border-collapse: collapse; border: none;">
-            <thead>
-            
-                <tr style="border: none;">
-                    <td colspan="2" style="text-align: center; padding: 0.5em; border: none; border-bottom: 1px solid black;">
-                        <b>
-        
-            y=O
-        
-    </b>
-    
-    top features
-                    </td>
-                </tr>
-            
-            <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
-                <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
-            </tr>
-            </thead>
-            <tbody>
-            
-                <tr style="background-color: hsl(120, 100.00%, 84.39%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +4.931
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            BOS
-        </td>
-    </tr>
-            
-                <tr style="background-color: hsl(120, 100.00%, 87.10%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +3.754
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag[:2]:Fp
-        </td>
-    </tr>
-            
-                <tr style="background-color: hsl(120, 100.00%, 87.62%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +3.539
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            bias
-        </td>
-    </tr>
-            
-            
-                <tr style="background-color: hsl(120, 100.00%, 87.62%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
-                        <i>&hellip; 15043 more positive &hellip;</i>
-                    </td>
-                </tr>
-            
-    
-            
-                <tr style="background-color: hsl(0, 100.00%, 87.27%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
-                        <i>&hellip; 3906 more negative &hellip;</i>
-                    </td>
-                </tr>
-            
-            
-                <tr style="background-color: hsl(0, 100.00%, 87.27%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            -3.685
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            word.isupper()
-        </td>
-    </tr>
-            
-                <tr style="background-color: hsl(0, 100.00%, 80.00%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            -7.025
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            word.istitle()
-        </td>
-    </tr>
-            
-    
-            </tbody>
-        </table>
-    
-                                    
-                                
-                            </td>
-                        
-                            <td style="padding: 0px; border: 1px solid black; vertical-align: top;">
-                                
-                                    
-                                        
-                                        
-    
-        
-    
-        <table class="eli5-weights" style="border-collapse: collapse; border: none;">
-            <thead>
-            
-                <tr style="border: none;">
-                    <td colspan="2" style="text-align: center; padding: 0.5em; border: none; border-bottom: 1px solid black;">
-                        <b>
-        
-            y=B-LOC
-        
-    </b>
-    
-    top features
-                    </td>
-                </tr>
-            
-            <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
-                <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
-            </tr>
-            </thead>
-            <tbody>
-            
-                <tr style="background-color: hsl(120, 100.00%, 90.58%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +2.397
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            word.istitle()
-        </td>
-    </tr>
-            
-                <tr style="background-color: hsl(120, 100.00%, 91.28%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +2.147
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:word.lower():en
-        </td>
-    </tr>
-            
-            
-                <tr style="background-color: hsl(120, 100.00%, 91.28%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
-                        <i>&hellip; 2284 more positive &hellip;</i>
-                    </td>
-                </tr>
-            
-    
-            
-                <tr style="background-color: hsl(0, 100.00%, 94.61%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
-                        <i>&hellip; 433 more negative &hellip;</i>
-                    </td>
-                </tr>
-            
-            
-                <tr style="background-color: hsl(0, 100.00%, 94.61%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            -1.080
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag[:2]:SP
-        </td>
-    </tr>
-            
-                <tr style="background-color: hsl(0, 100.00%, 94.61%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            -1.080
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag:SP
-        </td>
-    </tr>
-            
-                <tr style="background-color: hsl(0, 100.00%, 93.95%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            -1.273
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:word.istitle()
-        </td>
-    </tr>
-            
-    
-            </tbody>
-        </table>
-    
-                                    
-                                
-                            </td>
-                        
-                            <td style="padding: 0px; border: 1px solid black; vertical-align: top;">
-                                
-                                    
-                                        
-                                        
-    
-        
-    
-        <table class="eli5-weights" style="border-collapse: collapse; border: none;">
-            <thead>
-            
-                <tr style="border: none;">
-                    <td colspan="2" style="text-align: center; padding: 0.5em; border: none; border-bottom: 1px solid black;">
-                        <b>
-        
-            y=I-LOC
-        
-    </b>
-    
-    top features
-                    </td>
-                </tr>
-            
-            <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
-                <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
-            </tr>
-            </thead>
-            <tbody>
-            
-                <tr style="background-color: hsl(120, 100.00%, 95.32%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +0.882
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:word.lower():de
-        </td>
-    </tr>
-            
-                <tr style="background-color: hsl(120, 100.00%, 95.71%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +0.780
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:word.istitle()
-        </td>
-    </tr>
-            
-                <tr style="background-color: hsl(120, 100.00%, 95.95%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +0.718
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            word[-3:]:de
-        </td>
-    </tr>
-            
-                <tr style="background-color: hsl(120, 100.00%, 95.98%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +0.711
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            word.lower():de
-        </td>
-    </tr>
-            
-            
-                <tr style="background-color: hsl(120, 100.00%, 95.98%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
-                        <i>&hellip; 1684 more positive &hellip;</i>
-                    </td>
-                </tr>
-            
-    
-            
-                <tr style="background-color: hsl(0, 100.00%, 91.80%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
-                        <i>&hellip; 268 more negative &hellip;</i>
-                    </td>
-                </tr>
-            
-            
-                <tr style="background-color: hsl(0, 100.00%, 91.80%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            -1.965
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            BOS
-        </td>
-    </tr>
-            
-    
-            </tbody>
-        </table>
-    
-                                    
-                                
-                            </td>
-                        
-                            <td style="padding: 0px; border: 1px solid black; vertical-align: top;">
-                                
-                                    
-                                        
-                                        
-    
-        
-    
-        <table class="eli5-weights" style="border-collapse: collapse; border: none;">
-            <thead>
-            
-                <tr style="border: none;">
-                    <td colspan="2" style="text-align: center; padding: 0.5em; border: none; border-bottom: 1px solid black;">
-                        <b>
-        
-            y=B-MISC
-        
-    </b>
-    
-    top features
-                    </td>
-                </tr>
-            
-            <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
-                <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
-            </tr>
-            </thead>
-            <tbody>
-            
-                <tr style="background-color: hsl(120, 100.00%, 91.65%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +2.017
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            word.isupper()
-        </td>
-    </tr>
-            
-                <tr style="background-color: hsl(120, 100.00%, 96.41%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +0.603
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            word.istitle()
-        </td>
-    </tr>
-            
-            
-                <tr style="background-color: hsl(120, 100.00%, 96.41%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
-                        <i>&hellip; 2287 more positive &hellip;</i>
-                    </td>
-                </tr>
-            
-    
-            
-                <tr style="background-color: hsl(0, 100.00%, 95.44%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
-                        <i>&hellip; 337 more negative &hellip;</i>
-                    </td>
-                </tr>
-            
-            
-                <tr style="background-color: hsl(0, 100.00%, 95.44%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            -0.850
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:word.istitle()
-        </td>
-    </tr>
-            
-                <tr style="background-color: hsl(0, 100.00%, 95.04%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            -0.959
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag:SP
-        </td>
-    </tr>
-            
-                <tr style="background-color: hsl(0, 100.00%, 95.04%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            -0.959
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag[:2]:SP
-        </td>
-    </tr>
-            
-    
-            </tbody>
-        </table>
-    
-                                    
-                                
-                            </td>
-                        
-                            <td style="padding: 0px; border: 1px solid black; vertical-align: top;">
-                                
-                                    
-                                        
-                                        
-    
-        
-    
-        <table class="eli5-weights" style="border-collapse: collapse; border: none;">
-            <thead>
-            
-                <tr style="border: none;">
-                    <td colspan="2" style="text-align: center; padding: 0.5em; border: none; border-bottom: 1px solid black;">
-                        <b>
-        
-            y=I-MISC
-        
-    </b>
-    
-    top features
-                    </td>
-                </tr>
-            
-            <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
-                <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
-            </tr>
-            </thead>
-            <tbody>
-            
-                <tr style="background-color: hsl(120, 100.00%, 95.39%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +0.864
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:word.istitle()
-        </td>
-    </tr>
-            
-                <tr style="background-color: hsl(120, 100.00%, 96.36%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +0.616
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:word.lower():de
-        </td>
-    </tr>
-            
-                <tr style="background-color: hsl(120, 100.00%, 96.47%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +0.591
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            +1:postag[:2]:Fe
-        </td>
-    </tr>
-            
-                <tr style="background-color: hsl(120, 100.00%, 96.47%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +0.591
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            +1:postag:Fe
-        </td>
-    </tr>
-            
-                <tr style="background-color: hsl(120, 100.00%, 96.47%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +0.591
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            +1:word.lower():&quot;
-        </td>
-    </tr>
-            
-            
-                <tr style="background-color: hsl(120, 100.00%, 96.47%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
-                        <i>&hellip; 3684 more positive &hellip;</i>
-                    </td>
-                </tr>
-            
-    
-            
-                <tr style="background-color: hsl(0, 100.00%, 80.00%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
-                        <i>&hellip; 582 more negative &hellip;</i>
-                    </td>
-                </tr>
-            
-            
-    
-            </tbody>
-        </table>
-    
-                                    
-                                
-                            </td>
-                        
-                            <td style="padding: 0px; border: 1px solid black; vertical-align: top;">
-                                
-                                    
-                                        
-                                        
-    
-        
-    
-        <table class="eli5-weights" style="border-collapse: collapse; border: none;">
-            <thead>
-            
-                <tr style="border: none;">
-                    <td colspan="2" style="text-align: center; padding: 0.5em; border: none; border-bottom: 1px solid black;">
-                        <b>
-        
-            y=B-ORG
-        
-    </b>
-    
-    top features
-                    </td>
-                </tr>
-            
-            <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
-                <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
-            </tr>
-            </thead>
-            <tbody>
-            
-                <tr style="background-color: hsl(120, 100.00%, 88.87%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +3.041
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            word.isupper()
-        </td>
-    </tr>
-            
-                <tr style="background-color: hsl(120, 100.00%, 89.10%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +2.952
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            word.lower():efe
-        </td>
-    </tr>
-            
-                <tr style="background-color: hsl(120, 100.00%, 92.14%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +1.851
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            word[-3:]:EFE
-        </td>
-    </tr>
-            
-            
-                <tr style="background-color: hsl(120, 100.00%, 92.14%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
-                        <i>&hellip; 3528 more positive &hellip;</i>
-                    </td>
-                </tr>
-            
-    
-            
-                <tr style="background-color: hsl(0, 100.00%, 93.48%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
-                        <i>&hellip; 622 more negative &hellip;</i>
-                    </td>
-                </tr>
-            
-            
-                <tr style="background-color: hsl(0, 100.00%, 93.48%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            -1.416
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag:SP
-        </td>
-    </tr>
-            
-                <tr style="background-color: hsl(0, 100.00%, 93.48%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            -1.416
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag[:2]:SP
-        </td>
-    </tr>
-            
-    
-            </tbody>
-        </table>
-    
-                                    
-                                
-                            </td>
-                        
-                            <td style="padding: 0px; border: 1px solid black; vertical-align: top;">
-                                
-                                    
-                                        
-                                        
-    
-        
-    
-        <table class="eli5-weights" style="border-collapse: collapse; border: none;">
-            <thead>
-            
-                <tr style="border: none;">
-                    <td colspan="2" style="text-align: center; padding: 0.5em; border: none; border-bottom: 1px solid black;">
-                        <b>
-        
-            y=I-ORG
-        
-    </b>
-    
-    top features
-                    </td>
-                </tr>
-            
-            <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
-                <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
-            </tr>
-            </thead>
-            <tbody>
-            
-                <tr style="background-color: hsl(120, 100.00%, 94.33%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +1.159
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:word.lower():de
-        </td>
-    </tr>
-            
-                <tr style="background-color: hsl(120, 100.00%, 94.92%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +0.993
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:word.istitle()
-        </td>
-    </tr>
-            
-                <tr style="background-color: hsl(120, 100.00%, 96.28%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +0.637
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag[:2]:SP
-        </td>
-    </tr>
-            
-                <tr style="background-color: hsl(120, 100.00%, 96.28%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +0.637
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag:SP
-        </td>
-    </tr>
-            
-            
-                <tr style="background-color: hsl(120, 100.00%, 96.28%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
-                        <i>&hellip; 3519 more positive &hellip;</i>
-                    </td>
-                </tr>
-            
-    
-            
-                <tr style="background-color: hsl(0, 100.00%, 93.89%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
-                        <i>&hellip; 679 more negative &hellip;</i>
-                    </td>
-                </tr>
-            
-            
-                <tr style="background-color: hsl(0, 100.00%, 93.89%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            -1.290
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            bias
-        </td>
-    </tr>
-            
-    
-            </tbody>
-        </table>
-    
-                                    
-                                
-                            </td>
-                        
-                            <td style="padding: 0px; border: 1px solid black; vertical-align: top;">
-                                
-                                    
-                                        
-                                        
-    
-        
-    
-        <table class="eli5-weights" style="border-collapse: collapse; border: none;">
-            <thead>
-            
-                <tr style="border: none;">
-                    <td colspan="2" style="text-align: center; padding: 0.5em; border: none; border-bottom: 1px solid black;">
-                        <b>
-        
-            y=B-PER
-        
-    </b>
-    
-    top features
-                    </td>
-                </tr>
-            
-            <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
-                <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
-            </tr>
-            </thead>
-            <tbody>
-            
-                <tr style="background-color: hsl(120, 100.00%, 92.42%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +1.757
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            word.istitle()
-        </td>
-    </tr>
-            
-            
-                <tr style="background-color: hsl(120, 100.00%, 92.42%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
-                        <i>&hellip; 4142 more positive &hellip;</i>
-                    </td>
-                </tr>
-            
-    
-            
-                <tr style="background-color: hsl(0, 100.00%, 95.00%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
-                        <i>&hellip; 352 more negative &hellip;</i>
-                    </td>
-                </tr>
-            
-            
-                <tr style="background-color: hsl(0, 100.00%, 95.00%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            -0.971
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag[:2]:DA
-        </td>
-    </tr>
-            
-                <tr style="background-color: hsl(0, 100.00%, 95.00%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            -0.971
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag:DA
-        </td>
-    </tr>
-            
-                <tr style="background-color: hsl(0, 100.00%, 93.20%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            -1.503
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag[:2]:DA
-        </td>
-    </tr>
-            
-                <tr style="background-color: hsl(0, 100.00%, 93.20%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            -1.503
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag:DA
-        </td>
-    </tr>
-            
-    
-            </tbody>
-        </table>
-    
-                                    
-                                
-                            </td>
-                        
-                            <td style="padding: 0px; border: 1px solid black; vertical-align: top;">
-                                
-                                    
-                                        
-                                        
-    
-        
-    
-        <table class="eli5-weights" style="border-collapse: collapse; border: none;">
-            <thead>
-            
-                <tr style="border: none;">
-                    <td colspan="2" style="text-align: center; padding: 0.5em; border: none; border-bottom: 1px solid black;">
-                        <b>
-        
-            y=I-PER
-        
-    </b>
-    
-    top features
-                    </td>
-                </tr>
-            
-            <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
-                <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
-            </tr>
-            </thead>
-            <tbody>
-            
-                <tr style="background-color: hsl(120, 100.00%, 93.07%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +1.545
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:word.istitle()
-        </td>
-    </tr>
-            
-                <tr style="background-color: hsl(120, 100.00%, 94.98%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +0.976
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            word.istitle()
-        </td>
-    </tr>
-            
-                <tr style="background-color: hsl(120, 100.00%, 96.04%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +0.695
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:word.lower():josé
-        </td>
-    </tr>
-            
-                <tr style="background-color: hsl(120, 100.00%, 96.11%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +0.677
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag[:2]:NC
-        </td>
-    </tr>
-            
-                <tr style="background-color: hsl(120, 100.00%, 96.11%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +0.677
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag:NC
-        </td>
-    </tr>
-            
-            
-                <tr style="background-color: hsl(120, 100.00%, 96.11%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
-                        <i>&hellip; 3930 more positive &hellip;</i>
-                    </td>
-                </tr>
-            
-    
-            
-                <tr style="background-color: hsl(0, 100.00%, 80.00%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
-                        <i>&hellip; 363 more negative &hellip;</i>
-                    </td>
-                </tr>
-            
-            
-    
-            </tbody>
-        </table>
-    
-                                    
-                                
-                            </td>
-                        
-                    
-                </tr>
-            </table>
-        
-    
-        
-            
-        
-            
-        
-            
-        
-            
-        
-            
-        
-            
-        
-            
-        
-            
-        
-            
-        
-    
-    
-        
-    
-        
-    
-        
-    
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-    
     
 
 
@@ -5045,7 +4048,7 @@ subset of labels:
 
 .. code:: python
 
-    eli5.explain_weights(crf, top=10, targets=['O', 'B-ORG', 'I-ORG'])
+    eli5.show_weights(crf, top=10, targets=['O', 'B-ORG', 'I-ORG'])
 
 
 
@@ -5069,7 +4072,7 @@ subset of labels:
             
     
     
-    <table class="docutils">
+    <table class="docutils" style="margin-bottom: 0.5em;">
         <thead>
             <tr>
                 <td>From \ To</td>
@@ -5158,7 +4161,40 @@ subset of labels:
             
     
         
-            <table class="eli5-weights-wrapper" style="border-collapse: collapse; border: none;">
+            <table class="eli5-weights-wrapper" style="border-collapse: collapse; border: none; margin-bottom: 1.5em;">
+                <tr>
+                    
+                        <td style="padding: 0.5em; border: 1px solid black; text-align: center;">
+                            <b>
+        
+            y=O
+        
+    </b>
+    
+    top features
+                        </td>
+                    
+                        <td style="padding: 0.5em; border: 1px solid black; text-align: center;">
+                            <b>
+        
+            y=B-ORG
+        
+    </b>
+    
+    top features
+                        </td>
+                    
+                        <td style="padding: 0.5em; border: 1px solid black; text-align: center;">
+                            <b>
+        
+            y=I-ORG
+        
+    </b>
+    
+    top features
+                        </td>
+                    
+                </tr>
                 <tr>
                     
                         
@@ -5167,24 +4203,10 @@ subset of labels:
                                     
                                         
                                         
-    
         
-    
-        <table class="eli5-weights" style="border-collapse: collapse; border: none;">
+        <table class="eli5-weights"
+               style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
             <thead>
-            
-                <tr style="border: none;">
-                    <td colspan="2" style="text-align: center; padding: 0.5em; border: none; border-bottom: 1px solid black;">
-                        <b>
-        
-            y=O
-        
-    </b>
-    
-    top features
-                    </td>
-                </tr>
-            
             <tr style="border: none;">
                 <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
@@ -5224,7 +4246,7 @@ subset of labels:
             +2.328
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            word[-3:]:,
+            word.lower():,
         </td>
     </tr>
             
@@ -5251,7 +4273,7 @@ subset of labels:
             +2.328
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            word.lower():,
+            word[-3:]:,
         </td>
     </tr>
             
@@ -5276,7 +4298,7 @@ subset of labels:
             -2.187
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag[:2]:NP
+            postag:NP
         </td>
     </tr>
             
@@ -5311,24 +4333,10 @@ subset of labels:
                                     
                                         
                                         
-    
         
-    
-        <table class="eli5-weights" style="border-collapse: collapse; border: none;">
+        <table class="eli5-weights"
+               style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
             <thead>
-            
-                <tr style="border: none;">
-                    <td colspan="2" style="text-align: center; padding: 0.5em; border: none; border-bottom: 1px solid black;">
-                        <b>
-        
-            y=B-ORG
-        
-    </b>
-    
-    top features
-                    </td>
-                </tr>
-            
             <tr style="border: none;">
                 <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
@@ -5455,24 +4463,10 @@ subset of labels:
                                     
                                         
                                         
-    
         
-    
-        <table class="eli5-weights" style="border-collapse: collapse; border: none;">
+        <table class="eli5-weights"
+               style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
             <thead>
-            
-                <tr style="border: none;">
-                    <td colspan="2" style="text-align: center; padding: 0.5em; border: none; border-bottom: 1px solid black;">
-                        <b>
-        
-            y=I-ORG
-        
-    </b>
-    
-    top features
-                    </td>
-                </tr>
-            
             <tr style="border: none;">
                 <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
@@ -5648,11 +4642,13 @@ subset of labels:
 
 Another option is to check only some of the features - it helps to check
 if a feature function works as intended. For example, let's check how
-word shape features are used by model using ``feature_re`` argument:
+word shape features are used by model using ``feature_re`` argument and
+hide transition table:
 
 .. code:: python
 
-    eli5.explain_weights(crf, top=10, feature_re='^word\.is')
+    eli5.show_weights(crf, top=10, feature_re='^word\.is', 
+                      horizontal_layout=False, show=['targets'])
 
 
 
@@ -5673,455 +4669,30 @@ word shape features are used by model using ``feature_re`` argument:
         
     
         
-            
-    
-    
-    <table class="docutils">
-        <thead>
-            <tr>
-                <td>From \ To</td>
-                
-                    <th>O</th>
-                
-                    <th>B-LOC</th>
-                
-                    <th>I-LOC</th>
-                
-                    <th>B-MISC</th>
-                
-                    <th>I-MISC</th>
-                
-                    <th>B-ORG</th>
-                
-                    <th>I-ORG</th>
-                
-                    <th>B-PER</th>
-                
-                    <th>I-PER</th>
-                
-            </tr>
-        </thead>
-        <tbody>
-            
-                
-                    <tr>
-                        <th>O</th>
-                        
-                            <td style="background-color: hsl(120, 100.00%, 88.77%)" title="O &rArr; O">
-                                2.732
-                            </td>
-                        
-                            <td style="background-color: hsl(120, 100.00%, 93.63%)" title="O &rArr; B-LOC">
-                                1.217
-                            </td>
-                        
-                            <td style="background-color: hsl(0, 100.00%, 83.65%)" title="O &rArr; I-LOC">
-                                -4.675
-                            </td>
-                        
-                            <td style="background-color: hsl(120, 100.00%, 92.57%)" title="O &rArr; B-MISC">
-                                1.515
-                            </td>
-                        
-                            <td style="background-color: hsl(0, 100.00%, 81.02%)" title="O &rArr; I-MISC">
-                                -5.785
-                            </td>
-                        
-                            <td style="background-color: hsl(120, 100.00%, 93.11%)" title="O &rArr; B-ORG">
-                                1.36
-                            </td>
-                        
-                            <td style="background-color: hsl(0, 100.00%, 80.10%)" title="O &rArr; I-ORG">
-                                -6.19
-                            </td>
-                        
-                            <td style="background-color: hsl(120, 100.00%, 94.57%)" title="O &rArr; B-PER">
-                                0.968
-                            </td>
-                        
-                            <td style="background-color: hsl(0, 100.00%, 80.00%)" title="O &rArr; I-PER">
-                                -6.236
-                            </td>
-                        
-                    </tr>
-                
-                    <tr>
-                        <th>B-LOC</th>
-                        
-                            <td style="background-color: hsl(0, 100.00%, 98.04%)" title="B-LOC &rArr; O">
-                                -0.226
-                            </td>
-                        
-                            <td style="background-color: hsl(0, 100.00%, 98.96%)" title="B-LOC &rArr; B-LOC">
-                                -0.091
-                            </td>
-                        
-                            <td style="background-color: hsl(120, 100.00%, 86.98%)" title="B-LOC &rArr; I-LOC">
-                                3.378
-                            </td>
-                        
-                            <td style="background-color: hsl(0, 100.00%, 96.91%)" title="B-LOC &rArr; B-MISC">
-                                -0.433
-                            </td>
-                        
-                            <td style="background-color: hsl(0, 100.00%, 94.19%)" title="B-LOC &rArr; I-MISC">
-                                -1.065
-                            </td>
-                        
-                            <td style="background-color: hsl(0, 100.00%, 95.00%)" title="B-LOC &rArr; B-ORG">
-                                -0.861
-                            </td>
-                        
-                            <td style="background-color: hsl(0, 100.00%, 91.67%)" title="B-LOC &rArr; I-ORG">
-                                -1.783
-                            </td>
-                        
-                            <td style="background-color: hsl(0, 100.00%, 97.64%)" title="B-LOC &rArr; B-PER">
-                                -0.295
-                            </td>
-                        
-                            <td style="background-color: hsl(0, 100.00%, 92.39%)" title="B-LOC &rArr; I-PER">
-                                -1.57
-                            </td>
-                        
-                    </tr>
-                
-                    <tr>
-                        <th>I-LOC</th>
-                        
-                            <td style="background-color: hsl(0, 100.00%, 98.30%)" title="I-LOC &rArr; O">
-                                -0.184
-                            </td>
-                        
-                            <td style="background-color: hsl(0, 100.00%, 96.18%)" title="I-LOC &rArr; B-LOC">
-                                -0.585
-                            </td>
-                        
-                            <td style="background-color: hsl(120, 100.00%, 89.74%)" title="I-LOC &rArr; I-LOC">
-                                2.404
-                            </td>
-                        
-                            <td style="background-color: hsl(0, 100.00%, 97.75%)" title="I-LOC &rArr; B-MISC">
-                                -0.276
-                            </td>
-                        
-                            <td style="background-color: hsl(0, 100.00%, 96.65%)" title="I-LOC &rArr; I-MISC">
-                                -0.485
-                            </td>
-                        
-                            <td style="background-color: hsl(0, 100.00%, 96.20%)" title="I-LOC &rArr; B-ORG">
-                                -0.582
-                            </td>
-                        
-                            <td style="background-color: hsl(0, 100.00%, 95.46%)" title="I-LOC &rArr; I-ORG">
-                                -0.749
-                            </td>
-                        
-                            <td style="background-color: hsl(0, 100.00%, 96.87%)" title="I-LOC &rArr; B-PER">
-                                -0.442
-                            </td>
-                        
-                            <td style="background-color: hsl(0, 100.00%, 95.91%)" title="I-LOC &rArr; I-PER">
-                                -0.647
-                            </td>
-                        
-                    </tr>
-                
-                    <tr>
-                        <th>B-MISC</th>
-                        
-                            <td style="background-color: hsl(0, 100.00%, 95.61%)" title="B-MISC &rArr; O">
-                                -0.714
-                            </td>
-                        
-                            <td style="background-color: hsl(0, 100.00%, 97.32%)" title="B-MISC &rArr; B-LOC">
-                                -0.353
-                            </td>
-                        
-                            <td style="background-color: hsl(0, 100.00%, 96.40%)" title="B-MISC &rArr; I-LOC">
-                                -0.539
-                            </td>
-                        
-                            <td style="background-color: hsl(0, 100.00%, 97.73%)" title="B-MISC &rArr; B-MISC">
-                                -0.278
-                            </td>
-                        
-                            <td style="background-color: hsl(120, 100.00%, 86.62%)" title="B-MISC &rArr; I-MISC">
-                                3.512
-                            </td>
-                        
-                            <td style="background-color: hsl(0, 100.00%, 97.01%)" title="B-MISC &rArr; B-ORG">
-                                -0.412
-                            </td>
-                        
-                            <td style="background-color: hsl(0, 100.00%, 94.26%)" title="B-MISC &rArr; I-ORG">
-                                -1.047
-                            </td>
-                        
-                            <td style="background-color: hsl(0, 100.00%, 97.41%)" title="B-MISC &rArr; B-PER">
-                                -0.336
-                            </td>
-                        
-                            <td style="background-color: hsl(0, 100.00%, 94.86%)" title="B-MISC &rArr; I-PER">
-                                -0.895
-                            </td>
-                        
-                    </tr>
-                
-                    <tr>
-                        <th>I-MISC</th>
-                        
-                            <td style="background-color: hsl(0, 100.00%, 95.68%)" title="I-MISC &rArr; O">
-                                -0.697
-                            </td>
-                        
-                            <td style="background-color: hsl(0, 100.00%, 95.06%)" title="I-MISC &rArr; B-LOC">
-                                -0.846
-                            </td>
-                        
-                            <td style="background-color: hsl(0, 100.00%, 96.17%)" title="I-MISC &rArr; I-LOC">
-                                -0.587
-                            </td>
-                        
-                            <td style="background-color: hsl(0, 100.00%, 97.63%)" title="I-MISC &rArr; B-MISC">
-                                -0.297
-                            </td>
-                        
-                            <td style="background-color: hsl(120, 100.00%, 84.70%)" title="I-MISC &rArr; I-MISC">
-                                4.252
-                            </td>
-                        
-                            <td style="background-color: hsl(0, 100.00%, 95.09%)" title="I-MISC &rArr; B-ORG">
-                                -0.84
-                            </td>
-                        
-                            <td style="background-color: hsl(0, 100.00%, 93.67%)" title="I-MISC &rArr; I-ORG">
-                                -1.206
-                            </td>
-                        
-                            <td style="background-color: hsl(0, 100.00%, 96.47%)" title="I-MISC &rArr; B-PER">
-                                -0.523
-                            </td>
-                        
-                            <td style="background-color: hsl(0, 100.00%, 94.44%)" title="I-MISC &rArr; I-PER">
-                                -1.001
-                            </td>
-                        
-                    </tr>
-                
-                    <tr>
-                        <th>B-ORG</th>
-                        
-                            <td style="background-color: hsl(120, 100.00%, 96.98%)" title="B-ORG &rArr; O">
-                                0.419
-                            </td>
-                        
-                            <td style="background-color: hsl(0, 100.00%, 98.28%)" title="B-ORG &rArr; B-LOC">
-                                -0.187
-                            </td>
-                        
-                            <td style="background-color: hsl(0, 100.00%, 94.16%)" title="B-ORG &rArr; I-LOC">
-                                -1.074
-                            </td>
-                        
-                            <td style="background-color: hsl(0, 100.00%, 96.27%)" title="B-ORG &rArr; B-MISC">
-                                -0.567
-                            </td>
-                        
-                            <td style="background-color: hsl(0, 100.00%, 92.26%)" title="B-ORG &rArr; I-MISC">
-                                -1.607
-                            </td>
-                        
-                            <td style="background-color: hsl(0, 100.00%, 93.95%)" title="B-ORG &rArr; B-ORG">
-                                -1.13
-                            </td>
-                        
-                            <td style="background-color: hsl(120, 100.00%, 81.94%)" title="B-ORG &rArr; I-ORG">
-                                5.392
-                            </td>
-                        
-                            <td style="background-color: hsl(0, 100.00%, 98.06%)" title="B-ORG &rArr; B-PER">
-                                -0.223
-                            </td>
-                        
-                            <td style="background-color: hsl(0, 100.00%, 90.59%)" title="B-ORG &rArr; I-PER">
-                                -2.122
-                            </td>
-                        
-                    </tr>
-                
-                    <tr>
-                        <th>I-ORG</th>
-                        
-                            <td style="background-color: hsl(0, 100.00%, 98.77%)" title="I-ORG &rArr; O">
-                                -0.117
-                            </td>
-                        
-                            <td style="background-color: hsl(0, 100.00%, 91.90%)" title="I-ORG &rArr; B-LOC">
-                                -1.715
-                            </td>
-                        
-                            <td style="background-color: hsl(0, 100.00%, 94.99%)" title="I-ORG &rArr; I-LOC">
-                                -0.863
-                            </td>
-                        
-                            <td style="background-color: hsl(0, 100.00%, 95.97%)" title="I-ORG &rArr; B-MISC">
-                                -0.631
-                            </td>
-                        
-                            <td style="background-color: hsl(0, 100.00%, 93.61%)" title="I-ORG &rArr; I-MISC">
-                                -1.221
-                            </td>
-                        
-                            <td style="background-color: hsl(0, 100.00%, 92.82%)" title="I-ORG &rArr; B-ORG">
-                                -1.442
-                            </td>
-                        
-                            <td style="background-color: hsl(120, 100.00%, 82.53%)" title="I-ORG &rArr; I-ORG">
-                                5.141
-                            </td>
-                        
-                            <td style="background-color: hsl(0, 100.00%, 97.09%)" title="I-ORG &rArr; B-PER">
-                                -0.397
-                            </td>
-                        
-                            <td style="background-color: hsl(0, 100.00%, 91.27%)" title="I-ORG &rArr; I-PER">
-                                -1.908
-                            </td>
-                        
-                    </tr>
-                
-                    <tr>
-                        <th>B-PER</th>
-                        
-                            <td style="background-color: hsl(0, 100.00%, 98.69%)" title="B-PER &rArr; O">
-                                -0.127
-                            </td>
-                        
-                            <td style="background-color: hsl(0, 100.00%, 95.22%)" title="B-PER &rArr; B-LOC">
-                                -0.806
-                            </td>
-                        
-                            <td style="background-color: hsl(0, 100.00%, 95.11%)" title="B-PER &rArr; I-LOC">
-                                -0.834
-                            </td>
-                        
-                            <td style="background-color: hsl(0, 100.00%, 96.49%)" title="B-PER &rArr; B-MISC">
-                                -0.52
-                            </td>
-                        
-                            <td style="background-color: hsl(0, 100.00%, 93.59%)" title="B-PER &rArr; I-MISC">
-                                -1.228
-                            </td>
-                        
-                            <td style="background-color: hsl(0, 100.00%, 94.11%)" title="B-PER &rArr; B-ORG">
-                                -1.089
-                            </td>
-                        
-                            <td style="background-color: hsl(0, 100.00%, 90.74%)" title="B-PER &rArr; I-ORG">
-                                -2.076
-                            </td>
-                        
-                            <td style="background-color: hsl(0, 100.00%, 94.41%)" title="B-PER &rArr; B-PER">
-                                -1.01
-                            </td>
-                        
-                            <td style="background-color: hsl(120, 100.00%, 85.24%)" title="B-PER &rArr; I-PER">
-                                4.04
-                            </td>
-                        
-                    </tr>
-                
-                    <tr>
-                        <th>I-PER</th>
-                        
-                            <td style="background-color: hsl(0, 100.00%, 95.39%)" title="I-PER &rArr; O">
-                                -0.766
-                            </td>
-                        
-                            <td style="background-color: hsl(0, 100.00%, 97.94%)" title="I-PER &rArr; B-LOC">
-                                -0.242
-                            </td>
-                        
-                            <td style="background-color: hsl(0, 100.00%, 95.80%)" title="I-PER &rArr; I-LOC">
-                                -0.67
-                            </td>
-                        
-                            <td style="background-color: hsl(0, 100.00%, 96.98%)" title="I-PER &rArr; B-MISC">
-                                -0.418
-                            </td>
-                        
-                            <td style="background-color: hsl(0, 100.00%, 95.02%)" title="I-PER &rArr; I-MISC">
-                                -0.856
-                            </td>
-                        
-                            <td style="background-color: hsl(0, 100.00%, 94.83%)" title="I-PER &rArr; B-ORG">
-                                -0.903
-                            </td>
-                        
-                            <td style="background-color: hsl(0, 100.00%, 92.72%)" title="I-PER &rArr; I-ORG">
-                                -1.472
-                            </td>
-                        
-                            <td style="background-color: hsl(0, 100.00%, 95.71%)" title="I-PER &rArr; B-PER">
-                                -0.692
-                            </td>
-                        
-                            <td style="background-color: hsl(120, 100.00%, 88.27%)" title="I-PER &rArr; I-PER">
-                                2.909
-                            </td>
-                        
-                    </tr>
-                
-            
-        </tbody>
-    </table>
-        
-    
-        
-    
-        
-    
-        
-    
-    
-        
-    
-        
-    
-        
     
         
             
     
         
-            <table class="eli5-weights-wrapper" style="border-collapse: collapse; border: none;">
-                <tr>
+    
+            
+                
                     
-                        
-                            <td style="padding: 0px; border: 1px solid black; vertical-align: top;">
-                                
-                                    
-                                        
-                                        
-    
+                    
         
-    
-        <table class="eli5-weights" style="border-collapse: collapse; border: none;">
-            <thead>
-            
-                <tr style="border: none;">
-                    <td colspan="2" style="text-align: center; padding: 0.5em; border: none; border-bottom: 1px solid black;">
-                        <b>
+            <p style="margin-bottom: 0.5em; margin-top: 0em">
+                <b>
         
             y=O
         
     </b>
     
     top features
-                    </td>
-                </tr>
-            
+            </p>
+        
+        <table class="eli5-weights"
+               style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
+            <thead>
             <tr style="border: none;">
                 <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
@@ -6155,33 +4726,31 @@ word shape features are used by model using ``feature_re`` argument:
             </tbody>
         </table>
     
-                                    
-                                
-                            </td>
-                        
-                            <td style="padding: 0px; border: 1px solid black; vertical-align: top;">
-                                
-                                    
-                                        
-                                        
+                
+            
+    
+            
     
         
     
-        <table class="eli5-weights" style="border-collapse: collapse; border: none;">
-            <thead>
             
-                <tr style="border: none;">
-                    <td colspan="2" style="text-align: center; padding: 0.5em; border: none; border-bottom: 1px solid black;">
-                        <b>
+                
+                    
+                    
+        
+            <p style="margin-bottom: 0.5em; margin-top: 0em">
+                <b>
         
             y=B-LOC
         
     </b>
     
     top features
-                    </td>
-                </tr>
-            
+            </p>
+        
+        <table class="eli5-weights"
+               style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
+            <thead>
             <tr style="border: none;">
                 <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
@@ -6224,33 +4793,31 @@ word shape features are used by model using ``feature_re`` argument:
             </tbody>
         </table>
     
-                                    
-                                
-                            </td>
-                        
-                            <td style="padding: 0px; border: 1px solid black; vertical-align: top;">
-                                
-                                    
-                                        
-                                        
+                
+            
+    
+            
     
         
     
-        <table class="eli5-weights" style="border-collapse: collapse; border: none;">
-            <thead>
             
-                <tr style="border: none;">
-                    <td colspan="2" style="text-align: center; padding: 0.5em; border: none; border-bottom: 1px solid black;">
-                        <b>
+                
+                    
+                    
+        
+            <p style="margin-bottom: 0.5em; margin-top: 0em">
+                <b>
         
             y=I-LOC
         
     </b>
     
     top features
-                    </td>
-                </tr>
-            
+            </p>
+        
+        <table class="eli5-weights"
+               style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
+            <thead>
             <tr style="border: none;">
                 <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
@@ -6293,33 +4860,31 @@ word shape features are used by model using ``feature_re`` argument:
             </tbody>
         </table>
     
-                                    
-                                
-                            </td>
-                        
-                            <td style="padding: 0px; border: 1px solid black; vertical-align: top;">
-                                
-                                    
-                                        
-                                        
+                
+            
+    
+            
     
         
     
-        <table class="eli5-weights" style="border-collapse: collapse; border: none;">
-            <thead>
             
-                <tr style="border: none;">
-                    <td colspan="2" style="text-align: center; padding: 0.5em; border: none; border-bottom: 1px solid black;">
-                        <b>
+                
+                    
+                    
+        
+            <p style="margin-bottom: 0.5em; margin-top: 0em">
+                <b>
         
             y=B-MISC
         
     </b>
     
     top features
-                    </td>
-                </tr>
-            
+            </p>
+        
+        <table class="eli5-weights"
+               style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
+            <thead>
             <tr style="border: none;">
                 <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
@@ -6362,33 +4927,31 @@ word shape features are used by model using ``feature_re`` argument:
             </tbody>
         </table>
     
-                                    
-                                
-                            </td>
-                        
-                            <td style="padding: 0px; border: 1px solid black; vertical-align: top;">
-                                
-                                    
-                                        
-                                        
+                
+            
+    
+            
     
         
     
-        <table class="eli5-weights" style="border-collapse: collapse; border: none;">
-            <thead>
             
-                <tr style="border: none;">
-                    <td colspan="2" style="text-align: center; padding: 0.5em; border: none; border-bottom: 1px solid black;">
-                        <b>
+                
+                    
+                    
+        
+            <p style="margin-bottom: 0.5em; margin-top: 0em">
+                <b>
         
             y=I-MISC
         
     </b>
     
     top features
-                    </td>
-                </tr>
-            
+            </p>
+        
+        <table class="eli5-weights"
+               style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
+            <thead>
             <tr style="border: none;">
                 <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
@@ -6431,33 +4994,31 @@ word shape features are used by model using ``feature_re`` argument:
             </tbody>
         </table>
     
-                                    
-                                
-                            </td>
-                        
-                            <td style="padding: 0px; border: 1px solid black; vertical-align: top;">
-                                
-                                    
-                                        
-                                        
+                
+            
+    
+            
     
         
     
-        <table class="eli5-weights" style="border-collapse: collapse; border: none;">
-            <thead>
             
-                <tr style="border: none;">
-                    <td colspan="2" style="text-align: center; padding: 0.5em; border: none; border-bottom: 1px solid black;">
-                        <b>
+                
+                    
+                    
+        
+            <p style="margin-bottom: 0.5em; margin-top: 0em">
+                <b>
         
             y=B-ORG
         
     </b>
     
     top features
-                    </td>
-                </tr>
-            
+            </p>
+        
+        <table class="eli5-weights"
+               style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
+            <thead>
             <tr style="border: none;">
                 <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
@@ -6500,33 +5061,31 @@ word shape features are used by model using ``feature_re`` argument:
             </tbody>
         </table>
     
-                                    
-                                
-                            </td>
-                        
-                            <td style="padding: 0px; border: 1px solid black; vertical-align: top;">
-                                
-                                    
-                                        
-                                        
+                
+            
+    
+            
     
         
     
-        <table class="eli5-weights" style="border-collapse: collapse; border: none;">
-            <thead>
             
-                <tr style="border: none;">
-                    <td colspan="2" style="text-align: center; padding: 0.5em; border: none; border-bottom: 1px solid black;">
-                        <b>
+                
+                    
+                    
+        
+            <p style="margin-bottom: 0.5em; margin-top: 0em">
+                <b>
         
             y=I-ORG
         
     </b>
     
     top features
-                    </td>
-                </tr>
-            
+            </p>
+        
+        <table class="eli5-weights"
+               style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
+            <thead>
             <tr style="border: none;">
                 <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
@@ -6569,33 +5128,31 @@ word shape features are used by model using ``feature_re`` argument:
             </tbody>
         </table>
     
-                                    
-                                
-                            </td>
-                        
-                            <td style="padding: 0px; border: 1px solid black; vertical-align: top;">
-                                
-                                    
-                                        
-                                        
+                
+            
+    
+            
     
         
     
-        <table class="eli5-weights" style="border-collapse: collapse; border: none;">
-            <thead>
             
-                <tr style="border: none;">
-                    <td colspan="2" style="text-align: center; padding: 0.5em; border: none; border-bottom: 1px solid black;">
-                        <b>
+                
+                    
+                    
+        
+            <p style="margin-bottom: 0.5em; margin-top: 0em">
+                <b>
         
             y=B-PER
         
     </b>
     
     top features
-                    </td>
-                </tr>
-            
+            </p>
+        
+        <table class="eli5-weights"
+               style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
+            <thead>
             <tr style="border: none;">
                 <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
@@ -6638,33 +5195,31 @@ word shape features are used by model using ``feature_re`` argument:
             </tbody>
         </table>
     
-                                    
-                                
-                            </td>
-                        
-                            <td style="padding: 0px; border: 1px solid black; vertical-align: top;">
-                                
-                                    
-                                        
-                                        
+                
+            
+    
+            
     
         
     
-        <table class="eli5-weights" style="border-collapse: collapse; border: none;">
-            <thead>
             
-                <tr style="border: none;">
-                    <td colspan="2" style="text-align: center; padding: 0.5em; border: none; border-bottom: 1px solid black;">
-                        <b>
+                
+                    
+                    
+        
+            <p style="margin-bottom: 0.5em; margin-top: 0em">
+                <b>
         
             y=I-PER
         
     </b>
     
     top features
-                    </td>
-                </tr>
-            
+            </p>
+        
+        <table class="eli5-weights"
+               style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
+            <thead>
             <tr style="border: none;">
                 <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
@@ -6707,59 +5262,10 @@ word shape features are used by model using ``feature_re`` argument:
             </tbody>
         </table>
     
-                                    
-                                
-                            </td>
-                        
-                    
-                </tr>
-            </table>
-        
-    
-        
+                
             
-        
+    
             
-        
-            
-        
-            
-        
-            
-        
-            
-        
-            
-        
-            
-        
-            
-        
-    
-    
-        
-    
-        
-    
-        
-    
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-    
-        
-    
-        
     
         
     
@@ -6817,8 +5323,8 @@ console):
       +2.147  -1:word.lower():en
            …  (2284 more positive features)
            …  (433 more negative features)
-      -1.080  postag[:2]:SP     
       -1.080  postag:SP         
+      -1.080  postag[:2]:SP     
       -1.273  -1:word.istitle() 
     
     y='I-LOC' top features
