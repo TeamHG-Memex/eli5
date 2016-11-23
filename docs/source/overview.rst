@@ -55,8 +55,8 @@ There are two main ways to look at a classification or a regression model:
 2. inspect an individual prediction of a model, try to figure out why
    the model makes the decision it makes.
 
-For (1) ELI5 provides :func:`eli5.explain_weights` function; for (2)
-it provides :func:`eli5.explain_prediction` function.
+For (1) ELI5 provides :func:`eli5.show_weights` function; for (2)
+it provides :func:`eli5.show_prediction` function.
 
 If the ML library you're working with is supported then you usually
 can enter the following in IPython Notebook::
@@ -71,7 +71,7 @@ and get an explanation like this:
 Supported arguments and the exact way the classifier is visualized depends
 on a library.
 
-To explain an individual prediction (2) use :func:`eli5.explain_prediction`
+To explain an individual prediction (2) use :func:`eli5.show_prediction`
 function. Exact parameters depend on a classifier and on input data kind
 (text, tabular, images). For example, you may get text highlighted like this
 if you're using one of the scikit-learn_ vectorizers with char ngrams:
@@ -101,3 +101,24 @@ but even for simple cases having a unified API for inspection has a value:
   classifier through a locally-fit simple, interpretable classifier.
   It means that with each additional supported "simple" classifier/regressor
   algorithms like LIME are getting more options automatically.
+
+Architecture
+------------
+
+In ELI5 "explanation" is separated from output format:
+:func:`eli5.explain_weights` and :func:`eli5.explain_prediction`
+return :class:`~.Explanation` instances; then functions from
+:mod:`eli5.formatters` can be used to get HTML, text or dict/JSON
+representation of the explanation.
+
+It is not convenient to do that all when working interactively in IPython
+notebooks, so there are :func:`eli5.show_weights` and
+:func:`eli5.show_prediction` functions which do explanation and formatting
+in a single step.
+
+Explain functions are not doing any work by themselves; they call
+a concrete implementation based on estimator type.
+So e.g. :func:`eli5.explain_weights` calls
+:func:`eli5.sklearn.explain_weights.explain_linear_classifier_weights`
+if ``sklearn.linear_model.LogisticRegression`` classifier is passed
+as an estimator.
