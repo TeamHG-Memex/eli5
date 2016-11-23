@@ -48,6 +48,8 @@ def format_as_html(explanation, include_styles=True, force_weights=True,
         highlight_spaces = should_highlight_spaces(explanation)
 
     targets = explanation.targets or []
+    if len(targets) == 1:
+        horizontal_layout = False
 
     any_weighted_spans = any(t.weighted_spans for t in targets)
     spans_char_weights = [
@@ -63,10 +65,14 @@ def format_as_html(explanation, include_styles=True, force_weights=True,
         if t.weighted_spans else None
         for t, char_weights in zip(targets, spans_char_weights)]
 
+    target_table_styles = 'border-collapse: collapse; border: none;'
+    if horizontal_layout:
+        target_table_styles += ' width: 100%;'
+
     return template.render(
         include_styles=include_styles,
         force_weights=force_weights,
-        table_styles='border-collapse: collapse; border: none;',
+        target_table_styles=target_table_styles,
         tr_styles='border: none;',
         td1_styles='padding: 0 1em 0 0.5em; text-align: right; border: none;',
         tdm_styles='padding: 0 0.5em 0 0.5em; text-align: center; border: none;',
@@ -75,8 +81,8 @@ def format_as_html(explanation, include_styles=True, force_weights=True,
         'border-collapse: collapse; border: none;',
         horizontal_layout_td_styles=
         'padding: 0px; border: 1px solid black; vertical-align: top;',
-        tddm_header_styles='text-align: center; padding: 0.5em; '
-                           'border: none; border-bottom: 1px solid black;',
+        horizontal_layout_header_styles=
+        'padding: 0.5em; border: 1px solid black; text-align: center;',
         show=show,
         expl=explanation,
         hl_spaces=highlight_spaces,

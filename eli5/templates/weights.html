@@ -1,14 +1,20 @@
-{% if horizontal_layout and expl.targets|length > 1 %}
+{% if horizontal_layout %}
 
     {% if force_weights or not any_weighted_spans %}
         <table class="eli5-weights-wrapper" style="{{ horizontal_layout_table_styles }}">
+            <tr>
+                {% for target in expl.targets %}
+                    <td style="{{ horizontal_layout_header_styles }}">
+                        {% include "target_header.html" with context %}
+                    </td>
+                {% endfor %}
+            </tr>
             <tr>
                 {% with w_range = target_weight_range %}
                     {% for target in expl.targets %}
                         <td style="{{ horizontal_layout_td_styles }}">
                             {% if force_weights or not target.weighted_spans %}
                                 {% with wts = target.feature_weights %}
-                                    {% set inline_target_header = True %}
                                     {% include "weights_table.html" with context %}
                                 {% endwith %}
                             {% endif %}
@@ -29,7 +35,6 @@
 
         {% if force_weights or not target.weighted_spans %}
             {% with wts = target.feature_weights %}
-                {% set inline_target_header = False %}
                 {% set w_range = target_weight_range %}
                 {% include "weights_table.html" with context %}
             {% endwith %}
