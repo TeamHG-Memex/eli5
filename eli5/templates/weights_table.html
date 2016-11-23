@@ -1,20 +1,13 @@
 {% if wts.pos or wts.neg or wts.neg_remaining or wts.pos_remaining %}
 
-    {% if not inline_target_header %}
+    {% if not horizontal_layout %}
         <p>
             {% include "target_header.html" with context %}
         </p>
     {% endif %}
 
-    <table class="eli5-weights" style="{{ table_styles }}">
+    <table class="eli5-weights" style="{{ target_table_styles }}">
         <thead>
-        {% if inline_target_header %}
-            <tr style="{{ tr_styles }}">
-                <td colspan="2" style="{{ tddm_header_styles }}">
-                    {% include "target_header.html" with context %}
-                </td>
-            </tr>
-        {% endif %}
         <tr style="{{ tr_styles }}">
             <th style="{{ td1_styles }}">Weight</th>
             <th style="{{ td2_styles }}">Feature</th>
