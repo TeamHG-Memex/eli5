@@ -69,13 +69,13 @@ def format_as_html(explanation, include_styles=True, force_weights=True,
     return template.render(
         include_styles=include_styles,
         force_weights=force_weights,
-        target_table_styles='border-collapse: collapse; border: none;',
+        target_table_styles='border-collapse: collapse; border: none; margin-top: 0em;',
         tr_styles='border: none;',
         td1_styles='padding: 0 1em 0 0.5em; text-align: right; border: none;',
         tdm_styles='padding: 0 0.5em 0 0.5em; text-align: center; border: none;',
         td2_styles='padding: 0 0.5em 0 0.5em; text-align: left; border: none;',
         horizontal_layout_table_styles=
-        'border-collapse: collapse; border: none;',
+        'border-collapse: collapse; border: none; margin-bottom: 1.5em;',
         horizontal_layout_td_styles=
         'padding: 0px; border: 1px solid black; vertical-align: top;',
         horizontal_layout_header_styles=
