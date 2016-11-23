@@ -15,6 +15,7 @@
                         <td style="{{ horizontal_layout_td_styles }}">
                             {% if force_weights or not target.weighted_spans %}
                                 {% with wts = target.feature_weights %}
+                                    {% set in_horizontal_layout = True %}
                                     {% include "weights_table.html" with context %}
                                 {% endwith %}
                             {% endif %}
