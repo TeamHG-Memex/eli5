@@ -10,7 +10,7 @@ jupyter nbconvert \
 sed -i '' 's/InvertableHashingVectorizer\./:class:`~.InvertableHashingVectorizer`/g' \
     source/_notebooks/debug-sklearn-text.rst
 
-sed -i '' 's/eli5.explain\\_weights/:func:`eli5.explain_weights`/g' \
+sed -i '' 's/eli5.show\\_weights/:func:`eli5.show_weights`/g' \
     source/_notebooks/debug-sklearn-text.rst
 
 # sklearn-crfsuite tutorial
