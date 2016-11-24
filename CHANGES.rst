@@ -1,8 +1,8 @@
 Changelog
 =========
 
-0.1 (TBA)
----------
+0.1 (2016-11-24)
+----------------
 
 * HTML output;
 * IPython integration;
@@ -11,7 +11,8 @@ Changelog
 * `sklearn-crfsuite <https://github.com/TeamHG-Memex/sklearn-crfsuite>`_
   support;
 * `lightning <https://github.com/scikit-learn-contrib/lightning>`_ support;
-* top-level :func:`eli5.explain_weights` and :func:`eli5.explain_prediction`
+* :func:`eli5.show_weights` and :func:`eli5.show_prediction` functions;
+* :func:`eli5.explain_weights` and :func:`eli5.explain_prediction`
   functions;
 * :ref:`eli5.lime <eli5-lime>` improvements: samplers for non-text data,
   bug fixes, docs;
@@ -24,13 +25,11 @@ Changelog
 * sklearn DecisionTreeClassifier visualization (text-based or svg-based);
 * dropped support for scikit-learn < 0.18;
 * basic mypy type annotations;
-* ``feature_re`` argument of :func:`eli5.explain_weights`
-  allows to show only a subset of features;
-* ``target_names`` argument of :func:`eli5.explain_weights`
-  allows to change display names of targets/classes;
-* ``targets`` argument of :func:`eli5.explain_weights` allows to
-  show a subset of targets/classes and change their display order;
-* documentation.
+* ``feature_re`` argument allows to show only a subset of features;
+* ``target_names`` argument allows to change display names of targets/classes;
+* ``targets`` argument allows to show a subset of targets/classes and
+  change their display order;
+* documentation, more examples.
 
 
 0.0.6 (2016-10-12)
