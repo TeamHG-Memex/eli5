@@ -34,7 +34,7 @@ setup(
         'tabulate>=0.7.7',
     ],
     classifiers=[
-        'Development Status :: 2 - Pre-Alpha',
+        'Development Status :: 3 - Alpha',
         'License :: OSI Approved :: MIT License',
         'Intended Audience :: Developers',
         'Operating System :: OS Independent',
