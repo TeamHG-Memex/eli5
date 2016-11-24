@@ -8,9 +8,9 @@ Changelog
 * IPython integration;
 * JSON output;
 * visualization of scikit-learn text vectorizers;
-* `sklearn-crfsuite <https://github.com/TeamHG-Memex/sklearn-crfsuite>`_
+* `sklearn-crfsuite <https://github.com/TeamHG-Memex/sklearn-crfsuite>`__
   support;
-* `lightning <https://github.com/scikit-learn-contrib/lightning>`_ support;
+* `lightning <https://github.com/scikit-learn-contrib/lightning>`__ support;
 * :func:`eli5.show_weights` and :func:`eli5.show_prediction` functions;
 * :func:`eli5.explain_weights` and :func:`eli5.explain_prediction`
   functions;

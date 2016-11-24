@@ -10,13 +10,21 @@ def get_version():
         return re.findall("__version__ = '([\d.\w]+)'", f.read())[0]
 
 
+def get_long_description():
+    readme = open('README.rst').read()
+    changelog = open('CHANGES.rst').read()
+    return "\n\n".join([
+        readme,
+        changelog.replace(':func:', '').replace(':ref:', '')
+    ])
+
 setup(
     name='eli5',
     version=get_version(),
     author='Mikhail Korobov, Konstantin Lopuhin',
     author_email='kmike84@gmail.com, kostia.lopuhin@gmail.com',
     license='MIT license',
-    long_description=open('README.rst').read() + "\n\n" + open('CHANGES.rst').read(),
+    long_description=get_long_description(),
     description="Debug machine learning classifiers and explain their predictions",
     url='https://github.com/TeamHG-Memex/eli5',
     zip_safe=False,
