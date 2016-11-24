@@ -11,7 +11,8 @@ LIME
 Algorithm
 ---------
 
-LIME_ is an algorithm to explain predictions of black-box estimators:
+LIME_ (Ribeiro et. al. 2016) is an algorithm to explain predictions of
+black-box estimators:
 
 1. Generate a fake dataset from the example we're going to explain.
 
