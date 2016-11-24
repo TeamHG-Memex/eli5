@@ -20,8 +20,12 @@ ELI5
 
 
 ELI5 is a Python package which helps to debug machine learning
-classifiers and explain their predictions. It provides support for the
-following machine learning frameworks and packages:
+classifiers and explain their predictions.
+
+.. image:: https://raw.githubusercontent.com/TeamHG-Memex/eli5/master/docs/source/static/word-highlight.png
+   :alt: explain_prediction for text data
+
+It provides support for the following machine learning frameworks and packages:
 
 * scikit-learn_. Currently ELI5 allows to explain weights and predictions
   of scikit-learn linear classifiers and regressors, print decision trees
@@ -48,7 +52,7 @@ rendering and formatting on a client.
 .. _lightning: https://github.com/scikit-learn-contrib/lightning
 .. _scikit-learn: https://github.com/scikit-learn/scikit-learn
 .. _sklearn-crfsuite: https://github.com/TeamHG-Memex/sklearn-crfsuite
-.. _LIME: http://arxiv.org/abs/1602.04938
+.. _LIME: http://eli5.readthedocs.io/en/latest/lime.html
 
 License is MIT.
 
