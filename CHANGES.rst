@@ -1,6 +1,11 @@
 Changelog
 =========
 
+0.1.1 (2016-11-25)
+------------------
+
+* packaging fixes: require attrs > 16.0.0, fixed README rendering
+
 0.1 (2016-11-24)
 ----------------
 
