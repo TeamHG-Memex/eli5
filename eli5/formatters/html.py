@@ -1,18 +1,21 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 import cgi
-from collections import Counter
-import copy
+from typing import List
 
 import numpy as np
 from jinja2 import Environment, PackageLoader
 
 from eli5 import _graphviz
-from eli5.base import WeightedSpans, FeatureWeights
-from .utils import format_signed, replace_spaces, should_highlight_spaces
+from eli5.base import TargetExplanation
+from .utils import (
+    format_signed, replace_spaces, should_highlight_spaces, max_or_0)
 from . import fields
 from .features import FormattedFeatureName
 from .trees import tree2text
+from .text_helpers import (
+    get_prepared_weighted_spans, merge_weighted_spans_others,
+    PreparedWeightedSpans)
 
 
 template_env = Environment(
@@ -52,10 +55,9 @@ def format_as_html(explanation, include_styles=True, force_weights=True,
     if len(targets) == 1:
         horizontal_layout = False
 
-    rendered_weighted_spans = (
-        render_targets_weighted_spans(targets, preserve_density))
-    weighted_spans_others = [
-        merge_weighted_spans_others(t.weighted_spans) for t in targets]
+    rendered_weighted_spans = render_targets_weighted_spans(
+        targets, preserve_density)
+    weighted_spans_others = [merge_weighted_spans_others(t) for t in targets]
 
     return template.render(
         include_styles=include_styles,
@@ -96,86 +98,32 @@ def format_html_styles():
 
 
 def render_targets_weighted_spans(targets, preserve_density):
-    spans_char_weights = [
-        [get_char_weights(ws, preserve_density=preserve_density)
-         for ws in t.weighted_spans] if t.weighted_spans else None
-        for t in targets]
-    # TODO - comment
-    max_idx = max_or_0(len(ch_w or []) for ch_w in spans_char_weights)
-    spans_weight_ranges = [max_or_0(
-        abs(x) for char_weights in spans_char_weights
-        for x in (char_weights[idx] if char_weights is not None else []))
-                           for idx in range(max_idx)]
+    # type: (List[TargetExplanation], bool) -> List[str]
+    """ Return a list of rendered weighted spans for targets.
+    Function must accept a list in order to select consistent weight
+    ranges across all targets.
+    """
+    prepared_weighted_spans = get_prepared_weighted_spans(
+        targets, preserve_density)
     return [
         '<br/>'.join(
             '{}{}'.format(
-                '<b>{}:</b> '.format(ws.vec_name) if ws.vec_name else '',
-                render_weighted_spans(ws.document, ch_w, w_range))
-            for ws, ch_w, w_range in zip(
-                t.weighted_spans, char_weights, spans_weight_ranges))
-        if t.weighted_spans else None
-        for t, char_weights in zip(targets, spans_char_weights)]
+                '<b>{}:</b> '.format(pws.weighted_spans.vec_name)
+                if pws.weighted_spans.vec_name else '',
+                render_weighted_spans(pws))
+            for pws in pws_lst)
+        if pws_lst else None
+        for pws_lst in prepared_weighted_spans]
 
 
-def merge_weighted_spans_others(weighted_spans):
-    if not weighted_spans:
-        return None
-    if len(weighted_spans) == 1:
-        return weighted_spans[0].other
-    return FeatureWeights(
-        pos=[_renamed(fw, ws) for ws in weighted_spans
-             for fw in ws.other.pos],
-        neg=[_renamed(fw, ws) for ws in weighted_spans
-             for fw in ws.other.neg],
-        # All should be the same, so min is fine
-        pos_remaining=min(ws.other.pos_remaining for ws in weighted_spans),
-        neg_remaining=min(ws.other.neg_remaining for ws in weighted_spans),
-    )
-
-
-def _renamed(fw, ws):
-    if not ws.vec_name:
-        return fw
-    fw = copy.copy(fw)
-    renamed = lambda x: '{}: {}'.format(ws.vec_name, x)
-    if isinstance(fw.feature, FormattedFeatureName):
-        fw.feature = FormattedFeatureName(renamed(fw.feature.value))
-    elif isinstance(fw.feature, list):
-        fw.feature = [
-            {'name': renamed(x['name']), 'sign': x['sign']} for x in fw.feature]
-    else:
-        fw.feature = renamed(fw.feature)
-    return fw
-
-
-def get_char_weights(weighted_spans_data, preserve_density=None):
-    """ Return character weights for a text document with highlighted features.
-    If preserve_density is True, then color for longer fragments will be
-    less intensive than for shorter fragments, so that "sum" of intensities
-    will correspond to feature weight.
-    If preserve_density is None, then it's value is chosen depending on
-    analyzer kind: it is preserved for "char" and "char_wb" analyzers,
-    and not preserved for "word" analyzers.
-    """
-    if preserve_density is None:
-        preserve_density = weighted_spans_data.analyzer.startswith('char')
-    weighted_spans = weighted_spans_data.weighted_spans
-    char_weights = np.zeros(len(weighted_spans_data.document))
-    feature_counts = Counter(f for f, _, _ in weighted_spans)
-    for feature, spans, weight in weighted_spans:
-        for start, end in spans:
-            if preserve_density:
-                weight /= (end - start)
-            weight /= feature_counts[feature]
-            char_weights[start:end] += weight
-    return char_weights
-
-
-def render_weighted_spans(doc, char_weights, weight_range):
+def render_weighted_spans(pws):
+    # type: (PreparedWeightedSpans) -> str
     # TODO - can be much smarter, join spans at least
     # TODO - for longer documents, remove text without active features
-    return ''.join(_colorize(token, weight, weight_range)
-                   for token, weight in zip(doc, char_weights))
+    return ''.join(
+        _colorize(token, weight, pws.weight_range)
+        for token, weight in zip(
+            pws.weighted_spans.document, pws.char_weights))
 
 
 def _colorize(token, weight, weight_range):
@@ -316,8 +264,3 @@ def _format_decision_tree(treedict):
 
 def html_escape(text):
     return cgi.escape(text, quote=True)
-
-
-def max_or_0(it):
-    lst = list(it)
-    return max(lst) if lst else 0

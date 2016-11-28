@@ -10,16 +10,18 @@ from eli5.formatters import (
     format_as_text, format_as_html, format_html_styles, FormattedFeatureName)
 from eli5.formatters.html import (
     _format_unhashed_feature, render_weighted_spans, _format_single_feature,
-    _format_feature, remaining_weight_color_hsl, weight_color_hsl,
-    get_char_weights)
+    _format_feature, remaining_weight_color_hsl, weight_color_hsl)
+from eli5.formatters.text_helpers import get_char_weights, PreparedWeightedSpans
 from .utils import write_html
 
 
-def _render_weighted_spans(weighted_spans_data, preserve_density=None):
-    char_weights = get_char_weights(weighted_spans_data, preserve_density)
+def _render_weighted_spans(weighted_spans, preserve_density=None):
+    char_weights = get_char_weights(weighted_spans, preserve_density)
     weight_range = max(abs(x) for x in char_weights)
-    return render_weighted_spans(
-        weighted_spans_data.document, char_weights, weight_range)
+    return render_weighted_spans(PreparedWeightedSpans(
+        weighted_spans=weighted_spans,
+        char_weights=char_weights,
+        weight_range=weight_range))
 
 
 def test_render_styles():
