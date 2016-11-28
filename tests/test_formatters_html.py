@@ -4,7 +4,7 @@ import pytest
 from sklearn.datasets import make_regression
 from sklearn.linear_model import LinearRegression
 
-from eli5.base import WeightedSpans, FeatureWeight
+from eli5.base import DocWeightedSpans, FeatureWeight
 from eli5 import explain_weights_sklearn, explain_prediction_sklearn
 from eli5.formatters import (
     format_as_text, format_as_html, format_html_styles, FormattedFeatureName)
@@ -15,11 +15,11 @@ from eli5.formatters.text_helpers import get_char_weights, PreparedWeightedSpans
 from .utils import write_html
 
 
-def _render_weighted_spans(weighted_spans, preserve_density=None):
-    char_weights = get_char_weights(weighted_spans, preserve_density)
+def _render_weighted_spans(doc_weighted_spans, preserve_density=None):
+    char_weights = get_char_weights(doc_weighted_spans, preserve_density)
     weight_range = max(abs(x) for x in char_weights)
     return render_weighted_spans(PreparedWeightedSpans(
-        weighted_spans=weighted_spans,
+        doc_weighted_spans,
         char_weights=char_weights,
         weight_range=weight_range))
 
@@ -96,10 +96,10 @@ def test_format_single_feature():
 
 
 def test_render_weighted_spans_word():
-    weighted_spans = WeightedSpans(
+    weighted_spans = DocWeightedSpans(
         analyzer='word',
         document='i see: a leaning lemon tree',
-        weighted_spans=[
+        spans=[
             ('see', [(2, 5)], 0.2),
             ('tree', [(23, 27)], -0.6),
             ('leaning lemon', [(9, 16), (17, 22)], 0.5),
@@ -146,10 +146,10 @@ def test_render_weighted_spans_word():
 
 
 def test_render_weighted_spans_char():
-    weighted_spans = WeightedSpans(
+    weighted_spans = DocWeightedSpans(
         analyzer='char',
         document='see',
-        weighted_spans=[
+        spans=[
             ('se', [(0, 2)], 0.2),
             ('ee', [(1, 3)], 0.1),
             ],
@@ -169,10 +169,10 @@ def test_render_weighted_spans_char():
 
 
 def test_override_preserve_density():
-    weighted_spans = WeightedSpans(
+    weighted_spans = DocWeightedSpans(
         analyzer='char',
         document='see',
-        weighted_spans=[
+        spans=[
             ('se', [(0, 2)], 0.2),
             ('ee', [(1, 3)], 0.1),
         ],

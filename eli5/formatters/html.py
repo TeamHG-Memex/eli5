@@ -107,8 +107,8 @@ def render_targets_weighted_spans(targets, preserve_density):
     return [
         '<br/>'.join(
             '{}{}'.format(
-                '<b>{}:</b> '.format(pws.weighted_spans.vec_name)
-                if pws.weighted_spans.vec_name else '',
+                '<b>{}:</b> '.format(pws.doc_weighted_spans.vec_name)
+                if pws.doc_weighted_spans.vec_name else '',
                 render_weighted_spans(pws))
             for pws in pws_lst)
         if pws_lst else None
@@ -122,7 +122,7 @@ def render_weighted_spans(pws):
     return ''.join(
         _colorize(token, weight, pws.weight_range)
         for token, weight in zip(
-            pws.weighted_spans.document, pws.char_weights))
+            pws.doc_weighted_spans.document, pws.char_weights))
 
 
 def _colorize(token, weight, weight_range):

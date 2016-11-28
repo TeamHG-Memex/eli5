@@ -112,7 +112,7 @@ class WeightedSpans(object):
     # TODO - docstring
     def __init__(self,
                  docs_weighted_spans,  # type: List[DocWeightedSpans]
-                 other,  # type: FeatureWeights
+                 other=None,  # type: FeatureWeights
                  ):
         self.docs_weighted_spans = docs_weighted_spans
         self.other = other
