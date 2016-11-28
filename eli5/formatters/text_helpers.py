@@ -44,6 +44,15 @@ class PreparedWeightedSpans(object):
         self.char_weights = char_weights
         self.weight_range = weight_range
 
+    def __eq__(self, other):
+        # Working around __eq__ on numpy arrays
+        if self.__class__ == other.__class__:
+            return (
+                (self.weighted_spans, self.weight_range) ==
+                (other.weighted_spans, other.weight_range) and
+                self.char_weights.shape == other.char_weights.shape and
+                np.allclose(self.char_weights, other.char_weights))
+        return False
 
 def get_prepared_weighted_spans(targets, preserve_density):
     # type: (List[TargetExplanation], bool) -> List[List[PreparedWeightedSpans]]
