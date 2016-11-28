@@ -142,7 +142,7 @@ def _renamed(fw, ws):
         fw.feature = FormattedFeatureName(renamed(fw.feature.value))
     elif isinstance(fw.feature, list):
         fw.feature = [
-            {'name': renamed(x['name']), 'sing': x['sign']} for x in fw.feature]
+            {'name': renamed(x['name']), 'sign': x['sign']} for x in fw.feature]
     else:
         fw.feature = renamed(fw.feature)
     return fw
