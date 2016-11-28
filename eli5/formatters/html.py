@@ -13,9 +13,7 @@ from .utils import (
 from . import fields
 from .features import FormattedFeatureName
 from .trees import tree2text
-from .text_helpers import (
-    prepare_weighted_spans, merge_weighted_spans_others,
-    PreparedWeightedSpans)
+from .text_helpers import prepare_weighted_spans, PreparedWeightedSpans
 
 
 template_env = Environment(
@@ -57,7 +55,8 @@ def format_as_html(explanation, include_styles=True, force_weights=True,
 
     rendered_weighted_spans = render_targets_weighted_spans(
         targets, preserve_density)
-    weighted_spans_others = [merge_weighted_spans_others(t) for t in targets]
+    weighted_spans_others = [
+        t.weighted_spans.other if t.weighted_spans else None for t in targets]
 
     return template.render(
         include_styles=include_styles,

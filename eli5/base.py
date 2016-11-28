@@ -56,7 +56,7 @@ class TargetExplanation(object):
                  feature_weights,  # type: FeatureWeights
                  proba=None,  # type: float
                  score=None,  # type: float
-                 weighted_spans=None,  # type: List[WeightedSpans]
+                 weighted_spans=None,  # type: WeightedSpans
                  ):
         self.target = target
         self.feature_weights = feature_weights
@@ -109,23 +109,33 @@ WeightedSpan = Tuple[
 
 @attrs
 class WeightedSpans(object):
+    # TODO - docstring
+    def __init__(self,
+                 docs_weighted_spans,  # type: List[DocWeightedSpans]
+                 other,  # type: FeatureWeights
+                 ):
+        self.docs_weighted_spans = docs_weighted_spans
+        self.other = other
+
+
+@attrs
+class DocWeightedSpans(object):
     """ Features highlighted in text. :analyzer: is a type of the analyzer
     (for example "char" or "word"), and :document: is a pre-processed document
     before applying the analyzed. :weighted_spans: holds a list of spans
     (see above) for features found in text (span indices correspond to
     :document:), and :other: holds weights for features not highlighted in text.
     """
+    # FIXME - fix docstring
     def __init__(self,
                  analyzer,  # type: str
                  document,  # type: str
-                 weighted_spans,  # type: List[WeightedSpan]
-                 other=None,  # type: FeatureWeights
+                 spans,  # type: List[WeightedSpan]
                  vec_name=None,  # type: str
                  ):
         self.analyzer = analyzer
         self.document = document
-        self.weighted_spans = weighted_spans
-        self.other = other
+        self.spans = spans
         self.vec_name = vec_name
 
 

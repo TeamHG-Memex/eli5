@@ -14,7 +14,8 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import FeatureUnion
 
 from eli5 import explain_prediction
-from .utils import format_as_all, get_all_features, get_names_coefs
+from eli5.formatters import format_as_html
+from .utils import format_as_all, get_all_features, get_names_coefs, write_html
 
 
 def check_explain_linear_binary(res, clf):
@@ -190,8 +191,44 @@ def test_explain_feature_union(vec_cls):
     clf = LogisticRegression(random_state=42)
     clf.fit(xs, ys)
     res = explain_prediction(clf, data[0], vec)
-    _, html_expl = format_as_all(res, clf)
+    html_expl = format_as_html(res, force_weights=False)
+    write_html(clf, html_expl, '')
     assert 'text: Highlighted in text (sum)' in html_expl
     assert 'url: Highlighted in text (sum)' in html_expl
     assert '<b>url:</b> <span' in html_expl
     assert '<b>text:</b> <span' in html_expl
+    assert 'BIAS' in html_expl
+
+
+@pytest.mark.parametrize(['vec_cls'], [
+    [CountVectorizer],
+    #[HashingVectorizer],
+])
+def test_explain_feature_union_with_nontext(vec_cls):
+    data = [
+        {'score': 1,
+         'text': 'security research'},
+        {'score': 0.1,
+         'text': 'security research'},
+        {'score': 0.5,
+         'text': 'health study'},
+        {'score': 0.5,
+         'text': 'health research'},
+        {'score': 0.1,
+         'text': 'security'},
+    ]
+    ys = [1, 0, 0, 0, 1]
+    vec = FeatureUnion([
+        ('score', DictVectorizer()),
+        ('text', vec_cls(preprocessor=lambda x: x['text'])),
+    ])
+    xs = vec.fit_transform(data)
+    clf = LogisticRegression(random_state=42)
+    clf.fit(xs, ys)
+    res = explain_prediction(clf, data[0], vec)
+    html_expl = format_as_html(res, force_weights=False)
+    write_html(clf, html_expl, '')
+    assert 'text: Highlighted in text (sum)' in html_expl
+    assert '<b>text:</b> <span' in html_expl
+    assert 'BIAS' in html_expl
+    assert 'score__score' in html_expl
