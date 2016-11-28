@@ -11,6 +11,7 @@ from sklearn.feature_extraction import DictVectorizer
 from sklearn.feature_extraction.text import CountVectorizer, HashingVectorizer
 from sklearn.linear_model import LinearRegression
 from sklearn.linear_model import LogisticRegression
+from sklearn.pipeline import FeatureUnion
 
 from eli5 import explain_prediction
 from .utils import format_as_all, get_all_features, get_names_coefs
@@ -159,3 +160,38 @@ def test_explain_regression_hashing_vectorizer(newsgroups_train_binary):
         for (name, coef), (count_name, count_coef) in zip(values, count_values):
             assert name == count_name
             assert abs(coef - count_coef) < 0.05
+
+
+@pytest.mark.parametrize(['vec_cls'], [
+    [CountVectorizer],
+   #[HashingVectorizer],
+])
+def test_explain_feature_union(vec_cls):
+    data = [
+        {'url': 'http://a.com/blog',
+         'text': 'security research'},
+        {'url': 'http://a.com',
+         'text': 'security research'},
+        {'url': 'http://b.com/blog',
+         'text': 'health study'},
+        {'url': 'http://b.com',
+         'text': 'health research'},
+        {'url': 'http://c.com/blog',
+         'text': 'security'},
+        ]
+    ys = [1, 0, 0, 0, 1]
+    vec = FeatureUnion([
+        ('url', vec_cls(preprocessor=lambda x: x['url'],
+                        analyzer='char',
+                        ngram_range=(3, 3))),
+        ('text', vec_cls(preprocessor=lambda x: x['text'])),
+    ])
+    xs = vec.fit_transform(data)
+    clf = LogisticRegression(random_state=42)
+    clf.fit(xs, ys)
+    res = explain_prediction(clf, data[0], vec)
+    _, html_expl = format_as_all(res, clf)
+    assert 'text: Highlighted in text (sum)' in html_expl
+    assert 'url: Highlighted in text (sum)' in html_expl
+    assert '<b>url:</b> <span' in html_expl
+    assert '<b>text:</b> <span' in html_expl

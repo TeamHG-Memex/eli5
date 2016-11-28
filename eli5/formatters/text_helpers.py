@@ -54,7 +54,8 @@ class PreparedWeightedSpans(object):
                 np.allclose(self.char_weights, other.char_weights))
         return False
 
-def get_prepared_weighted_spans(targets, preserve_density):
+
+def prepare_weighted_spans(targets, preserve_density=None):
     # type: (List[TargetExplanation], bool) -> List[List[PreparedWeightedSpans]]
     """ Return weighted spans prepared for rendering.
     Calculate a separate weight range for each different weighted
@@ -79,8 +80,7 @@ def get_prepared_weighted_spans(targets, preserve_density):
         for t, t_char_weights in zip(targets, targets_char_weights)]
 
 
-def merge_weighted_spans_others(
-        target, with_vec_name='{}: {}'.format):
+def merge_weighted_spans_others(target, with_vec_name='{}: {}'.format):
     # type: (TargetExplanation, Callable[[str, str], str]) -> Optional[FeatureWeights]
     """ Merge "others" of a list of weighted spans into a single "others" field.
     with_vec_name is a function that takes vectorizer name and feature name

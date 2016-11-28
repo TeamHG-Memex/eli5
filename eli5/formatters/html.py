@@ -14,7 +14,7 @@ from . import fields
 from .features import FormattedFeatureName
 from .trees import tree2text
 from .text_helpers import (
-    get_prepared_weighted_spans, merge_weighted_spans_others,
+    prepare_weighted_spans, merge_weighted_spans_others,
     PreparedWeightedSpans)
 
 
@@ -103,7 +103,7 @@ def render_targets_weighted_spans(targets, preserve_density):
     Function must accept a list in order to select consistent weight
     ranges across all targets.
     """
-    prepared_weighted_spans = get_prepared_weighted_spans(
+    prepared_weighted_spans = prepare_weighted_spans(
         targets, preserve_density)
     return [
         '<br/>'.join(
