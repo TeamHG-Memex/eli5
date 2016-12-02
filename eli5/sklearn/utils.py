@@ -138,13 +138,15 @@ def get_coef(clf, label_id, scale=None):
 
 def get_num_features(clf):
     """ Return size of a feature vector classifier expects as an input. """
-    if hasattr(clf, 'coef_'):
+    if hasattr(clf, 'coef_'):  # linear models
         return clf.coef_.shape[-1]
-    elif hasattr(clf, 'feature_importances_'):
+    elif hasattr(clf, 'feature_importances_'):  # ensebles
         return clf.feature_importances_.shape[-1]
-    elif hasattr(clf, 'feature_count_'):
+    elif hasattr(clf, 'feature_count_'):  # naive bayes
         return clf.feature_count_.shape[-1]
     elif hasattr(clf, 'theta_'):
         return clf.theta_.shape[-1]
+    elif hasattr(clf, 'estimators_') and len(clf.estimators_):  # OvR
+        return get_num_features(clf.estimators_[0])
     else:
         raise ValueError("Can't figure out feature vector size for %s" % clf)

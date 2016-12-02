@@ -9,6 +9,7 @@ from sklearn.linear_model import LogisticRegression, ElasticNet, SGDRegressor
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.naive_bayes import GaussianNB, BernoulliNB
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.multiclass import OneVsRestClassifier
 
 from eli5._feature_names import FeatureNames
 from eli5.sklearn.utils import (
@@ -123,6 +124,8 @@ def test_get_default_target_names():
     [RandomForestClassifier()],
     [GaussianNB()],
     [DecisionTreeClassifier()],
+    [OneVsRestClassifier(DecisionTreeClassifier())],
+    [OneVsRestClassifier(LogisticRegression())],
     [BernoulliNB()],
 ])
 def test_get_num_features(clf):
