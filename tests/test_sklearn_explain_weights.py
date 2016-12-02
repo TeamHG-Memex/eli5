@@ -3,7 +3,9 @@ from __future__ import absolute_import
 from functools import partial
 import re
 
-from sklearn.datasets import make_regression
+import numpy as np
+import scipy.sparse as sp
+from sklearn.datasets import make_regression, make_multilabel_classification
 from sklearn.feature_extraction.text import (
     CountVectorizer,
     TfidfVectorizer,
@@ -33,6 +35,7 @@ from sklearn.ensemble import (
 )
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.base import BaseEstimator
+from sklearn.multiclass import OneVsRestClassifier
 import pytest
 
 from eli5 import _graphviz
@@ -41,10 +44,13 @@ from eli5.sklearn import InvertableHashingVectorizer
 from .utils import format_as_all, get_all_features, get_names_coefs
 
 
-def check_newsgroups_explanation_linear(clf, vec, target_names):
-    get_res = lambda: explain_weights(
-        clf, vec=vec, target_names=target_names, top=20)
-    res = get_res()
+def check_newsgroups_explanation_linear(clf, vec, target_names, **kwargs):
+    def get_result():
+        _kwargs = dict(vec=vec, target_names=target_names, top=20)
+        _kwargs.update(kwargs)
+        return explain_weights(clf, **_kwargs)
+
+    res = get_result()
     expl_text, expl_html = format_as_all(res, clf)
 
     assert [cl.target for cl in res.targets] == target_names
@@ -65,7 +71,48 @@ def check_newsgroups_explanation_linear(clf, vec, target_names):
         for label in target_names:
             assert str(label) in expl
 
-    assert res == get_res()
+    assert res == get_result()
+
+
+def assert_explained_weights_linear_classifier(newsgroups_train, clf,
+                                               add_bias=False):
+    docs, y, target_names = newsgroups_train
+    vec = TfidfVectorizer()
+    X = vec.fit_transform(docs)
+    if add_bias:
+        X = sp.hstack([X, np.ones((X.shape[0], 1))])
+        feature_names = vec.get_feature_names() + ['BIAS']
+    else:
+        feature_names = None
+
+    clf.fit(X, y)
+    check_newsgroups_explanation_linear(clf, vec, target_names,
+                                        feature_names=feature_names,
+                                        top=(20, 20))
+
+
+def assert_explained_weights_linear_regressor(boston_train, reg, has_bias=True):
+    X, y, feature_names = boston_train
+    reg.fit(X, y)
+    res = explain_weights(reg)
+    expl_text, expl_html = format_as_all(res, reg)
+
+    for expl in [expl_text, expl_html]:
+        assert 'x12' in expl
+        assert 'x9' in expl
+
+    if has_bias:
+        assert '<BIAS>' in expl_text
+        assert '&lt;BIAS&gt;' in expl_html
+
+    pos, neg = top_pos_neg(res, 'y')
+    assert 'x12' in pos or 'x12' in neg
+    assert 'x9' in neg or 'x9' in pos
+
+    if has_bias:
+        assert '<BIAS>' in neg or '<BIAS>' in pos
+
+    assert res == explain_weights(reg)
 
 
 @pytest.mark.parametrize(['clf'], [
@@ -78,15 +125,25 @@ def check_newsgroups_explanation_linear(clf, vec, target_names):
     [PassiveAggressiveClassifier(random_state=42)],
     [Perceptron(random_state=42)],
     [LinearSVC(random_state=42)],
+    [OneVsRestClassifier(SGDClassifier(random_state=42))],
 ])
 def test_explain_linear(newsgroups_train, clf):
-    docs, y, target_names = newsgroups_train
-    vec = TfidfVectorizer()
+    assert_explained_weights_linear_classifier(newsgroups_train, clf)
 
-    X = vec.fit_transform(docs)
-    clf.fit(X, y)
 
-    check_newsgroups_explanation_linear(clf, vec, target_names)
+@pytest.mark.parametrize(['clf'], [
+    [OneVsRestClassifier(SGDClassifier(random_state=42))],
+    [OneVsRestClassifier(LogisticRegression(random_state=42))],
+])
+def test_explain_linear_multilabel(clf):
+    X, Y = make_multilabel_classification(random_state=42)
+    clf.fit(X, Y)
+    res = explain_weights(clf)
+    expl_text, expl_html = format_as_all(res, clf)
+    for expl in [expl_text, expl_html]:
+        assert 'y=4' in expl
+        assert 'x0' in expl
+        assert 'BIAS' in expl
 
 
 @pytest.mark.parametrize(['clf'], [
@@ -219,6 +276,9 @@ def test_explain_linear_feature_re(newsgroups_train, vec):
     [GradientBoostingClassifier(random_state=42)],
     [AdaBoostClassifier(learning_rate=0.1, n_estimators=200, random_state=42)],
     [DecisionTreeClassifier(max_depth=3, random_state=42)],
+
+    # FIXME:
+    # [OneVsRestClassifier(DecisionTreeClassifier(max_depth=3, random_state=42))],
 ])
 def test_explain_random_forest(newsgroups_train, clf):
     docs, y, target_names = newsgroups_train
@@ -234,7 +294,7 @@ def test_explain_random_forest(newsgroups_train, clf):
         assert 'feature importances' in expl
         assert 'god' in expl  # high-ranked feature
 
-    if isinstance(clf, DecisionTreeClassifier):
+    if isinstance(clf, (DecisionTreeClassifier, OneVsRestClassifier)):
         if _graphviz.is_supported():
             assert '<svg' in expl_html
         else:
@@ -284,7 +344,7 @@ def test_unsupported():
         assert 'BaseEstimator' in expl
 
 
-@pytest.mark.parametrize(['clf'], [
+@pytest.mark.parametrize(['reg'], [
     [ElasticNet(random_state=42)],
     [ElasticNetCV(random_state=42)],
     [Lars()],
@@ -295,24 +355,8 @@ def test_unsupported():
     [LinearRegression()],
     [LinearSVR(random_state=42)],
 ])
-def test_explain_linear_regression(boston_train, clf):
-    X, y, feature_names = boston_train
-    clf.fit(X, y)
-    res = explain_weights(clf)
-    expl_text, expl_html = format_as_all(res, clf)
-
-    for expl in [expl_text, expl_html]:
-        assert 'x12' in expl
-        assert 'x9' in expl
-    assert '<BIAS>' in expl_text
-    assert '&lt;BIAS&gt;' in expl_html
-
-    pos, neg = top_pos_neg(res, 'y')
-    assert 'x12' in pos or 'x12' in neg
-    assert 'x9' in neg or 'x9' in pos
-    assert '<BIAS>' in neg or '<BIAS>' in pos
-
-    assert res == explain_weights(clf)
+def test_explain_linear_regression(boston_train, reg):
+    assert_explained_weights_linear_regressor(boston_train, reg)
 
 
 def test_explain_linear_regression_feature_re(boston_train):
@@ -326,19 +370,19 @@ def test_explain_linear_regression_feature_re(boston_train):
         assert 'LSTAT' not in expl
 
 
-@pytest.mark.parametrize(['clf'], [
+@pytest.mark.parametrize(['reg'], [
     [ElasticNet(random_state=42)],
     [Lars()],
     [Lasso(random_state=42)],
     [Ridge(random_state=42)],
     [LinearRegression()],
 ])
-def test_explain_linear_regression_multitarget(clf):
+def test_explain_linear_regression_multitarget(reg):
     X, y = make_regression(n_samples=100, n_targets=3, n_features=10,
                            random_state=42)
-    clf.fit(X, y)
-    res = explain_weights(clf)
-    expl, _ = format_as_all(res, clf)
+    reg.fit(X, y)
+    res = explain_weights(reg)
+    expl, _ = format_as_all(res, reg)
 
     assert 'x9' in expl
     assert '<BIAS>' in expl
@@ -347,4 +391,4 @@ def test_explain_linear_regression_multitarget(clf):
     assert 'x9' in neg or 'x9' in pos
     assert '<BIAS>' in neg or '<BIAS>' in pos
 
-    assert res == explain_weights(clf)
+    assert res == explain_weights(reg)

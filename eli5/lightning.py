@@ -6,6 +6,7 @@ from lightning.impl.base import BaseEstimator
 from lightning import classification, regression
 from sklearn.multiclass import OneVsRestClassifier
 
+from eli5.base import Explanation
 from eli5.sklearn import (
     explain_linear_classifier_weights,
     explain_linear_regressor_weights,
@@ -21,10 +22,10 @@ def explain_weights_lightning(estimator, vec=None, top=20, target_names=None,
                               targets=None, feature_names=None,
                               coef_scale=None):
     """ Return an explanation of a lightning estimator weights """
-    return {
-        "estimator": repr(estimator),
-        "description": "Error: estimator %r is not supported" % estimator,
-    }
+    return Explanation(
+        estimator=repr(estimator),
+        description="Error: estimator %r is not supported" % estimator,
+    )
 
 
 @explain_prediction.register(BaseEstimator)
@@ -34,19 +35,28 @@ def explain_prediction_lightning(estimator, doc, vec=None, top=None,
                                  feature_names=None, vectorized=False,
                                  coef_scale=None):
     """ Return an explanation of a lightning estimator predictions """
-    return {
-        "estimator": repr(estimator),
-        "description": "Error: estimator %r is not supported" % estimator,
-    }
+    return Explanation(
+        estimator=repr(estimator),
+        description="Error: estimator %r is not supported" % estimator,
+    )
 
 
 @explain_prediction_lightning.register(OneVsRestClassifier)
-def explain_prediction_multiclass_strategy_lightning(clf, doc, **kwargs):
+def explain_prediction_ovr_lightning(clf, doc, **kwargs):
     # dispatch OvR to eli5.lightning
     # if explain_prediction_lightning is called explicitly
     estimator = clf.estimator
     func = explain_prediction_lightning.dispatch(estimator.__class__)
     return func(clf, doc, **kwargs)
+
+
+@explain_weights_lightning.register(OneVsRestClassifier)
+def explain_weights_ovr_lightning(ovr, **kwargs):
+    # dispatch OvR to eli5.lightning
+    # if explain_weights_lightning is called explicitly
+    estimator = ovr.estimator
+    func = explain_weights_lightning.dispatch(estimator.__class__)
+    return func(ovr, **kwargs)
 
 
 _CLASSIFIERS = [

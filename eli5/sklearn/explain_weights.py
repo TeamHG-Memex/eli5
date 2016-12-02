@@ -19,6 +19,7 @@ from sklearn.linear_model import (
     SGDClassifier,
     SGDRegressor,
 )
+from sklearn.multiclass import OneVsRestClassifier
 from sklearn.svm import LinearSVC, LinearSVR
 # TODO: see https://github.com/scikit-learn/scikit-learn/pull/2250
 from sklearn.naive_bayes import BernoulliNB, MultinomialNB
@@ -105,6 +106,22 @@ def explain_weights_sklearn(estimator, vec=None, top=_TOP,
         estimator=repr(estimator),
         error="estimator %r is not supported" % estimator,
     )
+
+
+@explain_weights.register(OneVsRestClassifier)
+def explain_weights_ovr(ovr, **kwargs):
+    estimator = ovr.estimator
+    func = explain_weights.dispatch(estimator.__class__)
+    return func(ovr, **kwargs)
+
+
+@explain_weights_sklearn.register(OneVsRestClassifier)
+def explain_weights_ovr_sklearn(ovr, **kwargs):
+    # dispatch OvR to eli5.sklearn
+    # if explain_prediction_sklearn is called explicitly
+    estimator = ovr.estimator
+    func = explain_weights_sklearn.dispatch(estimator.__class__)
+    return func(ovr, **kwargs)
 
 
 @explain_weights_sklearn.register(LogisticRegression)

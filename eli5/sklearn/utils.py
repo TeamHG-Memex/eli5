@@ -40,7 +40,14 @@ def is_probabilistic_classifier(clf):
 def has_intercept(estimator):
     # type: (Any) -> bool
     """ Return True if an estimator has intercept fit. """
-    return getattr(estimator, 'fit_intercept', False)
+    if hasattr(estimator, 'fit_intercept'):
+        return estimator.fit_intercept
+    if hasattr(estimator, 'intercept_'):
+        if estimator.intercept_ is None:
+            return False
+        # scikit-learn sets intercept to zero vector if it is not fit
+        return np.any(estimator.intercept_)
+    return False
 
 
 def get_feature_names(clf, vec=None, bias_name='<BIAS>', feature_names=None):
@@ -138,13 +145,15 @@ def get_coef(clf, label_id, scale=None):
 
 def get_num_features(clf):
     """ Return size of a feature vector classifier expects as an input. """
-    if hasattr(clf, 'coef_'):
+    if hasattr(clf, 'coef_'):  # linear models
         return clf.coef_.shape[-1]
-    elif hasattr(clf, 'feature_importances_'):
+    elif hasattr(clf, 'feature_importances_'):  # ensebles
         return clf.feature_importances_.shape[-1]
-    elif hasattr(clf, 'feature_count_'):
+    elif hasattr(clf, 'feature_count_'):  # naive bayes
         return clf.feature_count_.shape[-1]
     elif hasattr(clf, 'theta_'):
         return clf.theta_.shape[-1]
+    elif hasattr(clf, 'estimators_') and len(clf.estimators_):  # OvR
+        return get_num_features(clf.estimators_[0])
     else:
         raise ValueError("Can't figure out feature vector size for %s" % clf)
