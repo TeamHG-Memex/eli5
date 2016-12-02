@@ -1,6 +1,15 @@
 Changelog
 =========
 
+0.2 (2016-12-03)
+----------------
+
+* XGBClassifier support (from `XGBoost <https://github.com/dmlc/xgboost>`__
+  package);
+* :func:`eli5.explain_weights` support for sklearn OneVsRestClassifier;
+* std deviation of feature importances is no longer printed as zero
+  if it is not available.
+
 0.1.1 (2016-11-25)
 ------------------
 
