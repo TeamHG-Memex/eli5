@@ -5,7 +5,7 @@ import re
 
 import numpy as np
 import scipy.sparse as sp
-from sklearn.datasets import make_regression
+from sklearn.datasets import make_regression, make_multilabel_classification
 from sklearn.feature_extraction.text import (
     CountVectorizer,
     TfidfVectorizer,
@@ -129,6 +129,21 @@ def assert_explained_weights_linear_regressor(boston_train, reg, has_bias=True):
 ])
 def test_explain_linear(newsgroups_train, clf):
     assert_explained_weights_linear_classifier(newsgroups_train, clf)
+
+
+@pytest.mark.parametrize(['clf'], [
+    [OneVsRestClassifier(SGDClassifier(random_state=42))],
+    [OneVsRestClassifier(LogisticRegression(random_state=42))],
+])
+def test_explain_linear_multilabel(clf):
+    X, Y = make_multilabel_classification(random_state=42)
+    clf.fit(X, Y)
+    res = explain_weights(clf)
+    expl_text, expl_html = format_as_all(res, clf)
+    for expl in [expl_text, expl_html]:
+        assert 'y=4' in expl
+        assert 'x0' in expl
+        assert 'BIAS' in expl
 
 
 @pytest.mark.parametrize(['clf'], [
