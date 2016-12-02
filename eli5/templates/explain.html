@@ -32,7 +32,10 @@
             {% for fw in expl.feature_importances %}
                 <tr style="background-color: {{ fw.weight|weight_color(feat_imp_weight_range) }}; {{ tr_styles }}">
                     <td style="{{ td1_styles }}">
-                        {{ "%0.4f"|format(fw.weight) }} &plusmn; {{ "%0.4f"|format(2 * fw.std) }}
+                        {{ "%0.4f"|format(fw.weight) }}
+                        {% if not fw.std is none %}
+                             &plusmn; {{ "%0.4f"|format(2 * fw.std) }}
+                        {% endif %}
                     </td>
                     <td style="{{ td2_styles }}">
                         {{ fw.feature|format_feature(fw.weight, hl_spaces) }}

@@ -10,6 +10,8 @@ env:
     - TOXENV=py27
     - TOXENV=py35
     - TOXENV=py35-nodeps
+    - TOXENV=py27-extra
+    - TOXENV=py35-extra
     - TOXENV=mypy
     - TOXENV=docs
 

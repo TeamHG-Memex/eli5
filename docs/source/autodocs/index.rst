@@ -12,4 +12,5 @@ API documentation is auto-generated.
    ./lime
    ./sklearn
    ./sklearn_crfsuite
+   ./xgboost
    ./base
