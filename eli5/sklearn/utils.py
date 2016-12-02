@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
+from typing import Any
+
 import numpy as np
 from sklearn.multiclass import OneVsRestClassifier
 
@@ -6,6 +9,7 @@ from eli5._feature_names import FeatureNames
 
 
 def is_multiclass_classifier(clf):
+    # type: (Any) -> bool
     """
     Return True if a classifier is multiclass or False if it is binary.
     """
@@ -13,6 +17,7 @@ def is_multiclass_classifier(clf):
 
 
 def is_multitarget_regressor(clf):
+    # type: (Any) -> bool
     """
     Return True if a regressor is multitarget
     or False if it predicts a single target.
@@ -21,6 +26,7 @@ def is_multitarget_regressor(clf):
 
 
 def is_probabilistic_classifier(clf):
+    # type: (Any) -> bool
     """ Return True if a classifier can return probabilities """
     if not hasattr(clf, 'predict_proba'):
         return False
@@ -32,11 +38,13 @@ def is_probabilistic_classifier(clf):
 
 
 def has_intercept(estimator):
+    # type: (Any) -> bool
     """ Return True if an estimator has intercept fit. """
     return getattr(estimator, 'fit_intercept', False)
 
 
 def get_feature_names(clf, vec=None, bias_name='<BIAS>', feature_names=None):
+    # type: (Any, Any, str, Any) -> FeatureNames
     """
     Return a vector of feature names, including bias feature.
     If vec is None or doesn't have get_feature_names() method,

@@ -1,11 +1,11 @@
 import re
 import six
-from typing import Any, Iterable, Tuple
+from typing import Any, Iterable, Tuple, Sized, List
 
 import numpy as np
 
 
-class FeatureNames(object):
+class FeatureNames(Sized):
     """
     A list-like object with feature names. It allows
     feature names for unknown features to be generated using
@@ -55,6 +55,7 @@ class FeatureNames(object):
         raise IndexError('Feature index out of range')
 
     def _slice(self, aslice):
+        # type: (slice) -> Any
         if isinstance(self.feature_names, (list, np.ndarray)):
             # Fast path without going through __getitem__
             if self.has_bias:
@@ -77,6 +78,7 @@ class FeatureNames(object):
             return self.n_features
 
     def filtered_by_re(self, feature_re):
+        # type: (str) -> Tuple[FeatureNames, List[int]]
         """ Return feature names filtered by a regular expression ``feature_re``,
         and indices of filtered elements.
         """
