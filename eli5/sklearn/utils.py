@@ -40,7 +40,14 @@ def is_probabilistic_classifier(clf):
 def has_intercept(estimator):
     # type: (Any) -> bool
     """ Return True if an estimator has intercept fit. """
-    return getattr(estimator, 'fit_intercept', False)
+    if hasattr(estimator, 'fit_intercept'):
+        return estimator.fit_intercept
+    if hasattr(estimator, 'intercept_'):
+        if estimator.intercept_ is None:
+            return False
+        # scikit-learn sets intercept to zero vector if it is not fit
+        return np.any(estimator.intercept_)
+    return False
 
 
 def get_feature_names(clf, vec=None, bias_name='<BIAS>', feature_names=None):
