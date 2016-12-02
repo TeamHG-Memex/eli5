@@ -42,12 +42,21 @@ def explain_prediction_lightning(estimator, doc, vec=None, top=None,
 
 
 @explain_prediction_lightning.register(OneVsRestClassifier)
-def explain_prediction_multiclass_strategy_lightning(clf, doc, **kwargs):
+def explain_prediction_ovr_lightning(clf, doc, **kwargs):
     # dispatch OvR to eli5.lightning
     # if explain_prediction_lightning is called explicitly
     estimator = clf.estimator
     func = explain_prediction_lightning.dispatch(estimator.__class__)
     return func(clf, doc, **kwargs)
+
+
+@explain_weights_lightning.register(OneVsRestClassifier)
+def explain_weights_ovr_lightning(ovr, **kwargs):
+    # dispatch OvR to eli5.lightning
+    # if explain_weights_lightning is called explicitly
+    estimator = ovr.estimator
+    func = explain_weights_lightning.dispatch(estimator.__class__)
+    return func(ovr, **kwargs)
 
 
 _CLASSIFIERS = [
