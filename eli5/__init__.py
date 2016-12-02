@@ -31,3 +31,10 @@ try:
 except ImportError as e:
     # sklearn-crfsuite is not available
     pass
+
+
+try:
+    from .xgboost import explain_weights_xgboost
+except ImportError:
+    # xgboost is not available
+    pass

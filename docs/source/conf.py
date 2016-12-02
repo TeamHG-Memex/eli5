@@ -43,6 +43,8 @@ MOCK_MODULES = [
     'IPython',
     'IPython.display',
     'typing',
+    'xgboost',
+    'pytest',
 ]
 sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 

@@ -31,6 +31,9 @@ following machine learning frameworks and packages:
 * sklearn-crfsuite_. ELI5 allows to check weights of sklearn_crfsuite.CRF
   models.
 
+* xgboost_ - show feature importances using the same interface.
+
+
 ELI5 also provides an alternative implementation of :ref:`LIME <eli5-lime>`
 algorithm, which allows to explain predictions of any black-box classifier.
 This feature is currently experimental.
@@ -44,6 +47,8 @@ rendering and formatting on a client.
 .. _scikit-learn: https://github.com/scikit-learn/scikit-learn
 .. _sklearn-crfsuite: https://github.com/TeamHG-Memex/sklearn-crfsuite
 .. _ELI5: https://github.com/TeamHG-Memex/eli5
+.. _xgboost: https://github.com/dmlc/xgboost
+
 
 Basic Usage
 -----------
