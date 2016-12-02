@@ -70,12 +70,16 @@ def _error_lines(explanation):
 def _feature_importances_lines(explanation, hl_spaces):
     sz = _maxlen(explanation.feature_importances)
     for fw in explanation.feature_importances:
-        yield u'{w:0.4f} {plus} {std:0.4f} {feature}'.format(
-            feature=_format_feature(fw.feature, hl_spaces).ljust(sz),
-            w=fw.weight,
-            plus=_PLUS_MINUS,
-            std=2 * fw.std,
-        )
+        featname = _format_feature(fw.feature, hl_spaces).ljust(sz)
+        if fw.std is None:
+            yield u'{w:0.4f} {feature}'.format(feature=featname, w=fw.weight)
+        else:
+            yield u'{w:0.4f} {plus} {std:0.4f} {feature}'.format(
+                feature=featname,
+                w=fw.weight,
+                plus=_PLUS_MINUS,
+                std=2 * fw.std,
+            )
 
 
 def _decision_tree_lines(explanation):
