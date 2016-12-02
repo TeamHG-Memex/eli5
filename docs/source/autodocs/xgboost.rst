@@ -1,7 +1,7 @@
 eli5.xgboost
 ============
 
-eli5 has basic XGBoost_ support - :ref:`eli5.explain_weights`
+eli5 has basic XGBoost_ support - :func:`eli5.explain_weights`
 shows feature weights for XGBClassifier.
 
 .. _XGBoost: https://github.com/dmlc/xgboost
