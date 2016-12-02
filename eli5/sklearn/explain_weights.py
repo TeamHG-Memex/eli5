@@ -282,7 +282,6 @@ def explain_decision_tree(clf,
         coef = coef[flt_indices]
     indices = argsort_k_largest(coef, top)
     names, values = feature_names[indices], coef[indices]
-    std = np.zeros_like(values)
     export_graphviz_kwargs.setdefault("proportion", True)
     tree_info = get_tree_info(
         clf,
@@ -291,7 +290,7 @@ def explain_decision_tree(clf,
         **export_graphviz_kwargs)
 
     return Explanation(
-        feature_importances=[FeatureWeight(*x) for x in zip(names, values, std)],
+        feature_importances=[FeatureWeight(*x) for x in zip(names, values)],
         decision_tree=tree_info,
         description=DESCRIPTION_DECISION_TREE,
         estimator=repr(clf),
