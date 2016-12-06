@@ -1,4 +1,5 @@
 from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.pipeline import FeatureUnion
 
 from eli5.base import (
     DocWeightedSpans, WeightedSpans, FeatureWeights, FeatureWeight as FW)
@@ -123,6 +124,14 @@ def test_no_weighted_spans():
         other=FeatureWeights(pos=[], neg=[]))
 
 
+def test_unsupported():
+    doc = 'I see: a leaning lemon tree'
+    vec = CountVectorizer(analyzer=lambda x: x)
+    vec.fit([doc])
+    w_spans = get_weighted_spans(doc, vec, FeatureWeights(pos=[], neg=[]))
+    assert w_spans is None
+
+
 def test_weighted_spans_char_wb():
     doc = 'I see: a leaning lemon tree'
     vec = CountVectorizer(analyzer='char_wb', ngram_range=(3, 4))
@@ -183,3 +192,66 @@ def test_unhashed_features_other():
             ],
             neg=[FW(hl_in_text, -2)],
         ))
+
+
+def test_weighted_spans_feature_union():
+    doc = {'text': 'I see: a leaning lemon tree', 'url': 'http://example.com'}
+    vec = FeatureUnion([
+        ('text', CountVectorizer(analyzer='word',
+                                 preprocessor=lambda x: x['text'].lower())),
+        ('url', CountVectorizer(analyzer='char',
+                                ngram_range=(4, 4),
+                                preprocessor=lambda x: x['url'])),
+        ])
+    vec.fit([doc])
+    w_spans = get_weighted_spans(
+        doc, vec,
+        FeatureWeights(
+            pos=[FW('text__see', 2),
+                 FW('text__lemon', 4),
+                 FW('bias', 8),
+                 FW('url__ampl', 10),
+                 FW('url__mple', 7),
+                 ],
+            neg=[FW('text__tree', -6),
+                 FW('url__exam', -10),
+                 ],
+            neg_remaining=10
+        ))
+    assert w_spans == WeightedSpans(
+        [
+            DocWeightedSpans(
+                document='i see: a leaning lemon tree',
+                spans=[
+                    ('see', [(2, 5)], 2),
+                    ('lemon', [(17, 22)], 4),
+                    ('tree', [(23, 27)], -6)],
+                preserve_density=False,
+                vec_name='text',
+            ),
+            DocWeightedSpans(
+                document='http://example.com',
+                spans=[
+                    ('exam', [(7, 11)], -10),
+                    ('ampl', [(9, 13)], 10),
+                    ('mple', [(10, 14)], 7)],
+                preserve_density=True,
+                vec_name='url',
+            ),
+        ],
+        other=FeatureWeights(
+            pos=[FW('bias', 8),
+                 FW(FormattedFeatureName('url: Highlighted in text (sum)'), 7),
+                 FW(FormattedFeatureName('text: Highlighted in text (sum)'), 0),
+                 ],
+            neg=[],
+            neg_remaining=10,
+        ))
+
+
+def test_feature_union_unsupported():
+    doc = 'I see: a leaning lemon tree'
+    vec = FeatureUnion([('vec', CountVectorizer(analyzer=lambda x: x))])
+    vec.fit([doc])
+    w_spans = get_weighted_spans(doc, vec, FeatureWeights(pos=[], neg=[]))
+    assert w_spans is None
