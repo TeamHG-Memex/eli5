@@ -14,12 +14,11 @@ def get_char_weights(doc_weighted_spans, preserve_density=None):
     If preserve_density is True, then color for longer fragments will be
     less intensive than for shorter fragments, so that "sum" of intensities
     will correspond to feature weight.
-    If preserve_density is None, then it's value is chosen depending on
-    analyzer kind: it is preserved for "char" and "char_wb" analyzers,
-    and not preserved for "word" analyzers.
+    If preserve_density is None, then it's value is taken from
+    the corresponding attribute of doc_weighted_spans.
     """
     if preserve_density is None:
-        preserve_density = doc_weighted_spans.analyzer.startswith('char')
+        preserve_density = doc_weighted_spans.preserve_density
     char_weights = np.zeros(len(doc_weighted_spans.document))
     feature_counts = Counter(f for f, _, _ in doc_weighted_spans.spans)
     for feature, spans, weight in doc_weighted_spans.spans:

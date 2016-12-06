@@ -97,13 +97,13 @@ def test_format_single_feature():
 
 def test_render_weighted_spans_word():
     weighted_spans = DocWeightedSpans(
-        analyzer='word',
         document='i see: a leaning lemon tree',
         spans=[
             ('see', [(2, 5)], 0.2),
             ('tree', [(23, 27)], -0.6),
             ('leaning lemon', [(9, 16), (17, 22)], 0.5),
             ('lemon tree', [(17, 22), (23, 27)], 0.8)],
+        preserve_density=False,
     )
     s = _render_weighted_spans(weighted_spans)
     assert s.startswith(
@@ -147,12 +147,12 @@ def test_render_weighted_spans_word():
 
 def test_render_weighted_spans_char():
     weighted_spans = DocWeightedSpans(
-        analyzer='char',
         document='see',
         spans=[
             ('se', [(0, 2)], 0.2),
             ('ee', [(1, 3)], 0.1),
             ],
+        preserve_density=True,
     )
     s = _render_weighted_spans(weighted_spans)
     assert s == (
@@ -170,12 +170,12 @@ def test_render_weighted_spans_char():
 
 def test_override_preserve_density():
     weighted_spans = DocWeightedSpans(
-        analyzer='char',
         document='see',
         spans=[
             ('se', [(0, 2)], 0.2),
             ('ee', [(1, 3)], 0.1),
         ],
+        preserve_density=True,
     )
     s = _render_weighted_spans(weighted_spans, preserve_density=False)
     assert s.startswith(

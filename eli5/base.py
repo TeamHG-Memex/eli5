@@ -100,16 +100,11 @@ class FeatureWeight(object):
         self.std = std
 
 
-WeightedSpan = Tuple[
-    Feature,
-    List[Tuple[int, int]],  # list of spans (start, end) for this feature
-    float,  # feature weight
-]
-
-
 @attrs
 class WeightedSpans(object):
-    # TODO - docstring
+    """ Holds highlighted spans for parts of document - a DocWeightedSpans object
+    for each vectorizer, and other features not highlighted anywhere.
+    """
     def __init__(self,
                  docs_weighted_spans,  # type: List[DocWeightedSpans]
                  other=None,  # type: FeatureWeights
@@ -118,24 +113,31 @@ class WeightedSpans(object):
         self.other = other
 
 
+WeightedSpan = Tuple[
+    Feature,
+    List[Tuple[int, int]],  # list of spans (start, end) for this feature
+    float,  # feature weight
+]
+
+
 @attrs
 class DocWeightedSpans(object):
-    """ Features highlighted in text. :analyzer: is a type of the analyzer
-    (for example "char" or "word"), and :document: is a pre-processed document
-    before applying the analyzed. :weighted_spans: holds a list of spans
-    (see above) for features found in text (span indices correspond to
-    :document:), and :other: holds weights for features not highlighted in text.
+    """ Features highlighted in text. :document: is a pre-processed document
+    before applying the analyzer. :weighted_spans: holds a list of spans
+    for features found in text (span indices correspond to
+    :document:). :preserve_density: determines how features are colored
+    when doing formatting - it is better set to True for char features
+    and to False for word features.
     """
-    # FIXME - fix docstring
     def __init__(self,
-                 analyzer,  # type: str
                  document,  # type: str
                  spans,  # type: List[WeightedSpan]
+                 preserve_density=None,  # type: bool
                  vec_name=None,  # type: str
                  ):
-        self.analyzer = analyzer
         self.document = document
         self.spans = spans
+        self.preserve_density = preserve_density
         self.vec_name = vec_name
 
 

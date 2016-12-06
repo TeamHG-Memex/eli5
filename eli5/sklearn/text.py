@@ -60,9 +60,9 @@ def _get_doc_weighted_spans(doc, vec, feature_weights, feature_fn=None):
             found_features[key] = weight
 
     return found_features, DocWeightedSpans(
-        analyzer=vec.analyzer,
         document=preprocessed_doc,
         spans=spans,
+        preserve_density=vec.analyzer.startswith('char'),
     )
 
 

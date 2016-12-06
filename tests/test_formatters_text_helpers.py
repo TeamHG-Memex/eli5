@@ -14,7 +14,6 @@ def test_prepare_weighted_spans():
             weighted_spans=WeightedSpans(
                 docs_weighted_spans=[
                     DocWeightedSpans(
-                        analyzer='char',
                         document='ab',
                         spans=[
                             ('a', [(0, 1)], 1.5),
@@ -22,7 +21,6 @@ def test_prepare_weighted_spans():
                         ],
                     ),
                     DocWeightedSpans(
-                        analyzer='char',
                         document='xy',
                         spans=[
                             ('xy', [(0, 2)], -4.5),
@@ -35,7 +33,6 @@ def test_prepare_weighted_spans():
             weighted_spans=WeightedSpans(
                 docs_weighted_spans=[
                     DocWeightedSpans(
-                        analyzer='char',
                         document='abc',
                         spans=[
                             ('a', [(0, 1)], 0.5),
@@ -43,7 +40,6 @@ def test_prepare_weighted_spans():
                         ],
                     ),
                     DocWeightedSpans(
-                        analyzer='char',
                         document='xz',
                         spans=[
                             ('xz', [(0, 2)], 1.5),
