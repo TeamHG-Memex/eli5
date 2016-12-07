@@ -1,5 +1,5 @@
 import re
-from typing import Union
+from typing import Union, List, Dict
 
 from eli5.base import Explanation
 
@@ -68,8 +68,3 @@ def _has_invisible_spaces(name):
     if isinstance(name, list):
         return any(_has_invisible_spaces(n['name']) for n in name)
     return name.startswith(' ') or name.endswith(' ')
-
-
-def max_or_0(it):
-    lst = list(it)
-    return max(lst) if lst else 0

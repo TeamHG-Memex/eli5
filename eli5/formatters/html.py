@@ -8,8 +8,9 @@ from jinja2 import Environment, PackageLoader
 
 from eli5 import _graphviz
 from eli5.base import TargetExplanation
+from eli5.utils import max_or_0
 from .utils import (
-    format_signed, replace_spaces, should_highlight_spaces, max_or_0)
+    format_signed, replace_spaces, should_highlight_spaces)
 from . import fields
 from .features import FormattedFeatureName
 from .trees import tree2text

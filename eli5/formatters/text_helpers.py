@@ -5,7 +5,7 @@ import numpy as np
 
 from eli5.base import TargetExplanation, WeightedSpans, DocWeightedSpans
 from eli5.base_utils import attrs
-from .utils import max_or_0
+from eli5.utils import max_or_0
 
 
 def get_char_weights(doc_weighted_spans, preserve_density=None):
