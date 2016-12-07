@@ -25,8 +25,8 @@ class BaseSampler(BaseEstimator):
     @abc.abstractmethod
     def sample_near(self, doc, n_samples=1):
         """
-        Return (examples, distances) tuple with generated documents
-        similar to a given document.
+        Return (examples, similarity) tuple with generated documents
+        similar to a given document and a vector of similarity values.
         """
         raise NotImplementedError()
 
