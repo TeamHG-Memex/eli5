@@ -1,16 +1,20 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 import cgi
-from collections import Counter
+from typing import List
 
 import numpy as np
 from jinja2 import Environment, PackageLoader
 
 from eli5 import _graphviz
-from .utils import format_signed, replace_spaces, should_highlight_spaces
+from eli5.base import TargetExplanation
+from eli5.utils import max_or_0
+from .utils import (
+    format_signed, replace_spaces, should_highlight_spaces)
 from . import fields
 from .features import FormattedFeatureName
 from .trees import tree2text
+from .text_helpers import prepare_weighted_spans, PreparedWeightedSpans
 
 
 template_env = Environment(
@@ -46,25 +50,14 @@ def format_as_html(explanation, include_styles=True, force_weights=True,
     template = template_env.get_template('explain.html')
     if highlight_spaces is None:
         highlight_spaces = should_highlight_spaces(explanation)
-
     targets = explanation.targets or []
     if len(targets) == 1:
         horizontal_layout = False
 
-    any_weighted_spans = any(t.weighted_spans for t in targets)
-    spans_char_weights = [
-        get_char_weights(t.weighted_spans, preserve_density=preserve_density)
-        if t.weighted_spans else None
-        for t in targets]
-    spans_weight_range = max_or_0(
-        abs(x) for char_weights in spans_char_weights
-        for x in (char_weights if char_weights is not None else []))
-    rendered_weighted_spans = [
-        render_weighted_spans(
-            t.weighted_spans.document, char_weights, spans_weight_range)
-        if t.weighted_spans else None
-        for t, char_weights in zip(targets, spans_char_weights)]
-
+    rendered_weighted_spans = render_targets_weighted_spans(
+        targets, preserve_density)
+    weighted_spans_others = [
+        t.weighted_spans.other if t.weighted_spans else None for t in targets]
 
     return template.render(
         include_styles=include_styles,
@@ -84,22 +77,17 @@ def format_as_html(explanation, include_styles=True, force_weights=True,
         expl=explanation,
         hl_spaces=highlight_spaces,
         horizontal_layout=horizontal_layout,
-        any_weighted_spans=any_weighted_spans,
+        any_weighted_spans=any(t.weighted_spans for t in targets),
         feat_imp_weight_range=max_or_0(
             abs(fw.weight) for fw in (explanation.feature_importances or [])),
         target_weight_range=max_or_0(
             get_weight_range(t.feature_weights) for t in targets),
         other_weight_range=max_or_0(
-            get_weight_range(t.weighted_spans.other)
-            for t in targets if t.weighted_spans and t.weighted_spans.other),
-        targets_with_rendered_weighted_spans=list(
-            zip(targets, rendered_weighted_spans)),
+            get_weight_range(other)
+            for other in weighted_spans_others if other),
+        targets_with_weighted_spans=list(
+            zip(targets, rendered_weighted_spans, weighted_spans_others)),
     )
-
-
-def max_or_0(it):
-    lst = list(it)
-    return max(lst) if lst else 0
 
 
 def format_html_styles():
@@ -109,34 +97,33 @@ def format_html_styles():
     return template_env.get_template('styles.html').render()
 
 
-def get_char_weights(weighted_spans_data, preserve_density=None):
-    """ Return character weights for a text document with highlighted features.
-    If preserve_density is True, then color for longer fragments will be
-    less intensive than for shorter fragments, so that "sum" of intensities
-    will correspond to feature weight.
-    If preserve_density is None, then it's value is chosen depending on
-    analyzer kind: it is preserved for "char" and "char_wb" analyzers,
-    and not preserved for "word" analyzers.
+def render_targets_weighted_spans(targets, preserve_density):
+    # type: (List[TargetExplanation], bool) -> List[str]
+    """ Return a list of rendered weighted spans for targets.
+    Function must accept a list in order to select consistent weight
+    ranges across all targets.
     """
-    if preserve_density is None:
-        preserve_density = weighted_spans_data.analyzer.startswith('char')
-    weighted_spans = weighted_spans_data.weighted_spans
-    char_weights = np.zeros(len(weighted_spans_data.document))
-    feature_counts = Counter(f for f, _, _ in weighted_spans)
-    for feature, spans, weight in weighted_spans:
-        for start, end in spans:
-            if preserve_density:
-                weight /= (end - start)
-            weight /= feature_counts[feature]
-            char_weights[start:end] += weight
-    return char_weights
+    prepared_weighted_spans = prepare_weighted_spans(
+        targets, preserve_density)
+    return [
+        '<br/>'.join(
+            '{}{}'.format(
+                '<b>{}:</b> '.format(pws.doc_weighted_spans.vec_name)
+                if pws.doc_weighted_spans.vec_name else '',
+                render_weighted_spans(pws))
+            for pws in pws_lst)
+        if pws_lst else None
+        for pws_lst in prepared_weighted_spans]
 
 
-def render_weighted_spans(doc, char_weights, weight_range):
+def render_weighted_spans(pws):
+    # type: (PreparedWeightedSpans) -> str
     # TODO - can be much smarter, join spans at least
     # TODO - for longer documents, remove text without active features
-    return ''.join(_colorize(token, weight, weight_range)
-                   for token, weight in zip(doc, char_weights))
+    return ''.join(
+        _colorize(token, weight, pws.weight_range)
+        for token, weight in zip(
+            pws.doc_weighted_spans.document, pws.char_weights))
 
 
 def _colorize(token, weight, weight_range):

@@ -1,5 +1,5 @@
 import re
-from typing import Union
+from typing import Union, List, Dict
 
 from eli5.base import Explanation
 

@@ -118,3 +118,16 @@ def _get_value_indices(names1, names2, lookups):
     positions = {name: idx for idx, name in enumerate(names2)}
     positions.update({name: idx for idx, name in enumerate(names1)})
     return [positions[name] for name in lookups]
+
+
+def max_or_0(it):
+    """
+    >>> max_or_0([])
+    0
+    >>> max_or_0(iter([]))
+    0
+    >>> max_or_0(iter([-10, -2, -11]))
+    -2
+    """
+    lst = list(it)
+    return max(lst) if lst else 0

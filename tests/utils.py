@@ -29,7 +29,7 @@ def format_as_all(res, clf, **kwargs):
     expl_text = format_as_text(res, **kwargs)
     expl_html = format_as_html(res, **kwargs)
     print(expl_text)
-    write_html(clf, expl_html, expl_text)
+    write_html(clf, expl_html, expl_text, caller_depth=2)
     return expl_text, expl_html
 
 
@@ -39,12 +39,12 @@ def strip_blanks(html):
     return html.replace(' ', '').replace('\n', '')
 
 
-def write_html(clf, html, text, postfix=''):
+def write_html(clf, html, text, postfix='', caller_depth=1):
     """ Write to html file in .html directory. Filename is generated from calling
     function name and module, and clf class name.
     This is useful to check and debug format_as_html function.
     """
-    caller = inspect.stack()[2]
+    caller = inspect.stack()[caller_depth]
     try:
         test_name, test_file = caller.function, caller.filename
     except AttributeError:

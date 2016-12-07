@@ -26,13 +26,13 @@
         </table>
     {% endif %}
 
-    {% for target, rendered_weighted_spans in targets_with_rendered_weighted_spans %}
+    {% for target, rendered_ws, ws_other in targets_with_weighted_spans %}
         {% include "weighted_spans.html" with context %}
     {% endfor %}
 
 {% else %}
 
-    {% for target, rendered_weighted_spans in targets_with_rendered_weighted_spans %}
+    {% for target, rendered_ws, ws_other in targets_with_weighted_spans %}
 
         {% if force_weights or not target.weighted_spans %}
             {% with wts = target.feature_weights %}

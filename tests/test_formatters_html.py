@@ -4,22 +4,24 @@ import pytest
 from sklearn.datasets import make_regression
 from sklearn.linear_model import LinearRegression
 
-from eli5.base import WeightedSpans, FeatureWeight
+from eli5.base import DocWeightedSpans, FeatureWeight
 from eli5 import explain_weights_sklearn, explain_prediction_sklearn
 from eli5.formatters import (
     format_as_text, format_as_html, format_html_styles, FormattedFeatureName)
 from eli5.formatters.html import (
     _format_unhashed_feature, render_weighted_spans, _format_single_feature,
-    _format_feature, remaining_weight_color_hsl, weight_color_hsl,
-    get_char_weights)
+    _format_feature, remaining_weight_color_hsl, weight_color_hsl)
+from eli5.formatters.text_helpers import get_char_weights, PreparedWeightedSpans
 from .utils import write_html
 
 
-def _render_weighted_spans(weighted_spans_data, preserve_density=None):
-    char_weights = get_char_weights(weighted_spans_data, preserve_density)
+def _render_weighted_spans(doc_weighted_spans, preserve_density=None):
+    char_weights = get_char_weights(doc_weighted_spans, preserve_density)
     weight_range = max(abs(x) for x in char_weights)
-    return render_weighted_spans(
-        weighted_spans_data.document, char_weights, weight_range)
+    return render_weighted_spans(PreparedWeightedSpans(
+        doc_weighted_spans,
+        char_weights=char_weights,
+        weight_range=weight_range))
 
 
 def test_render_styles():
@@ -94,14 +96,14 @@ def test_format_single_feature():
 
 
 def test_render_weighted_spans_word():
-    weighted_spans = WeightedSpans(
-        analyzer='word',
+    weighted_spans = DocWeightedSpans(
         document='i see: a leaning lemon tree',
-        weighted_spans=[
+        spans=[
             ('see', [(2, 5)], 0.2),
             ('tree', [(23, 27)], -0.6),
             ('leaning lemon', [(9, 16), (17, 22)], 0.5),
             ('lemon tree', [(17, 22), (23, 27)], 0.8)],
+        preserve_density=False,
     )
     s = _render_weighted_spans(weighted_spans)
     assert s.startswith(
@@ -144,13 +146,13 @@ def test_render_weighted_spans_word():
 
 
 def test_render_weighted_spans_char():
-    weighted_spans = WeightedSpans(
-        analyzer='char',
+    weighted_spans = DocWeightedSpans(
         document='see',
-        weighted_spans=[
+        spans=[
             ('se', [(0, 2)], 0.2),
             ('ee', [(1, 3)], 0.1),
             ],
+        preserve_density=True,
     )
     s = _render_weighted_spans(weighted_spans)
     assert s == (
@@ -167,13 +169,13 @@ def test_render_weighted_spans_char():
 
 
 def test_override_preserve_density():
-    weighted_spans = WeightedSpans(
-        analyzer='char',
+    weighted_spans = DocWeightedSpans(
         document='see',
-        weighted_spans=[
+        spans=[
             ('se', [(0, 2)], 0.2),
             ('ee', [(1, 3)], 0.1),
         ],
+        preserve_density=True,
     )
     s = _render_weighted_spans(weighted_spans, preserve_density=False)
     assert s.startswith(
