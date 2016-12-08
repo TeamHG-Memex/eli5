@@ -63,8 +63,8 @@ class MaskingTextSampler(BaseSampler):
 
     def sample_near(self, doc, n_samples=1):
         # type: (str, int) -> Tuple[List[str], np.ndarray]
-        n_bow = math.ceil(self.bow * n_samples)
-        n_not_bow = math.floor((1 - self.bow) * n_samples)
+        n_bow = int(math.ceil(self.bow * n_samples))
+        n_not_bow = int(math.floor((1 - self.bow) * n_samples))
         gen_samples = partial(generate_samples,
                               doc,
                               token_pattern=self.token_pattern,
