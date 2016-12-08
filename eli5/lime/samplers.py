@@ -2,7 +2,9 @@
 from __future__ import absolute_import
 import abc
 import six
+import math
 from typing import List, Tuple
+from functools import partial
 
 import numpy as np
 
@@ -36,23 +38,56 @@ class BaseSampler(BaseEstimator):
 
 class MaskingTextSampler(BaseSampler):
     """
-    Sampler for text data. It randomly removes words from text.
+    Sampler for text data. It randomly removes tokens from text.
+
+    Parameters
+    ----------
+    token_pattern : str, optional
+        Regexp for token matching
+    bow : bool or float, optional
+        Sampler could either remove all instances of a given token
+        (bag of words sampling) or remove just a sing token.
+        ``bow`` argument is a ratio of samples which had all instances
+        of a token removed. True means 1.0, False means 0.0.
+    random_state : integer or numpy.random.RandomState, optional
+        random state
     """
-    def __init__(self, token_pattern=None, bow=True, random_state=None):
+    def __init__(self, token_pattern=None, bow=1.0, random_state=None):
+        if not (0 <= bow <= 1.0):
+            raise ValueError("bow argument is out of "
+                             "[0, 1] range: {}".format(bow))
         self.token_pattern = token_pattern or DEFAULT_TOKEN_PATTERN
-        self.bow = bow
+        self.bow = float(bow)
         self.random_state = random_state
         self.rng_ = check_random_state(self.random_state)
 
     def sample_near(self, doc, n_samples=1):
-        docs, similarity = generate_samples(doc,
-                                            n_samples=n_samples,
-                                            bow=self.bow,
-                                            token_pattern=self.token_pattern,
-                                            random_state=self.rng_)
+        # type: (str, int) -> Tuple[List[str], np.ndarray]
+        n_bow = math.ceil(self.bow * n_samples)
+        n_not_bow = math.floor((1 - self.bow) * n_samples)
+        gen_samples = partial(generate_samples,
+                              doc,
+                              token_pattern=self.token_pattern,
+                              random_state=self.rng_)
+
+        all_docs = []
+        similarities = []
+        if n_bow:
+            docs, similarity = gen_samples(bow=True, n_samples=n_bow)
+            all_docs.extend(docs)
+            similarities.append(similarity)
+        if n_not_bow:
+            docs, similarity = gen_samples(bow=False, n_samples=n_not_bow)
+            all_docs.extend(docs)
+            similarities.append(similarity)
+
         # XXX: should it use RBF kernel as well, instead of raw
         # cosine similarity?
-        return list(docs), similarity
+        if similarities:
+            similarities = np.hstack(similarities)
+        else:
+            similarities = np.array(similarities)
+        return list(all_docs), similarities
 
 
 _BANDWIDTHS = np.hstack([
