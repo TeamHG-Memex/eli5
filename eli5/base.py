@@ -102,8 +102,8 @@ class FeatureWeight(object):
 
 @attrs
 class WeightedSpans(object):
-    """ Holds highlighted spans for parts of document - a DocWeightedSpans object
-    for each vectorizer, and other features not highlighted anywhere.
+    """ Holds highlighted spans for parts of document - a DocWeightedSpans
+    object for each vectorizer, and other features not highlighted anywhere.
     """
     def __init__(self,
                  docs_weighted_spans,  # type: List[DocWeightedSpans]

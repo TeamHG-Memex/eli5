@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from singledispatch import singledispatch
+from typing import Any
 
 import numpy as np
 import scipy.sparse as sp
@@ -138,51 +139,6 @@ def explain_prediction_linear_classifier(clf, doc,
     return res
 
 
-def _add_weighted_spans(doc, vec, vectorized, target_expl):
-    if vec is not None and not vectorized:
-        weighted_spans = get_weighted_spans(
-            doc, vec, target_expl.feature_weights)
-        if weighted_spans:
-            target_expl.weighted_spans = weighted_spans
-
-
-def _multiply(X, coef):
-    if sp.issparse(X):
-        return X.multiply(sp.csr_matrix(coef))
-    else:
-        return np.multiply(X, coef)
-
-
-def _add_intercept(X):
-    intercept = np.ones((X.shape[0], 1))
-    if sp.issparse(X):
-        return sp.hstack([X, intercept]).tocsr()
-    else:
-        return np.hstack([X, intercept])
-
-
-def _get_X(doc, vec=None, vectorized=False):
-    if vec is None or vectorized:
-        X = np.array([doc]) if isinstance(doc, np.ndarray) else doc
-    else:
-        X = vec.transform([doc])
-    if sp.issparse(X):
-        X = X.toarray()
-    return X
-
-
-def _handle_vec(clf, doc, vec, vectorized, feature_names):
-    if isinstance(vec, HashingVectorizer) and not vectorized:
-        vec = InvertableHashingVectorizer(vec)
-        vec.fit([doc])
-    if is_invhashing(vec) and feature_names is None:
-        # Explaining predictions does not need coef_scale,
-        # because it is handled by the vectorizer.
-        feature_names = vec.get_feature_names(always_signed=False)
-    feature_names = get_feature_names(clf, vec, feature_names=feature_names)
-    return vec, feature_names
-
-
 @explain_prediction_sklearn.register(ElasticNet)
 @explain_prediction_sklearn.register(ElasticNetCV)
 @explain_prediction_sklearn.register(Lars)
@@ -242,3 +198,55 @@ def explain_prediction_linear_regressor(reg, doc,
         res.targets.append(target_expl)
 
     return res
+
+
+def _add_weighted_spans(doc, vec, vectorized, target_expl):
+    # type: (Any, Any, bool, TargetExplanation) -> None
+    """
+    Compute and set ``target_expl.weighted_spans`` attribute, when possible.
+    """
+    if vec is None or vectorized:
+        return
+
+    weighted_spans = get_weighted_spans(doc, vec, target_expl.feature_weights)
+    if weighted_spans:
+        target_expl.weighted_spans = weighted_spans
+
+
+def _multiply(X, coef):
+    """ Multiple X by coef element-wise, preserving sparsity. """
+    if sp.issparse(X):
+        return X.multiply(sp.csr_matrix(coef))
+    else:
+        return np.multiply(X, coef)
+
+
+def _add_intercept(X):
+    """ Add intercept column to X """
+    intercept = np.ones((X.shape[0], 1))
+    if sp.issparse(X):
+        return sp.hstack([X, intercept]).tocsr()
+    else:
+        return np.hstack([X, intercept])
+
+
+def _get_X(doc, vec=None, vectorized=False):
+    if vec is None or vectorized:
+        X = np.array([doc]) if isinstance(doc, np.ndarray) else doc
+    else:
+        X = vec.transform([doc])
+    if sp.issparse(X):
+        X = X.toarray()
+    return X
+
+
+def _handle_vec(clf, doc, vec, vectorized, feature_names):
+    if isinstance(vec, HashingVectorizer) and not vectorized:
+        vec = InvertableHashingVectorizer(vec)
+        vec.fit([doc])
+    if is_invhashing(vec) and feature_names is None:
+        # Explaining predictions does not need coef_scale,
+        # because it is handled by the vectorizer.
+        feature_names = vec.get_feature_names(always_signed=False)
+    feature_names = get_feature_names(clf, vec, feature_names=feature_names)
+    return vec, feature_names

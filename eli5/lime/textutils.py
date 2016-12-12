@@ -9,6 +9,8 @@ from typing import List, Tuple, Any
 import numpy as np
 from sklearn.utils import check_random_state
 
+
+# the same as scikit-learn token pattern, but allows single-char tokens
 DEFAULT_TOKEN_PATTERN = r'(?u)\b\w+\b'
 
 
