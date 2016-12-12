@@ -91,14 +91,14 @@ def filter_transition_coefs(transition_coef, indices):
     array([[0]])
     >>> filter_transition_coefs(coef, [1, 2])
     array([[4, 5],
-    ...    [7, 8]])
+           [7, 8]])
     >>> filter_transition_coefs(coef, [2, 0])
     array([[8, 6],
-    ...    [2, 0]])
+           [2, 0]])
     >>> filter_transition_coefs(coef, [0, 1, 2])
     array([[0, 1, 2],
-    ...    [3, 4, 5],
-    ...    [6, 7, 8]])
+           [3, 4, 5],
+           [6, 7, 8]])
     """
     indices = np.array(indices)
     rows = transition_coef[indices]
