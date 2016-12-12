@@ -23,7 +23,7 @@ from sklearn.svm import LinearSVC, LinearSVR
 from sklearn.multiclass import OneVsRestClassifier
 
 from eli5.base import Explanation, TargetExplanation
-from eli5.utils import get_display_names
+from eli5.utils import get_target_display_names
 from eli5.sklearn.unhashing import InvertableHashingVectorizer, is_invhashing
 from eli5.sklearn.utils import (
     get_feature_names,
@@ -112,7 +112,8 @@ def explain_prediction_linear_classifier(clf, doc,
         scores = _multiply(x, coef)
         return get_top_features(feature_names, scores, top)
 
-    display_names = get_display_names(clf.classes_, target_names, targets)
+    display_names = get_target_display_names(clf.classes_, target_names,
+                                             targets)
 
     if is_multiclass_classifier(clf):
         for label_id, label in display_names:
@@ -220,7 +221,7 @@ def explain_prediction_linear_regressor(reg, doc,
         return get_top_features(feature_names, scores, top)
 
     names = get_default_target_names(reg)
-    display_names = get_display_names(names, target_names, targets)
+    display_names = get_target_display_names(names, target_names, targets)
 
     if is_multitarget_regressor(reg):
         for label_id, label in display_names:

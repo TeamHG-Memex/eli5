@@ -42,35 +42,36 @@ def vstack(blocks, format=None, dtype=None):
         return np.vstack(blocks)
 
 
-def get_display_names(original_names=None, target_names=None, targets=None):
+def get_target_display_names(original_names=None, target_names=None,
+                             targets=None):
     """
     Return a list of (class_id, display_name) tuples.
 
     ``targets`` can be written using both names from ``target_names` and
     from ``original_names``:
-    >>> get_display_names(['x', 'y'], targets=['y', 'X'],
+    >>> get_target_display_names(['x', 'y'], targets=['y', 'X'],
     ...                   target_names={'x': 'X'})
     [(1, 'y'), (0, 'X')]
 
     Provide display names:
-    >>> get_display_names([0, 2], target_names=['foo', 'bar'])
+    >>> get_target_display_names([0, 2], target_names=['foo', 'bar'])
     [(0, 'foo'), (1, 'bar')]
 
     Change order of labels:
-    >>> get_display_names(['x', 'y'], targets=['y', 'x'])
+    >>> get_target_display_names(['x', 'y'], targets=['y', 'x'])
     [(1, 'y'), (0, 'x')]
 
     Provide display names, choose only a subset of labels:
-    >>> get_display_names([0, 2], target_names=['foo', 'bar'], targets=[2])
+    >>> get_target_display_names([0, 2], target_names=['foo', 'bar'], targets=[2])
     [(1, 'bar')]
 
     target_names can be a dictionary with {old_name: new_name} labels:
-    >>> get_display_names(['x', 'y'], targets=['y', 'x'],
+    >>> get_target_display_names(['x', 'y'], targets=['y', 'x'],
     ...                   target_names={'x': 'X'})
     [(1, 'y'), (0, 'X')]
 
     Error is raised when target_names format is invalid:
-    >>> get_display_names(['x', 'y'], target_names=['foo'])
+    >>> get_target_display_names(['x', 'y'], target_names=['foo'])
     Traceback (most recent call last):
     ...
     ValueError: target_names must have the same length as original names (expected 2, got 1)

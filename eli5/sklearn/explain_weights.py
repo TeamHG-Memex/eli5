@@ -33,7 +33,7 @@ from sklearn.tree import DecisionTreeClassifier
 
 from eli5.base import Explanation, TargetExplanation, FeatureWeight
 from eli5._feature_weights import get_top_features
-from eli5.utils import argsort_k_largest, get_display_names
+from eli5.utils import argsort_k_largest, get_target_display_names
 from eli5.sklearn.unhashing import handle_hashing_vec, is_invhashing
 from eli5.sklearn.treeinspect import get_tree_info
 from eli5.sklearn.utils import (
@@ -191,7 +191,7 @@ def explain_linear_classifier_weights(clf,
             coef = coef[flt_indices]
         return get_top_features(feature_names, coef, top)
 
-    display_names = get_display_names(clf.classes_, target_names, targets)
+    display_names = get_target_display_names(clf.classes_, target_names, targets)
     if is_multiclass_classifier(clf):
         return Explanation(
             targets=[
@@ -383,8 +383,8 @@ def explain_linear_regressor_weights(reg,
             coef = coef[flt_indices]
         return get_top_features(feature_names, coef, top)
 
-    display_names = get_display_names(get_default_target_names(reg),
-                                      target_names, targets)
+    display_names = get_target_display_names(get_default_target_names(reg),
+                                             target_names, targets)
     if is_multitarget_regressor(reg):
         return Explanation(
             targets=[

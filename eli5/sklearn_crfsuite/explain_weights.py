@@ -7,7 +7,7 @@ from sklearn_crfsuite import CRF
 
 from eli5.base import Explanation, TargetExplanation, TransitionFeatureWeights
 from eli5.explain import explain_weights
-from eli5.utils import get_display_names
+from eli5.utils import get_target_display_names
 from eli5._feature_names import FeatureNames
 from eli5._feature_weights import get_top_features
 
@@ -37,7 +37,8 @@ def explain_weights_sklearn_crfsuite(crf,
     if targets is None:
         targets = sorted_for_ner(crf.classes_)
 
-    display_names = get_display_names(crf.classes_, target_names, targets)
+    display_names = get_target_display_names(crf.classes_, target_names,
+                                             targets)
     indices, names = zip(*display_names)
     transition_coef = filter_transition_coefs(transition_coef, indices)
 
