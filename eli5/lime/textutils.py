@@ -4,7 +4,7 @@ Utilities for text generation.
 """
 from __future__ import absolute_import
 import re
-from typing import List, Tuple, Any
+from typing import List, Tuple, Any, Union
 
 import numpy as np
 from sklearn.utils import check_random_state
@@ -103,6 +103,10 @@ class TokenizedText(object):
             self._vocab = list(set(self.split.tokens))
         return self._vocab
 
+    @property
+    def tokens(self):
+        return self.split.tokens
+
 
 class SplitResult(object):
     def __init__(self, parts):
@@ -123,5 +127,11 @@ class SplitResult(object):
         return self.parts[1::2]
 
     def copy(self):
-        return SplitResult(self.parts.copy())
+        # type: () -> SplitResult
+        return self.__class__(self.parts.copy())
 
+
+    @property
+    def text(self):
+        # type: () -> str
+        return "".join(self.parts)

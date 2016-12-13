@@ -23,8 +23,8 @@ def test_split_result():
 def test_split_result_combine(text):
     assume("\x00" not in text)  # fixme
 
-    s = SplitResult(text)
-    assert "".join(s.parts) == text
+    s = SplitResult.fromtext(text)
+    assert s.text == text
 
     s_copy = s.copy()
     assert (s_copy.parts == s.parts).all()
