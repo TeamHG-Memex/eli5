@@ -38,3 +38,8 @@ def test_split_result_masked():
     assert s.masked(np.array([True, False], dtype=bool)).text == ", world!"
     assert s.masked(np.array([False, True], dtype=bool)).text == "Hello, !"
     assert s.masked(np.array([True, True], dtype=bool)).text == ", !"
+
+
+def test_token_spans():
+    s = SplitResult.fromtext("Hello, world!")
+    assert s.token_spans() == [(0, 5), (7, 12)]

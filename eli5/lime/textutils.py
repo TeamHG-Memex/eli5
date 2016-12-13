@@ -110,10 +110,16 @@ class TokenizedText(object):
     def tokens(self):
         return self.split.tokens
 
+    @property
+    def spans_and_tokens(self):
+        return list(zip(self.split.token_spans, self.split.tokens))
+
 
 class SplitResult(object):
     def __init__(self, parts):
         self.parts = np.array(parts, ndmin=1)
+        self.lenghts = np.array([len(p) for p in parts])
+        self.starts = self.lenghts.cumsum()
 
     @classmethod
     def fromtext(cls, text, token_pattern=DEFAULT_TOKEN_PATTERN):
@@ -128,6 +134,11 @@ class SplitResult(object):
     @property
     def tokens(self):
         return self.parts[1::2]
+
+    @property
+    def token_spans(self):
+        # type: () -> List[Tuple[int, int]]
+        return list(zip(self.starts[::2], self.starts[1::2]))
 
     def copy(self):
         # type: () -> SplitResult
