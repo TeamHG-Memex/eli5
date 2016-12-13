@@ -49,6 +49,10 @@ def _get_doc_weighted_spans(doc, vec, feature_weights, feature_fn=None):
     # type: (Any, Any, FeatureWeights, Callable[[str], str]) -> Optional[Tuple[FoundFeatures, DocWeightedSpans]]
     if isinstance(vec, InvertableHashingVectorizer):
         vec = vec.vec
+
+    if hasattr(vec, 'get_doc_weighted_spans'):
+        return vec.get_doc_weighted_spans(doc, feature_weights, feature_fn)
+
     if not isinstance(vec, VectorizerMixin):
         return None
 
@@ -56,12 +60,8 @@ def _get_doc_weighted_spans(doc, vec, feature_weights, feature_fn=None):
     if span_analyzer is None:
         return None
 
-    # (group, idx) is a feature key here
-    feature_weights_dict = {
-        f: (fw.weight, (group, idx)) for group in ['pos', 'neg']
-        for idx, fw in enumerate(getattr(feature_weights, group))
-        for f in _get_features(fw.feature, feature_fn)}
-
+    feature_weights_dict = _get_feature_weights_dict(feature_weights,
+                                                     feature_fn)
     spans = []
     found_features = {}
     for f_spans, feature in span_analyzer(preprocessed_doc):
@@ -71,6 +71,7 @@ def _get_doc_weighted_spans(doc, vec, feature_weights, feature_fn=None):
             pass
         else:
             spans.append((feature, f_spans, weight))
+            # XXX: this assumes feature names are unique
             found_features[key] = weight
 
     return found_features, DocWeightedSpans(
@@ -78,6 +79,18 @@ def _get_doc_weighted_spans(doc, vec, feature_weights, feature_fn=None):
         spans=spans,
         preserve_density=vec.analyzer.startswith('char'),
     )
+
+
+def _get_feature_weights_dict(feature_weights, feature_fn):
+    # type: (FeatureWeights, Callable[[str], str]) -> Dict[str, Tuple[float, Tuple[str, int]]]
+    """ Return {feat_name: (weight, (group, idx))} mapping. """
+    return {
+        # (group, idx) is an unique feature identifier, e.g. ('pos', 2)
+        feat_name: (fw.weight, (group, idx))
+        for group in ['pos', 'neg']
+        for idx, fw in enumerate(getattr(feature_weights, group))
+        for feat_name in _get_features(fw.feature, feature_fn)
+    }
 
 
 def _get_features(feature, feature_fn=None):
@@ -97,10 +110,12 @@ def _get_weighted_spans_from_union(doc, vec_union, feature_weights):
     for vec_name, vec in vec_union.transformer_list:
         vec_prefix = '{}__'.format(vec_name)
 
-        def feature_fn(x):
-            if (not isinstance(x, FormattedFeatureName)
-                    and x.startswith(vec_prefix)):
-                return x[len(vec_prefix):]
+        def feature_fn(name):
+            if not name.startswith(vec_prefix):
+                return  # drop feature
+            if isinstance(name, FormattedFeatureName):
+                return
+            return name[len(vec_prefix):]  # remove prefix
 
         result = _get_doc_weighted_spans(doc, vec, feature_weights, feature_fn)
         if result:
