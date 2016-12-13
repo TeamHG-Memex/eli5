@@ -72,14 +72,13 @@ from eli5.lime.utils import (
 def _train_local_classifier(estimator,
                             samples,
                             similarity,
-                            predict_proba,
+                            y_proba,
                             expand_factor=10,
                             test_size=0.3,
                             random_state=None,
                             ):
-    # type: (Any, Any, np.ndarray, Callable[[Any], np.ndarray], int, float, Any) -> Dict[str, float]
+    # type: (Any, Any, np.ndarray, np.ndarray, int, float, Any) -> Dict[str, float]
     rng = check_random_state(random_state)
-    y_proba = predict_proba(samples)
 
     (X_train, X_test,
      similarity_train, similarity_test,
@@ -138,12 +137,13 @@ def get_local_pipeline_text(text, predict_proba, n_samples=1000,
 
     sampler = MaskingTextSampler(bow=True, random_state=rng)
     samples, similarity = sampler.sample_near(text, n_samples=n_samples)
+    y_proba = predict_proba(samples)
 
     metrics = _train_local_classifier(
         estimator=pipe,
         samples=samples,
         similarity=similarity,
-        predict_proba=predict_proba,
+        y_proba=y_proba,
         expand_factor=expand_factor,
         random_state=rng,
     )
