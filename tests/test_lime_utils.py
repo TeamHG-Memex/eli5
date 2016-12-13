@@ -5,7 +5,7 @@ import numpy as np
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import mean_absolute_error
 
-from eli5.lime.utils import fit_proba
+from eli5.lime.utils import fit_proba, fix_multiclass_predict_proba
 
 
 def test_fit_proba():
@@ -59,3 +59,20 @@ def test_fit_proba():
               random_state=42)
     y_pred4 = clf4.predict_proba(X)[:,1]
     assert np.allclose(y_pred, y_pred4)
+
+
+def test_fix_multiclass_predict_proba():
+    y_proba = np.array(
+        [[0.0, 1.0], [0.0, 1.0], [1.0, 0.0], [0.5, 0.5], [0.5, 0.5]],
+        dtype=np.float32
+    )
+    y_proba_fixed = fix_multiclass_predict_proba(y_proba, seen_classes=[0, 2],
+                                                 complete_classes=[0, 1, 2, 3])
+    assert y_proba_fixed.dtype == np.float32
+    assert np.array_equal(y_proba_fixed, np.array([
+        [0.0, 0.0, 1.0, 0.0],
+        [0.0, 0.0, 1.0, 0.0],
+        [1.0, 0.0, 0.0, 0.0],
+        [0.5, 0.0, 0.5, 0.0],
+        [0.5, 0.0, 0.5, 0.0],
+    ]))

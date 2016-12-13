@@ -65,7 +65,8 @@ from eli5.lime.samplers import MaskingTextSampler
 from eli5.lime.utils import (
     fit_proba,
     score_with_sample_weight,
-    mean_kl_divergence
+    mean_kl_divergence,
+    fix_multiclass_predict_proba,
 )
 
 
@@ -105,6 +106,25 @@ def _train_local_classifier(estimator,
               random_state=rng)
 
     y_proba_test_pred = estimator.predict_proba(X_test)
+    if y_proba_test_pred.shape != y_proba_test.shape:
+        # Sometimes generated training labels may contain only a subset of
+        # target classes; it means it could happen that dimensions
+        # of predicted probability matrices don't match.
+        #
+        # FIXME: the fix is not complete; to explain predictions
+        # of the fitted estimator one must take care of target_names.
+        if not hasattr(estimator, 'classes_'):
+            raise ValueError("Result dimensions don't match and estimator"
+                             "doesn't provide 'classes_' attribute; can't"
+                             "figure out how are columns related.")
+        seen_classes = estimator.classes_
+        complete_classes = list(range(y_proba.shape[1]))
+        y_proba_test_pred = fix_multiclass_predict_proba(
+            y_proba=y_proba_test_pred,
+            seen_classes=seen_classes,
+            complete_classes=complete_classes
+        )
+
     return {
         'mean_KL_divergence': mean_kl_divergence(
             y_proba_test_pred,

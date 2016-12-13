@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
+from typing import List, Any
 
 import numpy as np
 from scipy.stats import entropy
-
 from sklearn.pipeline import Pipeline
 from sklearn.utils import check_random_state
 from sklearn.utils.metaestimators import if_delegate_has_method
@@ -48,6 +48,25 @@ def fit_proba(clf, X, y_proba, expand_factor=10, sample_weight=None,
     fit_params.setdefault(param_name, sample_weight)
     clf.fit(X, y, **fit_params)
     return clf
+
+
+def fix_multiclass_predict_proba(y_proba, seen_classes, complete_classes):
+    # type: (np.ndarray, List[Any], List[Any]) -> np.ndarray
+    """
+    Add missing columns to predict_proba result.
+
+    When a multiclass classifier is fit on a dataset which onlly contains
+    a subset of possible classes its predict_proba result only has columns
+    corresponding to seen classes. This function adds missing columns.
+    """
+    assert set(complete_classes) >= set(seen_classes)
+    y_proba_fixed = np.zeros(
+        shape=(y_proba.shape[0], len(complete_classes)),
+        dtype=y_proba.dtype,
+    )
+    class_mapping = np.searchsorted(complete_classes, seen_classes)
+    y_proba_fixed[:, class_mapping] = y_proba
+    return y_proba_fixed
 
 
 class _PipelinePatched(Pipeline):
