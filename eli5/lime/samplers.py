@@ -7,15 +7,15 @@ from typing import List, Tuple
 from functools import partial
 
 import numpy as np
-
-from eli5.lime.utils import rbf
 from sklearn.base import BaseEstimator, clone
 from sklearn.neighbors import KernelDensity
 from sklearn.metrics import pairwise_distances
 from sklearn.model_selection import GridSearchCV, KFold
 from sklearn.utils import check_random_state
 
-from .textutils import generate_samples, DEFAULT_TOKEN_PATTERN
+from eli5.utils import vstack
+from eli5.lime.utils import rbf
+from .textutils import generate_samples, DEFAULT_TOKEN_PATTERN, TokenizedText
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -63,23 +63,32 @@ class MaskingTextSampler(BaseSampler):
 
     def sample_near(self, doc, n_samples=1):
         # type: (str, int) -> Tuple[List[str], np.ndarray]
+        docs, similarities, mask, text = self.sample_near_with_mask(
+            doc=doc, n_samples=n_samples
+        )
+        return docs, similarities
+
+    def sample_near_with_mask(self, doc, n_samples=1):
+        # type: (str, int) -> Tuple[List[str], np.ndarray, np.ndarray, TokenizedText]
         n_bow = int(math.ceil(self.bow * n_samples))
         n_not_bow = int(math.floor((1 - self.bow) * n_samples))
-        gen_samples = partial(generate_samples,
-                              doc,
-                              token_pattern=self.token_pattern,
-                              random_state=self.rng_)
+
+        text = TokenizedText(doc, token_pattern=self.token_pattern)
+        gen_samples = partial(generate_samples, text, random_state=self.rng_)
 
         all_docs = []
         similarities = []
+        masks = []
         if n_bow:
-            docs, similarity = gen_samples(bow=True, n_samples=n_bow)
+            docs, similarity, mask = gen_samples(bow=True, n_samples=n_bow)
             all_docs.extend(docs)
             similarities.append(similarity)
+            masks.append(mask)
         if n_not_bow:
-            docs, similarity = gen_samples(bow=False, n_samples=n_not_bow)
+            docs, similarity, mask = gen_samples(bow=False, n_samples=n_not_bow)
             all_docs.extend(docs)
             similarities.append(similarity)
+            masks.append(mask)
 
         # XXX: should it use RBF kernel as well, instead of raw
         # cosine similarity?
@@ -87,7 +96,7 @@ class MaskingTextSampler(BaseSampler):
             similarities = np.hstack(similarities)
         else:
             similarities = np.array(similarities)
-        return list(all_docs), similarities
+        return list(all_docs), similarities, vstack(masks), text
 
 
 _BANDWIDTHS = np.hstack([

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 
+import numpy as np
 from hypothesis import given, assume
 from hypothesis.strategies import characters, text
 
@@ -30,3 +31,10 @@ def test_split_result_combine(text):
     assert (s_copy.parts == s.parts).all()
     assert s_copy.parts is not s.parts
 
+
+def test_split_result_masked():
+    s = SplitResult.fromtext("Hello, world!")
+    assert s.masked(np.array([False, False], dtype=bool)).text == s.text
+    assert s.masked(np.array([True, False], dtype=bool)).text == ", world!"
+    assert s.masked(np.array([False, True], dtype=bool)).text == "Hello, !"
+    assert s.masked(np.array([True, True], dtype=bool)).text == ", !"
