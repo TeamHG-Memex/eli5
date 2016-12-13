@@ -11,7 +11,8 @@ from sklearn.utils import shuffle as _shuffle
 
 
 def fit_proba(clf, X, y_proba, expand_factor=10, sample_weight=None,
-              shuffle=True, random_state=None, **fit_params):
+              shuffle=True, random_state=None, partial_fit=False,
+              **fit_params):
     """
     Fit classifier ``clf`` to return probabilities close to ``y_proba``.
 
@@ -21,33 +22,30 @@ def fit_proba(clf, X, y_proba, expand_factor=10, sample_weight=None,
     Use expand_factor=None to turn it off
     (e.g. if probability scores are 0/1 in a first place).
     """
-    rng = check_random_state(random_state)
-    if expand_factor:
-        if sample_weight is not None:
-            X, y, sample_weight = zip(*expand_dataset(X, y_proba,
-                                                      factor=expand_factor,
-                                                      random_state=rng,
-                                                      extra_arrays=[
-                                                          sample_weight
-                                                      ]))
-        else:
-            X, y = zip(*expand_dataset(X, y_proba,
-                                       factor=expand_factor,
-                                       random_state=rng))
+    X, y, sample_weight = expanded_X_y_sample_weights(X, y_proba,
+        expand_factor=expand_factor,
+        sample_weight=sample_weight,
+        shuffle=shuffle,
+        random_state=random_state,
+    )
+    fit_params = with_sample_weight(clf, sample_weight, fit_params)
+    if partial_fit:
+        clf.partial_fit(X, y, **fit_params)
     else:
-        y = y_proba.argmax(axis=1)
-
-    if shuffle:
-        if sample_weight is not None:
-            X, y, sample_weight = _shuffle(X, y, sample_weight,
-                                           random_state=rng)
-        else:
-            X, y = _shuffle(X, y, random_state=rng)
-
-    param_name = _get_classifier_prefix(clf) + "sample_weight"
-    fit_params.setdefault(param_name, sample_weight)
-    clf.fit(X, y, **fit_params)
+        clf.fit(X, y, **fit_params)
     return clf
+
+
+def with_sample_weight(clf, sample_weight, fit_params):
+    """
+    Return fit_params with added "sample_weight" argument.
+    Unlike `fit_params['sample_weight'] = sample_weight` it
+    handles a case where ``clf`` is a pipeline.
+    """
+    param_name = _get_classifier_prefix(clf) + "sample_weight"
+    params = {param_name: sample_weight}
+    params.update(fit_params)
+    return params
 
 
 def fix_multiclass_predict_proba(y_proba, seen_classes, complete_classes):
@@ -90,6 +88,41 @@ def score_with_sample_weight(estimator, X, y=None, sample_weight=None):
     if sample_weight is None:
         return estimator.score(X, y)
     return estimator.score(X, y, sample_weight=sample_weight)
+
+
+def expanded_X_y_sample_weights(X, y_proba, expand_factor=10,
+                                sample_weight=None, shuffle=True,
+                                random_state=None):
+    """
+    scikit-learn can't optimize cross-entropy directly if target
+    probability values are not indicator vectors.
+    As a workaround this function expands the dataset according to
+    target probabilities. ``expand_factor=None`` means no dataset
+    expansion.
+    """
+    rng = check_random_state(random_state)
+    if expand_factor:
+        if sample_weight is not None:
+            X, y, sample_weight = zip(*expand_dataset(X, y_proba,
+                                                      factor=expand_factor,
+                                                      random_state=rng,
+                                                      extra_arrays=[
+                                                          sample_weight
+                                                      ]))
+        else:
+            X, y = zip(*expand_dataset(X, y_proba,
+                                       factor=expand_factor,
+                                       random_state=rng))
+    else:
+        y = y_proba.argmax(axis=1)
+
+    if shuffle:
+        if sample_weight is not None:
+            X, y, sample_weight = _shuffle(X, y, sample_weight,
+                                           random_state=rng)
+        else:
+            X, y = _shuffle(X, y, random_state=rng)
+    return X, y, sample_weight
 
 
 def expand_dataset(X, y_proba, factor=10, random_state=None, extra_arrays=None):
@@ -137,3 +170,4 @@ def mean_kl_divergence(y_proba_pred, y_proba_target,
                        sample_weight=None, eps=1e-9):
     kl_elementwise = entropy(y_proba_target.T, y_proba_pred.T + eps)
     return np.average(kl_elementwise, weights=sample_weight)
+
