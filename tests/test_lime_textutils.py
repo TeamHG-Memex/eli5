@@ -42,4 +42,4 @@ def test_split_result_masked():
 
 def test_token_spans():
     s = SplitResult.fromtext("Hello, world!")
-    assert s.token_spans() == [(0, 5), (7, 12)]
+    assert s.token_spans == [(0, 5), (7, 12)]
