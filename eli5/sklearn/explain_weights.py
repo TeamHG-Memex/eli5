@@ -34,7 +34,7 @@ from sklearn.tree import DecisionTreeClassifier
 from eli5.base import (
     Explanation, TargetExplanation, FeatureWeight, FeatureImportances)
 from eli5._feature_weights import get_top_features
-from eli5.utils import argsort_k_largest, get_target_display_names
+from eli5.utils import argsort_k_largest_positive, get_target_display_names
 from eli5.sklearn.unhashing import handle_hashing_vec, is_invhashing
 from eli5.sklearn.treeinspect import get_tree_info
 from eli5.sklearn.utils import (
@@ -259,7 +259,7 @@ def explain_rf_feature_importance(clf,
         coef = coef[flt_indices]
         coef_std = coef_std[flt_indices]
 
-    indices = argsort_k_largest(coef, top)
+    indices = argsort_k_largest_positive(coef, top)
     names, values, std = feature_names[indices], coef[indices], coef_std[indices]
     return Explanation(
         feature_importances=FeatureImportances(
@@ -305,7 +305,7 @@ def explain_decision_tree(clf,
     if feature_re is not None:
         feature_names, flt_indices = feature_names.filtered_by_re(feature_re)
         coef = coef[flt_indices]
-    indices = argsort_k_largest(coef, top)
+    indices = argsort_k_largest_positive(coef, top)
     names, values = feature_names[indices], coef[indices]
     export_graphviz_kwargs.setdefault("proportion", True)
     tree_info = get_tree_info(

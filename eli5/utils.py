@@ -6,7 +6,7 @@ from scipy import sparse as sp
 def argsort_k_largest(x, k):
     """ Return no more than ``k`` indices of largest values. """
     if k == 0:
-        return np.array([])
+        return np.array([], dtype=np.intp)
     if k is None or k >= len(x):
         return np.argsort(x)[::-1]
     indices = np.argpartition(x, -k)[-k:]
@@ -14,10 +14,16 @@ def argsort_k_largest(x, k):
     return indices[np.argsort(-values)]
 
 
+def argsort_k_largest_positive(x, k):
+    num_positive = (x > 0).sum()
+    k = num_positive if k is None else min(num_positive, k)
+    return argsort_k_largest(x, k)
+
+
 def argsort_k_smallest(x, k):
     """ Return no more than ``k`` indices of smallest values. """
     if k == 0:
-        return np.array([])
+        return np.array([], dtype=np.intp)
     if k is None or k >= len(x):
         return np.argsort(x)
     indices = np.argpartition(x, k)[:k]
