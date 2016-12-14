@@ -21,7 +21,7 @@ class Explanation(object):
                  method=None,  # type: str
                  is_regression=False,  # type: bool
                  targets=None,  # type: List[TargetExplanation]
-                 feature_importances=None,  # type: List[FeatureWeight]
+                 feature_importances=None,  # type: FeatureImportances
                  decision_tree=None,  # type: TreeInfo
                  highlight_spaces=None,
                  transition_features=None,  # type: TransitionFeatureWeights
@@ -43,6 +43,15 @@ class Explanation(object):
         from eli5.formatters import fields
         from eli5.formatters.html import format_as_html
         return format_as_html(self, force_weights=False, show=fields.WEIGHTS)
+
+
+@attrs
+class FeatureImportances(object):
+    """ Feature importances with number of remaining non-zero features.
+    """
+    def __init__(self, importances, remaining):
+        self.importances = importances  # type: List[FeatureWeight]
+        self.remaining = remaining  # type: int
 
 
 @attrs

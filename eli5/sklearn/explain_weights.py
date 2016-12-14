@@ -31,9 +31,10 @@ from sklearn.ensemble import (
 )
 from sklearn.tree import DecisionTreeClassifier
 
-from eli5.base import Explanation, TargetExplanation, FeatureWeight
+from eli5.base import (
+    Explanation, TargetExplanation, FeatureWeight, FeatureImportances)
 from eli5._feature_weights import get_top_features
-from eli5.utils import argsort_k_largest, get_target_display_names
+from eli5.utils import argsort_k_largest_positive, get_target_display_names
 from eli5.sklearn.unhashing import handle_hashing_vec, is_invhashing
 from eli5.sklearn.treeinspect import get_tree_info
 from eli5.sklearn.utils import (
@@ -240,10 +241,12 @@ def explain_rf_feature_importance(clf,
             estimator="<classifier repr>",
             method="<interpretation method>",
             description="<human readable description>",
-            feature_importances=[
-                FeatureWeight(feature_name, importance, std_deviation),
+            feature_importances=FeatureImportances(
+                [FeatureWeight(feature_name, importance, std_deviation),
                 ...
-            ]
+                ],
+                remaining="<number of other non-zero features>",
+            )
         )
     """
     feature_names = get_feature_names(clf, vec, feature_names=feature_names)
@@ -256,10 +259,13 @@ def explain_rf_feature_importance(clf,
         coef = coef[flt_indices]
         coef_std = coef_std[flt_indices]
 
-    indices = argsort_k_largest(coef, top)
+    indices = argsort_k_largest_positive(coef, top)
     names, values, std = feature_names[indices], coef[indices], coef_std[indices]
     return Explanation(
-        feature_importances=[FeatureWeight(*x) for x in zip(names, values, std)],
+        feature_importances=FeatureImportances(
+            [FeatureWeight(*x) for x in zip(names, values, std)],
+            remaining=np.count_nonzero(coef) - len(indices),
+        ),
         description=DESCRIPTION_RANDOM_FOREST,
         estimator=repr(clf),
         method='feature importances',
@@ -284,10 +290,12 @@ def explain_decision_tree(clf,
             method="<interpretation method>",
             description="<human readable description>",
             decision_tree={...tree information},
-            feature_importances=[
-                FeatureWeight(feature_name, importance, std_deviation),
+            feature_importances=FeatureImportances(
+                [FeatureWeight(feature_name, importance, std_deviation),
                 ...
-            ]
+                ],
+                remaining="<number of other non-zero features>",
+            )
         )
 
     """
@@ -297,7 +305,7 @@ def explain_decision_tree(clf,
     if feature_re is not None:
         feature_names, flt_indices = feature_names.filtered_by_re(feature_re)
         coef = coef[flt_indices]
-    indices = argsort_k_largest(coef, top)
+    indices = argsort_k_largest_positive(coef, top)
     names, values = feature_names[indices], coef[indices]
     export_graphviz_kwargs.setdefault("proportion", True)
     tree_info = get_tree_info(
@@ -307,7 +315,10 @@ def explain_decision_tree(clf,
         **export_graphviz_kwargs)
 
     return Explanation(
-        feature_importances=[FeatureWeight(*x) for x in zip(names, values)],
+        feature_importances=FeatureImportances(
+            [FeatureWeight(*x) for x in zip(names, values)],
+            remaining=np.count_nonzero(coef) - len(indices),
+        ),
         decision_tree=tree_info,
         description=DESCRIPTION_DECISION_TREE,
         estimator=repr(clf),

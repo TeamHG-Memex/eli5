@@ -4,7 +4,7 @@ from __future__ import absolute_import
 import numpy as np
 
 from eli5.base import FeatureWeights, FeatureWeight
-from .utils import argsort_k_largest, argsort_k_smallest, mask
+from .utils import argsort_k_largest_positive, argsort_k_smallest, mask
 
 
 def _get_top_features(feature_names, coef, top):
@@ -51,9 +51,7 @@ def get_top_features(feature_names, coef, top):
 
 
 def _get_top_abs_features(feature_names, coef, k):
-    nnz = np.count_nonzero(coef)
-    k = nnz if k is None else min(nnz, k)
-    indices = argsort_k_largest(np.abs(coef), k)
+    indices = argsort_k_largest_positive(np.abs(coef), k)
     features = _features(indices, feature_names, coef)
     pos = [fw for fw in features if fw.weight > 0]
     neg = [fw for fw in features if fw.weight < 0]
@@ -61,9 +59,7 @@ def _get_top_abs_features(feature_names, coef, k):
 
 
 def _get_top_positive_features(feature_names, coef, k):
-    num_positive = (coef > 0).sum()
-    k = num_positive if k is None else min(num_positive, k)
-    indices = argsort_k_largest(coef, k)
+    indices = argsort_k_largest_positive(coef, k)
     return _features(indices, feature_names, coef)
 
 

@@ -5,7 +5,8 @@ import numpy as np
 from hypothesis import given, assume
 from hypothesis.strategies import integers
 
-from eli5.utils import argsort_k_largest, argsort_k_smallest
+from eli5.utils import (
+    argsort_k_largest, argsort_k_largest_positive, argsort_k_smallest)
 from .utils import rnd_len_arrays
 
 
@@ -43,3 +44,21 @@ def test_argsort_k_largest_zero(x):
 @given(rnd_len_arrays(np.float32, 0, 5))
 def test_argsort_k_largest_None(x):
     assert len(argsort_k_largest(x, None)) == len(x)
+
+
+def test_argsort_k_largest_empty():
+    x = np.array([0])
+    empty = np.array([])
+    assert _np_eq(x[argsort_k_largest(x, 0)], empty)
+    assert _np_eq(x[argsort_k_largest_positive(x, None)], empty)
+
+
+def test_argsort_k_largest_positive():
+    assert _np_eq(argsort_k_largest_positive(np.array([1.0, 0.0, 2.0]), None),
+                  np.array([2, 0]))
+    assert _np_eq(argsort_k_largest_positive(np.array([1.0, 0.0, 2.0, 4.0]), 2),
+                  np.array([3, 2]))
+
+
+def _np_eq(x, y):
+    return x.shape == y.shape and np.allclose(x, y)

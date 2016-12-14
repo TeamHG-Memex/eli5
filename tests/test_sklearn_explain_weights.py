@@ -286,13 +286,16 @@ def test_explain_random_forest(newsgroups_train, clf):
     X = vec.fit_transform(docs)
     clf.fit(X.toarray(), y)
 
-    get_res = lambda: explain_weights(clf, vec=vec, target_names=target_names,
-                                      top=30)
+    top = 30
+    get_res = lambda: explain_weights(
+        clf, vec=vec, target_names=target_names, top=top)
     res = get_res()
     expl_text, expl_html = format_as_all(res, clf)
     for expl in [expl_text, expl_html]:
         assert 'feature importances' in expl
         assert 'god' in expl  # high-ranked feature
+        if len(res.feature_importances.importances) > top:
+            assert 'more features' in expl or 'more &hellip;' in expl
 
     if isinstance(clf, (DecisionTreeClassifier, OneVsRestClassifier)):
         if _graphviz.is_supported():
@@ -312,12 +315,15 @@ def test_explain_random_forest_and_tree_feature_re(newsgroups_train, clf):
     vec = CountVectorizer()
     X = vec.fit_transform(docs)
     clf.fit(X.toarray(), y)
+    top = 30
     res = explain_weights(
-        clf, vec=vec, target_names=target_names, feature_re='^un')
+        clf, vec=vec, target_names=target_names, feature_re='^a', top=top)
     res.decision_tree = None  # does not respect feature_re
     for expl in format_as_all(res, clf):
-        assert 'under' in expl
+        assert 'am' in expl
         assert 'god' not in expl  # filtered out
+        if len(res.feature_importances.importances) > top:
+            assert 'more features' in expl or 'more &hellip;' in expl
 
 
 def test_explain_empty(newsgroups_train):
@@ -392,3 +398,20 @@ def test_explain_linear_regression_multitarget(reg):
     assert '<BIAS>' in neg or '<BIAS>' in pos
 
     assert res == explain_weights(reg)
+
+
+@pytest.mark.parametrize(['clf'], [
+    [DecisionTreeClassifier()],
+    [ExtraTreesClassifier()],
+])
+def test_feature_importances_no_remaining(clf):
+    """ Check that number of remaining features is not shown if it is zero,
+    and that features with zero importance are not shown either.
+    """
+    n = 100
+    clf.fit(np.array([[i % 2 + 0.1 * np.random.random(), 0] for i in range(n)]),
+            np.array([i % 2 for i in range(n)]))
+    res = explain_weights(clf)
+    for expl in format_as_all(res, clf):
+        assert 'more features' not in expl and 'more &hellip;' not in expl
+        assert 'x1' not in expl  # it has zero importance

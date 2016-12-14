@@ -3,6 +3,7 @@ from __future__ import absolute_import
 import six
 from typing import List
 
+from eli5.base import FeatureImportances
 from . import fields
 from .features import FormattedFeatureName
 from .utils import format_signed, replace_spaces, should_highlight_spaces
@@ -68,18 +69,25 @@ def _error_lines(explanation):
 
 
 def _feature_importances_lines(explanation, hl_spaces):
-    sz = _maxlen(explanation.feature_importances)
-    for fw in explanation.feature_importances:
-        featname = _format_feature(fw.feature, hl_spaces).ljust(sz)
+    feature_importances = explanation.feature_importances  # type: FeatureImportances
+    has_std = False
+    for fw in feature_importances.importances:
+        featname = _format_feature(fw.feature, hl_spaces)
         if fw.std is None:
-            yield u'{w:0.4f} {feature}'.format(feature=featname, w=fw.weight)
+            yield u'{w:0.4f}  {feature}'.format(feature=featname, w=fw.weight)
         else:
-            yield u'{w:0.4f} {plus} {std:0.4f} {feature}'.format(
+            has_std = True
+            yield u'{w:0.4f} {plus} {std:0.4f}  {feature}'.format(
                 feature=featname,
                 w=fw.weight,
                 plus=_PLUS_MINUS,
                 std=2 * fw.std,
             )
+    if feature_importances.remaining:
+        yield _format_remaining(
+            feature_importances.remaining, kind='',
+            left_col_width=(14 + len(_PLUS_MINUS)) if has_std else 6,
+        )
 
 
 def _decision_tree_lines(explanation):
@@ -155,11 +163,11 @@ def _format_feature_weights(feature_weights, sz, hl_spaces):
         for fw in feature_weights]
 
 
-def _format_remaining(remaining, kind):
-    return '{ellipsis}  ({remaining} more {kind} features)'.format(
-        ellipsis=_ELLIPSIS.rjust(8),
+def _format_remaining(remaining, kind, left_col_width=8):
+    return '{ellipsis}  ({remaining} more {kind}features)'.format(
+        ellipsis=_ELLIPSIS.rjust(left_col_width),
         remaining=remaining,
-        kind=kind,
+        kind=(kind + ' ') if kind else '',
     )
 
 

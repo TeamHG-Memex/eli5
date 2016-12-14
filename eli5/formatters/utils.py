@@ -53,7 +53,7 @@ def should_highlight_spaces(explanation):
     if explanation.feature_importances:
         hl_spaces = hl_spaces or any(
             _has_invisible_spaces(fw.feature)
-            for fw in explanation.feature_importances)
+            for fw in explanation.feature_importances.importances)
     if explanation.targets:
         hl_spaces = hl_spaces or any(
             _has_invisible_spaces(fw.feature)

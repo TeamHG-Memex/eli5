@@ -2,12 +2,13 @@
 from __future__ import absolute_import
 from singledispatch import singledispatch
 
+import numpy as np
 from xgboost import XGBClassifier, XGBRegressor
 
-from eli5.base import FeatureWeight, Explanation
+from eli5.base import FeatureWeight, FeatureImportances, Explanation
 from eli5.explain import explain_weights
 from eli5.sklearn.utils import get_feature_names
-from eli5.utils import argsort_k_largest
+from eli5.utils import argsort_k_largest_positive
 
 
 DESCRIPTION_XGBOOST = """
@@ -36,10 +37,13 @@ def explain_weights_xgboost(xgb,
         feature_names, flt_indices = feature_names.filtered_by_re(feature_re)
         coef = coef[flt_indices]
 
-    indices = argsort_k_largest(coef, top)
+    indices = argsort_k_largest_positive(coef, top)
     names, values = feature_names[indices], coef[indices]
     return Explanation(
-        feature_importances=[FeatureWeight(*x) for x in zip(names, values)],
+        feature_importances=FeatureImportances(
+            [FeatureWeight(*x) for x in zip(names, values)],
+            remaining=np.count_nonzero(coef) - len(indices),
+        ),
         description=DESCRIPTION_XGBOOST,
         estimator=repr(xgb),
         method='feature importances',
