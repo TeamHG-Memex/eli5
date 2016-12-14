@@ -21,11 +21,11 @@
     {% endif %}
 
     {% if key == "feature_importances" and expl.feature_importances %}
-        <table class="eli5-weights eli5-feature-importances" style="{{ table_styles }}">
+        <table class="eli5-weights eli5-feature-importances" style="{{ target_table_styles }}">
             <thead>
             <tr style="{{ tr_styles }}">
-                <th>Weight</th>
-                <th>Feature</th>
+                <th style="{{ td1_styles }}">Weight</th>
+                <th style="{{ td2_styles }}">Feature</th>
             </tr>
             </thead>
             <tbody>
