@@ -16,21 +16,26 @@ from eli5.utils import indices_to_bool_mask, vstack
 DEFAULT_TOKEN_PATTERN = r'(?u)\b\w+\b'
 
 
-def generate_samples(text, n_samples=500, bow=True, random_state=None):
-    # type: (TokenizedText, int, bool, Any) -> Tuple[List[str], np.ndarray, np.ndarray]
+def generate_samples(text, n_samples=500, bow=True, random_state=None,
+                     replacement=''):
+    # type: (TokenizedText, int, bool, Any, str) -> Tuple[List[str], np.ndarray, np.ndarray]
     """
     Return ``n_samples`` changed versions of text (with some words removed),
     along with distances between the original text and a generated
     examples. If ``bow=False``, all tokens are considered unique
     (i.e. token position matters).
     """
+    kwargs = dict(
+        n_samples=n_samples,
+        replacement=replacement,
+        random_state=random_state,
+    )
     if bow:
         num_tokens = len(text.vocab)
-        res = text.replace_random_tokens_bow(n_samples,
-                                             random_state=random_state)
+        res = text.replace_random_tokens_bow(**kwargs)
     else:
         num_tokens = len(text.tokens)
-        res = text.replace_random_tokens(n_samples, random_state=random_state)
+        res = text.replace_random_tokens(**kwargs)
 
     texts, num_removed_vec, masks = zip(*res)
     similarity = cosine_similarity_vec(num_tokens, num_removed_vec)

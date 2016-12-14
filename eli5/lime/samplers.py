@@ -52,13 +52,15 @@ class MaskingTextSampler(BaseSampler):
     random_state : integer or numpy.random.RandomState, optional
         random state
     """
-    def __init__(self, token_pattern=None, bow=1.0, random_state=None):
+    def __init__(self, token_pattern=None, bow=1.0, random_state=None,
+                 replacement=''):
         if not (0 <= bow <= 1.0):
             raise ValueError("bow argument is out of "
                              "[0, 1] range: {}".format(bow))
         self.token_pattern = token_pattern or DEFAULT_TOKEN_PATTERN
         self.bow = float(bow)
         self.random_state = random_state
+        self.replacement = replacement
         self.rng_ = check_random_state(self.random_state)
 
     def sample_near(self, doc, n_samples=1):
@@ -74,7 +76,9 @@ class MaskingTextSampler(BaseSampler):
         n_not_bow = int(math.floor((1 - self.bow) * n_samples))
 
         text = TokenizedText(doc, token_pattern=self.token_pattern)
-        gen_samples = partial(generate_samples, text, random_state=self.rng_)
+        gen_samples = partial(generate_samples, text,
+                              replacement=self.replacement,
+                              random_state=self.rng_)
 
         all_docs = []
         similarities = []
