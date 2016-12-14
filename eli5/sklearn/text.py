@@ -136,7 +136,7 @@ def _get_other(feature_weights, named_found_features):
     # search for items that were not accounted at all.
     other_items = []
     accounted_keys = set()  # type: Set[Tuple[str, int]]
-    all_found_features = set()
+    all_found_features = set()  # type: Set[Tuple[str, int]]
     for _, found_features in named_found_features:
         all_found_features.update(found_features)
 
