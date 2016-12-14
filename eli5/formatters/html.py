@@ -79,7 +79,8 @@ def format_as_html(explanation, include_styles=True, force_weights=True,
         horizontal_layout=horizontal_layout,
         any_weighted_spans=any(t.weighted_spans for t in targets),
         feat_imp_weight_range=max_or_0(
-            abs(fw.weight) for fw in (explanation.feature_importances or [])),
+            abs(fw.weight) for fw in explanation.feature_importances.importances)
+        if explanation.feature_importances else 0,
         target_weight_range=max_or_0(
             get_weight_range(t.feature_weights) for t in targets),
         other_weight_range=max_or_0(

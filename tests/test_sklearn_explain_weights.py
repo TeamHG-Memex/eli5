@@ -293,6 +293,7 @@ def test_explain_random_forest(newsgroups_train, clf):
     for expl in [expl_text, expl_html]:
         assert 'feature importances' in expl
         assert 'god' in expl  # high-ranked feature
+        assert 'more features' in expl or 'more &hellip;' in expl
 
     if isinstance(clf, (DecisionTreeClassifier, OneVsRestClassifier)):
         if _graphviz.is_supported():
@@ -318,6 +319,7 @@ def test_explain_random_forest_and_tree_feature_re(newsgroups_train, clf):
     for expl in format_as_all(res, clf):
         assert 'under' in expl
         assert 'god' not in expl  # filtered out
+        assert 'more features' in expl or 'more &hellip;' in expl
 
 
 def test_explain_empty(newsgroups_train):
