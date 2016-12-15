@@ -50,6 +50,10 @@ class MaskingTextSampler(BaseSampler):
         (bow=False).
     random_state : integer or numpy.random.RandomState, optional
         random state
+    replacement : str
+        Defalt value is '' - by default tokens are removed. If you want to
+        preserve the total token count set ``replacement`` to a non-empty
+        string, e.g. 'UNKN'.
     """
     def __init__(self, token_pattern=None, bow=True, random_state=None,
                  replacement=''):
