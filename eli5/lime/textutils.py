@@ -4,7 +4,7 @@ Utilities for text generation.
 """
 from __future__ import absolute_import
 import re
-from typing import List, Tuple, Any, Union
+from typing import List, Tuple, Union
 
 import numpy as np
 from sklearn.utils import check_random_state
@@ -16,9 +16,15 @@ from eli5.utils import indices_to_bool_mask, vstack
 DEFAULT_TOKEN_PATTERN = r'(?u)\b\w+\b'
 
 
-def generate_samples(text, n_samples=500, bow=True, random_state=None,
-                     replacement=''):
-    # type: (TokenizedText, int, bool, Any, str) -> Tuple[List[str], np.ndarray, np.ndarray]
+def generate_samples(text,            # type: TokenizedText
+                     n_samples=500,   # type: int
+                     bow=True,        # type: bool
+                     random_state=None,
+                     replacement='',  # type: str
+                     min_replace=1,   # type: Union[int, float]
+                     max_replace=1.0  # type: Union[int, float]
+                     ):
+    # type: (...) -> Tuple[List[str], np.ndarray, np.ndarray]
     """
     Return ``n_samples`` changed versions of text (with some words removed),
     along with distances between the original text and a generated
@@ -29,6 +35,8 @@ def generate_samples(text, n_samples=500, bow=True, random_state=None,
         n_samples=n_samples,
         replacement=replacement,
         random_state=random_state,
+        min_replace=min_replace,
+        max_replace=max_replace,
     )
     if bow:
         num_tokens = len(text.vocab)
@@ -59,7 +67,8 @@ class TokenizedText(object):
         self._vocab = None  # type: List[str]
 
     def replace_random_tokens(self, n_samples, replacement='',
-                              random_state=None):
+                              random_state=None,
+                              min_replace=1, max_replace=1.0):
         """ 
         Return a list of ``(text, replaced_count, mask)``
         tuples with n_samples versions of text with some words replaced.
@@ -70,8 +79,12 @@ class TokenizedText(object):
         if not n_tokens:
             nomask = np.array([], dtype=int)
             return [('', 0, nomask)] * n_samples
+
+        min_replace, max_replace = self._get_min_max(min_replace, max_replace,
+                                                     n_tokens)
         rng = check_random_state(random_state)
-        sizes = rng.randint(low=1, high=n_tokens + 1, size=n_samples)
+        sizes = rng.randint(low=min_replace, high=max_replace + 1,
+                            size=n_samples)
         res = []
         for size in sizes:
             to_remove = rng.choice(indices, size, replace=False)
@@ -81,7 +94,8 @@ class TokenizedText(object):
         return res
     
     def replace_random_tokens_bow(self, n_samples, replacement='',
-                                  random_state=None):
+                                  random_state=None,
+                                  min_replace=1, max_replace=1.0):
         """ 
         Return a list of ``(text, replaced_words_count, mask)`` tuples with
         n_samples versions of text with some words replaced.
@@ -92,8 +106,11 @@ class TokenizedText(object):
             nomask = np.array([], dtype=int)
             return [('', 0, nomask)] * n_samples
 
+        min_replace, max_replace = self._get_min_max(min_replace, max_replace,
+                                                     len(self.vocab))
         rng = check_random_state(random_state)
-        sizes = rng.randint(low=1, high=len(self.vocab) + 1, size=n_samples)
+        sizes = rng.randint(low=min_replace, high=max_replace + 1,
+                            size=n_samples)
         res = []
         for size in sizes:
             tokens_to_remove = set(rng.choice(self.vocab, size, replace=False))
@@ -103,6 +120,15 @@ class TokenizedText(object):
             s = self.split.masked(to_remove, replacement)
             res.append((s.text, size, mask))
         return res
+
+    def _get_min_max(self, min_replace, max_replace, hard_maximum):
+        if isinstance(min_replace, float):
+            min_replace = int(hard_maximum * min_replace)
+        if isinstance(max_replace, float):
+            max_replace = int(hard_maximum * max_replace)
+        else:
+            max_replace = min(max_replace, hard_maximum)
+        return min_replace, max_replace
 
     @property
     def vocab(self):

@@ -2,7 +2,7 @@
 from __future__ import absolute_import
 import abc
 from functools import partial
-from typing import List, Tuple, Any
+from typing import List, Tuple, Any, Union
 import six
 
 import numpy as np
@@ -54,14 +54,29 @@ class MaskingTextSampler(BaseSampler):
         Defalt value is '' - by default tokens are removed. If you want to
         preserve the total token count set ``replacement`` to a non-empty
         string, e.g. 'UNKN'.
+    min_replace : int or float
+        A minimum number of tokens to replace. Default is 1, meaning 1 token.
+        If this value is float in range [0.0, 1.0], it is used as a ratio.
+    max_replace : int or float
+        A maximum number of tokens to replace. Default is 1.0, meaning
+        all tokens can be replaced. If this value is float in range
+        [0.0, 0.1], it is used as a ratio.
     """
-    def __init__(self, token_pattern=None, bow=True, random_state=None,
-                 replacement=''):
-        # type: (str, bool, Any, str) -> None
+    def __init__(self,
+                 token_pattern=None,  # type: str
+                 bow=True,            # type: bool
+                 random_state=None,
+                 replacement='',      # type: str
+                 min_replace=1,       # type: Union[int, float]
+                 max_replace=1.0      # type: Union[int, float]
+                 ):
+        # type: (...) -> None
         self.token_pattern = token_pattern or DEFAULT_TOKEN_PATTERN
         self.bow = bow
         self.random_state = random_state
         self.replacement = replacement
+        self.min_replace = min_replace
+        self.max_replace = max_replace
         self.rng_ = check_random_state(self.random_state)
 
     def sample_near(self, doc, n_samples=1):
@@ -77,6 +92,8 @@ class MaskingTextSampler(BaseSampler):
         gen_samples = partial(generate_samples, text,
                               n_samples=n_samples,
                               replacement=self.replacement,
+                              min_replace=self.min_replace,
+                              max_replace=self.max_replace,
                               random_state=self.rng_)
         docs, similarity, mask = gen_samples(bow=self.bow)
         # XXX: should it use RBF kernel as well, instead of raw
