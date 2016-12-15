@@ -72,13 +72,13 @@ from eli5.lime.utils import (
 
 def _train_local_classifier(estimator,
                             samples,
-                            similarity,
-                            y_proba,
-                            expand_factor=10,
-                            test_size=0.3,
+                            similarity,        # type: np.ndarray
+                            y_proba,           # type: np.ndarray
+                            expand_factor=10,  # type: int
+                            test_size=0.3,     # type: float
                             random_state=None,
                             ):
-    # type: (Any, Any, np.ndarray, np.ndarray, int, float, Any) -> Dict[str, float]
+    # type: (...) -> Dict[str, float]
     rng = check_random_state(random_state)
 
     (X_train, X_test,

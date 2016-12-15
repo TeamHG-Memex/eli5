@@ -104,7 +104,7 @@ class MaskingTextSamplerUnion(BaseSampler):
     def sample_near(self, doc, n_samples=1):
         # type: (str, int) -> Tuple[List[str], np.ndarray]
         assert n_samples >= 1
-        all_docs = []
+        all_docs = []  # type: List[str]
         similarities = []
         for sampler, freq in self._sampler_n_samples(n_samples):
             docs, sims = sampler.sample_near(doc, n_samples=freq)
@@ -115,7 +115,7 @@ class MaskingTextSamplerUnion(BaseSampler):
     def sample_near_with_mask(self, doc, n_samples=1):
         # type: (str, int) -> Tuple[List[str], np.ndarray, np.ndarray, TokenizedText]
         assert n_samples >= 1
-        all_docs = []
+        all_docs = []  # type: List[str]
         similarities = []
         masks = []
         texts = []  # XXX: only the first text is returned, which is not good
