@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 import abc
-import six
-import math
-from typing import List, Tuple
 from functools import partial
+from typing import List, Tuple, Any
+import six
 
 import numpy as np
+from scipy.stats import itemfreq
 from sklearn.base import BaseEstimator, clone
 from sklearn.neighbors import KernelDensity
 from sklearn.metrics import pairwise_distances
@@ -38,27 +38,24 @@ class BaseSampler(BaseEstimator):
 
 class MaskingTextSampler(BaseSampler):
     """
-    Sampler for text data. It randomly removes tokens from text.
+    Sampler for text data. It randomly removes or replaces tokens from text.
 
     Parameters
     ----------
     token_pattern : str, optional
         Regexp for token matching
-    bow : bool or float, optional
-        Sampler could either remove all instances of a given token
-        (bag of words sampling) or remove just a sing token.
-        ``bow`` argument is a ratio of samples which had all instances
-        of a token removed. True means 1.0, False means 0.0.
+    bow : bool, optional
+        Sampler could either replace all instances of a given token
+        (bow=True, bag of words sampling) or replace just a single token
+        (bow=False).
     random_state : integer or numpy.random.RandomState, optional
         random state
     """
-    def __init__(self, token_pattern=None, bow=1.0, random_state=None,
+    def __init__(self, token_pattern=None, bow=True, random_state=None,
                  replacement=''):
-        if not (0 <= bow <= 1.0):
-            raise ValueError("bow argument is out of "
-                             "[0, 1] range: {}".format(bow))
+        # type: (str, bool, Any, str) -> None
         self.token_pattern = token_pattern or DEFAULT_TOKEN_PATTERN
-        self.bow = float(bow)
+        self.bow = bow
         self.random_state = random_state
         self.replacement = replacement
         self.rng_ = check_random_state(self.random_state)
@@ -72,35 +69,70 @@ class MaskingTextSampler(BaseSampler):
 
     def sample_near_with_mask(self, doc, n_samples=1):
         # type: (str, int) -> Tuple[List[str], np.ndarray, np.ndarray, TokenizedText]
-        n_bow = int(math.ceil(self.bow * n_samples))
-        n_not_bow = int(math.floor((1 - self.bow) * n_samples))
-
         text = TokenizedText(doc, token_pattern=self.token_pattern)
         gen_samples = partial(generate_samples, text,
+                              n_samples=n_samples,
                               replacement=self.replacement,
                               random_state=self.rng_)
+        docs, similarity, mask = gen_samples(bow=self.bow)
+        # XXX: should it use RBF kernel as well, instead of raw
+        # cosine similarity?
+        return docs, similarity, mask, text
 
+
+class MaskingTextSamplerUnion(BaseSampler):
+    """
+    Union of MaskingText samplers, with weights.
+    :meth:`sample_near` or :meth:`sample_near_with_mask` generate
+    a requested number of samples using all samplers; a probability of
+    using a sampler is proportional to its weight.
+    """
+    def __init__(self, weights_and_samples):
+        # type: (List[Tuple[float, Any]]) -> None
+        for rec in weights_and_samples:
+            if len(rec) != 2 or not isinstance(rec[0], (int, float)):
+                raise ValueError("'samplers' argument must be a list of "
+                                 "(weight, sampler) tuples.")
+        self.weights, self.samplers = zip(*weights_and_samples)
+        self.weights = np.array(self.weights)
+        self.weights = self.weights / self.weights.sum()  # normalize weights
+
+    def sample_near(self, doc, n_samples=1):
+        # type: (str, int) -> Tuple[List[str], np.ndarray]
+        assert n_samples >= 1
+        all_docs = []
+        similarities = []
+        for sampler, freq in self._sampler_n_samples(n_samples):
+            docs, sims = sampler.sample_near(doc, n_samples=freq)
+            all_docs.extend(docs)
+            similarities.append(sims)
+        return all_docs, np.hstack(similarities)
+
+    def sample_near_with_mask(self, doc, n_samples=1):
+        # type: (str, int) -> Tuple[List[str], np.ndarray, np.ndarray, TokenizedText]
+        assert n_samples >= 1
         all_docs = []
         similarities = []
         masks = []
-        if n_bow:
-            docs, similarity, mask = gen_samples(bow=True, n_samples=n_bow)
+        texts = []  # XXX: only the first text is returned, which is not good
+        for sampler, freq in self._sampler_n_samples(n_samples):
+            docs, sims, mask, text = sampler.sample_near_with_mask(doc, freq)
             all_docs.extend(docs)
-            similarities.append(similarity)
+            similarities.append(sims)
             masks.append(mask)
-        if n_not_bow:
-            docs, similarity, mask = gen_samples(bow=False, n_samples=n_not_bow)
-            all_docs.extend(docs)
-            similarities.append(similarity)
-            masks.append(mask)
+            texts.append(text)
+        return all_docs, np.hstack(similarities), vstack(masks), texts[0]
 
-        # XXX: should it use RBF kernel as well, instead of raw
-        # cosine similarity?
-        if similarities:
-            similarities = np.hstack(similarities)
-        else:
-            similarities = np.array(similarities)
-        return list(all_docs), similarities, vstack(masks), text
+    def _sampler_n_samples(self, n_samples):
+        """ Return (sampler, n_samplers) tuples """
+        sampler_indices = np.random.choice(range(len(self.samplers)),
+                                           size=n_samples,
+                                           replace=True,
+                                           p=self.weights)
+        return [
+            (self.samplers[idx], freq)
+            for idx, freq in itemfreq(sampler_indices)
+        ]
 
 
 _BANDWIDTHS = np.hstack([

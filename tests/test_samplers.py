@@ -8,13 +8,14 @@ from hypothesis.strategies import integers, text
 
 from eli5.lime.samplers import (
     MaskingTextSampler,
+    MaskingTextSamplerUnion,
     UnivariateKernelDensitySampler,
     MultivariateKernelDensitySampler
 )
 from sklearn.neighbors import KernelDensity
 
 
-@pytest.mark.parametrize(["bow"], [[True], [False], [0.5], [0.99], [0], [1]])
+@pytest.mark.parametrize(["bow"], [[True], [False]])
 @given(text=text(), n_samples=integers(0, 3))
 def test_masking_text_sampler_length(text, n_samples, bow):
     sampler = MaskingTextSampler(bow=bow)
@@ -39,8 +40,11 @@ def test_masking_text_sampler_bow():
     assert 'foo  bar baz' not in samples
 
 
-def test_masking_text_sampler_both():
-    sampler = MaskingTextSampler(bow=0.5, random_state=42)
+def test_masking_text_sampler_union():
+    sampler = MaskingTextSamplerUnion([
+        (0.5, MaskingTextSampler(random_state=42, bow=False)),
+        (0.5, MaskingTextSampler(random_state=43, bow=True)),
+    ])
     samples, sims = sampler.sample_near('foo bar bar baz', n_samples=10000)
     assert 'foo bar bar baz' not in samples
     assert 'foo bar bar ' in samples
@@ -59,11 +63,6 @@ def test_masking_text_sampler():
     assert 'foo  bar baz' in samples
     assert 'foo bar bar baz' not in samples
     assert '   ' in samples
-
-
-def test_masking_text_sampler_bad_argument():
-    with pytest.raises(ValueError):
-        s = MaskingTextSampler(bow=2.0)
 
 
 def test_univariate_kde_sampler():
