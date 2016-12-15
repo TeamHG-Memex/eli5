@@ -16,7 +16,7 @@ from sklearn.neighbors import KernelDensity
 
 
 @pytest.mark.parametrize(["bow"], [[True], [False]])
-@given(text=text(), n_samples=integers(0, 3))
+@given(text=text(), n_samples=integers(1, 3))
 def test_masking_text_sampler_length(text, n_samples, bow):
     sampler = MaskingTextSampler(bow=bow)
     sampler.fit([text])
