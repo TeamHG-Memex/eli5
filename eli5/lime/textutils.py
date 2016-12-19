@@ -19,13 +19,14 @@ DEFAULT_TOKEN_PATTERN = r'(?u)\b\w+\b'
 CHAR_TOKEN_PATTERN = r'[^\s]'
 
 
-def generate_samples(text,            # type: TokenizedText
-                     n_samples=500,   # type: int
-                     bow=True,        # type: bool
+def generate_samples(text,                # type: TokenizedText
+                     n_samples=500,       # type: int
+                     bow=True,            # type: bool
                      random_state=None,
-                     replacement='',  # type: str
-                     min_replace=1,   # type: Union[int, float]
-                     max_replace=1.0  # type: Union[int, float]
+                     replacement='',      # type: str
+                     min_replace=1,       # type: Union[int, float]
+                     max_replace=1.0,     # type: Union[int, float]
+                     group_size=1,        # type: int
                      ):
     # type: (...) -> Tuple[List[str], np.ndarray, np.ndarray]
     """
@@ -46,7 +47,7 @@ def generate_samples(text,            # type: TokenizedText
         res = text.replace_random_tokens_bow(**kwargs)
     else:
         num_tokens = len(text.tokens)
-        res = text.replace_random_tokens(**kwargs)
+        res = text.replace_random_tokens(group_size=group_size, **kwargs)
 
     texts, num_removed_vec, masks = zip(*res)
     similarity = cosine_similarity_vec(num_tokens, num_removed_vec)
@@ -71,7 +72,8 @@ class TokenizedText(object):
 
     def replace_random_tokens(self, n_samples, replacement='',
                               random_state=None,
-                              min_replace=1, max_replace=1.0):
+                              min_replace=1, max_replace=1.0,
+                              group_size=1):
         """ 
         Return a list of ``(text, replaced_count, mask)``
         tuples with n_samples versions of text with some words replaced.
@@ -86,14 +88,18 @@ class TokenizedText(object):
         min_replace, max_replace = self._get_min_max(min_replace, max_replace,
                                                      n_tokens)
         rng = check_random_state(random_state)
-        sizes = rng.randint(low=min_replace, high=max_replace + 1,
-                            size=n_samples)
+        replace_sizes = rng.randint(low=min_replace, high=max_replace + 1,
+                                    size=n_samples)
         res = []
-        for size in sizes:
-            to_remove = rng.choice(indices, size, replace=False)
-            mask = indices_to_bool_mask(to_remove, n_tokens)
-            s = self.split.masked(to_remove, replacement)
-            res.append((s.text, size, mask))
+        for num_to_replace in replace_sizes:
+            idx_to_replace = rng.choice(indices, num_to_replace, replace=False)
+            idx_to_replace = np.array([idx_to_replace] + [
+                idx_to_replace + shift for shift in range(1, group_size)
+            ]).ravel()
+            padded_size = n_tokens + group_size - 1
+            mask = indices_to_bool_mask(idx_to_replace, padded_size)[:n_tokens]
+            s = self.split.masked(mask, replacement)
+            res.append((s.text, num_to_replace, mask))
         return res
     
     def replace_random_tokens_bow(self, n_samples, replacement='',
@@ -112,16 +118,17 @@ class TokenizedText(object):
         min_replace, max_replace = self._get_min_max(min_replace, max_replace,
                                                      len(self.vocab))
         rng = check_random_state(random_state)
-        sizes = rng.randint(low=min_replace, high=max_replace + 1,
-                            size=n_samples)
+        replace_sizes = rng.randint(low=min_replace, high=max_replace + 1,
+                                    size=n_samples)
         res = []
-        for size in sizes:
-            tokens_to_remove = set(rng.choice(self.vocab, size, replace=False))
-            to_remove = [idx for idx, token in enumerate(self.tokens)
-                         if token in tokens_to_remove]
-            mask = indices_to_bool_mask(to_remove, len(self.tokens))
-            s = self.split.masked(to_remove, replacement)
-            res.append((s.text, size, mask))
+        for num_to_replace in replace_sizes:
+            tokens_to_replace = set(rng.choice(self.vocab, num_to_replace,
+                                               replace=False))
+            idx_to_replace = [idx for idx, token in enumerate(self.tokens)
+                              if token in tokens_to_replace]
+            mask = indices_to_bool_mask(idx_to_replace, len(self.tokens))
+            s = self.split.masked(idx_to_replace, replacement)
+            res.append((s.text, num_to_replace, mask))
         return res
 
     def _get_min_max(self, min_replace, max_replace, hard_maximum):

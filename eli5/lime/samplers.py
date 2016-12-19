@@ -57,10 +57,15 @@ class MaskingTextSampler(BaseSampler):
     min_replace : int or float
         A minimum number of tokens to replace. Default is 1, meaning 1 token.
         If this value is float in range [0.0, 1.0], it is used as a ratio.
+        More than min_replace tokens could be replaced if group_size > 1.
     max_replace : int or float
         A maximum number of tokens to replace. Default is 1.0, meaning
         all tokens can be replaced. If this value is float in range
         [0.0, 0.1], it is used as a ratio.
+    group_size : int
+        When group_size > 1, groups of nearby tokens are replaced all
+        in once (each token is still replaced with a replacement).
+        Default is 1, meaning individual tokens are replaced.
     """
     def __init__(self,
                  token_pattern=None,  # type: str
@@ -68,7 +73,8 @@ class MaskingTextSampler(BaseSampler):
                  random_state=None,
                  replacement='',      # type: str
                  min_replace=1,       # type: Union[int, float]
-                 max_replace=1.0      # type: Union[int, float]
+                 max_replace=1.0,     # type: Union[int, float]
+                 group_size=1,        # type: int
                  ):
         # type: (...) -> None
         self.token_pattern = token_pattern or DEFAULT_TOKEN_PATTERN
@@ -77,6 +83,7 @@ class MaskingTextSampler(BaseSampler):
         self.replacement = replacement
         self.min_replace = min_replace
         self.max_replace = max_replace
+        self.group_size = group_size
         self.rng_ = check_random_state(self.random_state)
 
     def sample_near(self, doc, n_samples=1):
@@ -99,6 +106,7 @@ class MaskingTextSampler(BaseSampler):
                               replacement=self.replacement,
                               min_replace=self.min_replace,
                               max_replace=self.max_replace,
+                              group_size=self.group_size,
                               random_state=self.rng_)
         docs, similarity, mask = gen_samples(bow=self.bow)
         # XXX: should it use RBF kernel as well, instead of raw
