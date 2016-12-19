@@ -2,6 +2,7 @@
 from __future__ import absolute_import
 import pytest
 from sklearn.datasets import make_classification
+from sklearn.feature_extraction.text import CountVectorizer
 pytest.importorskip('xgboost')
 from xgboost import XGBClassifier, XGBRegressor
 
@@ -29,11 +30,21 @@ def test_feature_importances_no_remaining():
     _check_rf_no_remaining(XGBClassifier())
 
 
-def test_explain_prediction_clf():
+def test_explain_prediction_clf_binary():
     xs, ys = make_classification(n_features=4, n_informative=3, n_redundant=1)
     clf = XGBClassifier(n_estimators=5, max_depth=3)
     clf.fit(xs, ys)
     res = explain_prediction(clf, xs[0])
+    format_as_all(res, clf)
+
+
+def test_explain_prediction_clf_multitarget(newsgroups_train):
+    docs, y, target_names = newsgroups_train
+    vec = CountVectorizer()
+    xs = vec.fit_transform(docs)
+    clf = XGBClassifier()
+    clf.fit(xs, y)
+    res = explain_prediction(clf, docs[0], vec=vec, target_names=target_names)
     format_as_all(res, clf)
 
 

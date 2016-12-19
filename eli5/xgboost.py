@@ -85,32 +85,48 @@ def explain_prediction_xgboost(
     else:
         proba = None
 
-    score, feature_weights = prediction_feature_weights(clf, X, feature_names)
-    top_feature_weights = get_top_features(feature_names, feature_weights, top)
     display_names = get_target_display_names(
         clf.classes_, target_names, targets)
+
+    scores_weights = prediction_feature_weights(clf, X, feature_names)
+
+    # FIXME: again, mostly copy-paste from eli5.sklearn.explain_prediction
 
     res = Explanation(
         estimator=repr(clf),
         method='decision paths',
         targets=[],
     )
-    # TODO: multitarget
-    target_expl = TargetExplanation(
-        target=display_names[1][1],
-        feature_weights=top_feature_weights,
-        score=score,
-        proba=proba[1] if proba is not None else None,
-    )
-    _add_weighted_spans(doc, vec, vectorized, target_expl)
-    res.targets.append(target_expl)
+    if clf.n_classes_ > 2:
+        for label_id, label in display_names:
+            score, feature_weights = scores_weights[label_id]
+            target_expl = TargetExplanation(
+                target=label,
+                feature_weights=get_top_features(
+                feature_names, feature_weights, top),
+                score=score,
+                proba=proba[label_id] if proba is not None else None,
+            )
+            _add_weighted_spans(doc, vec, vectorized, target_expl)
+            res.targets.append(target_expl)
+    else:
+        (score, feature_weights), = scores_weights
+        target_expl = TargetExplanation(
+            target=display_names[1][1],
+            feature_weights=get_top_features(
+                feature_names, feature_weights, top),
+            score=score,
+            proba=proba[1] if proba is not None else None,
+        )
+        _add_weighted_spans(doc, vec, vectorized, target_expl)
+        res.targets.append(target_expl)
 
     return res
 
 
 def prediction_feature_weights(clf, X, feature_names):
-    """ Return score and numpy array with feature weights on this prediction,
-    following an idea from
+    """ For each target, return score and numpy array with feature weights
+    on this prediction, following an idea from
     http://blog.datadive.net/interpreting-random-forests/
     """
     # XGBClassifier does not have pred_leaf argument, so use booster
@@ -120,6 +136,21 @@ def prediction_feature_weights(clf, X, feature_names):
     # add an option to pass already prepared trees if it's slow.
     tree_dumps = booster.get_dump()
     assert len(tree_dumps) == len(leaf_ids)
+    # For multiclass, xgboost stores dumps and leaf_ids in a 1d array anyway,
+    # so we need to split them.
+    scores_weights = []
+    for start_idx in range(0, len(leaf_ids), clf.n_estimators):
+        end_idx = start_idx + clf.n_estimators
+        scores_weights.append(
+            target_feature_weights(
+                leaf_ids[start_idx:end_idx],
+                tree_dumps[start_idx:end_idx],
+                feature_names,
+            ))
+    return scores_weights
+
+
+def target_feature_weights(leaf_ids, tree_dumps, feature_names):
     feature_weights = np.zeros(len(feature_names))
     # All trees in xgboost give equal contribution to the prediction:
     # it is equal to sum of "leaf" values in leafs
@@ -140,7 +171,6 @@ def prediction_feature_weights(clf, X, feature_names):
             feature_weights[feature_idx] += node['leaf'] - parent['leaf']
         # Root "leaf" value is interpreted as bias
         feature_weights[feature_names.bias_idx] += path[0]['leaf']
-
     return score, feature_weights
 
 
