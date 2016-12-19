@@ -5,7 +5,9 @@ from sklearn.datasets import make_classification
 pytest.importorskip('xgboost')
 from xgboost import XGBClassifier, XGBRegressor
 
-from eli5.xgboost import parse_dump
+from eli5.xgboost import parse_tree_dump
+from eli5.explain import explain_prediction
+from .utils import format_as_all
 from .test_sklearn_explain_weights import (
     test_explain_random_forest as _check_rf,
     test_explain_random_forest_and_tree_feature_re as _check_rf_feature_re,
@@ -27,7 +29,15 @@ def test_feature_importances_no_remaining():
     _check_rf_no_remaining(XGBClassifier())
 
 
-def test_parse_dump():
+def test_explain_prediction_clf():
+    xs, ys = make_classification(n_features=4, n_informative=3, n_redundant=1)
+    clf = XGBClassifier(n_estimators=5, max_depth=3)
+    clf.fit(xs, ys)
+    res = explain_prediction(clf, xs[0])
+    format_as_all(res, clf)
+
+
+def test_parse_tree_dump():
     text_dump = '''\
 0:[f2<-0.391121] yes=1,no=2,missing=1
 	1:[f3<-1.15681] yes=3,no=4,missing=3
@@ -39,7 +49,7 @@ def test_parse_dump():
 			8:leaf=-0.182979
 		6:leaf=0.111111
 '''
-    assert parse_dump(text_dump) == {
+    assert parse_tree_dump(text_dump) == {
         'children': [
             {'children': [{'leaf': 0.0545455, 'nodeid': 3},
                           {'leaf': 0.180952, 'nodeid': 4}],
