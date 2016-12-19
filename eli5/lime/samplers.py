@@ -2,7 +2,7 @@
 from __future__ import absolute_import
 import abc
 from functools import partial
-from typing import List, Tuple, Any, Union
+from typing import List, Tuple, Any, Union, Dict
 import six
 
 import numpy as np
@@ -86,10 +86,15 @@ class MaskingTextSampler(BaseSampler):
         )
         return docs, similarities
 
-    def sample_near_with_mask(self, doc, n_samples=1):
-        # type: (str, int) -> Tuple[List[str], np.ndarray, np.ndarray, TokenizedText]
-        text = TokenizedText(doc, token_pattern=self.token_pattern)
-        gen_samples = partial(generate_samples, text,
+    def sample_near_with_mask(self,
+                              doc,         # type: Union[TokenizedText, str]
+                              n_samples=1  # type: int
+                              ):
+        # type: (...) -> Tuple[List[str], np.ndarray, np.ndarray, TokenizedText]
+        if not isinstance(doc, TokenizedText):
+            doc = TokenizedText(doc, token_pattern=self.token_pattern)
+
+        gen_samples = partial(generate_samples, doc,
                               n_samples=n_samples,
                               replacement=self.replacement,
                               min_replace=self.min_replace,
@@ -98,25 +103,46 @@ class MaskingTextSampler(BaseSampler):
         docs, similarity, mask = gen_samples(bow=self.bow)
         # XXX: should it use RBF kernel as well, instead of raw
         # cosine similarity?
-        return docs, similarity, mask, text
+        return docs, similarity, mask, doc
 
 
-class MaskingTextSamplerUnion(BaseSampler):
+class MaskingTextSamplers(BaseSampler):
     """
     Union of MaskingText samplers, with weights.
     :meth:`sample_near` or :meth:`sample_near_with_mask` generate
     a requested number of samples using all samplers; a probability of
     using a sampler is proportional to its weight.
+
+    All samplers must use the same token_pattern.
+
+    Create it with a list of {param: value} dicts
+    with MaskingTextSampler paremeters.
     """
-    def __init__(self, weights_and_samples):
-        # type: (List[Tuple[float, Any]]) -> None
-        for rec in weights_and_samples:
-            if len(rec) != 2 or not isinstance(rec[0], (int, float)):
-                raise ValueError("'samplers' argument must be a list of "
-                                 "(weight, sampler) tuples.")
-        self.weights, self.samplers = zip(*weights_and_samples)
-        self.weights = np.array(self.weights)
-        self.weights = self.weights / self.weights.sum()  # normalize weights
+    def __init__(self,
+                 sampler_params,      # type: List[Dict[str, Any]]
+                 token_pattern=None,  # type: str
+                 random_state=None,
+                 weights=None,        # type: Union[np.ndarray, List[float]]
+                 ):
+        # type: (...) -> None
+        self.random_state = random_state
+        self.rng_ = check_random_state(random_state)
+        self.token_pattern = token_pattern
+        self.samplers = list(map(self._create_sampler, sampler_params))
+        if weights is None:
+            self.weights = np.ones(len(self.samplers))
+        else:
+            self.weights = np.array(weights)
+        self.weights /= self.weights.sum()
+
+    def _create_sampler(self, extra):
+        # type: (Dict) -> MaskingTextSampler
+        params = dict(
+            token_pattern=self.token_pattern,
+            random_state=self.rng_,
+        )
+        params.update(extra)
+        return MaskingTextSampler(**params)
 
     def sample_near(self, doc, n_samples=1):
         # type: (str, int) -> Tuple[List[str], np.ndarray]
@@ -129,20 +155,22 @@ class MaskingTextSamplerUnion(BaseSampler):
             similarities.append(sims)
         return all_docs, np.hstack(similarities)
 
-    def sample_near_with_mask(self, doc, n_samples=1):
-        # type: (str, int) -> Tuple[List[str], np.ndarray, np.ndarray, TokenizedText]
+    def sample_near_with_mask(self,
+                              doc,         # type: str
+                              n_samples=1  # type: int
+                              ):
+        # type: (...) -> Tuple[List[str], np.ndarray, np.ndarray, TokenizedText]
         assert n_samples >= 1
+        text = TokenizedText(doc, token_pattern=self.token_pattern)
         all_docs = []  # type: List[str]
         similarities = []
         masks = []
-        texts = []  # XXX: only the first text is returned, which is not good
         for sampler, freq in self._sampler_n_samples(n_samples):
-            docs, sims, mask, text = sampler.sample_near_with_mask(doc, freq)
+            docs, sims, mask, _text = sampler.sample_near_with_mask(text, freq)
             all_docs.extend(docs)
             similarities.append(sims)
             masks.append(mask)
-            texts.append(text)
-        return all_docs, np.hstack(similarities), vstack(masks), texts[0]
+        return all_docs, np.hstack(similarities), vstack(masks), text
 
     def _sampler_n_samples(self, n_samples):
         """ Return (sampler, n_samplers) tuples """

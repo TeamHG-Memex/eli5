@@ -1,30 +1,38 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
+from typing import Tuple, List, Union, Callable, Dict
 
 import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
 
-from eli5.base import DocWeightedSpans
+from eli5.base import DocWeightedSpans, FeatureWeights
 from eli5.sklearn.text import _get_feature_weights_dict
-from .textutils import TokenizedText, DEFAULT_TOKEN_PATTERN
+from .textutils import TokenizedText
 
 
 class SingleDocumentVectorizer(BaseEstimator, TransformerMixin):
     """ Fake vectorizer which converts document just to a vector of ones """
 
-    def __init__(self, token_pattern=DEFAULT_TOKEN_PATTERN):
+    def __init__(self, token_pattern=None):
         self.token_pattern = token_pattern
 
     def fit(self, X, y=None):
-        self.doc_ = X[0]
-        self.text_ = TokenizedText(self.doc_)
+        self.text_ = X[0]
+        if not isinstance(self.text_, TokenizedText):
+            self.text_ = TokenizedText(self.text_,
+                                       token_pattern=self.token_pattern)
         return self
 
     def transform(self, X):
         # assert X[0] == self.doc_
         return np.ones(len(self.text_.tokens)).reshape((1, -1))
 
-    def get_doc_weighted_spans(self, doc, feature_weights, feature_fn):
+    def get_doc_weighted_spans(self,
+                               doc,              # type: str
+                               feature_weights,  # type: FeatureWeights
+                               feature_fn        # type: Callable[[str], str]
+                               ):
+        # type: (...) -> Tuple[Dict[Tuple[str, int], float], DocWeightedSpans]
         feature_weights_dict = _get_feature_weights_dict(feature_weights,
                                                          feature_fn)
         spans = []

@@ -15,6 +15,9 @@ from eli5.utils import indices_to_bool_mask, vstack
 # the same as scikit-learn token pattern, but allows single-char tokens
 DEFAULT_TOKEN_PATTERN = r'(?u)\b\w+\b'
 
+# non-whitespace chars
+CHAR_TOKEN_PATTERN = r'[^\s]'
+
 
 def generate_samples(text,            # type: TokenizedText
                      n_samples=500,   # type: int
