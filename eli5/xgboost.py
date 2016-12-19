@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
+import re
 from singledispatch import singledispatch
+from typing import List, Dict
 
 import numpy as np
 from xgboost import XGBClassifier, XGBRegressor
@@ -48,3 +50,50 @@ def explain_weights_xgboost(xgb,
         estimator=repr(xgb),
         method='feature importances',
     )
+
+
+def parse_dump(text_dump):
+    result = None
+    stack = []  # type: List[Dict]
+    for line in text_dump.split('\n'):
+        if line:
+            depth, node = _parse_dump_line(line)
+            if depth == 0:
+                assert not stack
+                result = node
+                stack.append(node)
+            elif depth > len(stack):
+                raise ValueError('Unexpected dump structure')
+            else:
+                if depth < len(stack):
+                    stack = stack[:depth]
+                stack[-1].setdefault('children', []).append(node)
+                stack.append(node)
+    return result
+
+
+def _parse_dump_line(line):
+    branch_match = re.match(
+        '^(\t*)(\d+):\[(\w+)<([^\]]+)\] yes=(\d+),no=(\d+),missing=(\d+)$', line)
+    if branch_match:
+        tabs, node_id, feature, condition, yes, no, missing = \
+            branch_match.groups()
+        depth = len(tabs)
+        return depth, {
+            'depth': depth,
+            'nodeid': int(node_id),
+            'split': feature,
+            'split_condition': float(condition),
+            'yes': int(yes),
+            'no': int(no),
+            'missing': int(missing),
+        }
+    leaf_match = re.match('^(\t*)(\d+):leaf=(.*)$', line)
+    if leaf_match:
+        tabs, node_id, value = leaf_match.groups()
+        depth = len(tabs)
+        return depth, {
+            'nodeid': int(node_id),
+            'leaf': float(value),
+        }
+    raise ValueError('Line in unexpected format: {}'.format(line))
