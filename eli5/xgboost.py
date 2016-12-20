@@ -103,7 +103,7 @@ def explain_prediction_xgboost(
             target_expl = TargetExplanation(
                 target=label,
                 feature_weights=get_top_features(
-                feature_names, feature_weights, top),
+                    feature_names, feature_weights, top),
                 score=score,
                 proba=proba[label_id] if proba is not None else None,
             )
@@ -134,7 +134,7 @@ def prediction_feature_weights(clf, X, feature_names):
     leaf_ids, = booster.predict(DMatrix(X, missing=clf.missing), pred_leaf=True)
     # TODO - check speed (including indexed_leafs and parse_tree_dump),
     # add an option to pass already prepared trees if it's slow.
-    tree_dumps = booster.get_dump()
+    tree_dumps = booster.get_dump(with_stats=True)
     assert len(tree_dumps) == len(leaf_ids)
     # For multiclass, xgboost stores dumps and leaf_ids in a 1d array anyway,
     # so we need to split them.
@@ -165,10 +165,23 @@ def target_feature_weights(leaf_ids, tree_dumps, feature_names):
             path.append(path[-1]['parent'])
         path.reverse()
         # Check how each split changes "leaf" value
-        for parent, node in zip(path, path[1:]):
-            f_num_match= re.search('^f(\d+)$', parent['split'])
-            feature_idx = int(f_num_match.groups()[0]) - 1
-            feature_weights[feature_idx] += node['leaf'] - parent['leaf']
+        for node, child in zip(path, path[1:]):
+            f_num_match = re.search('^f(\d+)$', node['split'])
+            feature_idx = int(f_num_match.groups()[0])
+            assert feature_idx >= 0
+            diff = child['leaf'] - node['leaf']
+            res_map = {node[k]: k for k in ['yes', 'no', 'missing']}
+            res = yn_res = res_map[child['nodeid']]
+            if res == 'missing':
+                if node['yes'] == node['missing']:
+                    yn_res = 'yes'
+                elif node['no'] == node['missing']:
+                    yn_res = 'no'
+            # Condition is "x < split_condition", so sign is inverted
+            sign = {'yes': -1, 'no': 1}[yn_res]
+            # FIXME - maybe better add a feature for "missing features"
+            idx = feature_names.bias_idx if res == 'missing' else feature_idx
+            feature_weights[idx] += diff * sign
         # Root "leaf" value is interpreted as bias
         feature_weights[feature_names.bias_idx] += path[0]['leaf']
     return score, feature_weights
@@ -185,7 +198,10 @@ def indexed_leafs(parent):
             indexed[child['nodeid']] = child
         else:
             indexed.update(indexed_leafs(child))
-    parent['leaf'] = np.mean([child['leaf'] for child in parent['children']])
+    covers = np.array([child['cover'] for child in parent['children']])
+    covers /= np.sum(covers)
+    leafs = np.array([child['leaf'] for child in parent['children']])
+    parent['leaf'] = np.mean(leafs * covers)
     return indexed
 
 
@@ -215,9 +231,11 @@ def parse_tree_dump(text_dump):
 def _parse_dump_line(line):
     # type: (str) -> Tuple[int, Dict[str, Any]]
     branch_match = re.match(
-        '^(\t*)(\d+):\[(\w+)<([^\]]+)\] yes=(\d+),no=(\d+),missing=(\d+)$', line)
+        '^(\t*)(\d+):\[(\w+)<([^\]]+)\] '
+        'yes=(\d+),no=(\d+),missing=(\d+),'
+        'gain=([^,]+),cover=(.+)$', line)
     if branch_match:
-        tabs, node_id, feature, condition, yes, no, missing = \
+        tabs, node_id, feature, condition, yes, no, missing, gain, cover = \
             branch_match.groups()
         depth = len(tabs)
         return depth, {
@@ -228,13 +246,16 @@ def _parse_dump_line(line):
             'yes': int(yes),
             'no': int(no),
             'missing': int(missing),
+            'gain': float(gain),
+            'cover': float(cover),
         }
-    leaf_match = re.match('^(\t*)(\d+):leaf=(.*)$', line)
+    leaf_match = re.match('^(\t*)(\d+):leaf=([^,]+),cover=(.+)$', line)
     if leaf_match:
-        tabs, node_id, value = leaf_match.groups()
+        tabs, node_id, value, cover = leaf_match.groups()
         depth = len(tabs)
         return depth, {
             'nodeid': int(node_id),
             'leaf': float(value),
+            'cover': float(cover),
         }
     raise ValueError('Line in unexpected format: {}'.format(line))
