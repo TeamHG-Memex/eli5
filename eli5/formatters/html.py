@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 import cgi
+from itertools import groupby
 from typing import List
 
 import numpy as np
@@ -119,12 +120,14 @@ def render_targets_weighted_spans(targets, preserve_density):
 
 def render_weighted_spans(pws):
     # type: (PreparedWeightedSpans) -> str
-    # TODO - can be much smarter, join spans at least
-    # TODO - for longer documents, remove text without active features
+    # TODO - for longer documents, an remove text without active features
     return ''.join(
-        _colorize(token, weight, pws.weight_range)
-        for token, weight in zip(
-            pws.doc_weighted_spans.document, pws.char_weights))
+        _colorize(''.join(t for t, _ in tokens_weights),
+                  weight,
+                  pws.weight_range)
+        for weight, tokens_weights in groupby(
+            zip(pws.doc_weighted_spans.document, pws.char_weights),
+            key=lambda x: x[1]))
 
 
 def _colorize(token, weight, weight_range):
