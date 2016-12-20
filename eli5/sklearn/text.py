@@ -82,8 +82,12 @@ def _get_weighted_spans_from_union(doc, vec_union, feature_weights):
     named_found_features = []
     for vec_name, vec in vec_union.transformer_list:
         vec_prefix = '{}__'.format(vec_name)
-        feature_fn = lambda x: (
-            x[len(vec_prefix):] if x.startswith(vec_prefix) else None)
+
+        def feature_fn(x):
+            if (not isinstance(x, FormattedFeatureName)
+                    and x.startswith(vec_prefix)):
+                return x[len(vec_prefix):]
+
         result = _get_doc_weighted_spans(doc, vec, feature_weights, feature_fn)
         if result:
             found_features, doc_weighted_spans = result
