@@ -132,21 +132,20 @@ def prediction_feature_weights(clf, X, feature_names):
     # XGBClassifier does not have pred_leaf argument, so use booster
     booster = clf.booster()  # type: Booster
     leaf_ids, = booster.predict(DMatrix(X, missing=clf.missing), pred_leaf=True)
-    # TODO - check speed (including indexed_leafs and parse_tree_dump),
-    # add an option to pass already prepared trees if it's slow.
     tree_dumps = booster.get_dump(with_stats=True)
     assert len(tree_dumps) == len(leaf_ids)
-    # For multiclass, xgboost stores dumps and leaf_ids in a 1d array anyway,
-    # so we need to split them.
-    scores_weights = []
-    for start_idx in range(0, len(leaf_ids), clf.n_estimators):
-        end_idx = start_idx + clf.n_estimators
-        scores_weights.append(
+    if clf.n_classes_ > 2:
+        # For multiclass, xgboost stores dumps and leaf_ids in a 1d array,
+        # so we need to split them.
+        scores_weights = [
             target_feature_weights(
-                leaf_ids[start_idx:end_idx],
-                tree_dumps[start_idx:end_idx],
+                leaf_ids[class_idx::clf.n_classes_],
+                tree_dumps[class_idx::clf.n_classes_],
                 feature_names,
-            ))
+            ) for class_idx in range(clf.n_classes_)]
+    else:
+        scores_weights = [
+            target_feature_weights(leaf_ids, tree_dumps, feature_names)]
     return scores_weights
 
 
