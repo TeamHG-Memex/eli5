@@ -5,6 +5,7 @@ from singledispatch import singledispatch
 from typing import Any, Dict, List, Tuple
 
 import numpy as np
+import scipy.sparse as sp
 from xgboost import XGBClassifier, XGBRegressor, Booster, DMatrix
 
 from eli5.base import (
@@ -13,7 +14,7 @@ from eli5.formatters.features import FormattedFeatureName
 from eli5.explain import explain_weights, explain_prediction
 # FIXME - eli5.sklearn imports do not look good
 from eli5.sklearn.explain_prediction import (
-    _handle_vec, _get_X, _add_weighted_spans)  # TODO: make public
+    _handle_vec, _add_weighted_spans)  # TODO: make public
 from eli5.sklearn.utils import get_feature_names, is_probabilistic_classifier
 from eli5.utils import argsort_k_largest_positive, get_target_display_names
 from eli5._feature_weights import get_top_features
@@ -91,7 +92,15 @@ def explain_prediction_xgboost(
     feature_names.feature_names = fnames
     feature_names.n_features += 1
 
-    X = _get_X(doc, vec=vec, vectorized=vectorized)
+    # FIXME a little copy-paste from eli5.sklearn.explain_prediction
+    if vec is None or vectorized:
+        X = np.array([doc]) if isinstance(doc, np.ndarray) else doc
+    else:
+        X = vec.transform([doc])
+    if sp.issparse(X):
+        # Work around xgboost issue:
+        # https://github.com/dmlc/xgboost/issues/1238#issuecomment-243872543
+        X = X.tocsc()
 
     # FIXME copy-paste from eli5.sklearn.explain_prediction
     if is_probabilistic_classifier(clf):
