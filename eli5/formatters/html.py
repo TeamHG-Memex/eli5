@@ -119,12 +119,22 @@ def render_targets_weighted_spans(targets, preserve_density):
 
 def render_weighted_spans(pws):
     # type: (PreparedWeightedSpans) -> str
-    # TODO - can be much smarter, join spans at least
     # TODO - for longer documents, remove text without active features
-    return ''.join(
-        _colorize(token, weight, pws.weight_range)
-        for token, weight in zip(
-            pws.doc_weighted_spans.document, pws.char_weights))
+    result = []
+    current_tokens = []
+    prev_weight = None
+    for token, weight in zip(
+            pws.doc_weighted_spans.document, pws.char_weights):
+        if weight != prev_weight and current_tokens:
+            result.append(_colorize(
+                ''.join(current_tokens), prev_weight, pws.weight_range))
+            current_tokens = []
+        current_tokens.append(token)
+        prev_weight = weight
+    if current_tokens:
+        result.append(_colorize(
+            ''.join(current_tokens), prev_weight, pws.weight_range))
+    return ''.join(result)
 
 
 def _colorize(token, weight, weight_range):
