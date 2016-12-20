@@ -121,13 +121,18 @@ def render_targets_weighted_spans(targets, preserve_density):
 def render_weighted_spans(pws):
     # type: (PreparedWeightedSpans) -> str
     # TODO - for longer documents, an remove text without active features
+
+    def colorize_without_token(x):
+        _, weight = x
+        return _colorize('', weight, pws.weight_range)
+
     return ''.join(
         _colorize(''.join(t for t, _ in tokens_weights),
-                  weight,
-                  pws.weight_range)
-        for weight, tokens_weights in groupby(
+                  weight=tokens_weights[0][1],
+                  weight_range=pws.weight_range)
+        for tokens_weights in (list(tw) for _, tw in groupby(
             zip(pws.doc_weighted_spans.document, pws.char_weights),
-            key=lambda x: x[1]))
+            key=colorize_without_token)))
 
 
 def _colorize(token, weight, weight_range):
