@@ -9,6 +9,7 @@ from xgboost import XGBClassifier, XGBRegressor, Booster, DMatrix
 
 from eli5.base import (
     FeatureWeight, FeatureImportances, Explanation, TargetExplanation)
+from eli5.formatters.features import FormattedFeatureName
 from eli5.explain import explain_weights, explain_prediction
 # FIXME - eli5.sklearn imports do not look good
 from eli5.sklearn.explain_prediction import (
@@ -74,9 +75,25 @@ def explain_prediction_xgboost(
         # xgboost estimators do not have an intercept, but here we interpret
         # them as having an intercept
         feature_names.bias_name = '<BIAS>'
+
+    # TODO: do it properly (not sure how yet, also include bias handling?)
+    fnames = feature_names.feature_names
+    missing = FormattedFeatureName('Missing features')
+    missing_idx = feature_names.n_features
+    if isinstance(fnames, (list, np.ndarray)):
+        fnames = list(fnames)
+        fnames.append(missing)
+    elif isinstance(fnames, dict):
+        fnames = dict(fnames)
+        fnames[missing_idx] = missing
+    elif fnames is None:
+        fnames = {missing_idx: missing}
+    feature_names.feature_names = fnames
+    feature_names.n_features += 1
+
     X = _get_X(doc, vec=vec, vectorized=vectorized)
 
-    # FIXME copy-paster from eli5.sklearn.explain_prediction
+    # FIXME copy-paste from eli5.sklearn.explain_prediction
     if is_probabilistic_classifier(clf):
         try:
             proba, = clf.predict_proba(X)
@@ -173,13 +190,14 @@ def target_feature_weights(leaf_ids, tree_dumps, feature_names):
             res = yn_res = res_map[child['nodeid']]
             if res == 'missing':
                 if node['yes'] == node['missing']:
-                    yn_res = 'yes'
-                elif node['no'] == node['missing']:
                     yn_res = 'no'
+                elif node['no'] == node['missing']:
+                    yn_res = 'yes'
             # Condition is "x < split_condition", so sign is inverted
             sign = {'yes': -1, 'no': 1}[yn_res]
-            # FIXME - maybe better add a feature for "missing features"
-            idx = feature_names.bias_idx if res == 'missing' else feature_idx
+            # Last feature is for all missing features
+            idx = ((feature_names.n_features - 1) if res == 'missing'
+                   else feature_idx)
             feature_weights[idx] += diff * sign
         # Root "leaf" value is interpreted as bias
         feature_weights[feature_names.bias_idx] += path[0]['leaf']
