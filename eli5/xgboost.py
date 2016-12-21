@@ -151,6 +151,23 @@ def prediction_feature_weights(clf, X, feature_names, missing_idx):
     return scores_weights
 
 
+def get_feature_contribution(node, child):
+    # type: (Dict, Dict) -> Tuple[float, bool]
+    """ Single feature contribution, and whether the features is missing.
+    """
+    diff = child['leaf'] - node['leaf']
+    res_map = {node[k]: k for k in ['yes', 'no', 'missing']}
+    res = yn_res = res_map[child['nodeid']]
+    if res == 'missing':
+        if node['yes'] == node['missing']:
+            yn_res = 'no'
+        elif node['no'] == node['missing']:
+            yn_res = 'yes'
+    # Condition is "x < split_condition", so sign is inverted
+    sign = {'yes': -1, 'no': 1}[yn_res]
+    return diff * sign, res == 'missing'
+
+
 def target_feature_weights(leaf_ids, tree_dumps, feature_names, missing_idx):
     feature_weights = np.zeros(len(feature_names))
     # All trees in XGBoost give equal contribution to the prediction:
@@ -170,19 +187,9 @@ def target_feature_weights(leaf_ids, tree_dumps, feature_names, missing_idx):
             f_num_match = re.search('^f(\d+)$', node['split'])
             feature_idx = int(f_num_match.groups()[0])
             assert feature_idx >= 0
-            diff = child['leaf'] - node['leaf']
-            res_map = {node[k]: k for k in ['yes', 'no', 'missing']}
-            res = yn_res = res_map[child['nodeid']]
-            if res == 'missing':
-                if node['yes'] == node['missing']:
-                    yn_res = 'no'
-                elif node['no'] == node['missing']:
-                    yn_res = 'yes'
-            # Condition is "x < split_condition", so sign is inverted
-            sign = {'yes': -1, 'no': 1}[yn_res]
-            # Last feature is for all missing features
-            idx = missing_idx if res == 'missing' else feature_idx
-            feature_weights[idx] += diff * sign
+            contribution, is_missing = get_feature_contribution(node, child)
+            idx = missing_idx if is_missing else feature_idx
+            feature_weights[idx] += contribution
         # Root "leaf" value is interpreted as bias
         feature_weights[feature_names.bias_idx] += path[0]['leaf']
     return score, feature_weights
@@ -199,11 +206,17 @@ def indexed_leafs(parent):
             indexed[child['nodeid']] = child
         else:
             indexed.update(indexed_leafs(child))
-    covers = np.array([child['cover'] for child in parent['children']])
-    covers /= np.sum(covers)
-    leafs = np.array([child['leaf'] for child in parent['children']])
-    parent['leaf'] = np.mean(leafs * covers)
+    parent['leaf'] = parent_value(parent['children'])
     return indexed
+
+
+def parent_value(children):
+    """ Value of the parent node: a weighted sum of child values.
+    """
+    covers = np.array([child['cover'] for child in children])
+    covers /= np.sum(covers)
+    leafs = np.array([child['leaf'] for child in children])
+    return np.mean(leafs * covers)
 
 
 def parse_tree_dump(text_dump):

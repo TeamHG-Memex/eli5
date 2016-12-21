@@ -32,7 +32,6 @@ def test_feature_importances_no_remaining():
 
 def test_explain_prediction_clf_binary(newsgroups_train_binary_big):
     docs, ys, target_names = newsgroups_train_binary_big
-    # TODO - make it work with binary=False
     vec = CountVectorizer(binary=True, stop_words='english')
     clf = XGBClassifier(n_estimators=100, max_depth=2)
     xs = vec.fit_transform(docs)
@@ -51,7 +50,6 @@ def test_explain_prediction_clf_binary(newsgroups_train_binary_big):
 
 def test_explain_prediction_clf_multitarget(newsgroups_train):
     docs, ys, target_names = newsgroups_train
-    # TODO - make it work with binary=False
     vec = CountVectorizer(binary=True, stop_words='english')
     xs = vec.fit_transform(docs)
     clf = XGBClassifier(n_estimators=100, max_depth=2)
