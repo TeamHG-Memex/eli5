@@ -24,6 +24,18 @@ XGBoost feature importances; values are numbers 0 <= x <= 1;
 all values sum to 1.
 """
 
+if not hasattr(XGBRegressor, 'feature_importances_'):
+    # xgboost <= 0.6a2, fixed in https://github.com/dmlc/xgboost/pull/1591
+
+    def xgb_feature_importances(xgb):
+        b = xgb.booster()
+        fs = b.get_fscore()
+        all_features = [fs.get(f, 0.) for f in b.feature_names]
+        all_features = np.array(all_features, dtype=np.float32)
+        return all_features / all_features.sum()
+
+    XGBRegressor.feature_importances_ = property(xgb_feature_importances)
+
 
 @explain_weights.register(XGBClassifier)
 @explain_weights.register(XGBRegressor)
@@ -59,9 +71,10 @@ def explain_weights_xgboost(xgb,
 
 
 @explain_prediction.register(XGBClassifier)
+@explain_prediction.register(XGBRegressor)
 @singledispatch
 def explain_prediction_xgboost(
-        clf, doc,
+        xgb, doc,
         vec=None,
         top=None,
         target_names=None,
@@ -70,7 +83,7 @@ def explain_prediction_xgboost(
         vectorized=False):
     """ Return an explanation of XGBoost prediction (via scikit-learn wrapper).
     """
-    vec, feature_names = handle_vec(clf, doc, vec, vectorized, feature_names)
+    vec, feature_names = handle_vec(xgb, doc, vec, vectorized, feature_names)
     if feature_names.bias_name is None:
         # XGBoost estimators do not have an intercept, but here we interpret
         # them as having an intercept
@@ -85,20 +98,20 @@ def explain_prediction_xgboost(
         # https://github.com/dmlc/xgboost/issues/1238#issuecomment-243872543
         X = X.tocsc()
 
-    proba = predict_proba(clf, X)
+    proba = predict_proba(xgb, X)
 
-    display_names = get_target_display_names(
-        clf.classes_, target_names, targets)
+    names = xgb.classes_ if isinstance(xgb, XGBClassifier) else ['y']
+    display_names = get_target_display_names(names, target_names, targets)
 
     scores_weights = prediction_feature_weights(
-        clf, X, feature_names, missing_idx)
+        xgb, X, feature_names, missing_idx)
 
     res = Explanation(
-        estimator=repr(clf),
+        estimator=repr(xgb),
         method='decision paths',
         targets=[],
     )
-    if clf.n_classes_ > 2:
+    if xgb_n_targets(xgb) > 1:
         for label_id, label in display_names:
             score, feature_weights = scores_weights[label_id]
             target_expl = TargetExplanation(
@@ -113,7 +126,7 @@ def explain_prediction_xgboost(
     else:
         (score, feature_weights), = scores_weights
         target_expl = TargetExplanation(
-            target=display_names[1][1],
+            target=display_names[-1][1],
             feature_weights=get_top_features(
                 feature_names, feature_weights, top),
             score=score,
@@ -125,29 +138,30 @@ def explain_prediction_xgboost(
     return res
 
 
-def prediction_feature_weights(clf, X, feature_names, missing_idx):
+def prediction_feature_weights(xgb, X, feature_names, missing_idx):
     """ For each target, return score and numpy array with feature weights
     on this prediction, following an idea from
     http://blog.datadive.net/interpreting-random-forests/
     """
     # XGBClassifier does not have pred_leaf argument, so use booster
-    booster = clf.booster()  # type: Booster
-    leaf_ids, = booster.predict(DMatrix(X, missing=clf.missing), pred_leaf=True)
+    booster = xgb.booster()  # type: Booster
+    leaf_ids, = booster.predict(DMatrix(X, missing=xgb.missing), pred_leaf=True)
     tree_dumps = booster.get_dump(with_stats=True)
     assert len(tree_dumps) == len(leaf_ids)
 
     def _target_feature_weights(_leaf_ids, _tree_dumps):
         return target_feature_weights(
-            _leaf_ids, _tree_dumps, feature_names, missing_idx, X, clf.missing)
+            _leaf_ids, _tree_dumps, feature_names, missing_idx, X, xgb.missing)
 
-    if clf.n_classes_ > 2:
+    n_targets = xgb_n_targets(xgb)
+    if n_targets > 1:
         # For multiclass, XGBoost stores dumps and leaf_ids in a 1d array,
         # so we need to split them.
         scores_weights = [
             _target_feature_weights(
-                leaf_ids[class_idx::clf.n_classes_],
-                tree_dumps[class_idx::clf.n_classes_],
-            ) for class_idx in range(clf.n_classes_)]
+                leaf_ids[target_idx::n_targets],
+                tree_dumps[target_idx::n_targets],
+            ) for target_idx in range(n_targets)]
     else:
         scores_weights = [_target_feature_weights(leaf_ids, tree_dumps)]
     return scores_weights
@@ -208,6 +222,13 @@ def parent_value(children):
     covers /= np.sum(covers)
     leafs = np.array([child['leaf'] for child in children])
     return np.mean(leafs * covers)
+
+
+def xgb_n_targets(xgb):
+    if isinstance(xgb, XGBClassifier):
+        return 1 if xgb.n_classes_ == 2 else xgb.n_classes_
+    elif isinstance(xgb, XGBRegressor):
+        return 1
 
 
 def parse_tree_dump(text_dump):

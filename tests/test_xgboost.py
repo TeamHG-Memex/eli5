@@ -9,7 +9,7 @@ from xgboost import XGBClassifier, XGBRegressor
 
 from eli5.base import TargetExplanation
 from eli5.xgboost import parse_tree_dump
-from eli5.explain import explain_prediction
+from eli5.explain import explain_prediction, explain_weights
 from eli5.formatters.text import format_as_text
 from .utils import format_as_all, get_all_features
 from .test_sklearn_explain_weights import (
@@ -17,8 +17,6 @@ from .test_sklearn_explain_weights import (
     test_explain_random_forest_and_tree_feature_re as _check_rf_feature_re,
     test_feature_importances_no_remaining as _check_rf_no_remaining,
 )
-
-# TODO: XGBRegressor
 
 
 def test_explain_xgboost(newsgroups_train):
@@ -31,6 +29,18 @@ def test_explain_xgboost_feature_re(newsgroups_train):
 
 def test_feature_importances_no_remaining():
     _check_rf_no_remaining(XGBClassifier())
+
+
+def test_explain_xgboost_regressor(boston_train):
+    xs, ys, feature_names = boston_train
+    reg = XGBRegressor()
+    reg.fit(xs, ys)
+    res = explain_weights(reg)
+    for expl in  format_as_all(res, reg):
+        assert 'x12' in expl
+    res = explain_weights(reg, feature_names=feature_names)
+    for expl in format_as_all(res, reg):
+        assert 'LSTAT' in expl
 
 
 def test_explain_prediction_clf_binary(newsgroups_train_binary_big):
@@ -69,7 +79,7 @@ def test_explain_prediction_clf_multitarget(newsgroups_train):
     assert 'religion' in get_all_features(religion_weights.pos)
 
 
-def test_explain_prediction_xor():
+def test_explain_prediction_clf_xor():
     true_xs = [[np.random.randint(2), np.random.randint(2)] for _ in range(100)]
     xs = np.array([[np.random.normal(x, 0.2), np.random.normal(y, 0.2)]
                    for x, y in true_xs])
@@ -83,7 +93,7 @@ def test_explain_prediction_xor():
         _check_scores(res)
 
 
-def test_explain_prediction_interval():
+def test_explain_prediction_clf_interval():
     true_xs = [[np.random.randint(3), np.random.randint(10)] for _ in range(1000)]
     xs = np.array([[np.random.normal(x, 0.2), np.random.normal(y, 0.2)]
                    for x, y in true_xs])
@@ -95,6 +105,20 @@ def test_explain_prediction_interval():
         print(x)
         print(format_as_text(res))
         _check_scores(res)
+
+
+def test_explain_prediction_reg(boston_train):
+    xs, ys, feature_names = boston_train
+    reg = XGBRegressor()
+    reg.fit(xs, ys)
+    res = explain_prediction(reg, xs[0])
+    _check_scores(res)
+    for expl in  format_as_all(res, reg):
+        assert 'x12' in expl
+    res = explain_prediction(reg, xs[0], feature_names=feature_names)
+    _check_scores(res)
+    for expl in format_as_all(res, reg):
+        assert 'LSTAT' in expl
 
 
 def _check_scores(explanation):

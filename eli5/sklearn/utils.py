@@ -165,7 +165,7 @@ def get_num_features(clf):
     """ Return size of a feature vector classifier expects as an input. """
     if hasattr(clf, 'coef_'):  # linear models
         return clf.coef_.shape[-1]
-    elif hasattr(clf, 'feature_importances_'):  # ensebles
+    elif hasattr(clf, 'feature_importances_'):  # ensembles
         return clf.feature_importances_.shape[-1]
     elif hasattr(clf, 'feature_count_'):  # naive bayes
         return clf.feature_count_.shape[-1]
