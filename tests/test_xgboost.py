@@ -8,7 +8,7 @@ pytest.importorskip('xgboost')
 from xgboost import XGBClassifier, XGBRegressor
 
 from eli5.base import TargetExplanation
-from eli5.xgboost import parse_tree_dump
+from eli5.xgboost import parse_tree_dump, xgb_n_targets
 from eli5.explain import explain_prediction, explain_weights
 from eli5.formatters.text import format_as_text
 from .utils import format_as_all, get_all_features
@@ -180,3 +180,29 @@ def test_parse_tree_dump():
         'split': 'f1793',
         'split_condition': -9.53674e-07,
         'yes': 1}
+
+    with pytest.raises(ValueError):
+        parse_tree_dump('foo')
+
+    with pytest.raises(ValueError):
+        parse_tree_dump('''\
+0:[f1793<-9.53674e-07] yes=1,no=2,missing=1,gain=6.112,cover=37.5
+		1:[f371<-9.53674e-07] yes=3,no=4,missing=3,gain=4.09694,cover=28.5
+''')
+
+
+def test_xgb_n_targets():
+    clf = XGBClassifier()
+    clf.fit(np.array([[0], [1]]), np.array([0, 1]))
+    assert xgb_n_targets(clf) == 1
+
+    clf = XGBClassifier()
+    clf.fit(np.array([[0], [1], [2]]), np.array([0, 1, 2]))
+    assert xgb_n_targets(clf) == 3
+
+    reg = XGBRegressor()
+    reg.fit(np.array([[0], [1], [2]]), np.array([0, 1, 2]))
+    assert xgb_n_targets(reg) == 1
+
+    with pytest.raises(TypeError):
+        xgb_n_targets(object())

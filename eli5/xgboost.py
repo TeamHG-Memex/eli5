@@ -229,6 +229,8 @@ def xgb_n_targets(xgb):
         return 1 if xgb.n_classes_ == 2 else xgb.n_classes_
     elif isinstance(xgb, XGBRegressor):
         return 1
+    else:
+        raise TypeError
 
 
 def parse_tree_dump(text_dump):
