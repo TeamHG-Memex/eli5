@@ -40,59 +40,54 @@ def test_explain_prediction_clf_binary():
 
 def test_explain_prediction_clf_multitarget(newsgroups_train):
     docs, y, target_names = newsgroups_train
-    vec = CountVectorizer()
+    vec = CountVectorizer(stop_words='english', binary=True)
     xs = vec.fit_transform(docs)
-    clf = XGBClassifier()
+    clf = XGBClassifier(n_estimators=100, max_depth=2)
     clf.fit(xs, y)
-    res = explain_prediction(clf, docs[0], vec=vec, target_names=target_names)
+    res = explain_prediction(clf, docs[7], vec=vec, target_names=target_names)
     format_as_all(res, clf)
 
 
 def test_parse_tree_dump():
     text_dump = '''\
-0:[f2<-0.391121] yes=1,no=2,missing=1
-	1:[f3<-1.15681] yes=3,no=4,missing=3
-		3:leaf=0.0545455
-		4:leaf=0.180952
-	2:[f3<1.7511] yes=5,no=6,missing=5
-		5:[f2<-0.0136578] yes=7,no=8,missing=7
-			7:leaf=-0.0545455
-			8:leaf=-0.182979
-		6:leaf=0.111111
+0:[f1793<-9.53674e-07] yes=1,no=2,missing=1,gain=6.112,cover=37.5
+	1:[f371<-9.53674e-07] yes=3,no=4,missing=3,gain=4.09694,cover=28.5
+		3:leaf=-0.0396476,cover=27.375
+		4:leaf=0.105882,cover=1.125
+	2:[f3332<-9.53674e-07] yes=5,no=6,missing=5,gain=3.41271,cover=9
+		5:leaf=0.0892308,cover=7.125
+		6:leaf=-0.0434783,cover=1.875
 '''
     assert parse_tree_dump(text_dump) == {
         'children': [
-            {'children': [{'leaf': 0.0545455, 'nodeid': 3},
-                          {'leaf': 0.180952, 'nodeid': 4}],
+            {'children': [{'cover': 27.375, 'leaf': -0.0396476, 'nodeid': 3},
+                          {'cover': 1.125, 'leaf': 0.105882, 'nodeid': 4}],
+             'cover': 28.5,
              'depth': 1,
+             'gain': 4.09694,
              'missing': 3,
              'no': 4,
              'nodeid': 1,
-             'split': 'f3',
-             'split_condition': -1.15681,
+             'split': 'f371',
+             'split_condition': -9.53674e-07,
              'yes': 3},
-            {'children': [
-                {'children': [{'leaf': -0.0545455, 'nodeid': 7},
-                              {'leaf': -0.182979, 'nodeid': 8}],
-                 'depth': 2,
-                 'missing': 7,
-                 'no': 8,
-                 'nodeid': 5,
-                 'split': 'f2',
-                 'split_condition': -0.0136578,
-                 'yes': 7},
-                {'leaf': 0.111111, 'nodeid': 6}],
+            {'children': [{'cover': 7.125, 'leaf': 0.0892308, 'nodeid': 5},
+                          {'cover': 1.875, 'leaf': -0.0434783, 'nodeid': 6}],
+             'cover': 9.0,
              'depth': 1,
+             'gain': 3.41271,
              'missing': 5,
              'no': 6,
              'nodeid': 2,
-             'split': 'f3',
-             'split_condition': 1.7511,
+             'split': 'f3332',
+             'split_condition': -9.53674e-07,
              'yes': 5}],
+        'cover': 37.5,
         'depth': 0,
+        'gain': 6.112,
         'missing': 1,
         'no': 2,
         'nodeid': 0,
-        'split': 'f2',
-        'split_condition': -0.391121,
+        'split': 'f1793',
+        'split_condition': -9.53674e-07,
         'yes': 1}

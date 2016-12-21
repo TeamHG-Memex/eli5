@@ -6,7 +6,8 @@ from sklearn.feature_extraction.text import VectorizerMixin
 from sklearn.pipeline import FeatureUnion
 
 from eli5.base import (
-    DocWeightedSpans, WeightedSpans, FeatureWeights, FeatureWeight)
+    DocWeightedSpans, WeightedSpans, FeatureWeights, FeatureWeight,
+    TargetExplanation)
 from eli5.sklearn.unhashing import InvertableHashingVectorizer
 from eli5.formatters import FormattedFeatureName
 
@@ -26,6 +27,19 @@ def get_weighted_spans(doc, vec, feature_weights):
                 [doc_weighted_spans],
                 other=_get_other(feature_weights, [('', found_features)]),
             )
+
+
+def add_weighted_spans(doc, vec, vectorized, target_expl):
+    # type: (Any, Any, bool, TargetExplanation) -> None
+    """
+    Compute and set ``target_expl.weighted_spans`` attribute, when possible.
+    """
+    if vec is None or vectorized:
+        return
+
+    weighted_spans = get_weighted_spans(doc, vec, target_expl.feature_weights)
+    if weighted_spans:
+        target_expl.weighted_spans = weighted_spans
 
 
 FoundFeatures = Dict[Tuple[str, int], float]

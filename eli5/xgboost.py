@@ -12,10 +12,9 @@ from eli5.base import (
     FeatureWeight, FeatureImportances, Explanation, TargetExplanation)
 from eli5.formatters.features import FormattedFeatureName
 from eli5.explain import explain_weights, explain_prediction
-# FIXME - eli5.sklearn imports do not look good
-from eli5.sklearn.explain_prediction import (
-    _handle_vec, _add_weighted_spans)  # TODO: make public
-from eli5.sklearn.utils import get_feature_names, is_probabilistic_classifier
+from eli5.sklearn.text import add_weighted_spans
+from eli5.sklearn.utils import (
+    get_feature_names, get_X, handle_vec, predict_proba)
 from eli5.utils import argsort_k_largest_positive, get_target_display_names
 from eli5._feature_weights import get_top_features
 
@@ -69,11 +68,11 @@ def explain_prediction_xgboost(
         targets=None,
         feature_names=None,
         vectorized=False):
-    """ Return an explanation of xgboost prediction.
+    """ Return an explanation of XGBoost prediction (via scikit-learn wrapper).
     """
-    vec, feature_names = _handle_vec(clf, doc, vec, vectorized, feature_names)
+    vec, feature_names = handle_vec(clf, doc, vec, vectorized, feature_names)
     if feature_names.bias_name is None:
-        # xgboost estimators do not have an intercept, but here we interpret
+        # XGBoost estimators do not have an intercept, but here we interpret
         # them as having an intercept
         feature_names.bias_name = '<BIAS>'
 
@@ -92,31 +91,18 @@ def explain_prediction_xgboost(
     feature_names.feature_names = fnames
     feature_names.n_features += 1
 
-    # FIXME a little copy-paste from eli5.sklearn.explain_prediction
-    if vec is None or vectorized:
-        X = np.array([doc]) if isinstance(doc, np.ndarray) else doc
-    else:
-        X = vec.transform([doc])
+    X = get_X(doc, vec, vectorized=vectorized)
     if sp.issparse(X):
-        # Work around xgboost issue:
+        # Work around XGBoost issue:
         # https://github.com/dmlc/xgboost/issues/1238#issuecomment-243872543
         X = X.tocsc()
 
-    # FIXME copy-paste from eli5.sklearn.explain_prediction
-    if is_probabilistic_classifier(clf):
-        try:
-            proba, = clf.predict_proba(X)
-        except NotImplementedError:
-            proba = None
-    else:
-        proba = None
+    proba = predict_proba(clf, X)
 
     display_names = get_target_display_names(
         clf.classes_, target_names, targets)
 
     scores_weights = prediction_feature_weights(clf, X, feature_names)
-
-    # FIXME: again, mostly copy-paste from eli5.sklearn.explain_prediction
 
     res = Explanation(
         estimator=repr(clf),
@@ -133,7 +119,7 @@ def explain_prediction_xgboost(
                 score=score,
                 proba=proba[label_id] if proba is not None else None,
             )
-            _add_weighted_spans(doc, vec, vectorized, target_expl)
+            add_weighted_spans(doc, vec, vectorized, target_expl)
             res.targets.append(target_expl)
     else:
         (score, feature_weights), = scores_weights
@@ -144,7 +130,7 @@ def explain_prediction_xgboost(
             score=score,
             proba=proba[1] if proba is not None else None,
         )
-        _add_weighted_spans(doc, vec, vectorized, target_expl)
+        add_weighted_spans(doc, vec, vectorized, target_expl)
         res.targets.append(target_expl)
 
     return res
@@ -161,7 +147,7 @@ def prediction_feature_weights(clf, X, feature_names):
     tree_dumps = booster.get_dump(with_stats=True)
     assert len(tree_dumps) == len(leaf_ids)
     if clf.n_classes_ > 2:
-        # For multiclass, xgboost stores dumps and leaf_ids in a 1d array,
+        # For multiclass, XGBoost stores dumps and leaf_ids in a 1d array,
         # so we need to split them.
         scores_weights = [
             target_feature_weights(
@@ -177,7 +163,7 @@ def prediction_feature_weights(clf, X, feature_names):
 
 def target_feature_weights(leaf_ids, tree_dumps, feature_names):
     feature_weights = np.zeros(len(feature_names))
-    # All trees in xgboost give equal contribution to the prediction:
+    # All trees in XGBoost give equal contribution to the prediction:
     # it is equal to sum of "leaf" values in leafs
     # before applying loss-specific function
     # (e.g. logistic for "binary:logistic" loss).
@@ -233,7 +219,7 @@ def indexed_leafs(parent):
 
 def parse_tree_dump(text_dump):
     """ Parse text tree dump (one item of a list returned by Booster.get_dump())
-    into json format that will be used by next xgboost release.
+    into json format that will be used by next XGBoost release.
     """
     result = None
     stack = []  # type: List[Dict]

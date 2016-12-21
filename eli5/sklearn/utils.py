@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
-from typing import Any
+from typing import Any, Optional
 
 import numpy as np
+import scipy.sparse as sp
 from sklearn.multiclass import OneVsRestClassifier
+from sklearn.feature_extraction.text import HashingVectorizer
 
+from eli5.sklearn.unhashing import InvertableHashingVectorizer, is_invhashing
 from eli5._feature_names import FeatureNames
 
 
@@ -35,6 +38,20 @@ def is_probabilistic_classifier(clf):
         # wrapped estimator has a predict_proba method.
         return hasattr(clf.estimator, 'predict_proba')
     return True
+
+
+def predict_proba(clf, X):
+    # type: (Any, Any) -> Optional[np.ndarray]
+    """ Return result of predict_proba, if the classifier supports it, or None.
+    """
+    if is_probabilistic_classifier(clf):
+        try:
+            proba, = clf.predict_proba(X)
+            return proba
+        except NotImplementedError:
+            return None
+    else:
+        return None
 
 
 def has_intercept(estimator):
@@ -158,3 +175,25 @@ def get_num_features(clf):
         return get_num_features(clf.estimators_[0])
     else:
         raise ValueError("Can't figure out feature vector size for %s" % clf)
+
+
+def get_X(doc, vec=None, vectorized=False, to_dense=False):
+    if vec is None or vectorized:
+        X = np.array([doc]) if isinstance(doc, np.ndarray) else doc
+    else:
+        X = vec.transform([doc])
+    if to_dense and sp.issparse(X):
+        X = X.toarray()
+    return X
+
+
+def handle_vec(clf, doc, vec, vectorized, feature_names):
+    if isinstance(vec, HashingVectorizer) and not vectorized:
+        vec = InvertableHashingVectorizer(vec)
+        vec.fit([doc])
+    if is_invhashing(vec) and feature_names is None:
+        # Explaining predictions does not need coef_scale,
+        # because it is handled by the vectorizer.
+        feature_names = vec.get_feature_names(always_signed=False)
+    feature_names = get_feature_names(clf, vec, feature_names=feature_names)
+    return vec, feature_names
