@@ -106,42 +106,23 @@ def test_render_weighted_spans_word():
         preserve_density=False,
     )
     s = _render_weighted_spans(weighted_spans)
+    print(s)
     assert s.startswith(
-        '<span style="opacity: 0.80">i</span>'
-        '<span style="opacity: 0.80"> </span>'
+        '<span style="opacity: 0.80">i </span>'
         '<span'
         ' style="background-color: hsl(120, 100.00%, 89.21%); opacity: 0.83"'
-        ' title="0.200">s</span>'
+        ' title="0.200">see</span>'
     )
     s_without_styles = re.sub('style=".*?"', '', s)
     assert s_without_styles == (
-         '<span >i</span>'
+         '<span >i </span>'
+         '<span  title="0.200">see</span>'
+         '<span >: a </span>'
+         '<span  title="0.500">leaning</span>'
          '<span > </span>'
-         '<span  title="0.200">s</span>'
-         '<span  title="0.200">e</span>'
-         '<span  title="0.200">e</span>'
-         '<span >:</span>'
+         '<span  title="1.300">lemon</span>'
          '<span > </span>'
-         '<span >a</span>'
-         '<span > </span>'
-         '<span  title="0.500">l</span>'
-         '<span  title="0.500">e</span>'
-         '<span  title="0.500">a</span>'
-         '<span  title="0.500">n</span>'
-         '<span  title="0.500">i</span>'
-         '<span  title="0.500">n</span>'
-         '<span  title="0.500">g</span>'
-         '<span > </span>'
-         '<span  title="1.300">l</span>'
-         '<span  title="1.300">e</span>'
-         '<span  title="1.300">m</span>'
-         '<span  title="1.300">o</span>'
-         '<span  title="1.300">n</span>'
-         '<span > </span>'
-         '<span  title="0.200">t</span>'
-         '<span  title="0.200">r</span>'
-         '<span  title="0.200">e</span>'
-         '<span  title="0.200">e</span>'
+         '<span  title="0.200">tree</span>'
     )
 
 
