@@ -7,6 +7,7 @@ from sklearn.feature_extraction.text import CountVectorizer
 pytest.importorskip('xgboost')
 from xgboost import XGBClassifier, XGBRegressor
 
+from eli5.base import TargetExplanation
 from eli5.xgboost import parse_tree_dump
 from eli5.explain import explain_prediction
 from eli5.formatters.text import format_as_text
@@ -42,6 +43,7 @@ def test_explain_prediction_clf_binary(newsgroups_train_binary_big):
         clf, 'computer graphics in space: a sign of atheism',
         vec=vec, target_names=target_names)
     format_as_all(res, clf)
+    _check_scores(res)
     weights = res.targets[0].feature_weights
     pos_features = get_all_features(weights.pos)
     neg_features = get_all_features(weights.neg)
@@ -60,6 +62,7 @@ def test_explain_prediction_clf_multitarget(newsgroups_train):
         clf, 'computer graphics in space: a new religion',
         vec=vec, target_names=target_names)
     format_as_all(res, clf)
+    _check_scores(res)
     graphics_weights = res.targets[1].feature_weights
     assert 'computer' in get_all_features(graphics_weights.pos)
     religion_weights = res.targets[3].feature_weights
@@ -77,6 +80,7 @@ def test_explain_prediction_xor():
         res = explain_prediction(clf, np.array(x))
         print(x)
         print(format_as_text(res))
+        _check_scores(res)
 
 
 def test_explain_prediction_interval():
@@ -84,13 +88,29 @@ def test_explain_prediction_interval():
     xs = np.array([[np.random.normal(x, 0.2), np.random.normal(y, 0.2)]
                    for x, y in true_xs])
     ys = np.array([x == 1 for x, _ in true_xs])
-    clf = XGBClassifier(n_estimators=100, max_depth=2)
+    clf = XGBClassifier(n_estimators=10, max_depth=2)
     clf.fit(xs, ys)
     for x in [[0, 1], [1, 1], [2, 1], [1, 5], [0, 5]]:
         res = explain_prediction(clf, np.array(x))
         print(x)
         print(format_as_text(res))
+        _check_scores(res)
 
+
+def _check_scores(explanation):
+    for target in explanation.targets:
+        _check_target_score(target)
+
+
+def _check_target_score(target):
+    # type: (TargetExplanation) -> None
+    weights = target.feature_weights
+    # else the check is invalid
+    assert weights.neg_remaining == weights.pos_remaining == 0
+    assert np.isclose(
+        target.score,
+        sum(fw.weight for fw in weights.pos) +
+        sum(fw.weight for fw in weights.neg))
 
 
 def test_parse_tree_dump():
