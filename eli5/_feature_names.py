@@ -110,6 +110,26 @@ class FeatureNames(Sized):
             ),
             indices)
 
+    def add_feature(self, feature):
+        # type: (Any) -> int
+        """ Add a new feature name, return it's index.
+        """
+        # A copy of self.feature_names is always made, because it might be
+        # "owned" by someone else.
+        # It's possible to make the copy only at the first call to
+        # self.add_feature to improve performance.
+        idx = self.n_features
+        if isinstance(self.feature_names, (list, np.ndarray)):
+            self.feature_names = list(self.feature_names)
+            self.feature_names.append(feature)
+        elif isinstance(self.feature_names, dict):
+            self.feature_names = dict(self.feature_names)
+            self.feature_names[idx] = feature
+        elif self.feature_names is None:
+            self.feature_names = {idx: feature}
+        self.n_features += 1
+        return idx
+
 
 def _feature_names(name):
     if isinstance(name, bytes):

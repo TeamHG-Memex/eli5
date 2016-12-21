@@ -76,20 +76,8 @@ def explain_prediction_xgboost(
         # them as having an intercept
         feature_names.bias_name = '<BIAS>'
 
-    # TODO: do it properly (not sure how yet, also include bias handling?)
-    fnames = feature_names.feature_names
     missing = FormattedFeatureName('Missing features')
-    missing_idx = feature_names.n_features
-    if isinstance(fnames, (list, np.ndarray)):
-        fnames = list(fnames)
-        fnames.append(missing)
-    elif isinstance(fnames, dict):
-        fnames = dict(fnames)
-        fnames[missing_idx] = missing
-    elif fnames is None:
-        fnames = {missing_idx: missing}
-    feature_names.feature_names = fnames
-    feature_names.n_features += 1
+    missing_idx = feature_names.add_feature(missing)
 
     X = get_X(doc, vec, vectorized=vectorized)
     if sp.issparse(X):
@@ -102,7 +90,8 @@ def explain_prediction_xgboost(
     display_names = get_target_display_names(
         clf.classes_, target_names, targets)
 
-    scores_weights = prediction_feature_weights(clf, X, feature_names)
+    scores_weights = prediction_feature_weights(
+        clf, X, feature_names, missing_idx)
 
     res = Explanation(
         estimator=repr(clf),
@@ -136,7 +125,7 @@ def explain_prediction_xgboost(
     return res
 
 
-def prediction_feature_weights(clf, X, feature_names):
+def prediction_feature_weights(clf, X, feature_names, missing_idx):
     """ For each target, return score and numpy array with feature weights
     on this prediction, following an idea from
     http://blog.datadive.net/interpreting-random-forests/
@@ -154,14 +143,15 @@ def prediction_feature_weights(clf, X, feature_names):
                 leaf_ids[class_idx::clf.n_classes_],
                 tree_dumps[class_idx::clf.n_classes_],
                 feature_names,
+                missing_idx,
             ) for class_idx in range(clf.n_classes_)]
     else:
-        scores_weights = [
-            target_feature_weights(leaf_ids, tree_dumps, feature_names)]
+        scores_weights = [target_feature_weights(
+            leaf_ids, tree_dumps, feature_names, missing_idx)]
     return scores_weights
 
 
-def target_feature_weights(leaf_ids, tree_dumps, feature_names):
+def target_feature_weights(leaf_ids, tree_dumps, feature_names, missing_idx):
     feature_weights = np.zeros(len(feature_names))
     # All trees in XGBoost give equal contribution to the prediction:
     # it is equal to sum of "leaf" values in leafs
@@ -191,8 +181,7 @@ def target_feature_weights(leaf_ids, tree_dumps, feature_names):
             # Condition is "x < split_condition", so sign is inverted
             sign = {'yes': -1, 'no': 1}[yn_res]
             # Last feature is for all missing features
-            idx = ((feature_names.n_features - 1) if res == 'missing'
-                   else feature_idx)
+            idx = missing_idx if res == 'missing' else feature_idx
             feature_weights[idx] += diff * sign
         # Root "leaf" value is interpreted as bias
         feature_weights[feature_names.bias_idx] += path[0]['leaf']
