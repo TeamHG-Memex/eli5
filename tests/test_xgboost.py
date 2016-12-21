@@ -9,6 +9,7 @@ from xgboost import XGBClassifier, XGBRegressor
 
 from eli5.xgboost import parse_tree_dump
 from eli5.explain import explain_prediction
+from eli5.formatters.text import format_as_text
 from .utils import format_as_all, get_all_features
 from .test_sklearn_explain_weights import (
     test_explain_random_forest as _check_rf,
@@ -74,9 +75,22 @@ def test_explain_prediction_xor():
     clf.fit(xs, ys)
     for x in [[0, 1], [1, 0], [0, 0], [1, 1]]:
         res = explain_prediction(clf, np.array(x))
-        from eli5.formatters.text import format_as_text
         print(x)
         print(format_as_text(res))
+
+
+def test_explain_prediction_interval():
+    true_xs = [[np.random.randint(3), np.random.randint(10)] for _ in range(100)]
+    xs = np.array([[np.random.normal(x, 0.2), np.random.normal(y, 0.2)]
+                   for x, y in true_xs])
+    ys = np.array([x == 1 for x, _ in true_xs])
+    clf = XGBClassifier(n_estimators=100, max_depth=2)
+    clf.fit(xs, ys)
+    for x in [[0, 1], [1, 1], [2, 1], [1, 5], [0, 5]]:
+        res = explain_prediction(clf, np.array(x))
+        print(x)
+        print(format_as_text(res))
+
 
 
 def test_parse_tree_dump():
