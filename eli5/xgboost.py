@@ -11,6 +11,7 @@ from xgboost import XGBClassifier, XGBRegressor, Booster, DMatrix
 from eli5.base import (
     FeatureWeight, FeatureImportances, Explanation, TargetExplanation)
 from eli5.formatters.features import FormattedFeatureName
+from eli5._feature_names import FeatureNames
 from eli5.explain import explain_weights, explain_prediction
 from eli5.sklearn.text import add_weighted_spans
 from eli5.sklearn.utils import (
@@ -23,18 +24,6 @@ DESCRIPTION_XGBOOST = """
 XGBoost feature importances; values are numbers 0 <= x <= 1;
 all values sum to 1.
 """
-
-if not hasattr(XGBRegressor, 'feature_importances_'):
-    # xgboost <= 0.6a2, fixed in https://github.com/dmlc/xgboost/pull/1591
-
-    def xgb_feature_importances(xgb):
-        b = xgb.booster()
-        fs = b.get_fscore()
-        all_features = np.array(
-            [fs.get(f, 0.) for f in b.feature_names], dtype=np.float32)
-        return all_features / all_features.sum()
-
-    XGBRegressor.feature_importances_ = property(xgb_feature_importances)
 
 
 @explain_weights.register(XGBClassifier)
@@ -50,8 +39,10 @@ def explain_weights_xgboost(xgb,
     """
     Return an explanation of an XGBoost estimator (via scikit-learn wrapper).
     """
-    feature_names = get_feature_names(xgb, vec, feature_names=feature_names)
-    coef = xgb.feature_importances_
+    coef = xgb_feature_importances(xgb)
+    num_features = coef.shape[-1]
+    feature_names = get_feature_names(
+        xgb, vec, feature_names=feature_names, num_features=num_features)
 
     if feature_re is not None:
         feature_names, flt_indices = feature_names.filtered_by_re(feature_re)
@@ -83,7 +74,9 @@ def explain_prediction_xgboost(
         vectorized=False):
     """ Return an explanation of XGBoost prediction (via scikit-learn wrapper).
     """
-    vec, feature_names = handle_vec(xgb, doc, vec, vectorized, feature_names)
+    num_features = len(xgb.booster().feature_names)
+    vec, feature_names = handle_vec(
+        xgb, doc, vec, vectorized, feature_names, num_features=num_features)
     if feature_names.bias_name is None:
         # XGBoost estimators do not have an intercept, but here we interpret
         # them as having an intercept
@@ -231,6 +224,16 @@ def xgb_n_targets(xgb):
         return 1
     else:
         raise TypeError
+
+
+def xgb_feature_importances(xgb):
+    # XGBRegressor does not have feature_importances_ property
+    # in xgboost <= 0.6a2, fixed in https://github.com/dmlc/xgboost/pull/1591
+    b = xgb.booster()
+    fs = b.get_fscore()
+    all_features = np.array(
+        [fs.get(f, 0.) for f in b.feature_names], dtype=np.float32)
+    return all_features / all_features.sum()
 
 
 def parse_tree_dump(text_dump):

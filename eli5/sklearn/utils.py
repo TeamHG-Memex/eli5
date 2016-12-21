@@ -67,8 +67,9 @@ def has_intercept(estimator):
     return False
 
 
-def get_feature_names(clf, vec=None, bias_name='<BIAS>', feature_names=None):
-    # type: (Any, Any, str, Any) -> FeatureNames
+def get_feature_names(clf, vec=None, bias_name='<BIAS>', feature_names=None,
+                      num_features=None):
+    # type: (Any, Any, str, Any, int) -> FeatureNames
     """
     Return a FeatureNames instance that holds all feature names
     and a bias feature.
@@ -82,11 +83,11 @@ def get_feature_names(clf, vec=None, bias_name='<BIAS>', feature_names=None):
         if vec and hasattr(vec, 'get_feature_names'):
             return FeatureNames(vec.get_feature_names(), bias_name=bias_name)
         else:
-            num_features = get_num_features(clf)
+            num_features = num_features or get_num_features(clf)
             return FeatureNames(
                 n_features=num_features, unkn_template='x%d', bias_name=bias_name)
 
-    num_features = get_num_features(clf)
+    num_features = num_features or get_num_features(clf)
     if isinstance(feature_names, FeatureNames):
         if feature_names.n_features != num_features:
             raise ValueError("feature_names has a wrong n_features: "
@@ -187,7 +188,7 @@ def get_X(doc, vec=None, vectorized=False, to_dense=False):
     return X
 
 
-def handle_vec(clf, doc, vec, vectorized, feature_names):
+def handle_vec(clf, doc, vec, vectorized, feature_names, num_features=None):
     if isinstance(vec, HashingVectorizer) and not vectorized:
         vec = InvertableHashingVectorizer(vec)
         vec.fit([doc])
@@ -195,5 +196,6 @@ def handle_vec(clf, doc, vec, vectorized, feature_names):
         # Explaining predictions does not need coef_scale,
         # because it is handled by the vectorizer.
         feature_names = vec.get_feature_names(always_signed=False)
-    feature_names = get_feature_names(clf, vec, feature_names=feature_names)
+    feature_names = get_feature_names(
+        clf, vec, feature_names=feature_names, num_features=num_features)
     return vec, feature_names
