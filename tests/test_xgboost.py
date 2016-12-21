@@ -45,7 +45,7 @@ def test_explain_xgboost_regressor(boston_train):
 
 def test_explain_prediction_clf_binary(newsgroups_train_binary_big):
     docs, ys, target_names = newsgroups_train_binary_big
-    vec = CountVectorizer(binary=True, stop_words='english')
+    vec = CountVectorizer(stop_words='english')
     clf = XGBClassifier(n_estimators=100, max_depth=2, missing=0)
     xs = vec.fit_transform(docs)
     clf.fit(xs, ys)
@@ -64,7 +64,7 @@ def test_explain_prediction_clf_binary(newsgroups_train_binary_big):
 
 def test_explain_prediction_clf_multitarget(newsgroups_train):
     docs, ys, target_names = newsgroups_train
-    vec = CountVectorizer(binary=True, stop_words='english')
+    vec = CountVectorizer(stop_words='english')
     xs = vec.fit_transform(docs)
     clf = XGBClassifier(n_estimators=100, max_depth=2, missing=0)
     clf.fit(xs, ys)
