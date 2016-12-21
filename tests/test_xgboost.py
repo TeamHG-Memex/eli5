@@ -71,7 +71,7 @@ def test_explain_prediction_clf_multitarget(newsgroups_train):
 
 def test_explain_prediction_xor():
     true_xs = [[np.random.randint(2), np.random.randint(2)] for _ in range(100)]
-    xs = np.array([[np.random.normal(x, 0.1), np.random.normal(y, 0.2)]
+    xs = np.array([[np.random.normal(x, 0.2), np.random.normal(y, 0.2)]
                    for x, y in true_xs])
     ys = np.array([x == y for x, y in true_xs])
     clf = XGBClassifier(n_estimators=100, max_depth=2)
@@ -84,13 +84,13 @@ def test_explain_prediction_xor():
 
 
 def test_explain_prediction_interval():
-    true_xs = [[np.random.randint(3), np.random.randint(10)] for _ in range(100)]
+    true_xs = [[np.random.randint(3), np.random.randint(10)] for _ in range(1000)]
     xs = np.array([[np.random.normal(x, 0.2), np.random.normal(y, 0.2)]
                    for x, y in true_xs])
     ys = np.array([x == 1 for x, _ in true_xs])
-    clf = XGBClassifier(n_estimators=10, max_depth=2)
+    clf = XGBClassifier(n_estimators=100, max_depth=2)
     clf.fit(xs, ys)
-    for x in [[0, 1], [1, 1], [2, 1], [1, 5], [0, 5]]:
+    for x in [[0, 1], [1, 1], [2, 1], [0.8, 5], [1.2, 5]]:
         res = explain_prediction(clf, np.array(x))
         print(x)
         print(format_as_text(res))
