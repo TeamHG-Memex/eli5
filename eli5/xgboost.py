@@ -153,18 +153,6 @@ def prediction_feature_weights(clf, X, feature_names, missing_idx):
     return scores_weights
 
 
-def get_feature_contribution(node, child):
-    # type: (Dict, Dict) -> float
-    """ Return single feature contribution.
-    """
-    diff = child['leaf'] - node['leaf']
-    res_map = {node[k]: k for k in ['yes', 'no']}
-    res = res_map[child['nodeid']]
-    # Condition is "x < split_condition", so sign is inverted
-    sign = {'yes': -1, 'no': 1}[res]
-    return diff * sign
-
-
 def target_feature_weights(
         leaf_ids, tree_dumps, feature_names, missing_idx, X, missing):
     feature_weights = np.zeros(len(feature_names))
@@ -185,10 +173,9 @@ def target_feature_weights(
             f_num_match = re.search('^f(\d+)$', node['split'])
             feature_idx = int(f_num_match.groups()[0])
             assert feature_idx >= 0
-            contribution = get_feature_contribution(node, child)
             idx = (missing_idx if is_missing(X, feature_idx, missing)
                    else feature_idx)
-            feature_weights[idx] += contribution
+            feature_weights[idx] += child['leaf'] - node['leaf']
         # Root "leaf" value is interpreted as bias
         feature_weights[feature_names.bias_idx] += path[0]['leaf']
     return score, feature_weights
