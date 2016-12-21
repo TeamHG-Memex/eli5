@@ -65,6 +65,20 @@ def test_explain_prediction_clf_multitarget(newsgroups_train):
     assert 'religion' in get_all_features(religion_weights.pos)
 
 
+def test_explain_prediction_xor():
+    true_xs = [[np.random.randint(2), np.random.randint(2)] for _ in range(100)]
+    xs = np.array([[np.random.normal(x, 0.1), np.random.normal(y, 0.2)]
+                   for x, y in true_xs])
+    ys = np.array([x == y for x, y in true_xs])
+    clf = XGBClassifier(n_estimators=100, max_depth=2)
+    clf.fit(xs, ys)
+    for x in [[0, 1], [1, 0], [0, 0], [1, 1]]:
+        res = explain_prediction(clf, np.array(x))
+        from eli5.formatters.text import format_as_text
+        print(x)
+        print(format_as_text(res))
+
+
 def test_parse_tree_dump():
     text_dump = '''\
 0:[f1793<-9.53674e-07] yes=1,no=2,missing=1,gain=6.112,cover=37.5
