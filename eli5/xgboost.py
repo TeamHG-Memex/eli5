@@ -135,40 +135,38 @@ def prediction_feature_weights(clf, X, feature_names, missing_idx):
     leaf_ids, = booster.predict(DMatrix(X, missing=clf.missing), pred_leaf=True)
     tree_dumps = booster.get_dump(with_stats=True)
     assert len(tree_dumps) == len(leaf_ids)
+
+    def _target_feature_weights(_leaf_ids, _tree_dumps):
+        return target_feature_weights(
+            _leaf_ids, _tree_dumps, feature_names, missing_idx, X, clf.missing)
+
     if clf.n_classes_ > 2:
         # For multiclass, XGBoost stores dumps and leaf_ids in a 1d array,
         # so we need to split them.
         scores_weights = [
-            target_feature_weights(
+            _target_feature_weights(
                 leaf_ids[class_idx::clf.n_classes_],
                 tree_dumps[class_idx::clf.n_classes_],
-                feature_names,
-                missing_idx,
             ) for class_idx in range(clf.n_classes_)]
     else:
-        scores_weights = [target_feature_weights(
-            leaf_ids, tree_dumps, feature_names, missing_idx)]
+        scores_weights = [_target_feature_weights(leaf_ids, tree_dumps)]
     return scores_weights
 
 
 def get_feature_contribution(node, child):
-    # type: (Dict, Dict) -> Tuple[float, bool]
-    """ Single feature contribution, and whether the features is missing.
+    # type: (Dict, Dict) -> float
+    """ Return single feature contribution.
     """
     diff = child['leaf'] - node['leaf']
-    res_map = {node[k]: k for k in ['yes', 'no', 'missing']}
-    res = yn_res = res_map[child['nodeid']]
-    if res == 'missing':
-        if node['yes'] == node['missing']:
-            yn_res = 'no'
-        elif node['no'] == node['missing']:
-            yn_res = 'yes'
+    res_map = {node[k]: k for k in ['yes', 'no']}
+    res = res_map[child['nodeid']]
     # Condition is "x < split_condition", so sign is inverted
-    sign = {'yes': -1, 'no': 1}[yn_res]
-    return diff * sign, res == 'missing'
+    sign = {'yes': -1, 'no': 1}[res]
+    return diff * sign
 
 
-def target_feature_weights(leaf_ids, tree_dumps, feature_names, missing_idx):
+def target_feature_weights(
+        leaf_ids, tree_dumps, feature_names, missing_idx, X, missing):
     feature_weights = np.zeros(len(feature_names))
     # All trees in XGBoost give equal contribution to the prediction:
     # it is equal to sum of "leaf" values in leafs
@@ -187,12 +185,18 @@ def target_feature_weights(leaf_ids, tree_dumps, feature_names, missing_idx):
             f_num_match = re.search('^f(\d+)$', node['split'])
             feature_idx = int(f_num_match.groups()[0])
             assert feature_idx >= 0
-            contribution, is_missing = get_feature_contribution(node, child)
-            idx = missing_idx if is_missing else feature_idx
+            contribution = get_feature_contribution(node, child)
+            idx = (missing_idx if is_missing(X, feature_idx, missing)
+                   else feature_idx)
             feature_weights[idx] += contribution
         # Root "leaf" value is interpreted as bias
         feature_weights[feature_names.bias_idx] += path[0]['leaf']
     return score, feature_weights
+
+
+def is_missing(X, feature_idx, missing):
+    value = X[0, feature_idx]
+    return np.isnan(value) if np.isnan(missing) else value == missing
 
 
 def indexed_leafs(parent):

@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
+
 import pytest
-from sklearn.datasets import make_classification
+import numpy as np
 from sklearn.feature_extraction.text import CountVectorizer
 pytest.importorskip('xgboost')
 from xgboost import XGBClassifier, XGBRegressor
@@ -33,7 +34,7 @@ def test_feature_importances_no_remaining():
 def test_explain_prediction_clf_binary(newsgroups_train_binary_big):
     docs, ys, target_names = newsgroups_train_binary_big
     vec = CountVectorizer(binary=True, stop_words='english')
-    clf = XGBClassifier(n_estimators=100, max_depth=2)
+    clf = XGBClassifier(n_estimators=100, max_depth=2, missing=0)
     xs = vec.fit_transform(docs)
     clf.fit(xs, ys)
     res = explain_prediction(
@@ -52,7 +53,7 @@ def test_explain_prediction_clf_multitarget(newsgroups_train):
     docs, ys, target_names = newsgroups_train
     vec = CountVectorizer(binary=True, stop_words='english')
     xs = vec.fit_transform(docs)
-    clf = XGBClassifier(n_estimators=100, max_depth=2)
+    clf = XGBClassifier(n_estimators=100, max_depth=2, missing=0)
     clf.fit(xs, ys)
     res = explain_prediction(
         clf, 'computer graphics in space: a new religion',
