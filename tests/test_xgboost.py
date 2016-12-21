@@ -8,7 +8,7 @@ from xgboost import XGBClassifier, XGBRegressor
 
 from eli5.xgboost import parse_tree_dump
 from eli5.explain import explain_prediction
-from .utils import format_as_all
+from .utils import format_as_all, get_all_features
 from .test_sklearn_explain_weights import (
     test_explain_random_forest as _check_rf,
     test_explain_random_forest_and_tree_feature_re as _check_rf_feature_re,
@@ -30,22 +30,40 @@ def test_feature_importances_no_remaining():
     _check_rf_no_remaining(XGBClassifier())
 
 
-def test_explain_prediction_clf_binary():
-    xs, ys = make_classification(n_features=4, n_informative=3, n_redundant=1)
-    clf = XGBClassifier(n_estimators=5, max_depth=3)
+def test_explain_prediction_clf_binary(newsgroups_train_binary_big):
+    docs, ys, target_names = newsgroups_train_binary_big
+    # TODO - make it work with binary=False
+    vec = CountVectorizer(binary=True, stop_words='english')
+    clf = XGBClassifier(n_estimators=100, max_depth=2)
+    xs = vec.fit_transform(docs)
     clf.fit(xs, ys)
-    res = explain_prediction(clf, xs[0])
+    res = explain_prediction(
+        clf, 'computer graphics in space: a sign of atheism',
+        vec=vec, target_names=target_names)
     format_as_all(res, clf)
+    weights = res.targets[0].feature_weights
+    pos_features = get_all_features(weights.pos)
+    neg_features = get_all_features(weights.neg)
+    assert 'graphics' in pos_features
+    assert 'computer' in pos_features
+    assert 'atheism' in neg_features
 
 
 def test_explain_prediction_clf_multitarget(newsgroups_train):
-    docs, y, target_names = newsgroups_train
-    vec = CountVectorizer(stop_words='english', binary=True)
+    docs, ys, target_names = newsgroups_train
+    # TODO - make it work with binary=False
+    vec = CountVectorizer(binary=True, stop_words='english')
     xs = vec.fit_transform(docs)
     clf = XGBClassifier(n_estimators=100, max_depth=2)
-    clf.fit(xs, y)
-    res = explain_prediction(clf, docs[7], vec=vec, target_names=target_names)
+    clf.fit(xs, ys)
+    res = explain_prediction(
+        clf, 'computer graphics in space: a new religion',
+        vec=vec, target_names=target_names)
     format_as_all(res, clf)
+    graphics_weights = res.targets[1].feature_weights
+    assert 'computer' in get_all_features(graphics_weights.pos)
+    religion_weights = res.targets[3].feature_weights
+    assert 'religion' in get_all_features(religion_weights.pos)
 
 
 def test_parse_tree_dump():

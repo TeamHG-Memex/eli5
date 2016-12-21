@@ -39,6 +39,11 @@ def newsgroups_train_binary():
 
 
 @pytest.fixture(scope="session")
+def newsgroups_train_binary_big():
+    return _get_newsgroups(binary=True, remove_chrome=True, size=1000)
+
+
+@pytest.fixture(scope="session")
 def boston_train(size=SIZE):
     data = load_boston()
     X, y = shuffle(data.data, data.target, random_state=13)
