@@ -30,8 +30,8 @@ if not hasattr(XGBRegressor, 'feature_importances_'):
     def xgb_feature_importances(xgb):
         b = xgb.booster()
         fs = b.get_fscore()
-        all_features = [fs.get(f, 0.) for f in b.feature_names]
-        all_features = np.array(all_features, dtype=np.float32)
+        all_features = np.array(
+            [fs.get(f, 0.) for f in b.feature_names], dtype=np.float32)
         return all_features / all_features.sum()
 
     XGBRegressor.feature_importances_ = property(xgb_feature_importances)
