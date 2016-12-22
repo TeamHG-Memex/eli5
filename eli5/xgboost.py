@@ -186,7 +186,7 @@ def _prediction_feature_weights(xgb, X, feature_names, missing_idx):
     tree_dumps = booster.get_dump(with_stats=True)
     assert len(tree_dumps) == len(leaf_ids)
 
-    def _target_feature_weights(_leaf_ids, _tree_dumps):
+    def target_feature_weights(_leaf_ids, _tree_dumps):
         return _target_feature_weights(
             _leaf_ids, _tree_dumps, feature_names, missing_idx, X, xgb.missing)
 
@@ -195,12 +195,12 @@ def _prediction_feature_weights(xgb, X, feature_names, missing_idx):
         # For multiclass, XGBoost stores dumps and leaf_ids in a 1d array,
         # so we need to split them.
         scores_weights = [
-            _target_feature_weights(
+            target_feature_weights(
                 leaf_ids[target_idx::n_targets],
                 tree_dumps[target_idx::n_targets],
             ) for target_idx in range(n_targets)]
     else:
-        scores_weights = [_target_feature_weights(leaf_ids, tree_dumps)]
+        scores_weights = [target_feature_weights(leaf_ids, tree_dumps)]
     return scores_weights
 
 
