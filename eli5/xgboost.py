@@ -27,7 +27,7 @@ all values sum to 1.
 
 DECISION_PATHS_CAVEATS = """
 Feature weights are calculated by following decision paths in trees
-of the ensemble. Each leaf has an output score, and expected scores can also be
+of an ensemble. Each leaf has an output score, and expected scores can also be
 assigned to parent nodes. Contribution of one feature on the decision path
 is how much expected score changes from parent to child. Weights of all features
 sum to the output score of the estimator.
@@ -35,10 +35,13 @@ Caveats:
 1. Feature weights just show if the feature contributed positively or
    negatively to the final score, and does show how increasing or decreasing
    the feature value will change the prediction.
-2. In some cases, feature weight can be close to zero for an important feature:
-   for example, for a tree that computes XOR function, the feature at the top
-   of the tree will have zero weight, because expected scores for both branches
-   are equal, so decision at the top feature does not change the expected score.
+2. In some cases, feature weight can be close to zero for an important feature.
+   For example, in a single tree that computes XOR function, the feature at the
+   top of the tree will have zero weight because expected scores for both
+   branches are equal, so decision at the top feature does not change the
+   expected score. For an ensemble predicting XOR functions it might not be
+   a problem, but it is not reliable if most trees happen to choose the same
+   feature at the top.
 """
 
 DESCRIPTION_CLF_MULTICLASS = """
@@ -105,7 +108,7 @@ def explain_prediction_xgboost(
     Method for determining feature importances follows an idea from
     http://blog.datadive.net/interpreting-random-forests/.
     Feature weights are calculated by following decision paths in trees
-    of the ensemble.
+    of an ensemble.
     Each leaf has an output score, and expected scores can also be assigned
     to parent nodes.
     Contribution of one feature on the decision path is how much expected score
