@@ -25,6 +25,32 @@ XGBoost feature importances; values are numbers 0 <= x <= 1;
 all values sum to 1.
 """
 
+DECISION_PATHS_CAVEATS = """
+Feature weights are calculated by following decision paths in trees
+of the ensemble. Each leaf has an output score, and expected scores can also be
+assigned to parent nodes. Contribution of one feature on the decision path
+is how much expected score changes from parent to child. Weights of all features
+sum to the output score of the estimator.
+Caveats:
+1. Feature weights just show if the feature contributed positively or
+   negatively to the final score, and does show how increasing or decreasing
+   the feature value will change the prediction.
+2. In some cases, feature weight can be close to zero for an important feature:
+   for example, for a tree that computes XOR function, the feature at the top
+   of the tree will have zero weight, because expected scores for both branches
+   are equal, so decision at the top feature does not change the expected score.
+"""
+
+DESCRIPTION_CLF_MULTICLASS = """
+Features with largest coefficients per class.
+""" + DECISION_PATHS_CAVEATS
+
+DESCRIPTION_CLF_BINARY = """
+Features with largest coefficients.
+""" + DECISION_PATHS_CAVEATS
+
+DESCRIPTION_REGRESSION = DESCRIPTION_CLF_BINARY
+
 
 @explain_weights.register(XGBClassifier)
 @explain_weights.register(XGBRegressor)
@@ -92,19 +118,25 @@ def explain_prediction_xgboost(
         X = X.tocsc()
 
     proba = predict_proba(xgb, X)
-
-    names = xgb.classes_ if isinstance(xgb, XGBClassifier) else ['y']
-    display_names = get_target_display_names(names, target_names, targets)
-
     scores_weights = prediction_feature_weights(
         xgb, X, feature_names, missing_idx)
+
+    is_multiclass = xgb_n_targets(xgb) > 1
+    is_regressor = isinstance(xgb, XGBRegressor)
+    names = xgb.classes_ if not is_regressor else ['y']
+    display_names = get_target_display_names(names, target_names, targets)
 
     res = Explanation(
         estimator=repr(xgb),
         method='decision paths',
+        description={
+            (False, False): DESCRIPTION_CLF_BINARY,
+            (False, True): DESCRIPTION_CLF_MULTICLASS,
+            (True, False): DESCRIPTION_REGRESSION,
+        }[is_regressor, is_multiclass],
         targets=[],
     )
-    if xgb_n_targets(xgb) > 1:
+    if is_multiclass:
         for label_id, label in display_names:
             score, feature_weights = scores_weights[label_id]
             target_expl = TargetExplanation(
