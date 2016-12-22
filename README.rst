@@ -40,7 +40,8 @@ It provides support for the following machine learning frameworks and packages:
 * sklearn-crfsuite_. ELI5 allows to check weights of sklearn_crfsuite.CRF
   models.
 
-* xgboost_ - show feature importances using the same interface.
+* xgboost_ - show feature importances and explain predictions of XGBClassifier
+  and XGBRegressor.
 
 ELI5 also provides an alternative implementation of LIME_ algorithm,
 which allows to explain predictions of any black-box classifier. This feature

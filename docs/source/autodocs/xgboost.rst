@@ -2,7 +2,10 @@ eli5.xgboost
 ============
 
 eli5 has basic XGBoost_ support - :func:`eli5.explain_weights`
-shows feature weights for XGBClassifier.
+shows feature importances,
+and :func:`eli5.explain_prediction` explains predictions by showing feature weights.
+Both functions work for XGBClassifier and XGBRegressor.
+
 
 .. _XGBoost: https://github.com/dmlc/xgboost
 
