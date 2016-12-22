@@ -2,6 +2,7 @@ import re
 from typing import Union, List, Dict
 
 from eli5.base import Explanation
+from .features import FormattedFeatureName
 
 
 def replace_spaces(s, replacer):
@@ -65,6 +66,9 @@ def should_highlight_spaces(explanation):
 
 def _has_invisible_spaces(name):
     # type: (Union[str, List[Dict]]) -> bool
-    if isinstance(name, list):
+    if isinstance(name, FormattedFeatureName):
+        return False
+    elif isinstance(name, list):
         return any(_has_invisible_spaces(n['name']) for n in name)
-    return name.startswith(' ') or name.endswith(' ')
+    else:
+        return name.startswith(' ') or name.endswith(' ')

@@ -62,3 +62,22 @@ def test_slice():
     assert FN(np.array(['one', 'two', 'three']), bias_name='bias')[-2:] \
         == ['three', 'bias']
     assert list(FN(np.array(['one', 'two', 'three']))[-2:]) == ['two', 'three']
+
+
+@pytest.mark.parametrize(
+    ['feature_names'], [
+        [FeatureNames(['x1', 'x2', 'x3'])],
+        [FeatureNames(['x1', 'x2', 'x3'], bias_name='<BIAS>')],
+        [FeatureNames(np.array(['x1', 'x2', 'x3']))],
+        [FeatureNames({0: 'x1', 1: 'x2'})],
+        [FeatureNames(n_features=5, unkn_template='%d')],
+    ])
+def test_add_feature(feature_names):
+    len_before = len(feature_names)
+    storage = feature_names.feature_names
+    new_feature = 'new'
+    new_idx = feature_names.add_feature(new_feature)
+    assert len(feature_names) == len_before + 1
+    assert feature_names[new_idx] == new_feature
+    if storage is not None:
+        assert storage is not feature_names.feature_names

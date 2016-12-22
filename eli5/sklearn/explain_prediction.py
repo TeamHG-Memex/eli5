@@ -5,7 +5,6 @@ from typing import Any
 import numpy as np
 import scipy.sparse as sp
 from sklearn.base import BaseEstimator
-from sklearn.feature_extraction.text import HashingVectorizer
 from sklearn.linear_model import (
     ElasticNet,  # includes Lasso, MultiTaskElasticNet, etc.
     ElasticNetCV,
@@ -25,17 +24,17 @@ from sklearn.multiclass import OneVsRestClassifier
 
 from eli5.base import Explanation, TargetExplanation
 from eli5.utils import get_target_display_names
-from eli5.sklearn.unhashing import InvertableHashingVectorizer, is_invhashing
 from eli5.sklearn.utils import (
-    get_feature_names,
     get_coef,
     get_default_target_names,
+    get_X,
     is_multiclass_classifier,
     is_multitarget_regressor,
-    is_probabilistic_classifier,
+    predict_proba,
     has_intercept,
+    handle_vec,
 )
-from eli5.sklearn.text import get_weighted_spans
+from eli5.sklearn.text import add_weighted_spans
 from eli5._feature_weights import get_top_features
 from eli5.explain import explain_prediction
 
@@ -86,16 +85,10 @@ def explain_prediction_linear_classifier(clf, doc,
                                          feature_names=None,
                                          vectorized=False):
     """ Explain prediction of a linear classifier. """
-    vec, feature_names = _handle_vec(clf, doc, vec, vectorized, feature_names)
-    X = _get_X(doc, vec=vec, vectorized=vectorized)
+    vec, feature_names = handle_vec(clf, doc, vec, vectorized, feature_names)
+    X = get_X(doc, vec=vec, vectorized=vectorized, to_dense=True)
 
-    if is_probabilistic_classifier(clf):
-        try:
-            proba, = clf.predict_proba(X)
-        except NotImplementedError:
-            proba = None
-    else:
-        proba = None
+    proba = predict_proba(clf, X)
     score, = clf.decision_function(X)
 
     if has_intercept(clf):
@@ -124,7 +117,7 @@ def explain_prediction_linear_classifier(clf, doc,
                 score=score[label_id],
                 proba=proba[label_id] if proba is not None else None,
             )
-            _add_weighted_spans(doc, vec, vectorized, target_expl)
+            add_weighted_spans(doc, vec, vectorized, target_expl)
             res.targets.append(target_expl)
     else:
         target_expl = TargetExplanation(
@@ -133,7 +126,7 @@ def explain_prediction_linear_classifier(clf, doc,
             score=score,
             proba=proba[1] if proba is not None else None,
         )
-        _add_weighted_spans(doc, vec, vectorized, target_expl)
+        add_weighted_spans(doc, vec, vectorized, target_expl)
         res.targets.append(target_expl)
 
     return res
@@ -155,8 +148,8 @@ def explain_prediction_linear_regressor(reg, doc,
                                         feature_names=None,
                                         vectorized=False):
     """ Explain prediction of a linear regressor. """
-    vec, feature_names = _handle_vec(reg, doc, vec, vectorized, feature_names)
-    X = _get_X(doc, vec=vec, vectorized=vectorized)
+    vec, feature_names = handle_vec(reg, doc, vec, vectorized, feature_names)
+    X = get_X(doc, vec=vec, vectorized=vectorized, to_dense=True)
 
     score, = reg.predict(X)
 
@@ -186,7 +179,7 @@ def explain_prediction_linear_regressor(reg, doc,
                 feature_weights=_weights(label_id),
                 score=score[label_id],
             )
-            _add_weighted_spans(doc, vec, vectorized, target_expl)
+            add_weighted_spans(doc, vec, vectorized, target_expl)
             res.targets.append(target_expl)
     else:
         target_expl = TargetExplanation(
@@ -194,23 +187,10 @@ def explain_prediction_linear_regressor(reg, doc,
             feature_weights=_weights(0),
             score=score,
         )
-        _add_weighted_spans(doc, vec, vectorized, target_expl)
+        add_weighted_spans(doc, vec, vectorized, target_expl)
         res.targets.append(target_expl)
 
     return res
-
-
-def _add_weighted_spans(doc, vec, vectorized, target_expl):
-    # type: (Any, Any, bool, TargetExplanation) -> None
-    """
-    Compute and set ``target_expl.weighted_spans`` attribute, when possible.
-    """
-    if vec is None or vectorized:
-        return
-
-    weighted_spans = get_weighted_spans(doc, vec, target_expl.feature_weights)
-    if weighted_spans:
-        target_expl.weighted_spans = weighted_spans
 
 
 def _multiply(X, coef):
@@ -228,25 +208,3 @@ def _add_intercept(X):
         return sp.hstack([X, intercept]).tocsr()
     else:
         return np.hstack([X, intercept])
-
-
-def _get_X(doc, vec=None, vectorized=False):
-    if vec is None or vectorized:
-        X = np.array([doc]) if isinstance(doc, np.ndarray) else doc
-    else:
-        X = vec.transform([doc])
-    if sp.issparse(X):
-        X = X.toarray()
-    return X
-
-
-def _handle_vec(clf, doc, vec, vectorized, feature_names):
-    if isinstance(vec, HashingVectorizer) and not vectorized:
-        vec = InvertableHashingVectorizer(vec)
-        vec.fit([doc])
-    if is_invhashing(vec) and feature_names is None:
-        # Explaining predictions does not need coef_scale,
-        # because it is handled by the vectorizer.
-        feature_names = vec.get_feature_names(always_signed=False)
-    feature_names = get_feature_names(clf, vec, feature_names=feature_names)
-    return vec, feature_names
