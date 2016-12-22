@@ -11,6 +11,7 @@ from eli5.base import TargetExplanation
 from eli5.xgboost import parse_tree_dump, xgb_n_targets
 from eli5.explain import explain_prediction, explain_weights
 from eli5.formatters.text import format_as_text
+from eli5.formatters import fields
 from .utils import format_as_all, get_all_features
 from .test_sklearn_explain_weights import (
     test_explain_random_forest as _check_rf,
@@ -89,7 +90,7 @@ def test_explain_prediction_clf_xor():
     for x in [[0, 1], [1, 0], [0, 0], [1, 1]]:
         res = explain_prediction(clf, np.array(x))
         print(x)
-        print(format_as_text(res))
+        print(format_as_text(res, show=fields.WEIGHTS))
         _check_scores(res)
 
 
@@ -103,7 +104,7 @@ def test_explain_prediction_clf_interval():
     for x in [[0, 1], [1, 1], [2, 1], [0.8, 5], [1.2, 5]]:
         res = explain_prediction(clf, np.array(x))
         print(x)
-        print(format_as_text(res))
+        print(format_as_text(res, show=fields.WEIGHTS))
         _check_scores(res)
 
 
