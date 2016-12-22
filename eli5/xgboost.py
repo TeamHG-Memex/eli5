@@ -27,7 +27,7 @@ all values sum to 1.
 
 DECISION_PATHS_CAVEATS = """
 Feature weights are calculated by following decision paths in trees
-of the ensemble. Each leaf has an output score, and expected scores can also be
+of an ensemble. Each leaf has an output score, and expected scores can also be
 assigned to parent nodes. Contribution of one feature on the decision path
 is how much expected score changes from parent to child. Weights of all features
 sum to the output score of the estimator.
@@ -35,10 +35,13 @@ Caveats:
 1. Feature weights just show if the feature contributed positively or
    negatively to the final score, and does show how increasing or decreasing
    the feature value will change the prediction.
-2. In some cases, feature weight can be close to zero for an important feature:
-   for example, for a tree that computes XOR function, the feature at the top
-   of the tree will have zero weight, because expected scores for both branches
-   are equal, so decision at the top feature does not change the expected score.
+2. In some cases, feature weight can be close to zero for an important feature.
+   For example, in a single tree that computes XOR function, the feature at the
+   top of the tree will have zero weight because expected scores for both
+   branches are equal, so decision at the top feature does not change the
+   expected score. For an ensemble predicting XOR functions it might not be
+   a problem, but it is not reliable if most trees happen to choose the same
+   feature at the top.
 """
 
 DESCRIPTION_CLF_MULTICLASS = """
@@ -63,9 +66,10 @@ def explain_weights_xgboost(xgb,
                             feature_names=None,
                             feature_re=None):
     """
-    Return an explanation of an XGBoost estimator (via scikit-learn wrapper).
+    Return an explanation of an XGBoost estimator (via scikit-learn wrapper
+    XGBClassifier or XGBRegressor) as feature importances.
     """
-    coef = xgb_feature_importances(xgb)
+    coef = _xgb_feature_importances(xgb)
     num_features = coef.shape[-1]
     feature_names = get_feature_names(
         xgb, vec, feature_names=feature_names, num_features=num_features)
@@ -98,7 +102,18 @@ def explain_prediction_xgboost(
         targets=None,
         feature_names=None,
         vectorized=False):
-    """ Return an explanation of XGBoost prediction (via scikit-learn wrapper).
+    """ Return an explanation of XGBoost prediction (via scikit-learn wrapper
+    XGBClassifier or XGBRegressor) as feature weights.
+
+    Method for determining feature importances follows an idea from
+    http://blog.datadive.net/interpreting-random-forests/.
+    Feature weights are calculated by following decision paths in trees
+    of an ensemble.
+    Each leaf has an output score, and expected scores can also be assigned
+    to parent nodes.
+    Contribution of one feature on the decision path is how much expected score
+    changes from parent to child.
+    Weights of all features sum to the output score of the estimator.
     """
     num_features = len(xgb.booster().feature_names)
     vec, feature_names = handle_vec(
@@ -118,10 +133,10 @@ def explain_prediction_xgboost(
         X = X.tocsc()
 
     proba = predict_proba(xgb, X)
-    scores_weights = prediction_feature_weights(
+    scores_weights = _prediction_feature_weights(
         xgb, X, feature_names, missing_idx)
 
-    is_multiclass = xgb_n_targets(xgb) > 1
+    is_multiclass = _xgb_n_targets(xgb) > 1
     is_regressor = isinstance(xgb, XGBRegressor)
     names = xgb.classes_ if not is_regressor else ['y']
     display_names = get_target_display_names(names, target_names, targets)
@@ -163,7 +178,7 @@ def explain_prediction_xgboost(
     return res
 
 
-def prediction_feature_weights(xgb, X, feature_names, missing_idx):
+def _prediction_feature_weights(xgb, X, feature_names, missing_idx):
     """ For each target, return score and numpy array with feature weights
     on this prediction, following an idea from
     http://blog.datadive.net/interpreting-random-forests/
@@ -174,25 +189,25 @@ def prediction_feature_weights(xgb, X, feature_names, missing_idx):
     tree_dumps = booster.get_dump(with_stats=True)
     assert len(tree_dumps) == len(leaf_ids)
 
-    def _target_feature_weights(_leaf_ids, _tree_dumps):
-        return target_feature_weights(
+    def target_feature_weights(_leaf_ids, _tree_dumps):
+        return _target_feature_weights(
             _leaf_ids, _tree_dumps, feature_names, missing_idx, X, xgb.missing)
 
-    n_targets = xgb_n_targets(xgb)
+    n_targets = _xgb_n_targets(xgb)
     if n_targets > 1:
         # For multiclass, XGBoost stores dumps and leaf_ids in a 1d array,
         # so we need to split them.
         scores_weights = [
-            _target_feature_weights(
+            target_feature_weights(
                 leaf_ids[target_idx::n_targets],
                 tree_dumps[target_idx::n_targets],
             ) for target_idx in range(n_targets)]
     else:
-        scores_weights = [_target_feature_weights(leaf_ids, tree_dumps)]
+        scores_weights = [target_feature_weights(leaf_ids, tree_dumps)]
     return scores_weights
 
 
-def target_feature_weights(
+def _target_feature_weights(
         leaf_ids, tree_dumps, feature_names, missing_idx, X, missing):
     feature_weights = np.zeros(len(feature_names))
     # All trees in XGBoost give equal contribution to the prediction:
@@ -201,7 +216,7 @@ def target_feature_weights(
     # (e.g. logistic for "binary:logistic" loss).
     score = 0
     for text_dump, leaf_id in zip(tree_dumps, leaf_ids):
-        leaf = indexed_leafs(parse_tree_dump(text_dump))[leaf_id]
+        leaf = _indexed_leafs(_parse_tree_dump(text_dump))[leaf_id]
         score += leaf['leaf']
         path = [leaf]
         while 'parent' in path[-1]:
@@ -212,7 +227,7 @@ def target_feature_weights(
             f_num_match = re.search('^f(\d+)$', node['split'])
             feature_idx = int(f_num_match.groups()[0])
             assert feature_idx >= 0
-            idx = (missing_idx if is_missing(X, feature_idx, missing)
+            idx = (missing_idx if _is_missing(X, feature_idx, missing)
                    else feature_idx)
             feature_weights[idx] += child['leaf'] - node['leaf']
         # Root "leaf" value is interpreted as bias
@@ -220,12 +235,12 @@ def target_feature_weights(
     return score, feature_weights
 
 
-def is_missing(X, feature_idx, missing):
+def _is_missing(X, feature_idx, missing):
     value = X[0, feature_idx]
     return np.isnan(value) if np.isnan(missing) else value == missing
 
 
-def indexed_leafs(parent):
+def _indexed_leafs(parent):
     """ Return a leaf nodeid -> node dictionary with
     "parent" and "leaf" (average child "leaf" value) added to all nodes.
     """
@@ -235,12 +250,12 @@ def indexed_leafs(parent):
         if 'leaf' in child:
             indexed[child['nodeid']] = child
         else:
-            indexed.update(indexed_leafs(child))
-    parent['leaf'] = parent_value(parent['children'])
+            indexed.update(_indexed_leafs(child))
+    parent['leaf'] = _parent_value(parent['children'])
     return indexed
 
 
-def parent_value(children):
+def _parent_value(children):
     """ Value of the parent node: a weighted sum of child values.
     """
     covers = np.array([child['cover'] for child in children])
@@ -249,7 +264,7 @@ def parent_value(children):
     return np.mean(leafs * covers)
 
 
-def xgb_n_targets(xgb):
+def _xgb_n_targets(xgb):
     if isinstance(xgb, XGBClassifier):
         return 1 if xgb.n_classes_ == 2 else xgb.n_classes_
     elif isinstance(xgb, XGBRegressor):
@@ -258,7 +273,7 @@ def xgb_n_targets(xgb):
         raise TypeError
 
 
-def xgb_feature_importances(xgb):
+def _xgb_feature_importances(xgb):
     # XGBRegressor does not have feature_importances_ property
     # in xgboost <= 0.6a2, fixed in https://github.com/dmlc/xgboost/pull/1591
     b = xgb.booster()
@@ -268,7 +283,7 @@ def xgb_feature_importances(xgb):
     return all_features / all_features.sum()
 
 
-def parse_tree_dump(text_dump):
+def _parse_tree_dump(text_dump):
     """ Parse text tree dump (one item of a list returned by Booster.get_dump())
     into json format that will be used by next XGBoost release.
     """
