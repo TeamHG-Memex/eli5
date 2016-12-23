@@ -5,6 +5,12 @@ from pprint import pprint
 import pytest
 from sklearn.datasets import make_regression
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.ensemble import (
+    GradientBoostingClassifier,
+    AdaBoostClassifier,
+    RandomForestClassifier,
+    ExtraTreesClassifier
+)
 from sklearn.linear_model import (
     ElasticNet,
     ElasticNetCV,
@@ -25,6 +31,7 @@ from sklearn.multiclass import OneVsRestClassifier
 from sklearn.tree import DecisionTreeClassifier
 
 from eli5 import explain_prediction
+from eli5.formatters import format_as_text, fields
 from eli5.sklearn.utils import has_intercept
 from .utils import format_as_all, strip_blanks, get_all_features
 
@@ -121,7 +128,6 @@ def assert_multitarget_linear_regression_explained(reg, explain_prediction):
     [Perceptron(random_state=42)],
     [LinearSVC(random_state=42)],
     [OneVsRestClassifier(LogisticRegression(random_state=42))],
-    [DecisionTreeClassifier()],  # FIXME
 ])
 def test_explain_linear(newsgroups_train, clf):
     assert_multiclass_linear_classifier_explained(newsgroups_train, clf,
@@ -152,3 +158,39 @@ def test_explain_linear_regression(boston_train, reg):
 ])
 def test_explain_linear_regression_multitarget(reg):
     assert_multitarget_linear_regression_explained(reg, explain_prediction)
+
+
+@pytest.mark.parametrize(['clf'], [
+    [DecisionTreeClassifier()],
+    [GradientBoostingClassifier(n_estimators=100)],
+    [AdaBoostClassifier()],
+    [RandomForestClassifier()],
+    [ExtraTreesClassifier()],
+])
+def test_explain_tree_clf_multiclass(clf, iris_train):
+    X, y, feature_names, target_names = iris_train
+    clf.fit(X, y)
+    res = explain_prediction(clf, X[0])
+    format_as_all(res, clf)
+
+
+@pytest.mark.parametrize(['clf'], [
+    [DecisionTreeClassifier()],
+    [GradientBoostingClassifier()],
+    [AdaBoostClassifier()],
+    [RandomForestClassifier()],
+    [ExtraTreesClassifier()],
+])
+def test_explain_tree_clf_binary(clf, iris_train_binary):
+    X, y, feature_names = iris_train_binary
+    clf.fit(X, y)
+    print(clf)
+    all_expls = []
+    for x in X[:5]:
+        res = explain_prediction(clf, x)
+        text_expl = format_as_text(res, show=fields.WEIGHTS)
+        print(x)
+        print(text_expl)
+        assert '<BIAS>' in text_expl
+        all_expls.append(text_expl)
+    assert 'x3' in ''.join(all_expls) or 'x2' in ''.join(all_expls)
