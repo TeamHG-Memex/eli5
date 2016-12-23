@@ -170,8 +170,13 @@ def test_explain_linear_regression_multitarget(reg):
 def test_explain_tree_clf_multiclass(clf, iris_train):
     X, y, feature_names, target_names = iris_train
     clf.fit(X, y)
-    res = explain_prediction(clf, X[0])
-    format_as_all(res, clf)
+    res = explain_prediction(
+        clf, X[0], target_names=target_names, feature_names=feature_names)
+    for expl in format_as_all(res, clf):
+        for target in target_names:
+            assert target in expl
+        assert 'BIAS' in expl
+        assert any(f in expl for f in feature_names)
 
 
 @pytest.mark.parametrize(['clf'], [
@@ -187,10 +192,10 @@ def test_explain_tree_clf_binary(clf, iris_train_binary):
     print(clf)
     all_expls = []
     for x in X[:5]:
-        res = explain_prediction(clf, x)
+        res = explain_prediction(clf, x, feature_names=feature_names)
         text_expl = format_as_text(res, show=fields.WEIGHTS)
         print(x)
         print(text_expl)
         assert '<BIAS>' in text_expl
         all_expls.append(text_expl)
-    assert 'x3' in ''.join(all_expls) or 'x2' in ''.join(all_expls)
+    assert any(f in ''.join(all_expls) for f in feature_names)

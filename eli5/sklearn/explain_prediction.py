@@ -229,20 +229,21 @@ def explain_prediction_tree_classifier(
 
     feature_weights = np.zeros([len(feature_names), clf.n_classes_])
     if hasattr(clf, 'tree_'):
-        _update_tree_weights(clf, X, feature_names, feature_weights)
+        _update_tree_feature_weights(clf, X, feature_names, feature_weights)
     else:
         # Possible optimization: use clf.decision_path
         for _clfs in clf.estimators_:
             if isinstance(_clfs, np.ndarray):
                 if len(_clfs) == 1:
-                    _update_tree_weights(
+                    _update_tree_feature_weights(
                         _clfs[0], X, feature_names, feature_weights)
                 else:
                     for idx, _clf in enumerate(_clfs):
-                        _update_tree_weights(
+                        _update_tree_feature_weights(
                             _clf, X, feature_names, feature_weights[:, idx])
             else:
-                _update_tree_weights(_clfs, X, feature_names, feature_weights)
+                _update_tree_feature_weights(
+                    _clfs, X, feature_names, feature_weights)
 
     def _weights(label_id):
         scores = feature_weights[:, label_id]
@@ -280,7 +281,9 @@ def explain_prediction_tree_classifier(
     return res
 
 
-def _update_tree_weights(clf, X, feature_names, feature_weights):
+def _update_tree_feature_weights(clf, X, feature_names, feature_weights):
+    """ Update tree feature weights using decision path method.
+    """
     tree_value = clf.tree_.value
     assert tree_value.shape[1] == 1
     tree_feature = clf.tree_.feature
