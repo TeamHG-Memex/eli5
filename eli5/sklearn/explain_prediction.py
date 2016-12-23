@@ -232,11 +232,17 @@ def explain_prediction_tree_classifier(
         _update_tree_weights(clf, X, feature_names, feature_weights)
     else:
         # Possible optimization: use clf.decision_path
-        for _clf in clf.estimators_:
-            if isinstance(_clf, np.ndarray):
-                assert len(_clf) == 1
-                _clf = _clf[0]
-            _update_tree_weights(_clf, X, feature_names, feature_weights)
+        for _clfs in clf.estimators_:
+            if isinstance(_clfs, np.ndarray):
+                if len(_clfs) == 1:
+                    _update_tree_weights(
+                        _clfs[0], X, feature_names, feature_weights)
+                else:
+                    for idx, _clf in enumerate(_clfs):
+                        _update_tree_weights(
+                            _clf, X, feature_names, feature_weights[:, idx])
+            else:
+                _update_tree_weights(_clfs, X, feature_names, feature_weights)
 
     def _weights(label_id):
         scores = feature_weights[:, label_id]
