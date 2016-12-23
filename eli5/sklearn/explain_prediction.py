@@ -46,8 +46,9 @@ from eli5.sklearn.utils import (
     handle_vec,
 )
 from eli5.sklearn.text import add_weighted_spans
-from eli5._feature_weights import get_top_features
 from eli5.explain import explain_prediction
+from eli5._decision_path import DECISION_PATHS_CAVEATS
+from eli5._feature_weights import get_top_features
 
 
 @explain_prediction.register(BaseEstimator)
@@ -204,6 +205,26 @@ def explain_prediction_linear_regressor(reg, doc,
     return res
 
 
+DECISION_PATHS_CAVEATS = """
+Feature weights are calculated by following decision paths in trees
+of an ensemble (or a single tree for DecisionTreeClassifier).
+Each node of the tree has an output score, and contribution of a feature
+on the decision path is how much the score changes from parent to child.
+""" + DECISION_PATHS_CAVEATS
+
+DESCRIPTION_TREE_BINARY = """
+Features with largest coefficients.
+""" + DECISION_PATHS_CAVEATS
+
+DESCRIPTION_TREE_CLF_MULTICLASS = """
+Features with largest coefficients per class.
+""" + DECISION_PATHS_CAVEATS
+
+DESCRIPTION_TREE_REG_MULTICLASS = """
+Features with largest coefficients per class.
+""" + DECISION_PATHS_CAVEATS
+
+
 @explain_prediction_sklearn.register(DecisionTreeClassifier)
 @explain_prediction_sklearn.register(GradientBoostingClassifier)
 @explain_prediction_sklearn.register(AdaBoostClassifier)
@@ -217,7 +238,17 @@ def explain_prediction_tree_classifier(
         targets=None,
         feature_names=None,
         vectorized=False):
-    """ Explain prediction of a tree classifier. """
+    """ Explain prediction of a tree classifier.
+
+    Method for determining feature importances follows an idea from
+    http://blog.datadive.net/interpreting-random-forests/.
+    Feature weights are calculated by following decision paths in trees
+    of an ensemble (or a single tree for DecisionTreeClassifier).
+    Each node of the tree has an output score, and contribution of a feature
+    on the decision path is how much the score changes from parent to child.
+    Weights of all features do not sum to the output score of the estimator,
+    but are proportional to it.
+    """
     vec, feature_names = handle_vec(clf, doc, vec, vectorized, feature_names)
     X = get_X(doc, vec=vec, vectorized=vectorized)
     if feature_names.bias_name is None:
@@ -231,23 +262,9 @@ def explain_prediction_tree_classifier(
     else:
         score = None
 
-    feature_weights = np.zeros([len(feature_names), clf.n_classes_])
-    if hasattr(clf, 'tree_'):
-        _update_tree_feature_weights(clf, X, feature_names, feature_weights)
-    else:
-        # Possible optimization: use clf.decision_path
-        for _clfs in clf.estimators_:
-            if isinstance(_clfs, np.ndarray):
-                if len(_clfs) == 1:
-                    _update_tree_feature_weights(
-                        _clfs[0], X, feature_names, feature_weights)
-                else:
-                    for idx, _clf in enumerate(_clfs):
-                        _update_tree_feature_weights(
-                            _clf, X, feature_names, feature_weights[:, idx])
-            else:
-                _update_tree_feature_weights(
-                    _clfs, X, feature_names, feature_weights)
+    feature_weights = _trees_feature_weights(
+        clf, X, feature_names, clf.n_classes_)
+    is_multiclass = clf.n_classes_ > 2
 
     def _weights(label_id):
         scores = feature_weights[:, label_id]
@@ -257,12 +274,14 @@ def explain_prediction_tree_classifier(
         estimator=repr(clf),
         method='decision path',
         targets=[],
+        description=(DESCRIPTION_TREE_CLF_MULTICLASS if is_multiclass
+                     else DESCRIPTION_TREE_BINARY),
     )
 
     display_names = get_target_display_names(
         clf.classes_, target_names, targets)
 
-    if clf.n_classes_ > 2:
+    if is_multiclass:
         for label_id, label in display_names:
             target_expl = TargetExplanation(
                 target=label,
@@ -298,7 +317,17 @@ def explain_prediction_tree_regressor(
         targets=None,
         feature_names=None,
         vectorized=False):
-    """ Explain prediction of a tree classifier or regressor. """
+    """ Explain prediction of a tree regressor.
+
+    Method for determining feature importances follows an idea from
+    http://blog.datadive.net/interpreting-random-forests/.
+    Feature weights are calculated by following decision paths in trees
+    of an ensemble (or a single tree for DecisionTreeRegressor).
+    Each node of the tree has an output score, and contribution of a feature
+    on the decision path is how much the score changes from parent to child.
+    Weights of all features do not sum to the output score of the estimator,
+    but are proportional to it.
+    """
     vec, feature_names = handle_vec(clf, doc, vec, vectorized, feature_names)
     X = get_X(doc, vec=vec, vectorized=vectorized)
     if feature_names.bias_name is None:
@@ -308,8 +337,8 @@ def explain_prediction_tree_regressor(
 
     score, = clf.predict(X)
     num_targets = getattr(clf, 'n_outputs_', 1)
-    feature_weights = _trees_feature_weights(
-        clf, X, feature_names, num_targets)
+    is_multitarget = num_targets > 1
+    feature_weights = _trees_feature_weights(clf, X, feature_names, num_targets)
 
     def _weights(label_id):
         scores = feature_weights[:, label_id]
@@ -318,13 +347,16 @@ def explain_prediction_tree_regressor(
     res = Explanation(
         estimator=repr(clf),
         method='decision path',
+        description=(DESCRIPTION_TREE_REG_MULTICLASS if is_multitarget
+                     else DESCRIPTION_TREE_BINARY),
         targets=[],
+        is_regression=True,
     )
 
     names = get_default_target_names(clf, num_targets=num_targets)
     display_names = get_target_display_names(names, target_names, targets)
 
-    if num_targets > 1:
+    if is_multitarget:
         for label_id, label in display_names:
             target_expl = TargetExplanation(
                 target=label,

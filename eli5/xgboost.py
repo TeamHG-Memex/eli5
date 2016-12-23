@@ -11,19 +11,14 @@ from xgboost import XGBClassifier, XGBRegressor, Booster, DMatrix
 from eli5.base import (
     FeatureWeight, FeatureImportances, Explanation, TargetExplanation)
 from eli5.formatters.features import FormattedFeatureName
-from eli5._feature_names import FeatureNames
 from eli5.explain import explain_weights, explain_prediction
 from eli5.sklearn.text import add_weighted_spans
 from eli5.sklearn.utils import (
     get_feature_names, get_X, handle_vec, predict_proba)
 from eli5.utils import argsort_k_largest_positive, get_target_display_names
+from eli5._decision_path import DECISION_PATHS_CAVEATS
 from eli5._feature_weights import get_top_features
 
-
-DESCRIPTION_XGBOOST = """
-XGBoost feature importances; values are numbers 0 <= x <= 1;
-all values sum to 1.
-"""
 
 DECISION_PATHS_CAVEATS = """
 Feature weights are calculated by following decision paths in trees
@@ -31,17 +26,11 @@ of an ensemble. Each leaf has an output score, and expected scores can also be
 assigned to parent nodes. Contribution of one feature on the decision path
 is how much expected score changes from parent to child. Weights of all features
 sum to the output score of the estimator.
-Caveats:
-1. Feature weights just show if the feature contributed positively or
-   negatively to the final score, and does show how increasing or decreasing
-   the feature value will change the prediction.
-2. In some cases, feature weight can be close to zero for an important feature.
-   For example, in a single tree that computes XOR function, the feature at the
-   top of the tree will have zero weight because expected scores for both
-   branches are equal, so decision at the top feature does not change the
-   expected score. For an ensemble predicting XOR functions it might not be
-   a problem, but it is not reliable if most trees happen to choose the same
-   feature at the top.
+""" + DECISION_PATHS_CAVEATS
+
+DESCRIPTION_XGBOOST = """
+XGBoost feature importances; values are numbers 0 <= x <= 1;
+all values sum to 1.
 """
 
 DESCRIPTION_CLF_MULTICLASS = """
@@ -88,6 +77,7 @@ def explain_weights_xgboost(xgb,
         description=DESCRIPTION_XGBOOST,
         estimator=repr(xgb),
         method='feature importances',
+        is_regression=isinstance(xgb, XGBRegressor),
     )
 
 
@@ -137,8 +127,8 @@ def explain_prediction_xgboost(
         xgb, X, feature_names, missing_idx)
 
     is_multiclass = _xgb_n_targets(xgb) > 1
-    is_regressor = isinstance(xgb, XGBRegressor)
-    names = xgb.classes_ if not is_regressor else ['y']
+    is_regression = isinstance(xgb, XGBRegressor)
+    names = xgb.classes_ if not is_regression else ['y']
     display_names = get_target_display_names(names, target_names, targets)
 
     res = Explanation(
@@ -148,7 +138,8 @@ def explain_prediction_xgboost(
             (False, False): DESCRIPTION_CLF_BINARY,
             (False, True): DESCRIPTION_CLF_MULTICLASS,
             (True, False): DESCRIPTION_REGRESSION,
-        }[is_regressor, is_multiclass],
+        }[is_regression, is_multiclass],
+        is_regression=is_regression,
         targets=[],
     )
     if is_multiclass:
