@@ -22,6 +22,7 @@ from sklearn.linear_model import (
 )
 from sklearn.svm import LinearSVC, LinearSVR
 from sklearn.multiclass import OneVsRestClassifier
+from sklearn.tree import DecisionTreeClassifier
 
 from eli5 import explain_prediction
 from eli5.sklearn.utils import has_intercept
@@ -120,6 +121,7 @@ def assert_multitarget_linear_regression_explained(reg, explain_prediction):
     [Perceptron(random_state=42)],
     [LinearSVC(random_state=42)],
     [OneVsRestClassifier(LogisticRegression(random_state=42))],
+    [DecisionTreeClassifier()],  # FIXME
 ])
 def test_explain_linear(newsgroups_train, clf):
     assert_multiclass_linear_classifier_explained(newsgroups_train, clf,

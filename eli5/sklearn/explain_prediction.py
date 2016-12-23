@@ -21,6 +21,7 @@ from sklearn.linear_model import (
 )
 from sklearn.svm import LinearSVC, LinearSVR
 from sklearn.multiclass import OneVsRestClassifier
+from sklearn.tree import DecisionTreeClassifier
 
 from eli5.base import Explanation, TargetExplanation
 from eli5.utils import get_target_display_names
@@ -186,6 +187,75 @@ def explain_prediction_linear_regressor(reg, doc,
             target=display_names[0][1],
             feature_weights=_weights(0),
             score=score,
+        )
+        add_weighted_spans(doc, vec, vectorized, target_expl)
+        res.targets.append(target_expl)
+
+    return res
+
+
+@explain_prediction_sklearn.register(DecisionTreeClassifier)
+def explain_prediction_tree_classifier(
+        clf, doc,
+        vec=None,
+        top=None,
+        target_names=None,
+        targets=None,
+        feature_names=None,
+        vectorized=False):
+    """ Explain prediction of a tree classifier. """
+    vec, feature_names = handle_vec(clf, doc, vec, vectorized, feature_names)
+    X = get_X(doc, vec=vec, vectorized=vectorized)
+    if feature_names.bias_name is None:
+        # XGBoost estimators do not have an intercept, but here we interpret
+        # them as having an intercept
+        feature_names.bias_name = '<BIAS>'
+
+    proba = predict_proba(clf, X)
+    if hasattr(clf, 'decision_function'):
+        score, = clf.decision_function(X)
+    else:
+        score = None
+
+    tree_value = clf.tree_.value
+    assert tree_value.shape[1] == 1
+    tree_feature = clf.tree_.feature
+    _, indices = clf.decision_path(X).nonzero()
+    feature_weights = np.zeros([len(feature_names), clf.n_classes_])
+    feature_weights[feature_names.bias_idx] = tree_value[0, 0]
+    for parent_idx, child_idx in zip(indices, indices[1:]):
+        feature_weights[tree_feature[parent_idx]] += (
+            tree_value[child_idx, 0] - tree_value[parent_idx, 0])
+
+    def _weights(label_id):
+        scores = feature_weights[:, label_id]
+        return get_top_features(feature_names, scores, top)
+
+    res = Explanation(
+        estimator=repr(clf),
+        method='decision path',
+        targets=[],
+    )
+
+    display_names = get_target_display_names(
+        clf.classes_, target_names, targets)
+
+    if clf.n_classes_ > 2:
+        for label_id, label in display_names:
+            target_expl = TargetExplanation(
+                target=label,
+                feature_weights=_weights(label_id),
+                score=score[label_id] if score is not None else None,
+                proba=proba[label_id] if proba is not None else None,
+            )
+            add_weighted_spans(doc, vec, vectorized, target_expl)
+            res.targets.append(target_expl)
+    else:
+        target_expl = TargetExplanation(
+            target=display_names[1][1],
+            feature_weights=_weights(1),
+            score=score[1] if score is not None else None,
+            proba=proba[1] if proba is not None else None,
         )
         add_weighted_spans(doc, vec, vectorized, target_expl)
         res.targets.append(target_expl)
