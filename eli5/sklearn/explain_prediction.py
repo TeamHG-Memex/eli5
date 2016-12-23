@@ -6,10 +6,14 @@ import numpy as np
 import scipy.sparse as sp
 from sklearn.base import BaseEstimator
 from sklearn.ensemble import (
-    GradientBoostingClassifier,
     AdaBoostClassifier,
+    AdaBoostRegressor,
+    ExtraTreesClassifier,
+    ExtraTreesRegressor,
+    GradientBoostingClassifier,
+    GradientBoostingRegressor,
     RandomForestClassifier,
-    ExtraTreesClassifier
+    RandomForestRegressor,
 )
 from sklearn.linear_model import (
     ElasticNet,  # includes Lasso, MultiTaskElasticNet, etc.
@@ -27,7 +31,7 @@ from sklearn.linear_model import (
 )
 from sklearn.svm import LinearSVC, LinearSVR
 from sklearn.multiclass import OneVsRestClassifier
-from sklearn.tree import DecisionTreeClassifier
+from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 
 from eli5.base import Explanation, TargetExplanation
 from eli5.utils import get_target_display_names
@@ -217,7 +221,7 @@ def explain_prediction_tree_classifier(
     vec, feature_names = handle_vec(clf, doc, vec, vectorized, feature_names)
     X = get_X(doc, vec=vec, vectorized=vectorized)
     if feature_names.bias_name is None:
-        # XGBoost estimators do not have an intercept, but here we interpret
+        # Tree estimators do not have an intercept, but here we interpret
         # them as having an intercept
         feature_names.bias_name = '<BIAS>'
 
@@ -281,17 +285,106 @@ def explain_prediction_tree_classifier(
     return res
 
 
+@explain_prediction_sklearn.register(DecisionTreeRegressor)
+@explain_prediction_sklearn.register(GradientBoostingRegressor)
+@explain_prediction_sklearn.register(AdaBoostRegressor)
+@explain_prediction_sklearn.register(RandomForestRegressor)
+@explain_prediction_sklearn.register(ExtraTreesRegressor)
+def explain_prediction_tree_regressor(
+        clf, doc,
+        vec=None,
+        top=None,
+        target_names=None,
+        targets=None,
+        feature_names=None,
+        vectorized=False):
+    """ Explain prediction of a tree classifier or regressor. """
+    vec, feature_names = handle_vec(clf, doc, vec, vectorized, feature_names)
+    X = get_X(doc, vec=vec, vectorized=vectorized)
+    if feature_names.bias_name is None:
+        # Tree estimators do not have an intercept, but here we interpret
+        # them as having an intercept
+        feature_names.bias_name = '<BIAS>'
+
+    score, = clf.predict(X)
+    num_targets = getattr(clf, 'n_outputs_', 1)
+    feature_weights = _trees_feature_weights(
+        clf, X, feature_names, num_targets)
+
+    def _weights(label_id):
+        scores = feature_weights[:, label_id]
+        return get_top_features(feature_names, scores, top)
+
+    res = Explanation(
+        estimator=repr(clf),
+        method='decision path',
+        targets=[],
+    )
+
+    names = get_default_target_names(clf, num_targets=num_targets)
+    display_names = get_target_display_names(names, target_names, targets)
+
+    if num_targets > 1:
+        for label_id, label in display_names:
+            target_expl = TargetExplanation(
+                target=label,
+                feature_weights=_weights(label_id),
+                score=score[label_id],
+            )
+            add_weighted_spans(doc, vec, vectorized, target_expl)
+            res.targets.append(target_expl)
+    else:
+        target_expl = TargetExplanation(
+            target=display_names[0][1],
+            feature_weights=_weights(0),
+            score=score,
+        )
+        add_weighted_spans(doc, vec, vectorized, target_expl)
+        res.targets.append(target_expl)
+
+    return res
+
+
+def _trees_feature_weights(clf, X, feature_names, num_targets):
+    """ Return feature weights for a tree or a tree ensemble.
+    """
+    feature_weights = np.zeros([len(feature_names), num_targets])
+    if hasattr(clf, 'tree_'):
+        _update_tree_feature_weights(clf, X, feature_names, feature_weights)
+    else:
+        # Possible optimization: use clf.decision_path
+        for _clfs in clf.estimators_:
+            if isinstance(_clfs, np.ndarray):
+                if len(_clfs) == 1:
+                    _update_tree_feature_weights(
+                        _clfs[0], X, feature_names, feature_weights)
+                else:
+                    for idx, _clf in enumerate(_clfs):
+                        _update_tree_feature_weights(
+                            _clf, X, feature_names, feature_weights[:, idx])
+            else:
+                _update_tree_feature_weights(
+                    _clfs, X, feature_names, feature_weights)
+    return feature_weights
+
+
 def _update_tree_feature_weights(clf, X, feature_names, feature_weights):
     """ Update tree feature weights using decision path method.
     """
     tree_value = clf.tree_.value
-    assert tree_value.shape[1] == 1
+    if tree_value.shape[1] == 1:
+        tree_value = np.squeeze(tree_value, axis=1)
+    elif tree_value.shape[2] == 1:
+        tree_value = np.squeeze(tree_value, axis=2)
+    else:
+        raise ValueError(
+            'unexpected clf.tree_.value shape: {}'.format(tree_value.shape))
     tree_feature = clf.tree_.feature
     _, indices = clf.decision_path(X).nonzero()
-    feature_weights[feature_names.bias_idx] += tree_value[0, 0]
+    feature_weights[feature_names.bias_idx] += tree_value[0]
     for parent_idx, child_idx in zip(indices, indices[1:]):
         feature_weights[tree_feature[parent_idx]] += (
-            tree_value[child_idx, 0] - tree_value[parent_idx, 0])
+            tree_value[child_idx] - tree_value[parent_idx])
 
 
 def _multiply(X, coef):

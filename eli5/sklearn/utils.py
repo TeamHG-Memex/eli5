@@ -107,19 +107,20 @@ def get_feature_names(clf, vec=None, bias_name='<BIAS>', feature_names=None,
         return FeatureNames(feature_names, bias_name=bias_name)
 
 
-def get_default_target_names(estimator):
+def get_default_target_names(estimator, num_targets=None):
     """
     Return a vector of target names: "y" if there is only one target,
     and "y0", "y1", ... if there are multiple targets.
     """
-    if len(estimator.coef_.shape) == 1:
+    if num_targets is None:
+        if len(estimator.coef_.shape) == 1:
+            num_targets = 1
+        else:
+            num_targets, _ = estimator.coef_.shape
+    if num_targets == 1:
         target_names = ['y']
     else:
-        num_targets, _ = estimator.coef_.shape
-        if num_targets == 1:
-            target_names = ['y']
-        else:
-            target_names = ['y%d' % i for i in range(num_targets)]
+        target_names = ['y%d' % i for i in range(num_targets)]
     return np.array(target_names)
 
 

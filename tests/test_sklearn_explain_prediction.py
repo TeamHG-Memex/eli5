@@ -6,10 +6,14 @@ import pytest
 from sklearn.datasets import make_regression
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.ensemble import (
-    GradientBoostingClassifier,
     AdaBoostClassifier,
+    AdaBoostRegressor,
+    ExtraTreesClassifier,
+    ExtraTreesRegressor,
+    GradientBoostingClassifier,
+    GradientBoostingRegressor,
     RandomForestClassifier,
-    ExtraTreesClassifier
+    RandomForestRegressor,
 )
 from sklearn.linear_model import (
     ElasticNet,
@@ -28,7 +32,7 @@ from sklearn.linear_model import (
 )
 from sklearn.svm import LinearSVC, LinearSVR
 from sklearn.multiclass import OneVsRestClassifier
-from sklearn.tree import DecisionTreeClassifier
+from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 
 from eli5 import explain_prediction
 from eli5.formatters import format_as_text, fields
@@ -162,7 +166,7 @@ def test_explain_linear_regression_multitarget(reg):
 
 @pytest.mark.parametrize(['clf'], [
     [DecisionTreeClassifier()],
-    [GradientBoostingClassifier(n_estimators=100)],
+    [GradientBoostingClassifier()],
     [AdaBoostClassifier()],
     [RandomForestClassifier()],
     [ExtraTreesClassifier()],
@@ -195,6 +199,44 @@ def test_explain_tree_clf_binary(clf, iris_train_binary):
         res = explain_prediction(clf, x, feature_names=feature_names)
         text_expl = format_as_text(res, show=fields.WEIGHTS)
         print(x)
+        print(text_expl)
+        assert '<BIAS>' in text_expl
+        all_expls.append(text_expl)
+    assert any(f in ''.join(all_expls) for f in feature_names)
+
+
+@pytest.mark.parametrize(['reg'], [
+    [DecisionTreeRegressor()],
+    [ExtraTreesRegressor()],
+    [RandomForestRegressor()],
+])
+def test_explain_tree_regressor_multitarget(reg):
+    X, y = make_regression(n_samples=100, n_targets=3, n_features=10,
+                           random_state=42)
+    reg.fit(X, y)
+    res = explain_prediction(reg, X[0])
+    for expl in format_as_all(res, reg):
+        for target in ['y0', 'y1', 'y2']:
+            assert target in expl
+        assert 'BIAS' in expl
+        assert any('x%d' % i in expl for i in range(10))
+
+
+@pytest.mark.parametrize(['reg'], [
+    [AdaBoostRegressor()],
+    [DecisionTreeRegressor()],
+    [ExtraTreesRegressor()],
+    [GradientBoostingRegressor()],
+    [RandomForestRegressor()],
+])
+def test_explain_tree_regressor(reg, boston_train):
+    X, y, feature_names = boston_train
+    reg.fit(X, y)
+    print(reg)
+    all_expls = []
+    for x in X[:5]:
+        res = explain_prediction(reg, x, feature_names=feature_names)
+        text_expl = format_as_text(res, show=fields.WEIGHTS)
         print(text_expl)
         assert '<BIAS>' in text_expl
         all_expls.append(text_expl)
