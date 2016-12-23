@@ -310,7 +310,7 @@ def explain_prediction_tree_classifier(
 @explain_prediction_sklearn.register(RandomForestRegressor)
 @explain_prediction_sklearn.register(ExtraTreesRegressor)
 def explain_prediction_tree_regressor(
-        clf, doc,
+        reg, doc,
         vec=None,
         top=None,
         target_names=None,
@@ -328,24 +328,24 @@ def explain_prediction_tree_regressor(
     Weights of all features do not sum to the output score of the estimator,
     but are proportional to it.
     """
-    vec, feature_names = handle_vec(clf, doc, vec, vectorized, feature_names)
+    vec, feature_names = handle_vec(reg, doc, vec, vectorized, feature_names)
     X = get_X(doc, vec=vec, vectorized=vectorized)
     if feature_names.bias_name is None:
         # Tree estimators do not have an intercept, but here we interpret
         # them as having an intercept
         feature_names.bias_name = '<BIAS>'
 
-    score, = clf.predict(X)
-    num_targets = getattr(clf, 'n_outputs_', 1)
+    score, = reg.predict(X)
+    num_targets = getattr(reg, 'n_outputs_', 1)
     is_multitarget = num_targets > 1
-    feature_weights = _trees_feature_weights(clf, X, feature_names, num_targets)
+    feature_weights = _trees_feature_weights(reg, X, feature_names, num_targets)
 
     def _weights(label_id):
         scores = feature_weights[:, label_id]
         return get_top_features(feature_names, scores, top)
 
     res = Explanation(
-        estimator=repr(clf),
+        estimator=repr(reg),
         method='decision path',
         description=(DESCRIPTION_TREE_REG_MULTICLASS if is_multitarget
                      else DESCRIPTION_TREE_BINARY),
@@ -353,7 +353,7 @@ def explain_prediction_tree_regressor(
         is_regression=True,
     )
 
-    names = get_default_target_names(clf, num_targets=num_targets)
+    names = get_default_target_names(reg, num_targets=num_targets)
     display_names = get_target_display_names(names, target_names, targets)
 
     if is_multitarget:

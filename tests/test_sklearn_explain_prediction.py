@@ -4,7 +4,7 @@ from pprint import pprint
 
 import pytest
 from sklearn.datasets import make_regression
-from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from sklearn.ensemble import (
     AdaBoostClassifier,
     AdaBoostRegressor,
@@ -241,3 +241,17 @@ def test_explain_tree_regressor(reg, boston_train):
         assert '<BIAS>' in text_expl
         all_expls.append(text_expl)
     assert any(f in ''.join(all_expls) for f in feature_names)
+
+
+@pytest.mark.parametrize(['clf'], [
+    [ExtraTreesClassifier()],
+    [RandomForestClassifier()],
+])
+def test_explain_tree_classifier_text(clf, newsgroups_train):
+    docs, y, target_names = newsgroups_train
+    vec = CountVectorizer(binary=True)
+    X = vec.fit_transform(docs)
+    clf.fit(X, y)
+    res = explain_prediction(clf, docs[0], vec=vec, target_names=target_names)
+    for expl in format_as_all(res, clf):
+        pass  # TODO
