@@ -5,6 +5,9 @@ from typing import Any
 import numpy as np
 import scipy.sparse as sp
 from sklearn.base import BaseEstimator
+from sklearn.ensemble import (
+    GradientBoostingClassifier,
+)
 from sklearn.linear_model import (
     ElasticNet,  # includes Lasso, MultiTaskElasticNet, etc.
     ElasticNetCV,
@@ -195,6 +198,7 @@ def explain_prediction_linear_regressor(reg, doc,
 
 
 @explain_prediction_sklearn.register(DecisionTreeClassifier)
+@explain_prediction_sklearn.register(GradientBoostingClassifier)
 def explain_prediction_tree_classifier(
         clf, doc,
         vec=None,
@@ -217,15 +221,14 @@ def explain_prediction_tree_classifier(
     else:
         score = None
 
-    tree_value = clf.tree_.value
-    assert tree_value.shape[1] == 1
-    tree_feature = clf.tree_.feature
-    _, indices = clf.decision_path(X).nonzero()
     feature_weights = np.zeros([len(feature_names), clf.n_classes_])
-    feature_weights[feature_names.bias_idx] = tree_value[0, 0]
-    for parent_idx, child_idx in zip(indices, indices[1:]):
-        feature_weights[tree_feature[parent_idx]] += (
-            tree_value[child_idx, 0] - tree_value[parent_idx, 0])
+    if hasattr(clf, 'tree_'):
+        _update_tree_weights(clf, X, feature_names, feature_weights)
+    else:
+        # Possible optimization: use clf.decision_path
+        for _clfs in clf.estimators_:
+            assert len(_clfs) == 1
+            _update_tree_weights(_clfs[0], X, feature_names, feature_weights)
 
     def _weights(label_id):
         scores = feature_weights[:, label_id]
@@ -254,13 +257,24 @@ def explain_prediction_tree_classifier(
         target_expl = TargetExplanation(
             target=display_names[1][1],
             feature_weights=_weights(1),
-            score=score[1] if score is not None else None,
+            score=score if score is not None else None,
             proba=proba[1] if proba is not None else None,
         )
         add_weighted_spans(doc, vec, vectorized, target_expl)
         res.targets.append(target_expl)
 
     return res
+
+
+def _update_tree_weights(clf, X, feature_names, feature_weights):
+    tree_value = clf.tree_.value
+    assert tree_value.shape[1] == 1
+    tree_feature = clf.tree_.feature
+    _, indices = clf.decision_path(X).nonzero()
+    feature_weights[feature_names.bias_idx] += tree_value[0, 0]
+    for parent_idx, child_idx in zip(indices, indices[1:]):
+        feature_weights[tree_feature[parent_idx]] += (
+            tree_value[child_idx, 0] - tree_value[parent_idx, 0])
 
 
 def _multiply(X, coef):
