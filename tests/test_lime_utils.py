@@ -2,6 +2,7 @@
 from __future__ import absolute_import
 
 import numpy as np
+import scipy.sparse as sp
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import mean_absolute_error
 
@@ -59,6 +60,13 @@ def test_fit_proba():
               random_state=42)
     y_pred4 = clf4.predict_proba(X)[:,1]
     assert np.allclose(y_pred, y_pred4)
+
+    # it should work the same with sparse data
+    X_sparse = sp.csr_matrix(X)
+    clf4 = LogisticRegression(C=10, random_state=42)
+    fit_proba(clf4, X_sparse, y_proba, expand_factor=200, random_state=42)
+    y_pred4 = clf4.predict_proba(X)[:, 1]
+    assert np.allclose(y_pred2, y_pred4)
 
 
 def test_fix_multiclass_predict_proba():
