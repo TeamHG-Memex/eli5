@@ -213,7 +213,7 @@ on the decision path is how much the score changes from parent to child.
 Weights of all features sum to the output score or proba of the estimator.
 """ + DECISION_PATHS_CAVEATS
 
-DESCRIPTION_TREE_BINARY = """
+DESCRIPTION_TREE_CLF_BINARY = """
 Features with largest coefficients.
 """ + DECISION_PATHS_CAVEATS
 
@@ -221,16 +221,20 @@ DESCRIPTION_TREE_CLF_MULTICLASS = """
 Features with largest coefficients per class.
 """ + DECISION_PATHS_CAVEATS
 
-DESCRIPTION_TREE_REG_MULTICLASS = """
-Features with largest coefficients per class.
+DESCRIPTION_TREE_REG = """
+Features with largest coefficients.
+""" + DECISION_PATHS_CAVEATS
+
+DESCRIPTION_TREE_REG_MULTITARGET = """
+Features with largest coefficients per target.
 """ + DECISION_PATHS_CAVEATS
 
 
-@explain_prediction_sklearn.register(DecisionTreeClassifier)
-@explain_prediction_sklearn.register(GradientBoostingClassifier)
 # @explain_prediction_sklearn.register(AdaBoostClassifier)
-@explain_prediction_sklearn.register(RandomForestClassifier)
+@explain_prediction_sklearn.register(DecisionTreeClassifier)
 @explain_prediction_sklearn.register(ExtraTreesClassifier)
+@explain_prediction_sklearn.register(GradientBoostingClassifier)
+@explain_prediction_sklearn.register(RandomForestClassifier)
 def explain_prediction_tree_classifier(
         clf, doc,
         vec=None,
@@ -275,7 +279,7 @@ def explain_prediction_tree_classifier(
         method='decision path',
         targets=[],
         description=(DESCRIPTION_TREE_CLF_MULTICLASS if is_multiclass
-                     else DESCRIPTION_TREE_BINARY),
+                     else DESCRIPTION_TREE_CLF_BINARY),
     )
 
     display_names = get_target_display_names(
@@ -304,11 +308,11 @@ def explain_prediction_tree_classifier(
     return res
 
 
-@explain_prediction_sklearn.register(DecisionTreeRegressor)
-@explain_prediction_sklearn.register(GradientBoostingRegressor)
 # @explain_prediction_sklearn.register(AdaBoostRegressor)
-@explain_prediction_sklearn.register(RandomForestRegressor)
+@explain_prediction_sklearn.register(DecisionTreeRegressor)
 @explain_prediction_sklearn.register(ExtraTreesRegressor)
+@explain_prediction_sklearn.register(GradientBoostingRegressor)
+@explain_prediction_sklearn.register(RandomForestRegressor)
 def explain_prediction_tree_regressor(
         reg, doc,
         vec=None,
@@ -346,8 +350,8 @@ def explain_prediction_tree_regressor(
     res = Explanation(
         estimator=repr(reg),
         method='decision path',
-        description=(DESCRIPTION_TREE_REG_MULTICLASS if is_multitarget
-                     else DESCRIPTION_TREE_BINARY),
+        description=(DESCRIPTION_TREE_REG_MULTITARGET if is_multitarget
+                     else DESCRIPTION_TREE_REG),
         targets=[],
         is_regression=True,
     )
