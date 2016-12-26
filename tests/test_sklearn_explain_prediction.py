@@ -37,7 +37,8 @@ from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from eli5 import explain_prediction
 from eli5.formatters import format_as_text, fields
 from eli5.sklearn.utils import has_intercept
-from .utils import format_as_all, strip_blanks, get_all_features
+from .utils import (
+    format_as_all, strip_blanks, get_all_features, check_targets_scores)
 
 
 def assert_multiclass_linear_classifier_explained(newsgroups_train, clf,
@@ -97,6 +98,7 @@ def assert_linear_regression_explained(boston_train, reg, explain_prediction):
     assert '<b>y</b>' in strip_blanks(expl_html)
 
     assert res == explain_prediction(reg, X[0])
+    check_targets_scores(res)
 
 
 def assert_multitarget_linear_regression_explained(reg, explain_prediction):
@@ -119,6 +121,7 @@ def assert_multitarget_linear_regression_explained(reg, explain_prediction):
     assert "'y2'" in expl_text
 
     assert res == explain_prediction(reg, X[0])
+    check_targets_scores(res)
 
 
 @pytest.mark.parametrize(['clf'], [
@@ -164,12 +167,16 @@ def test_explain_linear_regression_multitarget(reg):
     assert_multitarget_linear_regression_explained(reg, explain_prediction)
 
 
+tree_clf_no_score = (
+    ExtraTreesClassifier, DecisionTreeClassifier, RandomForestClassifier)
+
+
 @pytest.mark.parametrize(['clf'], [
+   #[AdaBoostClassifier(learning_rate=0.075)],
     [DecisionTreeClassifier()],
-    [GradientBoostingClassifier()],
-    [AdaBoostClassifier()],
-    [RandomForestClassifier()],
     [ExtraTreesClassifier()],
+    [GradientBoostingClassifier(learning_rate=0.075)],
+    [RandomForestClassifier()],
 ])
 def test_explain_tree_clf_multiclass(clf, iris_train):
     X, y, feature_names, target_names = iris_train
@@ -181,14 +188,17 @@ def test_explain_tree_clf_multiclass(clf, iris_train):
             assert target in expl
         assert 'BIAS' in expl
         assert any(f in expl for f in feature_names)
+    if (not isinstance(clf, tree_clf_no_score) and
+            not isinstance(clf, GradientBoostingClassifier)):  # TODO!
+        check_targets_scores(res)
 
 
 @pytest.mark.parametrize(['clf'], [
+   #[AdaBoostClassifier(learning_rate=0.075)],
     [DecisionTreeClassifier()],
-    [GradientBoostingClassifier()],
-    [AdaBoostClassifier()],
-    [RandomForestClassifier()],
     [ExtraTreesClassifier()],
+    [GradientBoostingClassifier(learning_rate=0.075)],
+    [RandomForestClassifier()],
 ])
 def test_explain_tree_clf_binary(clf, iris_train_binary):
     X, y, feature_names = iris_train_binary
@@ -201,6 +211,8 @@ def test_explain_tree_clf_binary(clf, iris_train_binary):
         print(x)
         print(text_expl)
         assert '<BIAS>' in text_expl
+        if not isinstance(clf, tree_clf_no_score):
+            check_targets_scores(res)
         all_expls.append(text_expl)
     assert any(f in ''.join(all_expls) for f in feature_names)
 
@@ -220,13 +232,14 @@ def test_explain_tree_regressor_multitarget(reg):
             assert target in expl
         assert 'BIAS' in expl
         assert any('x%d' % i in expl for i in range(10))
+    check_targets_scores(res)
 
 
 @pytest.mark.parametrize(['reg'], [
-    [AdaBoostRegressor()],
+   #[AdaBoostRegressor(learning_rate=0.075)],
     [DecisionTreeRegressor()],
     [ExtraTreesRegressor()],
-    [GradientBoostingRegressor()],
+    [GradientBoostingRegressor(learning_rate=0.075)],
     [RandomForestRegressor()],
 ])
 def test_explain_tree_regressor(reg, boston_train):
@@ -234,24 +247,47 @@ def test_explain_tree_regressor(reg, boston_train):
     reg.fit(X, y)
     print(reg)
     all_expls = []
-    for x in X[:5]:
+    for i, x in enumerate(X[:5]):
         res = explain_prediction(reg, x, feature_names=feature_names)
         text_expl = format_as_text(res, show=fields.WEIGHTS)
         print(text_expl)
         assert '<BIAS>' in text_expl
+        check_targets_scores(res)
         all_expls.append(text_expl)
     assert any(f in ''.join(all_expls) for f in feature_names)
 
 
 @pytest.mark.parametrize(['clf'], [
+    [DecisionTreeClassifier()],
     [ExtraTreesClassifier()],
     [RandomForestClassifier()],
 ])
-def test_explain_tree_classifier_text(clf, newsgroups_train):
-    docs, y, target_names = newsgroups_train
-    vec = CountVectorizer(binary=True)
+def test_explain_tree_classifier_text(clf, newsgroups_train_big):
+    docs, y, target_names = newsgroups_train_big
+    vec = CountVectorizer(binary=True, stop_words='english')
     X = vec.fit_transform(docs)
     clf.fit(X, y)
     res = explain_prediction(clf, docs[0], vec=vec, target_names=target_names)
-    for expl in format_as_all(res, clf):
-        pass  # TODO
+   #for expl in format_as_all(res, clf):
+   #    pass  # TODO
+    print()
+    print(format_as_text(res, show=fields.WEIGHTS))
+
+    explain_treeinterpreter(clf, X[:1], vec.get_feature_names(), target_names)
+
+
+def explain_treeinterpreter(clf, xs, feature_names, target_names):
+    from treeinterpreter import treeinterpreter as ti
+    prediction, bias, contributions = ti.predict(clf, xs)
+    print()
+    print(bias)
+    for indices in zip(*contributions.nonzero()):
+        feature = feature_names[indices[1]]
+        if len(indices) == 2:
+            target = target_names[0]
+        elif len(indices) == 3:
+            target = target_names[indices[2]]
+        else:
+            raise ValueError
+        print('{:+.3f}\t{}\t{}'.format(contributions[indices], feature, target))
+    print()

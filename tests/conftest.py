@@ -39,6 +39,11 @@ def newsgroups_train_binary():
 
 
 @pytest.fixture(scope="session")
+def newsgroups_train_big():
+    return _get_newsgroups(remove_chrome=True, size=1000)
+
+
+@pytest.fixture(scope="session")
 def newsgroups_train_binary_big():
     return _get_newsgroups(binary=True, remove_chrome=True, size=1000)
 

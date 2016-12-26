@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from singledispatch import singledispatch
-from typing import Any
+from functools import partial
 
 import numpy as np
 import scipy.sparse as sp
@@ -382,25 +382,36 @@ def _trees_feature_weights(clf, X, feature_names, num_targets):
     """
     feature_weights = np.zeros([len(feature_names), num_targets])
     if hasattr(clf, 'tree_'):
-        _update_tree_feature_weights(clf, X, feature_names, feature_weights)
+        _update_tree_feature_weights(
+            X, feature_names, 1.0, clf, feature_weights)
     else:
         # Possible optimization: use clf.decision_path
-        for _clfs in clf.estimators_:
+        estimator_weights = np.ones(len(clf.estimators_))
+        if hasattr(clf, 'estimator_weights_'):
+            estimator_weights = clf.estimator_weights_
+        elif isinstance(clf, (
+                GradientBoostingClassifier, GradientBoostingRegressor)):
+            estimator_weights *= clf.learning_rate
+        else:
+            estimator_weights /= len(clf.estimators_)
+        for clf_weight, _clfs in zip(estimator_weights, clf.estimators_):
+            _update = partial(_update_tree_feature_weights,
+                              X, feature_names, clf_weight)
             if isinstance(_clfs, np.ndarray):
                 if len(_clfs) == 1:
-                    _update_tree_feature_weights(
-                        _clfs[0], X, feature_names, feature_weights)
+                    _update(_clfs[0], feature_weights)
                 else:
                     for idx, _clf in enumerate(_clfs):
-                        _update_tree_feature_weights(
-                            _clf, X, feature_names, feature_weights[:, idx])
+                        _update(_clf, feature_weights[:, idx])
             else:
-                _update_tree_feature_weights(
-                    _clfs, X, feature_names, feature_weights)
+                _update(_clfs, feature_weights)
+        if hasattr(clf, 'init_'):
+            feature_weights[feature_names.bias_idx] += clf.init_.predict(X)[0]
     return feature_weights
 
 
-def _update_tree_feature_weights(clf, X, feature_names, feature_weights):
+def _update_tree_feature_weights(
+        X, feature_names, weight, clf, feature_weights):
     """ Update tree feature weights using decision path method.
     """
     tree_value = clf.tree_.value
@@ -413,9 +424,9 @@ def _update_tree_feature_weights(clf, X, feature_names, feature_weights):
             'unexpected clf.tree_.value shape: {}'.format(tree_value.shape))
     tree_feature = clf.tree_.feature
     _, indices = clf.decision_path(X).nonzero()
-    feature_weights[feature_names.bias_idx] += tree_value[0]
+    feature_weights[feature_names.bias_idx] += weight * tree_value[0]
     for parent_idx, child_idx in zip(indices, indices[1:]):
-        feature_weights[tree_feature[parent_idx]] += (
+        feature_weights[tree_feature[parent_idx]] += weight * (
             tree_value[child_idx] - tree_value[parent_idx])
 
 
