@@ -167,12 +167,8 @@ def test_explain_linear_regression_multitarget(reg):
     assert_multitarget_linear_regression_explained(reg, explain_prediction)
 
 
-tree_clf_no_score = (
-    ExtraTreesClassifier, DecisionTreeClassifier, RandomForestClassifier)
-
-
 @pytest.mark.parametrize(['clf'], [
-   #[AdaBoostClassifier(learning_rate=0.075)],
+    # [AdaBoostClassifier(learning_rate=0.075)],
     [DecisionTreeClassifier()],
     [ExtraTreesClassifier()],
     [GradientBoostingClassifier(learning_rate=0.075)],
@@ -188,13 +184,11 @@ def test_explain_tree_clf_multiclass(clf, iris_train):
             assert target in expl
         assert 'BIAS' in expl
         assert any(f in expl for f in feature_names)
-    if (not isinstance(clf, tree_clf_no_score) and
-            not isinstance(clf, GradientBoostingClassifier)):  # TODO!
-        check_targets_scores(res)
+    check_targets_scores(res)
 
 
 @pytest.mark.parametrize(['clf'], [
-   #[AdaBoostClassifier(learning_rate=0.075)],
+    # [AdaBoostClassifier(learning_rate=0.075)],
     [DecisionTreeClassifier()],
     [ExtraTreesClassifier()],
     [GradientBoostingClassifier(learning_rate=0.075)],
@@ -211,8 +205,7 @@ def test_explain_tree_clf_binary(clf, iris_train_binary):
         print(x)
         print(text_expl)
         assert '<BIAS>' in text_expl
-        if not isinstance(clf, tree_clf_no_score):
-            check_targets_scores(res)
+        check_targets_scores(res)
         all_expls.append(text_expl)
     assert any(f in ''.join(all_expls) for f in feature_names)
 
@@ -236,7 +229,7 @@ def test_explain_tree_regressor_multitarget(reg):
 
 
 @pytest.mark.parametrize(['reg'], [
-   #[AdaBoostRegressor(learning_rate=0.075)],
+    # [AdaBoostRegressor(learning_rate=0.075)],
     [DecisionTreeRegressor()],
     [ExtraTreesRegressor()],
     [GradientBoostingRegressor(learning_rate=0.075)],
@@ -268,15 +261,14 @@ def test_explain_tree_classifier_text(clf, newsgroups_train_big):
     X = vec.fit_transform(docs)
     clf.fit(X, y)
     res = explain_prediction(clf, docs[0], vec=vec, target_names=target_names)
-   #for expl in format_as_all(res, clf):
-   #    pass  # TODO
+    check_targets_scores(res)
     print()
     print(format_as_text(res, show=fields.WEIGHTS))
 
-    explain_treeinterpreter(clf, X[:1], vec.get_feature_names(), target_names)
-
 
 def explain_treeinterpreter(clf, xs, feature_names, target_names):
+    """ Do explanation via https://github.com/andosa/treeinterpreter/
+    """
     from treeinterpreter import treeinterpreter as ti
     prediction, bias, contributions = ti.predict(clf, xs)
     print()

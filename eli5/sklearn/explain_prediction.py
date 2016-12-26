@@ -210,6 +210,7 @@ Feature weights are calculated by following decision paths in trees
 of an ensemble (or a single tree for DecisionTreeClassifier).
 Each node of the tree has an output score, and contribution of a feature
 on the decision path is how much the score changes from parent to child.
+Weights of all features sum to the output score or proba of the estimator.
 """ + DECISION_PATHS_CAVEATS
 
 DESCRIPTION_TREE_BINARY = """
@@ -227,7 +228,7 @@ Features with largest coefficients per class.
 
 @explain_prediction_sklearn.register(DecisionTreeClassifier)
 @explain_prediction_sklearn.register(GradientBoostingClassifier)
-@explain_prediction_sklearn.register(AdaBoostClassifier)
+# @explain_prediction_sklearn.register(AdaBoostClassifier)
 @explain_prediction_sklearn.register(RandomForestClassifier)
 @explain_prediction_sklearn.register(ExtraTreesClassifier)
 def explain_prediction_tree_classifier(
@@ -246,8 +247,7 @@ def explain_prediction_tree_classifier(
     of an ensemble (or a single tree for DecisionTreeClassifier).
     Each node of the tree has an output score, and contribution of a feature
     on the decision path is how much the score changes from parent to child.
-    Weights of all features do not sum to the output score of the estimator,
-    but are proportional to it.
+    Weights of all features sum to the output score or proba of the estimator.
     """
     vec, feature_names = handle_vec(clf, doc, vec, vectorized, feature_names)
     X = get_X(doc, vec=vec, vectorized=vectorized)
@@ -306,7 +306,7 @@ def explain_prediction_tree_classifier(
 
 @explain_prediction_sklearn.register(DecisionTreeRegressor)
 @explain_prediction_sklearn.register(GradientBoostingRegressor)
-@explain_prediction_sklearn.register(AdaBoostRegressor)
+# @explain_prediction_sklearn.register(AdaBoostRegressor)
 @explain_prediction_sklearn.register(RandomForestRegressor)
 @explain_prediction_sklearn.register(ExtraTreesRegressor)
 def explain_prediction_tree_regressor(
@@ -325,8 +325,7 @@ def explain_prediction_tree_regressor(
     of an ensemble (or a single tree for DecisionTreeRegressor).
     Each node of the tree has an output score, and contribution of a feature
     on the decision path is how much the score changes from parent to child.
-    Weights of all features do not sum to the output score of the estimator,
-    but are proportional to it.
+    Weights of all features sum to the output score of the estimator.
     """
     vec, feature_names = handle_vec(reg, doc, vec, vectorized, feature_names)
     X = get_X(doc, vec=vec, vectorized=vectorized)
@@ -424,10 +423,14 @@ def _update_tree_feature_weights(
             'unexpected clf.tree_.value shape: {}'.format(tree_value.shape))
     tree_feature = clf.tree_.feature
     _, indices = clf.decision_path(X).nonzero()
-    feature_weights[feature_names.bias_idx] += weight * tree_value[0]
+    if isinstance(clf, DecisionTreeClassifier):
+        norm = lambda x: x / x.sum()
+    else:
+        norm = lambda x: x
+    feature_weights[feature_names.bias_idx] += weight * norm(tree_value[0])
     for parent_idx, child_idx in zip(indices, indices[1:]):
         feature_weights[tree_feature[parent_idx]] += weight * (
-            tree_value[child_idx] - tree_value[parent_idx])
+            norm(tree_value[child_idx]) - norm(tree_value[parent_idx]))
 
 
 def _multiply(X, coef):
