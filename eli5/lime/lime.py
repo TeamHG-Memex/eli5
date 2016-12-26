@@ -51,23 +51,27 @@ as black-box classifier, but a mistmatch between them limits explanation
 quality.
 """
 from __future__ import absolute_import
-from typing import Any, Callable, Dict
+from typing import Any, Callable, Dict, Optional
 
 import numpy as np
 from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.linear_model import LogisticRegression
-from sklearn.pipeline import make_pipeline
+from sklearn.linear_model import SGDClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.utils import check_random_state
+from sklearn.base import clone, BaseEstimator
 
-from eli5.lime import textutils
-from eli5.lime.samplers import MaskingTextSampler
+import eli5
+from eli5.lime.samplers import BaseSampler
+from eli5.lime.textutils import DEFAULT_TOKEN_PATTERN, CHAR_TOKEN_PATTERN
+from eli5.lime.samplers import MaskingTextSamplers
 from eli5.lime.utils import (
     fit_proba,
     score_with_sample_weight,
     mean_kl_divergence,
     fix_multiclass_predict_proba,
+    rbf
 )
+from eli5.lime._vectorizer import SingleDocumentVectorizer
 
 
 def _train_local_classifier(estimator,
@@ -138,33 +142,117 @@ def _train_local_classifier(estimator,
     }
 
 
-def get_local_pipeline_text(text, predict_proba, n_samples=1000,
-                            expand_factor=10, random_state=None):
-    """
-    Train a classifier which approximates probabilistic text classifier locally.
-    Return (clf, vec, metrics) tuple with "easy" classifier, "easy" vectorizer,
-    and an estimated metrics of this pipeline, i.e.
-    how well these "easy" vectorizer/classifier approximates text
-    classifier in neighbourhood of ``text``.
-    """
-    rng = check_random_state(random_state)
-    vec = CountVectorizer(
-        binary=True,
-        token_pattern=textutils.DEFAULT_TOKEN_PATTERN,
-    )
-    clf = LogisticRegression(C=100, random_state=rng)
-    pipe = make_pipeline(vec, clf)
+class TextExplainer(BaseEstimator):
+    def __init__(self,
+                 n_samples=5000,  # type: int
+                 char_based=False,  # type: bool
+                 clf=None,
+                 vec=None,
+                 sampler=None,  # type: BaseSampler
+                 position_dependent=False,  # type: bool
+                 rbf_sigma=None,  # type: float
+                 random_state=None,
+                 expand_factor=10,  # type: Optional[int]
+                 token_pattern=None,  # type: str
+                 ):
+        # type: (...) -> None
+        self.n_samples = n_samples
+        self.random_state = random_state
+        self.expand_factor = expand_factor
+        self.rng_ = check_random_state(random_state)
+        if clf is None:
+            clf = SGDClassifier(loss='log',
+                                penalty='elasticnet',
+                                alpha=1e-3,
+                                random_state=self.rng_)
+        self.clf = clf
 
-    sampler = MaskingTextSampler(bow=True, random_state=rng)
-    samples, similarity = sampler.sample_near(text, n_samples=n_samples)
-    y_proba = predict_proba(samples)
+        if char_based is None:
+            if token_pattern is None:
+                self.char_based = False
+                self.token_pattern = DEFAULT_TOKEN_PATTERN
+            else:
+                self.char_based = None
+                self.token_pattern = token_pattern
+        else:
+            if token_pattern is not None:
+                raise ValueError("Use either ``char_based`` or "
+                                 "``token_pattern``, but not both.")
+            self.char_based = char_based
+            self.token_pattern = (CHAR_TOKEN_PATTERN if char_based
+                                  else DEFAULT_TOKEN_PATTERN)
 
-    metrics = _train_local_classifier(
-        estimator=pipe,
-        samples=samples,
-        similarity=similarity,
-        y_proba=y_proba,
-        expand_factor=expand_factor,
-        random_state=rng,
-    )
-    return clf, vec, metrics
+        if sampler is None:
+            sampler = MaskingTextSamplers(
+                sampler_params=[{'bow': False}, {'bow': True}],
+                weights=[0.7, 0.3],
+                token_pattern=self.token_pattern,
+                random_state=self.rng_,
+            )
+        self.sampler = sampler
+        self.rbf_sigma = rbf_sigma
+        self.position_dependent = position_dependent
+        if position_dependent:
+            if vec is not None:
+                raise ValueError("Custom vectorizers are only supported with "
+                                 "position_dependent=False")
+        else:
+            if vec is None:
+                vec = CountVectorizer(token_pattern=self.token_pattern)
+            self.vec = vec
+
+    def fit(self,
+            doc,             # type: str
+            predict_proba,   # type: Callable[[Any], Any]
+            ):
+        # type: (...) -> TextExplainer
+        self.doc_ = doc
+        if not self.position_dependent:
+            self.vec_ = clone(self.vec).fit([doc])
+            samples, sims = self.sampler.sample_near(
+                doc=doc,
+                n_samples=self.n_samples
+            )
+            X = self.vec_.transform(samples)
+        else:
+            samples, sims, mask, text = self.sampler.sample_near_with_mask(
+                doc=doc,
+                n_samples=self.n_samples
+            )
+            self.vec_ = SingleDocumentVectorizer(
+                token_pattern=self.token_pattern
+            ).fit([doc])
+            X = ~mask
+
+        if self.rbf_sigma is not None:
+            sims = rbf(1-sims, sigma=self.rbf_sigma)
+
+        self.samples_ = samples
+        self.similarity_ = sims
+        self.X_ = X
+        self.y_proba_ = predict_proba(samples)
+        self.clf_ = clone(self.clf)
+
+        self.metrics_ = _train_local_classifier(
+            estimator=self.clf_,
+            samples=X,
+            similarity=sims,
+            y_proba=self.y_proba_,
+            expand_factor=self.expand_factor,
+            random_state=self.rng_
+        )
+        return self
+
+    def show_prediction(self, **kwargs):
+        return eli5.show_prediction(self.clf_, self.doc_, vec=self.vec_,
+                                    **kwargs)
+
+    def explain_prediction(self, **kwargs):
+        return eli5.explain_prediction(self.clf_, self.doc_, vec=self.vec_,
+                                       **kwargs)
+
+    def show_weights(self, **kwargs):
+        return eli5.show_weights(self.clf_, vec=self.vec_, **kwargs)
+
+    def explain_weights(self, **kwargs):
+        return eli5.explain_weights(self.clf_, vec=self.vec_, **kwargs)
