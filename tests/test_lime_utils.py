@@ -29,15 +29,15 @@ def test_fit_proba():
     # fit on binary labels
     clf = LogisticRegression(C=10, random_state=42)
     clf.fit(X, y_bin)
-    y_pred = clf.predict_proba(X)[:,1]
-    mae = mean_absolute_error(y_proba[:,1], y_pred)
+    y_pred = clf.predict_proba(X)[:, 1]
+    mae = mean_absolute_error(y_proba[:, 1], y_pred)
     print(y_pred, mae)
 
     # fit on probabilities
     clf2 = LogisticRegression(C=10, random_state=42)
     fit_proba(clf2, X, y_proba, expand_factor=200, random_state=42)
-    y_pred2 = clf2.predict_proba(X)[:,1]
-    mae2 = mean_absolute_error(y_proba[:,1], y_pred2)
+    y_pred2 = clf2.predict_proba(X)[:, 1]
+    mae2 = mean_absolute_error(y_proba[:, 1], y_pred2)
     print(y_pred2, mae2)
 
     assert mae2 * 1.2 < mae
@@ -47,7 +47,7 @@ def test_fit_proba():
     clf3 = LogisticRegression(C=10, random_state=42)
     fit_proba(clf3, X, y_proba, expand_factor=200, sample_weight=sample_weight,
               random_state=42)
-    y_pred3 = clf3.predict_proba(X)[:,1]
+    y_pred3 = clf3.predict_proba(X)[:, 1]
     print(y_pred3)
 
     val = y_proba[3][1]
@@ -58,7 +58,7 @@ def test_fit_proba():
     clf4 = LogisticRegression(C=10, random_state=42)
     fit_proba(clf4, X, y_proba, expand_factor=None,
               random_state=42)
-    y_pred4 = clf4.predict_proba(X)[:,1]
+    y_pred4 = clf4.predict_proba(X)[:, 1]
     assert np.allclose(y_pred, y_pred4)
 
     # it should work the same with sparse data
