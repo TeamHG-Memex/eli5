@@ -143,6 +143,113 @@ def _train_local_classifier(estimator,
 
 
 class TextExplainer(BaseEstimator):
+    """
+    TextExplainer allows to explain predictions of black-box text classifiers
+    using LIME algorithm.
+
+    Parameters
+    ----------
+    n_samples : int
+        A number of samples to generate and train on. Default is 5000.
+
+        With larger n_samples it takes more CPU time and RAM to explain
+        a prediction, but it could give better results. Larger n_samples
+        could be also required to get good results if you don't want to
+        make strong assumptions about the black-box classifier
+        (e.g. char_based=True and position_dependent=True).
+    char_based : bool
+        True if explanation should be char-based, False if it should be
+        token-based. Default is False.
+    clf : object, optional
+        White-box probabilistic classifier. It should be supported by eli5,
+        follow scikit-learn interface and provide predict_proba method.
+        When not set, a default classifier is used (logistic regression with
+        elasticnet regularization trained with SGD).
+    vec : object, optional
+        Vectorizer which converts generated texts to feature vectors
+        for the white-box classifier. When not set, a default vectorizer is
+        used; which one depends on ``char_based`` and ``position_dependent``
+        arguments.
+    sampler : MaskingTextSampler or MaskingTextSamplers, optional
+        Sampler used to generate modified versions of the text.
+    position_dependent : bool
+        When True, a special vectorizer is used which takes
+        each token or character (depending on ``char_based`` value)
+        in account separately. When False (default) a vectorized passed in
+        ``vec`` or a default vectorizer is used.
+
+        Default vectorizer converts text to vector using bag-of-word
+        or bag-of-char-ngrams approach (depending on ``char_based`` argument).
+        It means that it may be not powerful enough to approximate a black-box
+        classifier which e.g. takes in account word FOO in the beginning of
+        the document, but not in the end.
+
+        When ``position_dependent`` is True the model becomes powerful enough
+        to account for that, but it can become more noisy and require
+        larger ``n_samples`` to get an OK explanation.
+
+        When ``char_based=False`` instead of using ``position_dependent``
+        you can also pass a token ngram-based vectorizer as ``vec``,
+        e.g. ``CountVectorizer(ngram_range=(1,2))``. This is still less
+        powerful than ``position_dependent=True``, but can give similar
+        results in practice.
+    rbf_sigma : float, optional
+        Sigma parameter of RBF kernel used to post-process cosine similarity
+        values. Default is None, meaning no post-processing
+        (cosine simiilarity is used as sample weight as-is).
+        Small ``rbf_sigma`` values (e.g. 0.1) tell the classifier to pay
+        more attention to generated texts which are close to the original text.
+        Large ``rbf_sigma`` values (e.g. 1.0) make distance between text
+        irrelevant.
+    random_state : integer or numpy.random.RandomState, optional
+        random state
+    expand_factor : int or None
+        To approximate output of the probabilistic classifier generated
+        dataset is expanded by ``expand_factor`` (10 by default)
+        according to the predicted label probabilities. This is a workaround
+        for scikit-learn limitation (no cross-entropy loss for non 1/0 labels).
+        With larger values training takes longer, but probability output
+        can be approximated better.
+
+        expand_factor=None turns this feature off; pass None when you know
+        that black-box classifier returns only 1.0 or 0.0 probabilities.
+    token_pattern : str, optional
+        Regex which matches a token. Use it to customize tokenization.
+        Not applicable when ``char_based`` is True.
+
+    Attributes
+    ----------
+    rng_ : numpy.random.RandomState
+        random state
+
+    samples_ : list[str]
+        A list of samples the local model is trained on.
+        Only available after :func:`fit`.
+
+    X_ : ndarray or scipy.sparse matrix
+        A matrix with vectorized ``samples_``.
+        Only available after :func:`fit`.
+
+    similarity_ : ndarray
+        Similarity vector. Only available after :func:`fit`.
+
+    y_proba_ : ndarray
+        probabilities predicted by black-box classifier
+        (``predict_proba(self.samples_)`` result).
+        Only available after :func:`fit`.
+
+    clf_ : object
+        Trained white-box classifier. Only available after :func:`fit`.
+
+    vec_ : object
+        Fit white-box vectorizer. Only available after :func:`fit`.
+
+    metrics_ : dict
+        A dictionary with metrics of how well the local
+        classification pipeline approximates the black-box pipeline.
+        Only available after :func:`fit`.
+
+    """
     def __init__(self,
                  n_samples=5000,  # type: int
                  char_based=None,  # type: bool
@@ -211,6 +318,26 @@ class TextExplainer(BaseEstimator):
             doc,             # type: str
             predict_proba,   # type: Callable[[Any], Any]
             ):
+        """
+        Explain ``predict_proba`` probabilistic classification function
+        for the ``doc`` example. This method fits a local classification
+        pipeline following LIME approach.
+
+        To get the explanation use :meth:`show_prediction`,
+        :meth:`show_weights`, :meth:`explain_prediction` or
+        :meth:`explain_weights`.
+
+        Parameters
+        ----------
+        doc : str
+            Text to explain
+        predict_proba : callable
+            Black-box classification pipeline. ``predict_proba``
+            should be a function which takes a list of strings (documents)
+            and return a matrix of shape ``(n_samples, n_classes)`` with
+            probability values - a row per document and a column per output
+            label.
+        """
         # type: (...) -> TextExplainer
         self.doc_ = doc
 
@@ -251,15 +378,43 @@ class TextExplainer(BaseEstimator):
         return self
 
     def show_prediction(self, **kwargs):
+        """
+        Call :func:`eli5.show_prediction` for the locally-fit
+        classification pipeline. Keyword arguments are passed
+        to :func:`eli5.show_prediction`.
+
+        :func:`fit` must be called before using this method.
+        """
         return eli5.show_prediction(self.clf_, self.doc_, vec=self.vec_,
                                     **kwargs)
 
     def explain_prediction(self, **kwargs):
+        """
+        Call :func:`eli5.explain_prediction` for the locally-fit
+        classification pipeline. Keyword arguments are passed
+        to :func:`eli5.explain_prediction`.
+
+        :func:`fit` must be called before using this method.
+        """
         return eli5.explain_prediction(self.clf_, self.doc_, vec=self.vec_,
                                        **kwargs)
 
     def show_weights(self, **kwargs):
+        """
+        Call :func:`eli5.show_weights` for the locally-fit
+        classification pipeline. Keyword arguments are passed
+        to :func:`eli5.show_weights`.
+
+        :func:`fit` must be called before using this method.
+        """
         return eli5.show_weights(self.clf_, vec=self.vec_, **kwargs)
 
     def explain_weights(self, **kwargs):
+        """
+        Call :func:`eli5.show_weights` for the locally-fit
+        classification pipeline. Keyword arguments are passed
+        to :func:`eli5.show_weights`.
+
+        :func:`fit` must be called before using this method.
+        """
         return eli5.explain_weights(self.clf_, vec=self.vec_, **kwargs)
