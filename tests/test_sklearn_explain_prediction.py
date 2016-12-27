@@ -255,22 +255,3 @@ def test_explain_tree_classifier_text(clf, newsgroups_train_big):
     res = explain_prediction(clf, docs[0], vec=vec, target_names=target_names)
     check_targets_scores(res)
     print(format_as_text(res, show=fields.WEIGHTS))
-
-
-def explain_treeinterpreter(clf, xs, feature_names, target_names):
-    """ Do explanation via https://github.com/andosa/treeinterpreter/
-    """
-    from treeinterpreter import treeinterpreter as ti
-    prediction, bias, contributions = ti.predict(clf, xs)
-    print()
-    print(bias)
-    for indices in zip(*contributions.nonzero()):
-        feature = feature_names[indices[1]]
-        if len(indices) == 2:
-            target = target_names[0]
-        elif len(indices) == 3:
-            target = target_names[indices[2]]
-        else:
-            raise ValueError
-        print('{:+.3f}\t{}\t{}'.format(contributions[indices], feature, target))
-    print()

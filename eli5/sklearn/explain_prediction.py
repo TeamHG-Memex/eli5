@@ -6,8 +6,6 @@ import numpy as np
 import scipy.sparse as sp
 from sklearn.base import BaseEstimator
 from sklearn.ensemble import (
-    AdaBoostClassifier,
-    AdaBoostRegressor,
     ExtraTreesClassifier,
     ExtraTreesRegressor,
     GradientBoostingClassifier,
@@ -230,7 +228,6 @@ Features with largest coefficients per target.
 """ + DECISION_PATHS_CAVEATS
 
 
-# @explain_prediction_sklearn.register(AdaBoostClassifier)
 @explain_prediction_sklearn.register(DecisionTreeClassifier)
 @explain_prediction_sklearn.register(ExtraTreesClassifier)
 @explain_prediction_sklearn.register(GradientBoostingClassifier)
@@ -308,7 +305,6 @@ def explain_prediction_tree_classifier(
     return res
 
 
-@explain_prediction_sklearn.register(AdaBoostRegressor)
 @explain_prediction_sklearn.register(DecisionTreeRegressor)
 @explain_prediction_sklearn.register(ExtraTreesRegressor)
 @explain_prediction_sklearn.register(GradientBoostingRegressor)
