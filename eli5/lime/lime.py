@@ -213,14 +213,8 @@ class TextExplainer(BaseEstimator):
             ):
         # type: (...) -> TextExplainer
         self.doc_ = doc
-        if not self.position_dependent:
-            self.vec_ = clone(self.vec).fit([doc])
-            samples, sims = self.sampler.sample_near(
-                doc=doc,
-                n_samples=self.n_samples
-            )
-            X = self.vec_.transform(samples)
-        else:
+
+        if self.position_dependent:
             samples, sims, mask, text = self.sampler.sample_near_with_mask(
                 doc=doc,
                 n_samples=self.n_samples
@@ -229,6 +223,13 @@ class TextExplainer(BaseEstimator):
                 token_pattern=self.token_pattern
             ).fit([doc])
             X = ~mask
+        else:
+            self.vec_ = clone(self.vec).fit([doc])
+            samples, sims = self.sampler.sample_near(
+                doc=doc,
+                n_samples=self.n_samples
+            )
+            X = self.vec_.transform(samples)
 
         if self.rbf_sigma is not None:
             sims = rbf(1-sims, sigma=self.rbf_sigma)
