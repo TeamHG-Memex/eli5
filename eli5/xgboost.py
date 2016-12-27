@@ -94,7 +94,7 @@ def explain_prediction_xgboost(
         targets=None,
         feature_names=None,
         vectorized=False,
-        expand_missing_features=False,  # TODO - doc
+        expand_missing_features=False,
     ):
     """ Return an explanation of XGBoost prediction (via scikit-learn wrapper
     XGBClassifier or XGBRegressor) as feature weights.
@@ -108,6 +108,13 @@ def explain_prediction_xgboost(
     Contribution of one feature on the decision path is how much expected score
     changes from parent to child.
     Weights of all features sum to the output score of the estimator.
+
+    For correct handling of missing features, set missing argument of
+    XGBClassifier or XGBRegressor correctly (e.g. to 0 when working with
+    sklearn text vectorizers).
+    When expand_missing_features is set to True, each missing feature is
+    reported separately, as "feature (missing)"; when it is False,
+    all missing features weights are added together.
     """
     num_features = len(xgb.booster().feature_names)
     vec, feature_names = handle_vec(
