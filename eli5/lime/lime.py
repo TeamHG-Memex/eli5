@@ -145,7 +145,7 @@ def _train_local_classifier(estimator,
 class TextExplainer(BaseEstimator):
     def __init__(self,
                  n_samples=5000,  # type: int
-                 char_based=False,  # type: bool
+                 char_based=None,  # type: bool
                  clf=None,
                  vec=None,
                  sampler=None,  # type: BaseSampler
