@@ -145,7 +145,7 @@ class TokenizedText(object):
     def vocab(self):
         # type: () -> List[str]
         if self._vocab is None:
-            self._vocab = list(set(self.tokens))
+            self._vocab = sorted(set(self.tokens))
         return self._vocab
 
     @property
