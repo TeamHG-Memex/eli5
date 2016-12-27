@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
+from collections import defaultdict
 import re
 from singledispatch import singledispatch
+import six
 from typing import Any, Dict, List, Tuple
 
 import numpy as np
@@ -91,7 +93,9 @@ def explain_prediction_xgboost(
         target_names=None,
         targets=None,
         feature_names=None,
-        vectorized=False):
+        vectorized=False,
+        expand_missing_features=False,  # TODO - doc
+    ):
     """ Return an explanation of XGBoost prediction (via scikit-learn wrapper
     XGBClassifier or XGBRegressor) as feature weights.
 
@@ -113,9 +117,6 @@ def explain_prediction_xgboost(
         # them as having an intercept
         feature_names.bias_name = '<BIAS>'
 
-    missing = FormattedFeatureName('Missing features')
-    missing_idx = feature_names.add_feature(missing)
-
     X = get_X(doc, vec, vectorized=vectorized)
     if sp.issparse(X):
         # Work around XGBoost issue:
@@ -123,13 +124,35 @@ def explain_prediction_xgboost(
         X = X.tocsc()
 
     proba = predict_proba(xgb, X)
-    scores_weights = _prediction_feature_weights(
-        xgb, X, feature_names, missing_idx)
+    scores_weights = _prediction_feature_weights(xgb, X, feature_names)
 
     is_multiclass = _xgb_n_targets(xgb) > 1
     is_regression = isinstance(xgb, XGBRegressor)
     names = xgb.classes_ if not is_regression else ['y']
     display_names = get_target_display_names(names, target_names, targets)
+
+    missing_map = {}  # map feature idx to missing feature idx
+
+    def get_weights(label_id):
+        score, (feature_weights, missing_feature_weights) = (
+            scores_weights[label_id])
+        if expand_missing_features:
+            for idx, value in six.iteritems(missing_feature_weights):
+                if idx not in missing_map:
+                    missing_map[idx] = feature_names.add_feature(
+                        '{} (missing)'.format(feature_names[idx]))
+                feature_weights[missing_map[idx]] += value
+        else:
+            if 0 not in missing_map:
+                missing = FormattedFeatureName('Missing features')
+                missing_map[0] = feature_names.add_feature(missing)
+            feature_weights[missing_map[0]] = sum(
+                missing_feature_weights.values())
+        feature_weights_array = np.zeros(len(feature_names))
+        for idx, value in six.iteritems(feature_weights):
+            feature_weights_array[idx] = value
+        return score, get_top_features(
+            feature_names, feature_weights_array, top)
 
     res = Explanation(
         estimator=repr(xgb),
@@ -144,22 +167,20 @@ def explain_prediction_xgboost(
     )
     if is_multiclass:
         for label_id, label in display_names:
-            score, feature_weights = scores_weights[label_id]
+            score, feature_weights = get_weights(label_id)
             target_expl = TargetExplanation(
                 target=label,
-                feature_weights=get_top_features(
-                    feature_names, feature_weights, top),
+                feature_weights=feature_weights,
                 score=score,
                 proba=proba[label_id] if proba is not None else None,
             )
             add_weighted_spans(doc, vec, vectorized, target_expl)
             res.targets.append(target_expl)
     else:
-        (score, feature_weights), = scores_weights
+        score, feature_weights = get_weights(0)
         target_expl = TargetExplanation(
             target=display_names[-1][1],
-            feature_weights=get_top_features(
-                feature_names, feature_weights, top),
+            feature_weights=feature_weights,
             score=score,
             proba=proba[1] if proba is not None else None,
         )
@@ -169,9 +190,10 @@ def explain_prediction_xgboost(
     return res
 
 
-def _prediction_feature_weights(xgb, X, feature_names, missing_idx):
-    """ For each target, return score and numpy array with feature weights
-    on this prediction, following an idea from
+def _prediction_feature_weights(xgb, X, feature_names):
+    """ For each target, return score and a tuple of feature weights
+    and missing feature weights on this prediction,
+    following an idea from
     http://blog.datadive.net/interpreting-random-forests/
     """
     # XGBClassifier does not have pred_leaf argument, so use booster
@@ -182,7 +204,7 @@ def _prediction_feature_weights(xgb, X, feature_names, missing_idx):
 
     def target_feature_weights(_leaf_ids, _tree_dumps):
         return _target_feature_weights(
-            _leaf_ids, _tree_dumps, feature_names, missing_idx, X, xgb.missing)
+            _leaf_ids, _tree_dumps, feature_names, X, xgb.missing)
 
     n_targets = _xgb_n_targets(xgb)
     if n_targets > 1:
@@ -199,8 +221,9 @@ def _prediction_feature_weights(xgb, X, feature_names, missing_idx):
 
 
 def _target_feature_weights(
-        leaf_ids, tree_dumps, feature_names, missing_idx, X, missing):
-    feature_weights = np.zeros(len(feature_names))
+        leaf_ids, tree_dumps, feature_names, X, missing):
+    feature_weights = defaultdict(float)
+    missing_feature_weights = defaultdict(float)
     # All trees in XGBoost give equal contribution to the prediction:
     # it is equal to sum of "leaf" values in leafs
     # before applying loss-specific function
@@ -218,12 +241,14 @@ def _target_feature_weights(
             f_num_match = re.search('^f(\d+)$', node['split'])
             feature_idx = int(f_num_match.groups()[0])
             assert feature_idx >= 0
-            idx = (missing_idx if _is_missing(X, feature_idx, missing)
-                   else feature_idx)
-            feature_weights[idx] += child['leaf'] - node['leaf']
+            if _is_missing(X, feature_idx, missing):
+                weights = missing_feature_weights
+            else:
+                weights = feature_weights
+            weights[feature_idx] += child['leaf'] - node['leaf']
         # Root "leaf" value is interpreted as bias
         feature_weights[feature_names.bias_idx] += path[0]['leaf']
-    return score, feature_weights
+    return score, (feature_weights, missing_feature_weights)
 
 
 def _is_missing(X, feature_idx, missing):

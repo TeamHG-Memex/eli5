@@ -29,6 +29,7 @@ class FeatureNames(Sized):
                     raise ValueError(
                         'unkn_template should be set for sparse features')
         self.feature_names = feature_names
+        self._own_feature_names = False  # can not modify them while it's False
         self.unkn_template = unkn_template
         self.n_features = n_features or len(feature_names)
         self.bias_name = bias_name
@@ -120,14 +121,18 @@ class FeatureNames(Sized):
         # self.add_feature to improve performance.
         idx = self.n_features
         if isinstance(self.feature_names, (list, np.ndarray)):
-            self.feature_names = list(self.feature_names)
+            if (not self._own_feature_names or
+                    isinstance(self.feature_names, np.ndarray)):
+                self.feature_names = list(self.feature_names)
             self.feature_names.append(feature)
         elif isinstance(self.feature_names, dict):
-            self.feature_names = dict(self.feature_names)
+            if not self._own_feature_names:
+                self.feature_names = dict(self.feature_names)
             self.feature_names[idx] = feature
         elif self.feature_names is None:
             self.feature_names = {idx: feature}
         self.n_features += 1
+        self._own_feature_names = True
         return idx
 
 
