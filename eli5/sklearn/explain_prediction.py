@@ -1,10 +1,18 @@
 # -*- coding: utf-8 -*-
 from singledispatch import singledispatch
-from typing import Any
+from functools import partial
 
 import numpy as np
 import scipy.sparse as sp
 from sklearn.base import BaseEstimator
+from sklearn.ensemble import (
+    ExtraTreesClassifier,
+    ExtraTreesRegressor,
+    GradientBoostingClassifier,
+    GradientBoostingRegressor,
+    RandomForestClassifier,
+    RandomForestRegressor,
+)
 from sklearn.linear_model import (
     ElasticNet,  # includes Lasso, MultiTaskElasticNet, etc.
     ElasticNetCV,
@@ -21,6 +29,7 @@ from sklearn.linear_model import (
 )
 from sklearn.svm import LinearSVC, LinearSVR
 from sklearn.multiclass import OneVsRestClassifier
+from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 
 from eli5.base import Explanation, TargetExplanation
 from eli5.utils import get_target_display_names
@@ -35,8 +44,9 @@ from eli5.sklearn.utils import (
     handle_vec,
 )
 from eli5.sklearn.text import add_weighted_spans
-from eli5._feature_weights import get_top_features
 from eli5.explain import explain_prediction
+from eli5._decision_path import DECISION_PATHS_CAVEATS
+from eli5._feature_weights import get_top_features
 
 
 @explain_prediction.register(BaseEstimator)
@@ -191,6 +201,230 @@ def explain_prediction_linear_regressor(reg, doc,
         res.targets.append(target_expl)
 
     return res
+
+
+DECISION_PATHS_CAVEATS = """
+Feature weights are calculated by following decision paths in trees
+of an ensemble (or a single tree for DecisionTreeClassifier).
+Each node of the tree has an output score, and contribution of a feature
+on the decision path is how much the score changes from parent to child.
+Weights of all features sum to the output score or proba of the estimator.
+""" + DECISION_PATHS_CAVEATS
+
+DESCRIPTION_TREE_CLF_BINARY = """
+Features with largest coefficients.
+""" + DECISION_PATHS_CAVEATS
+
+DESCRIPTION_TREE_CLF_MULTICLASS = """
+Features with largest coefficients per class.
+""" + DECISION_PATHS_CAVEATS
+
+DESCRIPTION_TREE_REG = """
+Features with largest coefficients.
+""" + DECISION_PATHS_CAVEATS
+
+DESCRIPTION_TREE_REG_MULTITARGET = """
+Features with largest coefficients per target.
+""" + DECISION_PATHS_CAVEATS
+
+
+@explain_prediction_sklearn.register(DecisionTreeClassifier)
+@explain_prediction_sklearn.register(ExtraTreesClassifier)
+@explain_prediction_sklearn.register(GradientBoostingClassifier)
+@explain_prediction_sklearn.register(RandomForestClassifier)
+def explain_prediction_tree_classifier(
+        clf, doc,
+        vec=None,
+        top=None,
+        target_names=None,
+        targets=None,
+        feature_names=None,
+        vectorized=False):
+    """ Explain prediction of a tree classifier.
+
+    Method for determining feature importances follows an idea from
+    http://blog.datadive.net/interpreting-random-forests/.
+    Feature weights are calculated by following decision paths in trees
+    of an ensemble (or a single tree for DecisionTreeClassifier).
+    Each node of the tree has an output score, and contribution of a feature
+    on the decision path is how much the score changes from parent to child.
+    Weights of all features sum to the output score or proba of the estimator.
+    """
+    vec, feature_names = handle_vec(clf, doc, vec, vectorized, feature_names)
+    X = get_X(doc, vec=vec, vectorized=vectorized)
+    if feature_names.bias_name is None:
+        # Tree estimators do not have an intercept, but here we interpret
+        # them as having an intercept
+        feature_names.bias_name = '<BIAS>'
+
+    proba = predict_proba(clf, X)
+    if hasattr(clf, 'decision_function'):
+        score, = clf.decision_function(X)
+    else:
+        score = None
+
+    feature_weights = _trees_feature_weights(
+        clf, X, feature_names, clf.n_classes_)
+    is_multiclass = clf.n_classes_ > 2
+
+    def _weights(label_id):
+        scores = feature_weights[:, label_id]
+        return get_top_features(feature_names, scores, top)
+
+    res = Explanation(
+        estimator=repr(clf),
+        method='decision path',
+        targets=[],
+        description=(DESCRIPTION_TREE_CLF_MULTICLASS if is_multiclass
+                     else DESCRIPTION_TREE_CLF_BINARY),
+    )
+
+    display_names = get_target_display_names(
+        clf.classes_, target_names, targets)
+
+    if is_multiclass:
+        for label_id, label in display_names:
+            target_expl = TargetExplanation(
+                target=label,
+                feature_weights=_weights(label_id),
+                score=score[label_id] if score is not None else None,
+                proba=proba[label_id] if proba is not None else None,
+            )
+            add_weighted_spans(doc, vec, vectorized, target_expl)
+            res.targets.append(target_expl)
+    else:
+        target_expl = TargetExplanation(
+            target=display_names[1][1],
+            feature_weights=_weights(1),
+            score=score if score is not None else None,
+            proba=proba[1] if proba is not None else None,
+        )
+        add_weighted_spans(doc, vec, vectorized, target_expl)
+        res.targets.append(target_expl)
+
+    return res
+
+
+@explain_prediction_sklearn.register(DecisionTreeRegressor)
+@explain_prediction_sklearn.register(ExtraTreesRegressor)
+@explain_prediction_sklearn.register(GradientBoostingRegressor)
+@explain_prediction_sklearn.register(RandomForestRegressor)
+def explain_prediction_tree_regressor(
+        reg, doc,
+        vec=None,
+        top=None,
+        target_names=None,
+        targets=None,
+        feature_names=None,
+        vectorized=False):
+    """ Explain prediction of a tree regressor.
+
+    Method for determining feature importances follows an idea from
+    http://blog.datadive.net/interpreting-random-forests/.
+    Feature weights are calculated by following decision paths in trees
+    of an ensemble (or a single tree for DecisionTreeRegressor).
+    Each node of the tree has an output score, and contribution of a feature
+    on the decision path is how much the score changes from parent to child.
+    Weights of all features sum to the output score of the estimator.
+    """
+    vec, feature_names = handle_vec(reg, doc, vec, vectorized, feature_names)
+    X = get_X(doc, vec=vec, vectorized=vectorized)
+    if feature_names.bias_name is None:
+        # Tree estimators do not have an intercept, but here we interpret
+        # them as having an intercept
+        feature_names.bias_name = '<BIAS>'
+
+    score, = reg.predict(X)
+    num_targets = getattr(reg, 'n_outputs_', 1)
+    is_multitarget = num_targets > 1
+    feature_weights = _trees_feature_weights(reg, X, feature_names, num_targets)
+
+    def _weights(label_id):
+        scores = feature_weights[:, label_id]
+        return get_top_features(feature_names, scores, top)
+
+    res = Explanation(
+        estimator=repr(reg),
+        method='decision path',
+        description=(DESCRIPTION_TREE_REG_MULTITARGET if is_multitarget
+                     else DESCRIPTION_TREE_REG),
+        targets=[],
+        is_regression=True,
+    )
+
+    names = get_default_target_names(reg, num_targets=num_targets)
+    display_names = get_target_display_names(names, target_names, targets)
+
+    if is_multitarget:
+        for label_id, label in display_names:
+            target_expl = TargetExplanation(
+                target=label,
+                feature_weights=_weights(label_id),
+                score=score[label_id],
+            )
+            add_weighted_spans(doc, vec, vectorized, target_expl)
+            res.targets.append(target_expl)
+    else:
+        target_expl = TargetExplanation(
+            target=display_names[0][1],
+            feature_weights=_weights(0),
+            score=score,
+        )
+        add_weighted_spans(doc, vec, vectorized, target_expl)
+        res.targets.append(target_expl)
+
+    return res
+
+
+def _trees_feature_weights(clf, X, feature_names, num_targets):
+    """ Return feature weights for a tree or a tree ensemble.
+    """
+    feature_weights = np.zeros([len(feature_names), num_targets])
+    if hasattr(clf, 'tree_'):
+        _update_tree_feature_weights(X, feature_names, clf, feature_weights)
+    else:
+        if isinstance(clf, (
+                GradientBoostingClassifier, GradientBoostingRegressor)):
+            weight = clf.learning_rate
+        else:
+            weight = 1. / len(clf.estimators_)
+        for _clfs in clf.estimators_:
+            _update = partial(_update_tree_feature_weights, X, feature_names)
+            if isinstance(_clfs, np.ndarray):
+                if len(_clfs) == 1:
+                    _update(_clfs[0], feature_weights)
+                else:
+                    for idx, _clf in enumerate(_clfs):
+                        _update(_clf, feature_weights[:, idx])
+            else:
+                _update(_clfs, feature_weights)
+        feature_weights *= weight
+        if hasattr(clf, 'init_'):
+            feature_weights[feature_names.bias_idx] += clf.init_.predict(X)[0]
+    return feature_weights
+
+
+def _update_tree_feature_weights(X, feature_names, clf, feature_weights):
+    """ Update tree feature weights using decision path method.
+    """
+    tree_value = clf.tree_.value
+    if tree_value.shape[1] == 1:
+        squeeze_axis = 1
+    else:
+        assert tree_value.shape[2] == 1
+        squeeze_axis = 2
+    tree_value = np.squeeze(tree_value, axis=squeeze_axis)
+    tree_feature = clf.tree_.feature
+    _, indices = clf.decision_path(X).nonzero()
+    if isinstance(clf, DecisionTreeClassifier):
+        norm = lambda x: x / x.sum()
+    else:
+        norm = lambda x: x
+    feature_weights[feature_names.bias_idx] += norm(tree_value[0])
+    for parent_idx, child_idx in zip(indices, indices[1:]):
+        assert tree_feature[parent_idx] >= 0
+        feature_weights[tree_feature[parent_idx]] += (
+            norm(tree_value[child_idx]) - norm(tree_value[parent_idx]))
 
 
 def _multiply(X, coef):

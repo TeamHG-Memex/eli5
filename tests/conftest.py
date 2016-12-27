@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import pytest
 import numpy as np
-from sklearn.datasets import fetch_20newsgroups, load_boston
+from sklearn.datasets import fetch_20newsgroups, load_boston, load_iris
 from sklearn.utils import shuffle
 
 NEWSGROUPS_CATEGORIES = [
@@ -39,6 +39,11 @@ def newsgroups_train_binary():
 
 
 @pytest.fixture(scope="session")
+def newsgroups_train_big():
+    return _get_newsgroups(remove_chrome=True, size=1000)
+
+
+@pytest.fixture(scope="session")
 def newsgroups_train_binary_big():
     return _get_newsgroups(binary=True, remove_chrome=True, size=1000)
 
@@ -49,3 +54,19 @@ def boston_train(size=SIZE):
     X, y = shuffle(data.data, data.target, random_state=13)
     X = X.astype(np.float32)
     return X[:size], y[:size], data.feature_names
+
+
+@pytest.fixture(scope="session")
+def iris_train():
+    data = load_iris()
+    X, y = shuffle(data.data, data.target, random_state=13)
+    return X, y, data.feature_names, data.target_names
+
+
+@pytest.fixture(scope="session")
+def iris_train_binary():
+    data = load_iris()
+    X, y = shuffle(data.data, data.target, random_state=13)
+    flt = y < 2
+    X, y = X[flt], y[flt]
+    return X, y, data.feature_names

@@ -7,7 +7,9 @@ from pprint import pprint
 
 from hypothesis.strategies import integers
 from hypothesis.extra.numpy import arrays
+import numpy as np
 
+from eli5.base import Explanation
 from eli5.formatters import format_as_text, format_as_html, format_as_dict
 from eli5.formatters.html import html_escape
 from eli5.formatters.text import format_signed
@@ -80,3 +82,18 @@ def get_names_coefs(feature_weights):
              else fw.feature,
              fw.weight)
             for fw in feature_weights]
+
+
+def check_targets_scores(explanation):
+    # type: (Explanation) -> None
+    """ Check that feature weights sum to target score or proba,
+    and that there are no "remaining" features.
+    """
+    for target in explanation.targets:
+        weights = target.feature_weights
+        # else the check is invalid
+        assert weights.neg_remaining == weights.pos_remaining == 0
+        weights_sum = (sum(fw.weight for fw in weights.pos) +
+                       sum(fw.weight for fw in weights.neg))
+        expected = target.score if target.score is not None else target.proba
+        assert np.isclose(expected, weights_sum), (expected, weights_sum)
