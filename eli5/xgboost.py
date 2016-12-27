@@ -132,24 +132,28 @@ def explain_prediction_xgboost(
     display_names = get_target_display_names(names, target_names, targets)
 
     missing_map = {}  # map feature idx to missing feature idx
-
-    def get_weights(label_id):
-        score, (feature_weights, missing_feature_weights) = (
-            scores_weights[label_id])
+    for _, (feature_weights, missing_feature_weights) in scores_weights:
         if expand_missing_features:
             for idx, value in six.iteritems(missing_feature_weights):
                 if idx not in missing_map:
                     missing_map[idx] = feature_names.add_feature(
                         '{} (missing)'.format(feature_names[idx]))
                 feature_weights[missing_map[idx]] += value
-        else:
-            if 0 not in missing_map:
+        elif missing_feature_weights:
+            if 'missing' not in missing_map:
                 missing = FormattedFeatureName('Missing features')
-                missing_map[0] = feature_names.add_feature(missing)
-            feature_weights[missing_map[0]] = sum(
+                missing_map['missing'] = feature_names.add_feature(missing)
+            feature_weights[missing_map['missing']] = sum(
                 missing_feature_weights.values())
+
+    def get_weights(label_id):
+        score, (feature_weights, missing_feature_weights) = (
+            scores_weights[label_id])
         feature_weights_array = np.zeros(len(feature_names))
         for idx, value in six.iteritems(feature_weights):
+            # Couldn't have used bias_idx before,
+            # because feature_names were changing, and so was bias_idx
+            idx = feature_names.bias_idx if idx == 'bias' else idx
             feature_weights_array[idx] = value
         return score, get_top_features(
             feature_names, feature_weights_array, top)
@@ -203,8 +207,7 @@ def _prediction_feature_weights(xgb, X, feature_names):
     assert len(tree_dumps) == len(leaf_ids)
 
     def target_feature_weights(_leaf_ids, _tree_dumps):
-        return _target_feature_weights(
-            _leaf_ids, _tree_dumps, feature_names, X, xgb.missing)
+        return _target_feature_weights(_leaf_ids, _tree_dumps, X, xgb.missing)
 
     n_targets = _xgb_n_targets(xgb)
     if n_targets > 1:
@@ -220,8 +223,7 @@ def _prediction_feature_weights(xgb, X, feature_names):
     return scores_weights
 
 
-def _target_feature_weights(
-        leaf_ids, tree_dumps, feature_names, X, missing):
+def _target_feature_weights(leaf_ids, tree_dumps, X, missing):
     feature_weights = defaultdict(float)
     missing_feature_weights = defaultdict(float)
     # All trees in XGBoost give equal contribution to the prediction:
@@ -247,7 +249,7 @@ def _target_feature_weights(
                 weights = feature_weights
             weights[feature_idx] += child['leaf'] - node['leaf']
         # Root "leaf" value is interpreted as bias
-        feature_weights[feature_names.bias_idx] += path[0]['leaf']
+        feature_weights['bias'] += path[0]['leaf']
     return score, (feature_weights, missing_feature_weights)
 
 
