@@ -227,7 +227,7 @@ def test_explain_tree_regressor_multitarget(reg):
 
 
 @pytest.mark.parametrize(['reg'], [
-    # [AdaBoostRegressor(learning_rate=0.075)],
+    [AdaBoostRegressor(learning_rate=0.075)],
     [DecisionTreeRegressor()],
     [ExtraTreesRegressor()],
     [GradientBoostingRegressor(learning_rate=0.075)],

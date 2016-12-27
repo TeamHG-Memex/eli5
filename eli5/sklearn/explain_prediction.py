@@ -308,7 +308,7 @@ def explain_prediction_tree_classifier(
     return res
 
 
-# @explain_prediction_sklearn.register(AdaBoostRegressor)
+@explain_prediction_sklearn.register(AdaBoostRegressor)
 @explain_prediction_sklearn.register(DecisionTreeRegressor)
 @explain_prediction_sklearn.register(ExtraTreesRegressor)
 @explain_prediction_sklearn.register(GradientBoostingRegressor)
@@ -385,21 +385,19 @@ def _trees_feature_weights(clf, X, feature_names, num_targets):
     """
     feature_weights = np.zeros([len(feature_names), num_targets])
     if hasattr(clf, 'tree_'):
+        _update_tree_feature_weights(X, feature_names, clf, feature_weights)
+    elif isinstance(clf, (AdaBoostRegressor)):  # TODO - AdaBoostClassifier
+        estimator_idx, = _adaboost_get_estimator(clf, X)
         _update_tree_feature_weights(
-            X, feature_names, 1.0, clf, feature_weights)
+            X, feature_names, clf.estimators_[estimator_idx], feature_weights)
     else:
-        # Possible optimization: use clf.decision_path
-        estimator_weights = np.ones(len(clf.estimators_))
-        if hasattr(clf, 'estimator_weights_'):
-            estimator_weights = clf.estimator_weights_
-        elif isinstance(clf, (
+        if isinstance(clf, (
                 GradientBoostingClassifier, GradientBoostingRegressor)):
-            estimator_weights *= clf.learning_rate
+            weight = clf.learning_rate
         else:
-            estimator_weights /= len(clf.estimators_)
-        for clf_weight, _clfs in zip(estimator_weights, clf.estimators_):
-            _update = partial(_update_tree_feature_weights,
-                              X, feature_names, clf_weight)
+            weight = 1. / len(clf.estimators_)
+        for _clfs in clf.estimators_:
+            _update = partial(_update_tree_feature_weights, X, feature_names)
             if isinstance(_clfs, np.ndarray):
                 if len(_clfs) == 1:
                     _update(_clfs[0], feature_weights)
@@ -408,13 +406,26 @@ def _trees_feature_weights(clf, X, feature_names, num_targets):
                         _update(_clf, feature_weights[:, idx])
             else:
                 _update(_clfs, feature_weights)
+        feature_weights *= weight
         if hasattr(clf, 'init_'):
             feature_weights[feature_names.bias_idx] += clf.init_.predict(X)[0]
     return feature_weights
 
 
-def _update_tree_feature_weights(
-        X, feature_names, weight, clf, feature_weights):
+def _adaboost_get_estimator(clf, X):
+    # Most of AdaBoostRegressor._get_median_predict
+    predictions = np.array([est.predict(X) for est in clf.estimators_]).T
+    # Sort the predictions
+    sorted_idx = np.argsort(predictions, axis=1)
+    # Find index of median prediction for each sample
+    weight_cdf = clf.estimator_weights_[sorted_idx].cumsum(axis=1)
+    median_or_above = weight_cdf >= 0.5 * weight_cdf[:, -1][:, np.newaxis]
+    median_idx = median_or_above.argmax(axis=1)
+    median_estimators = sorted_idx[np.arange(X.shape[0]), median_idx]
+    return median_estimators
+
+
+def _update_tree_feature_weights(X, feature_names, clf, feature_weights):
     """ Update tree feature weights using decision path method.
     """
     tree_value = clf.tree_.value
@@ -431,9 +442,10 @@ def _update_tree_feature_weights(
         norm = lambda x: x / x.sum()
     else:
         norm = lambda x: x
-    feature_weights[feature_names.bias_idx] += weight * norm(tree_value[0])
+    feature_weights[feature_names.bias_idx] += norm(tree_value[0])
     for parent_idx, child_idx in zip(indices, indices[1:]):
-        feature_weights[tree_feature[parent_idx]] += weight * (
+        assert tree_feature[parent_idx] >= 0
+        feature_weights[tree_feature[parent_idx]] += (
             norm(tree_value[child_idx]) - norm(tree_value[parent_idx]))
 
 
