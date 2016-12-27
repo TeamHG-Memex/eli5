@@ -182,7 +182,7 @@ class MaskingTextSamplers(BaseSampler):
 
     def _sampler_n_samples(self, n_samples):
         """ Return (sampler, n_samplers) tuples """
-        sampler_indices = np.random.choice(range(len(self.samplers)),
+        sampler_indices = self.rng_.choice(range(len(self.samplers)),
                                            size=n_samples,
                                            replace=True,
                                            p=self.weights)

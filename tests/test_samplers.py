@@ -83,6 +83,22 @@ def test_masking_text_sampler_ratios():
     assert {s.strip() for s in samples} == {'foo', 'bar', 'baz', ''}
 
 
+def test_masking_samplers_random_state():
+    params = [{'bow': True}, {'bow': False}]
+    s1 = MaskingTextSamplers(params, random_state=42)
+    s2 = MaskingTextSamplers(params, random_state=42)
+    s3 = MaskingTextSamplers(params, random_state=24)
+
+    doc = 'foo bar baz egg spam egg spam'
+
+    samples1, _ = s1.sample_near(doc, n_samples=50)
+    samples2, _ = s2.sample_near(doc, n_samples=50)
+    samples3, _ = s3.sample_near(doc, n_samples=50)
+
+    assert samples1 == samples2
+    assert samples1 != samples3
+
+
 def test_univariate_kde_sampler():
     feat1 = np.random.normal(size=100)
     feat2 = np.random.randint(0, 2, size=100)
