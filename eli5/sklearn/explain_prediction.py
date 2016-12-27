@@ -386,10 +386,6 @@ def _trees_feature_weights(clf, X, feature_names, num_targets):
     feature_weights = np.zeros([len(feature_names), num_targets])
     if hasattr(clf, 'tree_'):
         _update_tree_feature_weights(X, feature_names, clf, feature_weights)
-    elif isinstance(clf, (AdaBoostRegressor)):  # TODO - AdaBoostClassifier
-        estimator_idx, = _adaboost_get_estimator(clf, X)
-        _update_tree_feature_weights(
-            X, feature_names, clf.estimators_[estimator_idx], feature_weights)
     else:
         if isinstance(clf, (
                 GradientBoostingClassifier, GradientBoostingRegressor)):
@@ -412,30 +408,16 @@ def _trees_feature_weights(clf, X, feature_names, num_targets):
     return feature_weights
 
 
-def _adaboost_get_estimator(clf, X):
-    # Most of AdaBoostRegressor._get_median_predict
-    predictions = np.array([est.predict(X) for est in clf.estimators_]).T
-    # Sort the predictions
-    sorted_idx = np.argsort(predictions, axis=1)
-    # Find index of median prediction for each sample
-    weight_cdf = clf.estimator_weights_[sorted_idx].cumsum(axis=1)
-    median_or_above = weight_cdf >= 0.5 * weight_cdf[:, -1][:, np.newaxis]
-    median_idx = median_or_above.argmax(axis=1)
-    median_estimators = sorted_idx[np.arange(X.shape[0]), median_idx]
-    return median_estimators
-
-
 def _update_tree_feature_weights(X, feature_names, clf, feature_weights):
     """ Update tree feature weights using decision path method.
     """
     tree_value = clf.tree_.value
     if tree_value.shape[1] == 1:
-        tree_value = np.squeeze(tree_value, axis=1)
-    elif tree_value.shape[2] == 1:
-        tree_value = np.squeeze(tree_value, axis=2)
+        squeeze_axis = 1
     else:
-        raise ValueError(
-            'unexpected clf.tree_.value shape: {}'.format(tree_value.shape))
+        assert tree_value.shape[2] == 1
+        squeeze_axis = 2
+    tree_value = np.squeeze(tree_value, axis=squeeze_axis)
     tree_feature = clf.tree_.feature
     _, indices = clf.decision_path(X).nonzero()
     if isinstance(clf, DecisionTreeClassifier):

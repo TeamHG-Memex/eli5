@@ -6,8 +6,6 @@ import pytest
 from sklearn.datasets import make_regression
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from sklearn.ensemble import (
-    AdaBoostClassifier,
-    AdaBoostRegressor,
     ExtraTreesClassifier,
     ExtraTreesRegressor,
     GradientBoostingClassifier,
@@ -168,7 +166,6 @@ def test_explain_linear_regression_multitarget(reg):
 
 
 @pytest.mark.parametrize(['clf'], [
-    # [AdaBoostClassifier(learning_rate=0.075)],
     [DecisionTreeClassifier()],
     [ExtraTreesClassifier()],
     [GradientBoostingClassifier(learning_rate=0.075)],
@@ -188,7 +185,6 @@ def test_explain_tree_clf_multiclass(clf, iris_train):
 
 
 @pytest.mark.parametrize(['clf'], [
-    # [AdaBoostClassifier(learning_rate=0.075)],
     [DecisionTreeClassifier()],
     [ExtraTreesClassifier()],
     [GradientBoostingClassifier(learning_rate=0.075)],
@@ -227,7 +223,6 @@ def test_explain_tree_regressor_multitarget(reg):
 
 
 @pytest.mark.parametrize(['reg'], [
-    [AdaBoostRegressor(learning_rate=0.075)],
     [DecisionTreeRegressor()],
     [ExtraTreesRegressor()],
     [GradientBoostingRegressor(learning_rate=0.075)],
