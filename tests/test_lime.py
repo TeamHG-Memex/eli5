@@ -5,10 +5,11 @@ import numpy as np
 from sklearn.feature_extraction.text import HashingVectorizer
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.pipeline import make_pipeline
+import pytest
 
 from eli5.lime import TextExplainer
 from eli5.formatters import format_as_text
-from .utils import format_as_all
+from .utils import format_as_all, check_targets_scores
 
 
 def test_lime_explain_probabilistic(newsgroups_train):
@@ -58,3 +59,25 @@ def test_lime_flat_neighbourhood(newsgroups_train):
     for expl in format_as_all(res, te.clf_):
         assert 'file' in expl
         assert "comp.graphics" in expl
+
+
+@pytest.mark.parametrize(['token_pattern'],
+                         [[None], ['.']])
+def test_text_explainer_char_based(token_pattern):
+    text = "Hello, world!"
+    def predict_proba(docs):
+        return np.array([
+            [0, 1] if 'lo' in doc else [1, 0]
+            for doc in docs
+        ], dtype=np.float)
+
+    te = TextExplainer(char_based=True, token_pattern=token_pattern)
+    te.fit(text, predict_proba)
+    print(te.metrics_)
+    assert te.metrics_['score'] > 0.95
+    assert te.metrics_['mean_KL_divergence'] < 0.1
+
+    res = te.explain_prediction()
+    format_as_all(res, te.clf_)
+    check_targets_scores(res)
+    assert res.targets[0].feature_weights.pos[0].feature == 'lo'

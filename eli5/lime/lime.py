@@ -215,7 +215,7 @@ class TextExplainer(BaseEstimator):
         that black-box classifier returns only 1.0 or 0.0 probabilities.
     token_pattern : str, optional
         Regex which matches a token. Use it to customize tokenization.
-        Not applicable when ``char_based`` is True.
+        Default value depends on ``char_based`` parameter.
 
     Attributes
     ----------
@@ -282,12 +282,11 @@ class TextExplainer(BaseEstimator):
                 self.char_based = None
                 self.token_pattern = token_pattern
         else:
-            if token_pattern is not None:
-                raise ValueError("Use either ``char_based`` or "
-                                 "``token_pattern``, but not both.")
+            if token_pattern is None:
+                token_pattern = (CHAR_TOKEN_PATTERN if char_based
+                                 else DEFAULT_TOKEN_PATTERN)
             self.char_based = char_based
-            self.token_pattern = (CHAR_TOKEN_PATTERN if char_based
-                                  else DEFAULT_TOKEN_PATTERN)
+            self.token_pattern = token_pattern
 
         if sampler is None:
             sampler = MaskingTextSamplers(
