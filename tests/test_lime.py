@@ -65,10 +65,7 @@ def test_lime_flat_neighbourhood(newsgroups_train):
                          [[None], ['.']])
 def test_text_explainer_char_based(token_pattern):
     text = "Hello, world!"
-
-    @_apply_to_list
-    def predict_proba(doc):
-        return [0.0, 1.0] if 'lo' in doc else [1.0, 0.0]
+    predict_proba = substring_presence_predict_proba('lo')
 
     te = TextExplainer(char_based=True, token_pattern=token_pattern)
     te.fit(text, predict_proba)
@@ -131,10 +128,7 @@ def test_text_explainer_position_dependent():
 
 def test_text_explainer_custom_classifier():
     text = "foo-bar baz egg-spam"
-
-    @_apply_to_list
-    def predict_proba(doc):
-        return [0, 1] if 'bar' in doc else [1, 0]
+    predict_proba = substring_presence_predict_proba('bar')
 
     # use decision tree to explain the prediction
     te = TextExplainer(clf=DecisionTreeClassifier(max_depth=2))
@@ -154,10 +148,7 @@ def test_text_explainer_custom_classifier():
 
 def test_text_explainer_token_pattern():
     text = "foo-bar baz egg-spam"
-
-    @_apply_to_list
-    def predict_proba(doc):
-        return [0, 1] if 'bar' in doc else [1, 0]
+    predict_proba = substring_presence_predict_proba('bar')
 
     # a different token_pattern
     te = TextExplainer(token_pattern=r'(?u)\b[-\w]+\b')
@@ -193,7 +184,27 @@ def test_text_explainer_show_methods():
     assert 'lo' in weight_expl.data
 
 
+def test_text_explainer_rbf_sigma():
+    text = 'foo bar baz egg spam'
+    predict_proba = substring_presence_predict_proba('bar')
+
+    te1 = TextExplainer().fit(text, predict_proba)
+    te2 = TextExplainer(rbf_sigma=0.1).fit(text, predict_proba)
+    te3 = TextExplainer(rbf_sigma=1.0).fit(text, predict_proba)
+
+    assert te1.similarity_.sum() < te3.similarity_.sum()
+    assert te1.similarity_.sum() > te2.similarity_.sum()
+
+
+def substring_presence_predict_proba(substring):
+    @_apply_to_list
+    def predict_proba(doc):
+        return [0, 1] if substring in doc else [1, 0]
+    return predict_proba
+
+
 def _apply_to_list(func):
     def wrapper(docs):
         return np.array([func(doc) for doc in docs])
     return wrapper
+
