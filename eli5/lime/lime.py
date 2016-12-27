@@ -306,7 +306,9 @@ class TextExplainer(BaseEstimator):
         if position_dependent:
             if vec is not None:
                 raise ValueError("Custom vectorizers are only supported with "
-                                 "position_dependent=False")
+                                 "position_dependent=False (because "
+                                 "position_dependent=True uses its own "
+                                 "vectorizer)")
         else:
             if vec is None:
                 if self.char_based:

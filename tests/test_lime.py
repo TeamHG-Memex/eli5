@@ -108,6 +108,10 @@ def test_text_explainer_position_dependent():
     expl = te.explain_prediction()
     format_as_all(expl, te.clf_)
 
+    # custom vectorizers are not supported when position_dependent is True
+    with pytest.raises(ValueError):
+        te = TextExplainer(position_dependent=True, vec=HashingVectorizer())
+
 
 def _apply_to_list(func):
     def wrapper(docs):
