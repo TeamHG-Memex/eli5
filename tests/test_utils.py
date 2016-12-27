@@ -2,11 +2,12 @@
 from __future__ import absolute_import
 
 import numpy as np
+import scipy.sparse as sp
 from hypothesis import given, assume
 from hypothesis.strategies import integers
 
 from eli5.utils import (
-    argsort_k_largest, argsort_k_largest_positive, argsort_k_smallest)
+    argsort_k_largest, argsort_k_largest_positive, argsort_k_smallest, vstack)
 from .utils import rnd_len_arrays
 
 
@@ -58,6 +59,30 @@ def test_argsort_k_largest_positive():
                   np.array([2, 0]))
     assert _np_eq(argsort_k_largest_positive(np.array([1.0, 0.0, 2.0, 4.0]), 2),
                   np.array([3, 2]))
+
+
+def test_vstack_empty():
+    assert vstack([]).shape == (0,)
+
+
+def test_vstack_dense():
+    res = vstack([
+        np.array([1, 2, 3]),
+        np.array([4, 5, 6])
+    ])
+    assert res.shape == (2, 3)
+    assert not sp.issparse(res)
+    assert np.array_equal(res, np.array([[1, 2, 3], [4, 5, 6]]))
+
+
+def test_vstack_sparse():
+    res = vstack([
+        sp.csr_matrix([1, 2, 3]),
+        sp.csr_matrix([4, 5, 6]),
+    ])
+    assert res.shape == (2, 3)
+    assert sp.issparse(res)
+    assert np.array_equal(res.todense(), np.array([[1, 2, 3], [4, 5, 6]]))
 
 
 def _np_eq(x, y):
