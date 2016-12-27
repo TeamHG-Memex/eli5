@@ -67,7 +67,8 @@ def assert_multiclass_linear_classifier_explained(newsgroups_train, clf,
     assert res == get_res()
 
 
-def assert_linear_regression_explained(boston_train, reg, explain_prediction):
+def assert_linear_regression_explained(boston_train, reg, explain_prediction,
+                                       atol=1e-8):
     X, y, feature_names = boston_train
     reg.fit(X, y)
     res = explain_prediction(reg, X[0])
@@ -96,7 +97,7 @@ def assert_linear_regression_explained(boston_train, reg, explain_prediction):
     assert '<b>y</b>' in strip_blanks(expl_html)
 
     assert res == explain_prediction(reg, X[0])
-    check_targets_scores(res)
+    check_targets_scores(res, atol=atol)
 
 
 def assert_multitarget_linear_regression_explained(reg, explain_prediction):

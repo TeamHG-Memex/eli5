@@ -36,12 +36,13 @@ def test_explain_weights_classifiers(newsgroups_train, clf):
 regressors = [r for r in _REGRESSORS if r is not regression.SGDRegressor]
 regressor_params = (
     [[reg()] for reg in regressors] +
-    [[regression.SGDRegressor(eta0=1e-5, learning_rate='constant')]]
+    [[regression.SGDRegressor(max_iter=10, alpha=1e5, random_state=42)]]
 )
 
 @pytest.mark.parametrize(['reg'], regressor_params)
 def test_explain_prediction_regressors(boston_train, reg):
-    assert_linear_regression_explained(boston_train, reg, explain_prediction)
+    assert_linear_regression_explained(boston_train, reg, explain_prediction,
+                                       atol=1e-3)
 
 
 @pytest.mark.parametrize(['reg'], regressor_params)

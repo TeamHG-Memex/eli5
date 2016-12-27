@@ -84,7 +84,7 @@ def get_names_coefs(feature_weights):
             for fw in feature_weights]
 
 
-def check_targets_scores(explanation):
+def check_targets_scores(explanation, atol=1e-8):
     # type: (Explanation) -> None
     """ Check that feature weights sum to target score or proba,
     and that there are no "remaining" features.
@@ -96,4 +96,5 @@ def check_targets_scores(explanation):
         weights_sum = (sum(fw.weight for fw in weights.pos) +
                        sum(fw.weight for fw in weights.neg))
         expected = target.score if target.score is not None else target.proba
-        assert np.isclose(expected, weights_sum), (expected, weights_sum)
+        assert np.isclose(expected, weights_sum, atol=atol), \
+            (expected, weights_sum)
