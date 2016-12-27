@@ -183,18 +183,18 @@ class NodeInfo(object):
     Pointers to left and right children are in :left: and :right: attributes.
     """
     def __init__(self,
-                 id,
-                 is_leaf,  # type: bool
+                 id,                 # type: int
+                 is_leaf,            # type: bool
                  value,
                  value_ratio,
-                 impurity,
-                 samples,
-                 sample_ratio,
-                 feature_name=None,
-                 feature_id=None,
-                 threshold=None,
-                 left=None,  # type: NodeInfo
-                 right=None,  # type: NodeInfo
+                 impurity,           # type: float
+                 samples,            # type: int
+                 sample_ratio,       # type: float
+                 feature_name=None,  # type: str
+                 feature_id=None,    # type: int
+                 threshold=None,     # type: float
+                 left=None,          # type: NodeInfo
+                 right=None,         # type: NodeInfo
                  ):
         self.id = id
         self.is_leaf = is_leaf
