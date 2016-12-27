@@ -201,6 +201,11 @@ class TextExplainer(BaseEstimator):
         more attention to generated texts which are close to the original text.
         Large ``rbf_sigma`` values (e.g. 1.0) make distance between text
         irrelevant.
+
+        Note that if you're using large ``rbf_sigma`` it could be more
+        efficient to use custom ``samplers`` instead, in order to generate
+        text samples which are closer to the original text in the first place.
+        Use e.g. ``max_replace`` parameter of :class:`~.MaskingTextSampler`.
     random_state : integer or numpy.random.RandomState, optional
         random state
     expand_factor : int or None
