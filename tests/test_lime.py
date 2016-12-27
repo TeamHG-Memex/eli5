@@ -2,8 +2,9 @@
 from __future__ import absolute_import
 
 import numpy as np
-from sklearn.feature_extraction.text import HashingVectorizer
+from sklearn.feature_extraction.text import HashingVectorizer, CountVectorizer
 from sklearn.naive_bayes import MultinomialNB
+from sklearn.tree import DecisionTreeClassifier
 from sklearn.pipeline import make_pipeline
 import pytest
 
@@ -80,9 +81,13 @@ def test_text_explainer_char_based(token_pattern):
     check_targets_scores(res)
     assert res.targets[0].feature_weights.pos[0].feature == 'lo'
 
+    # another way to look at results (not that useful for char ngrams)
+    res = te.explain_weights()
+    assert res.targets[0].feature_weights.pos[0].feature == 'lo'
+
 
 def test_text_explainer_position_dependent():
-    text = "foo bar baz egg spam foo bar baz egg spam"
+    text = "foo bar baz egg spam bar baz egg spam"
 
     @_apply_to_list
     def predict_proba(doc):
@@ -108,9 +113,84 @@ def test_text_explainer_position_dependent():
     expl = te.explain_prediction()
     format_as_all(expl, te.clf_)
 
+    # it is also possible to almost make it work using a custom vectorizer
+    vec = CountVectorizer(ngram_range=(1, 2))
+    te = TextExplainer(vec=vec, random_state=42)
+    te.fit(text, predict_proba)
+    print(te.metrics_)
+    assert te.metrics_['score'] > 0.95
+    assert te.metrics_['mean_KL_divergence'] < 0.3
+
+    expl = te.explain_prediction()
+    format_as_all(expl, te.clf_)
+
     # custom vectorizers are not supported when position_dependent is True
     with pytest.raises(ValueError):
         te = TextExplainer(position_dependent=True, vec=HashingVectorizer())
+
+
+def test_text_explainer_custom_classifier():
+    text = "foo-bar baz egg-spam"
+
+    @_apply_to_list
+    def predict_proba(doc):
+        return [0, 1] if 'bar' in doc else [1, 0]
+
+    # use decision tree to explain the prediction
+    te = TextExplainer(clf=DecisionTreeClassifier(max_depth=2))
+    te.fit(text, predict_proba)
+    print(te.metrics_)
+    assert te.metrics_['score'] > 0.99
+    assert te.metrics_['mean_KL_divergence'] < 0.01
+    expl = te.explain_prediction()
+    format_as_all(expl, te.clf_)
+
+    # with explain_weights we can get a nice tree representation
+    expl = te.explain_weights()
+    print(expl.decision_tree.tree)
+    assert expl.decision_tree.tree.feature_name == "bar"
+    format_as_all(expl, te.clf_)
+
+
+def test_text_explainer_token_pattern():
+    text = "foo-bar baz egg-spam"
+
+    @_apply_to_list
+    def predict_proba(doc):
+        return [0, 1] if 'bar' in doc else [1, 0]
+
+    # a different token_pattern
+    te = TextExplainer(token_pattern=r'(?u)\b[-\w]+\b')
+    te.fit(text, predict_proba)
+    print(te.metrics_)
+    assert te.metrics_['score'] > 0.95
+    assert te.metrics_['mean_KL_divergence'] < 0.1
+    expl = te.explain_prediction()
+    format_as_all(expl, te.clf_)
+
+    assert expl.targets[0].feature_weights.pos[0].feature == 'foo-bar'
+
+
+def test_text_explainer_show_methods():
+    pytest.importorskip('IPython')
+    from IPython.display import HTML
+
+    text = "Hello, world!"
+
+    @_apply_to_list
+    def predict_proba(doc):
+        return [0.0, 1.0] if 'lo' in doc else [1.0, 0.0]
+
+    te = TextExplainer()
+    te.fit(text, predict_proba)
+
+    pred_expl = te.show_prediction()
+    assert isinstance(pred_expl, HTML)
+    assert 'lo' in pred_expl.data
+
+    weight_expl = te.show_weights()
+    assert isinstance(weight_expl, HTML)
+    assert 'lo' in weight_expl.data
 
 
 def _apply_to_list(func):
