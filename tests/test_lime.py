@@ -7,7 +7,6 @@ from sklearn.naive_bayes import MultinomialNB
 from sklearn.pipeline import make_pipeline
 
 from eli5.lime import TextExplainer
-from eli5.sklearn import explain_prediction_sklearn
 from eli5.formatters import format_as_text
 from .utils import format_as_all
 

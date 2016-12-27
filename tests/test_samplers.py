@@ -65,6 +65,24 @@ def test_masking_text_sampler():
     assert '   ' in samples
 
 
+def test_masking_text_sampler_ratios():
+    sampler = MaskingTextSampler(min_replace=2)
+    samples, sims = sampler.sample_near('foo bar baz', n_samples=100)
+    assert {s.strip() for s in samples} == {'foo', 'bar', 'baz', ''}
+
+    sampler = MaskingTextSampler(max_replace=1)
+    samples, sims = sampler.sample_near('foo bar baz', n_samples=100)
+    assert {s.strip() for s in samples} == {'foo bar', 'foo  baz', 'bar baz'}
+
+    sampler = MaskingTextSampler(max_replace=0.3)  # should be 1
+    samples, sims = sampler.sample_near('foo bar baz', n_samples=100)
+    assert {s.strip() for s in samples} == {'foo bar', 'foo  baz', 'bar baz'}
+
+    sampler = MaskingTextSampler(min_replace=0.9)  # should be 2
+    samples, sims = sampler.sample_near('foo bar baz', n_samples=100)
+    assert {s.strip() for s in samples} == {'foo', 'bar', 'baz', ''}
+
+
 def test_univariate_kde_sampler():
     feat1 = np.random.normal(size=100)
     feat2 = np.random.randint(0, 2, size=100)

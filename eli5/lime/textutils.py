@@ -4,6 +4,7 @@ Utilities for text generation.
 """
 from __future__ import absolute_import
 import re
+import math
 from typing import List, Tuple, Union
 
 import numpy as np
@@ -133,9 +134,9 @@ class TokenizedText(object):
 
     def _get_min_max(self, min_replace, max_replace, hard_maximum):
         if isinstance(min_replace, float):
-            min_replace = int(hard_maximum * min_replace)
+            min_replace = int(math.floor(hard_maximum * min_replace)) or 1
         if isinstance(max_replace, float):
-            max_replace = int(hard_maximum * max_replace)
+            max_replace = int(math.ceil(hard_maximum * max_replace))
         else:
             max_replace = min(max_replace, hard_maximum)
         return min_replace, max_replace
