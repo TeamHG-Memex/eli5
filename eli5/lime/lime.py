@@ -198,7 +198,13 @@ class TextExplainer(BaseEstimator):
                                  "position_dependent=False")
         else:
             if vec is None:
-                vec = CountVectorizer(token_pattern=self.token_pattern)
+                if self.char_based:
+                    vec = CountVectorizer(
+                        analyzer='char',
+                        ngram_range=(2, 5),
+                    )
+                else:
+                    vec = CountVectorizer(token_pattern=self.token_pattern)
             self.vec = vec
 
     def fit(self,
