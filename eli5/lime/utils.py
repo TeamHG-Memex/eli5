@@ -13,7 +13,7 @@ from eli5.utils import vstack
 
 
 def fit_proba(clf, X, y_proba, expand_factor=10, sample_weight=None,
-              shuffle=True, random_state=None, partial_fit=False,
+              shuffle=True, random_state=None,
               **fit_params):
     """
     Fit classifier ``clf`` to return probabilities close to ``y_proba``.
@@ -31,10 +31,7 @@ def fit_proba(clf, X, y_proba, expand_factor=10, sample_weight=None,
         random_state=random_state,
     )
     fit_params = with_sample_weight(clf, sample_weight, fit_params)
-    if partial_fit:
-        clf.partial_fit(X, y, **fit_params)
-    else:
-        clf.fit(X, y, **fit_params)
+    clf.fit(X, y, **fit_params)
     return clf
 
 
