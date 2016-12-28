@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
-from typing import Tuple, List, Union, Callable, Dict
+from typing import Tuple, Callable, Dict
 
-import numpy as np
-from sklearn.base import BaseEstimator, TransformerMixin
+import numpy as np  # type: ignore
+from sklearn.base import BaseEstimator, TransformerMixin  # type: ignore
 
 from eli5.base import DocWeightedSpans, FeatureWeights
 from eli5.sklearn.text import _get_feature_weights_dict

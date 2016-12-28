@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-import numpy as np
-from scipy import sparse as sp
+import numpy as np  # type: ignore
+from scipy import sparse as sp  # type: ignore
 
 
 def argsort_k_largest(x, k):

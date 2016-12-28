@@ -53,12 +53,12 @@ quality.
 from __future__ import absolute_import
 from typing import Any, Callable, Dict, Optional
 
-import numpy as np
-from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.linear_model import SGDClassifier
-from sklearn.model_selection import train_test_split
-from sklearn.utils import check_random_state
-from sklearn.base import clone, BaseEstimator
+import numpy as np  # type: ignore
+from sklearn.feature_extraction.text import CountVectorizer  # type: ignore
+from sklearn.linear_model import SGDClassifier  # type: ignore
+from sklearn.model_selection import train_test_split  # type: ignore
+from sklearn.utils import check_random_state  # type: ignore
+from sklearn.base import clone, BaseEstimator  # type: ignore
 
 import eli5
 from eli5.lime.samplers import BaseSampler

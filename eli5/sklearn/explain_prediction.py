@@ -2,10 +2,10 @@
 from singledispatch import singledispatch
 from functools import partial
 
-import numpy as np
-import scipy.sparse as sp
-from sklearn.base import BaseEstimator
-from sklearn.ensemble import (
+import numpy as np  # type: ignore
+import scipy.sparse as sp  # type: ignore
+from sklearn.base import BaseEstimator  # type: ignore
+from sklearn.ensemble import (  # type: ignore
     ExtraTreesClassifier,
     ExtraTreesRegressor,
     GradientBoostingClassifier,
@@ -13,7 +13,7 @@ from sklearn.ensemble import (
     RandomForestClassifier,
     RandomForestRegressor,
 )
-from sklearn.linear_model import (
+from sklearn.linear_model import (  # type: ignore
     ElasticNet,  # includes Lasso, MultiTaskElasticNet, etc.
     ElasticNetCV,
     Lars,
@@ -27,9 +27,12 @@ from sklearn.linear_model import (
     SGDClassifier,
     SGDRegressor,
 )
-from sklearn.svm import LinearSVC, LinearSVR
-from sklearn.multiclass import OneVsRestClassifier
-from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
+from sklearn.svm import LinearSVC, LinearSVR  # type: ignore
+from sklearn.multiclass import OneVsRestClassifier  # type: ignore
+from sklearn.tree import (   # type: ignore
+    DecisionTreeClassifier,
+    DecisionTreeRegressor
+)
 
 from eli5.base import Explanation, TargetExplanation
 from eli5.utils import get_target_display_names

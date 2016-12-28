@@ -1,8 +1,8 @@
 from __future__ import absolute_import
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple
 
-from sklearn.feature_extraction.text import VectorizerMixin
-from sklearn.pipeline import FeatureUnion
+from sklearn.feature_extraction.text import VectorizerMixin  # type: ignore
+from sklearn.pipeline import FeatureUnion  # type: ignore
 
 from eli5.base import (
     DocWeightedSpans, WeightedSpans, FeatureWeights, FeatureWeight,

@@ -2,10 +2,10 @@
 from __future__ import absolute_import
 from singledispatch import singledispatch
 
-import numpy as np
+import numpy as np  # type: ignore
 
-from sklearn.base import BaseEstimator
-from sklearn.linear_model import (
+from sklearn.base import BaseEstimator  # type: ignore
+from sklearn.linear_model import (   # type: ignore
     ElasticNet,  # includes Lasso, MultiTaskElasticNet, etc.
     ElasticNetCV,
     Lars,
@@ -19,17 +19,17 @@ from sklearn.linear_model import (
     SGDClassifier,
     SGDRegressor,
 )
-from sklearn.multiclass import OneVsRestClassifier
-from sklearn.svm import LinearSVC, LinearSVR
+from sklearn.multiclass import OneVsRestClassifier  # type: ignore
+from sklearn.svm import LinearSVC, LinearSVR  # type: ignore
 # TODO: see https://github.com/scikit-learn/scikit-learn/pull/2250
-from sklearn.naive_bayes import BernoulliNB, MultinomialNB
-from sklearn.ensemble import (
+from sklearn.naive_bayes import BernoulliNB, MultinomialNB    # type: ignore
+from sklearn.ensemble import (  # type: ignore
     GradientBoostingClassifier,
     AdaBoostClassifier,
     RandomForestClassifier,
     ExtraTreesClassifier
 )
-from sklearn.tree import DecisionTreeClassifier
+from sklearn.tree import DecisionTreeClassifier  # type: ignore
 
 from eli5.base import (
     Explanation, TargetExplanation, FeatureWeight, FeatureImportances)

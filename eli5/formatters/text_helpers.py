@@ -1,7 +1,7 @@
 from collections import Counter
 from typing import List
 
-import numpy as np
+import numpy as np  # type: ignore
 
 from eli5.base import TargetExplanation, WeightedSpans, DocWeightedSpans
 from eli5.base_utils import attrs

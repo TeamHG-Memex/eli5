@@ -95,7 +95,7 @@ def _decision_tree_lines(explanation):
 
 
 def _transition_features_lines(explanation):
-    from tabulate import tabulate
+    from tabulate import tabulate  # type: ignore
     tf = explanation.transition_features
     return [
         "",

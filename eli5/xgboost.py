@@ -4,9 +4,14 @@ import re
 from singledispatch import singledispatch
 from typing import Any, Dict, List, Tuple
 
-import numpy as np
-import scipy.sparse as sp
-from xgboost import XGBClassifier, XGBRegressor, Booster, DMatrix
+import numpy as np  # type: ignore
+import scipy.sparse as sp  # type: ignore
+from xgboost import (  # type: ignore
+    XGBClassifier,
+    XGBRegressor,
+    Booster,
+    DMatrix
+)
 
 from eli5.base import (
     FeatureWeight, FeatureImportances, Explanation, TargetExplanation)

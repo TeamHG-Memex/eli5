@@ -2,12 +2,12 @@
 from __future__ import absolute_import
 from typing import List, Any
 
-import numpy as np
-from scipy.stats import entropy
-from sklearn.pipeline import Pipeline
-from sklearn.utils import check_random_state, issparse
-from sklearn.utils.metaestimators import if_delegate_has_method
-from sklearn.utils import shuffle as _shuffle
+import numpy as np  # type: ignore
+from scipy.stats import entropy  # type: ignore
+from sklearn.pipeline import Pipeline  # type: ignore
+from sklearn.utils import check_random_state, issparse  # type: ignore
+from sklearn.utils.metaestimators import if_delegate_has_method  # type: ignore
+from sklearn.utils import shuffle as _shuffle  # type: ignore
 
 from eli5.utils import vstack
 

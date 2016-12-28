@@ -5,13 +5,13 @@ from functools import partial
 from typing import List, Tuple, Any, Union, Dict
 import six
 
-import numpy as np
-from scipy.stats import itemfreq
-from sklearn.base import BaseEstimator, clone
-from sklearn.neighbors import KernelDensity
-from sklearn.metrics import pairwise_distances
-from sklearn.model_selection import GridSearchCV, KFold
-from sklearn.utils import check_random_state
+import numpy as np  # type: ignore
+from scipy.stats import itemfreq  # type: ignore
+from sklearn.base import BaseEstimator, clone  # type: ignore
+from sklearn.neighbors import KernelDensity  # type: ignore
+from sklearn.metrics import pairwise_distances  # type: ignore
+from sklearn.model_selection import GridSearchCV, KFold  # type: ignore
+from sklearn.utils import check_random_state  # type: ignore
 
 from eli5.utils import vstack
 from eli5.lime.utils import rbf

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 
-import numpy as np
+import numpy as np  # type: ignore
 
 from eli5.base import FeatureWeights, FeatureWeight
 from .utils import argsort_k_largest_positive, argsort_k_smallest, mask

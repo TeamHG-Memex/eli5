@@ -7,8 +7,8 @@ import re
 import math
 from typing import List, Tuple, Union
 
-import numpy as np
-from sklearn.utils import check_random_state
+import numpy as np  # type: ignore
+from sklearn.utils import check_random_state  # type: ignore
 
 from eli5.utils import indices_to_bool_mask, vstack
 
