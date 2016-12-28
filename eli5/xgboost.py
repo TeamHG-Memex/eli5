@@ -4,7 +4,7 @@ from collections import defaultdict
 import re
 from singledispatch import singledispatch
 import six
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Tuple, Union
 
 import numpy as np
 import scipy.sparse as sp
@@ -138,7 +138,8 @@ def explain_prediction_xgboost(
     names = xgb.classes_ if not is_regression else ['y']
     display_names = get_target_display_names(names, target_names, targets)
 
-    missing_map = {}  # map feature idx to missing feature idx
+    # map feature idx to missing feature idx
+    missing_map = {}  # type: Dict[Union[int, str], int]
     for _, (feature_weights, missing_feature_weights) in scores_weights:
         if expand_missing_features:
             for idx, value in six.iteritems(missing_feature_weights):
@@ -231,8 +232,9 @@ def _prediction_feature_weights(xgb, X, feature_names):
 
 
 def _target_feature_weights(leaf_ids, tree_dumps, X, missing):
-    feature_weights = defaultdict(float)
-    missing_feature_weights = defaultdict(float)
+    feature_weights = defaultdict(float)  # type: Dict[Union[int, str], float]
+    # Union below is a lie (only ints are keys), but mypy can't ignore it
+    missing_feature_weights = defaultdict(float)  # type: Dict[Union[int, str], float]
     # All trees in XGBoost give equal contribution to the prediction:
     # it is equal to sum of "leaf" values in leafs
     # before applying loss-specific function
