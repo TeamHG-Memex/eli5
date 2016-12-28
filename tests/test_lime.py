@@ -84,7 +84,7 @@ def test_text_explainer_char_based(token_pattern):
 
 
 def test_text_explainer_position_dependent():
-    text = "foo bar baz egg spam bar baz egg spam"
+    text = "foo bar baz egg spam bar baz egg spam ham"
 
     @_apply_to_list
     def predict_proba(doc):

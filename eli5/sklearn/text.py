@@ -70,7 +70,6 @@ def _get_doc_weighted_spans(doc,
     found_features = {}
     for f_spans, feature in span_analyzer(preprocessed_doc):
         if feature not in feature_weights_dict:
-            # e.g. a feature from a different vectorizer in a FeatureUnion
             continue
         weight, key = feature_weights_dict[feature]
         spans.append((feature, f_spans, weight))
