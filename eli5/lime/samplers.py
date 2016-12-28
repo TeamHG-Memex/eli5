@@ -109,8 +109,6 @@ class MaskingTextSampler(BaseSampler):
                               group_size=self.group_size,
                               random_state=self.rng_)
         docs, similarity, mask = gen_samples(bow=self.bow)
-        # XXX: should it use RBF kernel as well, instead of raw
-        # cosine similarity?
         return docs, similarity, mask, doc
 
 
