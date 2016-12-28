@@ -47,8 +47,11 @@ def with_sample_weight(clf, sample_weight, fit_params):
     return params
 
 
-def fix_multiclass_predict_proba(y_proba, seen_classes, complete_classes):
-    # type: (np.ndarray, List[Any], List[Any]) -> np.ndarray
+def fix_multiclass_predict_proba(y_proba,          # type: np.ndarray
+                                 seen_classes,
+                                 complete_classes
+                                 ):
+    # type: (...) -> np.ndarray
     """
     Add missing columns to predict_proba result.
 

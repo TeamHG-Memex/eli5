@@ -53,9 +53,7 @@ def test_lime_flat_neighbourhood(newsgroups_train):
     print(te.metrics_)
     print(te.clf_.classes_, target_names)
 
-    # FIXME: move it to TextExplainer
-    actual_target_names = np.array(target_names)[te.clf_.classes_]
-    res = te.explain_prediction(top=20, target_names=actual_target_names)
+    res = te.explain_prediction(top=20, target_names=target_names)
     for expl in format_as_all(res, te.clf_):
         assert 'file' in expl
         assert "comp.graphics" in expl

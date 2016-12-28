@@ -323,6 +323,7 @@ class TextExplainer(BaseEstimator):
 
         :func:`fit` must be called before using this method.
         """
+        self._fix_target_names(kwargs)
         return eli5.show_prediction(self.clf_, self.doc_, vec=self.vec_,
                                     **kwargs)
 
@@ -334,6 +335,7 @@ class TextExplainer(BaseEstimator):
 
         :func:`fit` must be called before using this method.
         """
+        self._fix_target_names(kwargs)
         return eli5.explain_prediction(self.clf_, self.doc_, vec=self.vec_,
                                        **kwargs)
 
@@ -345,6 +347,7 @@ class TextExplainer(BaseEstimator):
 
         :func:`fit` must be called before using this method.
         """
+        self._fix_target_names(kwargs)
         return eli5.show_weights(self.clf_, vec=self.vec_, **kwargs)
 
     def explain_weights(self, **kwargs):
@@ -355,7 +358,14 @@ class TextExplainer(BaseEstimator):
 
         :func:`fit` must be called before using this method.
         """
+        self._fix_target_names(kwargs)
         return eli5.explain_weights(self.clf_, vec=self.vec_, **kwargs)
+
+    def _fix_target_names(self, kwargs):
+        target_names = kwargs.get('target_names', None)
+        if not target_names:
+            return
+        kwargs['target_names'] = np.array(target_names)[self.clf_.classes_]
 
 
 def _train_local_classifier(estimator,
@@ -399,14 +409,14 @@ def _train_local_classifier(estimator,
         # target classes; it means it could happen that dimensions
         # of predicted probability matrices don't match.
         #
-        # FIXME: the fix is not complete; to explain predictions
-        # of the fitted estimator one must take care of target_names.
+        # XXX: the fix is not complete; to explain predictions
+        # of the fitted estimator one still have to take care of target_names.
         if not hasattr(estimator, 'classes_'):
             raise ValueError("Result dimensions don't match and estimator"
                              "doesn't provide 'classes_' attribute; can't"
                              "figure out how are columns related.")
         seen_classes = estimator.classes_
-        complete_classes = list(range(y_proba.shape[1]))
+        complete_classes = np.arange(y_proba.shape[1])
         y_proba_test_pred = fix_multiclass_predict_proba(
             y_proba=y_proba_test_pred,
             seen_classes=seen_classes,
