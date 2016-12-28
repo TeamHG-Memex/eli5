@@ -6,8 +6,9 @@ import numpy as np
 from sklearn.feature_extraction.text import CountVectorizer
 pytest.importorskip('xgboost')
 from xgboost import XGBClassifier, XGBRegressor
+from sklearn.pipeline import FeatureUnion
+from sklearn.preprocessing import FunctionTransformer
 
-from eli5.base import TargetExplanation
 from eli5.xgboost import _parse_tree_dump, _xgb_n_targets
 from eli5.explain import explain_prediction, explain_weights
 from eli5.formatters.text import format_as_text
@@ -120,6 +121,51 @@ def test_explain_prediction_reg(boston_train):
     check_targets_scores(res)
     for expl in format_as_all(res, reg):
         assert 'LSTAT' in expl
+
+
+def test_explain_prediction_feature_union_dense():
+    # Test FeatureUnion handling and missing features in dense matrix
+    tranformer = lambda key: FunctionTransformer(
+        lambda xs: np.array([[x.get(key, np.nan)] for x in xs]),
+        validate=False)
+    vec = FeatureUnion([('x', tranformer('x')), ('y', tranformer('y'))])
+    gauss = np.random.normal
+    data = [(gauss(1), 2 + 10 * gauss(1)) for _ in range(200)]
+    ys = [-3 * x + y for x, y in data]
+    xs = [{'x': gauss(x), 'y': gauss(y)} for x, y in data]
+    for x in xs[:50]:
+        del x['x']
+    for x in xs[-50:]:
+        del x['y']
+    reg = XGBRegressor()
+    reg.fit(vec.transform(xs), ys)
+    res = explain_prediction(reg, xs[0], vec=vec, feature_names=['_x_', '_y_'])
+    check_targets_scores(res)
+    for expl in format_as_all(res, reg):
+        assert 'Missing features' in expl
+        assert '_y_' in expl
+        assert '_x_' not in expl
+
+
+def test_explain_prediction_feature_union_sparse(newsgroups_train_binary):
+    # FeatureUnion with sparce features and text highlighting
+    docs, ys, target_names = newsgroups_train_binary
+    vec = FeatureUnion([
+        ('word', CountVectorizer(stop_words='english')),
+        ('char', CountVectorizer(ngram_range=(3, 3))),
+        ])
+    clf = XGBClassifier(n_estimators=100, max_depth=2, missing=0)
+    xs = vec.fit_transform(docs)
+    clf.fit(xs, ys)
+    res = explain_prediction(
+        clf, 'computer graphics in space: a sign of atheism',
+        vec=vec, target_names=target_names)
+    format_as_all(res, clf)
+    check_targets_scores(res)
+    weights = res.targets[0].feature_weights
+    pos_features = get_all_features(weights.pos)
+    assert 'word__graphics' in pos_features
+    assert res.targets[0].weighted_spans
 
 
 def test_parse_tree_dump():
