@@ -74,74 +74,6 @@ from eli5.lime.utils import (
 from eli5.lime._vectorizer import SingleDocumentVectorizer
 
 
-def _train_local_classifier(estimator,
-                            samples,
-                            similarity,        # type: np.ndarray
-                            y_proba,           # type: np.ndarray
-                            expand_factor=10,  # type: int
-                            test_size=0.3,     # type: float
-                            random_state=None,
-                            ):
-    # type: (...) -> Dict[str, float]
-    rng = check_random_state(random_state)
-
-    (X_train, X_test,
-     similarity_train, similarity_test,
-     y_proba_train, y_proba_test) = train_test_split(samples,
-                                                     similarity,
-                                                     y_proba,
-                                                     test_size=test_size,
-                                                     random_state=rng)
-
-    # XXX: in the original lime code instead of a probabilitsic classifier
-    # they build several regression models which try to output probabilities.
-    #
-    # XXX: Probability information is helpful because it could be hard
-    # to get enough examples of all classes automatically, so we're fitting
-    # classifier to produce the same probabilities, not only the same
-    # best answer.
-
-    # TODO: feature selection
-    # Ideally, it should be supported as a Pipeline (i.e. user should
-    # be able to configure it).
-    fit_proba(estimator, X_train, y_proba_train,
-              expand_factor=expand_factor,
-              sample_weight=similarity_train,
-              random_state=rng)
-
-    y_proba_test_pred = estimator.predict_proba(X_test)
-    if y_proba_test_pred.shape != y_proba_test.shape:
-        # Sometimes generated training labels may contain only a subset of
-        # target classes; it means it could happen that dimensions
-        # of predicted probability matrices don't match.
-        #
-        # FIXME: the fix is not complete; to explain predictions
-        # of the fitted estimator one must take care of target_names.
-        if not hasattr(estimator, 'classes_'):
-            raise ValueError("Result dimensions don't match and estimator"
-                             "doesn't provide 'classes_' attribute; can't"
-                             "figure out how are columns related.")
-        seen_classes = estimator.classes_
-        complete_classes = list(range(y_proba.shape[1]))
-        y_proba_test_pred = fix_multiclass_predict_proba(
-            y_proba=y_proba_test_pred,
-            seen_classes=seen_classes,
-            complete_classes=complete_classes
-        )
-
-    return {
-        'mean_KL_divergence': mean_kl_divergence(
-            y_proba_test_pred,
-            y_proba_test,
-            sample_weight=similarity_test
-        ),
-        'score': score_with_sample_weight(estimator,
-                                          X_test,
-                                          y_proba_test.argmax(axis=1),
-                                          sample_weight=similarity_test)
-    }
-
-
 class TextExplainer(BaseEstimator):
     """
     TextExplainer allows to explain predictions of black-box text classifiers
@@ -424,3 +356,71 @@ class TextExplainer(BaseEstimator):
         :func:`fit` must be called before using this method.
         """
         return eli5.explain_weights(self.clf_, vec=self.vec_, **kwargs)
+
+
+def _train_local_classifier(estimator,
+                            samples,
+                            similarity,        # type: np.ndarray
+                            y_proba,           # type: np.ndarray
+                            expand_factor=10,  # type: int
+                            test_size=0.3,     # type: float
+                            random_state=None,
+                            ):
+    # type: (...) -> Dict[str, float]
+    rng = check_random_state(random_state)
+
+    (X_train, X_test,
+     similarity_train, similarity_test,
+     y_proba_train, y_proba_test) = train_test_split(samples,
+                                                     similarity,
+                                                     y_proba,
+                                                     test_size=test_size,
+                                                     random_state=rng)
+
+    # XXX: in the original lime code instead of a probabilitsic classifier
+    # they build several regression models which try to output probabilities.
+    #
+    # XXX: Probability information is helpful because it could be hard
+    # to get enough examples of all classes automatically, so we're fitting
+    # classifier to produce the same probabilities, not only the same
+    # best answer.
+
+    # TODO: feature selection
+    # Ideally, it should be supported as a Pipeline (i.e. user should
+    # be able to configure it).
+    fit_proba(estimator, X_train, y_proba_train,
+              expand_factor=expand_factor,
+              sample_weight=similarity_train,
+              random_state=rng)
+
+    y_proba_test_pred = estimator.predict_proba(X_test)
+    if y_proba_test_pred.shape != y_proba_test.shape:
+        # Sometimes generated training labels may contain only a subset of
+        # target classes; it means it could happen that dimensions
+        # of predicted probability matrices don't match.
+        #
+        # FIXME: the fix is not complete; to explain predictions
+        # of the fitted estimator one must take care of target_names.
+        if not hasattr(estimator, 'classes_'):
+            raise ValueError("Result dimensions don't match and estimator"
+                             "doesn't provide 'classes_' attribute; can't"
+                             "figure out how are columns related.")
+        seen_classes = estimator.classes_
+        complete_classes = list(range(y_proba.shape[1]))
+        y_proba_test_pred = fix_multiclass_predict_proba(
+            y_proba=y_proba_test_pred,
+            seen_classes=seen_classes,
+            complete_classes=complete_classes
+        )
+
+    return {
+        'mean_KL_divergence': mean_kl_divergence(
+            y_proba_test_pred,
+            y_proba_test,
+            sample_weight=similarity_test
+        ),
+        'score': score_with_sample_weight(estimator,
+                                          X_test,
+                                          y_proba_test.argmax(axis=1),
+                                          sample_weight=similarity_test)
+    }
