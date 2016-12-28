@@ -117,10 +117,10 @@ def _get_weighted_spans_from_union(doc, vec_union, feature_weights):
         vec_prefix = '{}__'.format(vec_name)
 
         def feature_fn(name):
-            if not name.startswith(vec_prefix):
-                return  # drop feature
             if isinstance(name, FormattedFeatureName):
                 return
+            if not name.startswith(vec_prefix):
+                return  # drop feature
             return name[len(vec_prefix):]  # remove prefix
 
         result = _get_doc_weighted_spans(doc, vec, feature_weights, feature_fn)
