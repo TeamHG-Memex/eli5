@@ -39,14 +39,9 @@ class SingleDocumentVectorizer(BaseEstimator, TransformerMixin):
         found_features = {}
         for idx, (span, feature) in enumerate(self.text_.spans_and_tokens):
             featname = self._featname(idx, feature)
-            try:
-                weight, key = feature_weights_dict[featname]
-            except KeyError:
-                pass
-            else:
-                spans.append((feature, [span], weight))
-                # XXX: this assumes feature names are unique
-                found_features[key] = weight
+            weight, key = feature_weights_dict[featname]
+            spans.append((feature, [span], weight))
+            found_features[key] = weight
 
         doc_weighted_spans = DocWeightedSpans(
             document=doc,

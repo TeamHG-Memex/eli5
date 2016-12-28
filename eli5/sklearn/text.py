@@ -69,14 +69,13 @@ def _get_doc_weighted_spans(doc,
     spans = []
     found_features = {}
     for f_spans, feature in span_analyzer(preprocessed_doc):
-        try:
-            weight, key = feature_weights_dict[feature]
-        except KeyError:
-            pass
-        else:
-            spans.append((feature, f_spans, weight))
-            # XXX: this assumes feature names are unique
-            found_features[key] = weight
+        if feature not in feature_weights_dict:
+            # e.g. a feature from a different vectorizer in a FeatureUnion
+            continue
+        weight, key = feature_weights_dict[feature]
+        spans.append((feature, f_spans, weight))
+        # XXX: this assumes feature names are unique
+        found_features[key] = weight
 
     return found_features, DocWeightedSpans(
         document=preprocessed_doc,
