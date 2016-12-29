@@ -123,7 +123,7 @@ class MaskingTextSamplers(BaseSampler):
     :meth:`sample_near_with_mask` to work.
 
     Create it with a list of {param: value} dicts
-    with MaskingTextSampler paremeters.
+    with :class:`MaskingTextSampler` paremeters.
     """
     def __init__(self,
                  sampler_params,      # type: List[Dict[str, Any]]
