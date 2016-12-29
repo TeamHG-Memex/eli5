@@ -65,7 +65,7 @@ For (1) ELI5 provides :func:`eli5.show_weights` function; for (2)
 it provides :func:`eli5.show_prediction` function.
 
 If the ML library you're working with is supported then you usually
-can enter the following in IPython Notebook::
+can enter something like this in the IPython Notebook::
 
     import eli5
     eli5.explain_weights(clf)
@@ -73,6 +73,11 @@ can enter the following in IPython Notebook::
 and get an explanation like this:
 
 .. image:: static/weights.png
+
+.. note::
+    Depending on an estimator, you may need to pass additional parameters
+    to get readable results - e.g. a vectorizer used to prepare features
+    for a classifier, or a list of feature names.
 
 Supported arguments and the exact way the classifier is visualized depends
 on a library.
