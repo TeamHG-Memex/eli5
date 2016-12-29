@@ -11,7 +11,8 @@ from eli5 import _graphviz
 from eli5.base import TargetExplanation
 from eli5.utils import max_or_0
 from .utils import (
-    format_signed, replace_spaces, should_highlight_spaces)
+    format_signed, has_any_values_for_weights, replace_spaces,
+    should_highlight_spaces)
 from . import fields
 from .features import FormattedFeatureName
 from .trees import tree2text
@@ -55,15 +56,12 @@ def format_as_html(explanation, include_styles=True, force_weights=True,
     targets = explanation.targets or []
     if len(targets) == 1:
         horizontal_layout = False
+    has_values_for_weights = has_any_values_for_weights(explanation)
 
     rendered_weighted_spans = render_targets_weighted_spans(
         targets, preserve_density)
     weighted_spans_others = [
         t.weighted_spans.other if t.weighted_spans else None for t in targets]
-
-    has_values_for_weights = any(
-        fw.value is not None for t in targets for fw in chain(
-            t.feature_weights.pos, t.feature_weights.neg))
 
     return template.render(
         include_styles=include_styles,

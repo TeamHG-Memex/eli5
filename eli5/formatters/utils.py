@@ -1,5 +1,7 @@
+from itertools import chain
 import re
 from typing import Union, List, Dict
+
 
 from eli5.base import Explanation
 from .features import FormattedFeatureName
@@ -72,3 +74,13 @@ def _has_invisible_spaces(name):
         return any(_has_invisible_spaces(n['name']) for n in name)
     else:
         return name.startswith(' ') or name.endswith(' ')
+
+
+def has_any_values_for_weights(explanation):
+    # type: (Explanation) -> bool
+    if explanation.targets:
+        return any(fw.value is not None
+                   for t in explanation.targets for fw in chain(
+            t.feature_weights.pos, t.feature_weights.neg))
+    else:
+        return False
