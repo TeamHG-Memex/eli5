@@ -31,6 +31,12 @@ jupyter nbconvert \
         '../notebooks/TextExplainer.ipynb' \
         > source/_notebooks/text-explainer.rst
 
+sed -i '' 's/``TextExplainer``/:class:`~.TextExplainer`/g' \
+    source/_notebooks/text-explainer.rst
+
+sed -i '' 's/``TextExplainer.fit``/:meth:`~.TextExplainer.fit`/g' \
+    source/_notebooks/text-explainer.rst
+
 # LIME
 #jupyter nbconvert \
 #        --to rst \
