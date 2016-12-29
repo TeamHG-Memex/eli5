@@ -119,7 +119,8 @@ class MaskingTextSamplers(BaseSampler):
     a requested number of samples using all samplers; a probability of
     using a sampler is proportional to its weight.
 
-    All samplers must use the same token_pattern.
+    All samplers must use the same token_pattern in order for
+    :meth:`sample_near_with_mask` to work.
 
     Create it with a list of {param: value} dicts
     with MaskingTextSampler paremeters.
