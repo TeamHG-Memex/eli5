@@ -37,6 +37,15 @@ sed -i '' 's/``TextExplainer``/:class:`~.TextExplainer`/g' \
 sed -i '' 's/``TextExplainer.fit``/:meth:`~.TextExplainer.fit`/g' \
     source/_notebooks/text-explainer.rst
 
+sed -i '' 's/``MaskingTextSampler``/:class:`~.MaskingTextSampler`/g' \
+    source/_notebooks/text-explainer.rst
+
+sed -i '' 's/``MaskingTextSamplers``/:class:`~.MaskingTextSamplers`/g' \
+    source/_notebooks/text-explainer.rst
+
+sed -i '' 's/<svg width="790pt" height="280pt"/<svg width="520pt" height="180pt"/g' \
+    source/_notebooks/text-explainer.rst
+
 # LIME
 #jupyter nbconvert \
 #        --to rst \
