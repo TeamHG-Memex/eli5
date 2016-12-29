@@ -117,7 +117,7 @@ def explain_prediction_linear_classifier(clf, doc,
     def _weights(label_id):
         coef = get_coef(clf, label_id)
         scores = _multiply(x, coef)
-        return get_top_features(feature_names, scores, top)
+        return get_top_features(feature_names, scores, top, x)
 
     display_names = get_target_display_names(clf.classes_, target_names,
                                              targets)
@@ -180,7 +180,7 @@ def explain_prediction_linear_regressor(reg, doc,
     def _weights(label_id):
         coef = get_coef(reg, label_id)
         scores = _multiply(x, coef)
-        return get_top_features(feature_names, scores, top)
+        return get_top_features(feature_names, scores, top, x)
 
     names = get_default_target_names(reg)
     display_names = get_target_display_names(names, target_names, targets)
@@ -266,13 +266,14 @@ def explain_prediction_tree_classifier(
     else:
         score = None
 
+    is_multiclass = clf.n_classes_ > 2
     feature_weights = _trees_feature_weights(
         clf, X, feature_names, clf.n_classes_)
-    is_multiclass = clf.n_classes_ > 2
+    x, = _add_intercept(X)
 
     def _weights(label_id):
         scores = feature_weights[:, label_id]
-        return get_top_features(feature_names, scores, top)
+        return get_top_features(feature_names, scores, top, x)
 
     res = Explanation(
         estimator=repr(clf),
@@ -341,10 +342,11 @@ def explain_prediction_tree_regressor(
     num_targets = getattr(reg, 'n_outputs_', 1)
     is_multitarget = num_targets > 1
     feature_weights = _trees_feature_weights(reg, X, feature_names, num_targets)
+    x, = _add_intercept(X)
 
     def _weights(label_id):
         scores = feature_weights[:, label_id]
-        return get_top_features(feature_names, scores, top)
+        return get_top_features(feature_names, scores, top, x)
 
     res = Explanation(
         estimator=repr(reg),

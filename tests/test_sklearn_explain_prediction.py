@@ -194,6 +194,8 @@ def test_explain_tree_clf_multiclass(clf, iris_train):
 def test_explain_tree_clf_binary(clf, iris_train_binary):
     X, y, feature_names = iris_train_binary
     clf.fit(X, y)
+    res = explain_prediction(clf, X[0], feature_names=feature_names)
+    format_as_all(res, clf)
     all_expls = []
     for x in X[:5]:
         res = explain_prediction(clf, x, feature_names=feature_names)
@@ -232,6 +234,9 @@ def test_explain_tree_regressor_multitarget(reg):
 def test_explain_tree_regressor(reg, boston_train):
     X, y, feature_names = boston_train
     reg.fit(X, y)
+    res = explain_prediction(reg, X[0], feature_names=feature_names)
+    print(X[0])
+    format_as_all(res, reg)
     all_expls = []
     for i, x in enumerate(X[:5]):
         res = explain_prediction(reg, x, feature_names=feature_names)
@@ -255,4 +260,4 @@ def test_explain_tree_classifier_text(clf, newsgroups_train_big):
     clf.fit(X, y)
     res = explain_prediction(clf, docs[0], vec=vec, target_names=target_names)
     check_targets_scores(res)
-    print(format_as_text(res, show=fields.WEIGHTS))
+    format_as_all(res, clf)

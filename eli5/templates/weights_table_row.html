@@ -5,4 +5,9 @@
     <td style="{{ td2_styles }}">
         {{ fw.feature|format_feature(fw.weight, hl_spaces) }}
     </td>
+    {% if has_values_for_weights %}
+        <td style="{{ td3_styles }}">
+            {{ fw.value|format_value }}
+        </td>
+    {% endif %}
 </tr>

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from typing import Dict, List, Tuple, Union
+from typing import Any, List, Tuple, Union
 
 from .base_utils import attrs
 from .formatters.features import FormattedFeatureName
@@ -103,10 +103,12 @@ class FeatureWeight(object):
                  feature,  # type: Feature
                  weight,  # type: float
                  std=None,  # type: float
+                 value=None,  # type: Any
                  ):
         self.feature = feature
         self.weight = weight
         self.std = std
+        self.value = value
 
 
 @attrs

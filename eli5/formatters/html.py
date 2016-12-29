@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 import cgi
-from itertools import groupby
+from itertools import groupby, chain
 from typing import List
 
 import numpy as np  # type: ignore
@@ -27,6 +27,7 @@ template_env.filters.update(dict(
     remaining_weight_color=lambda ws, w_range, pos_neg:
         format_hsl(remaining_weight_color_hsl(ws, w_range, pos_neg)),
     format_feature=lambda f, w, hl: _format_feature(f, w, hl_spaces=hl),
+    format_value=lambda v: _format_value(v),
     format_decision_tree=lambda tree: _format_decision_tree(tree),
 ))
 
@@ -60,6 +61,10 @@ def format_as_html(explanation, include_styles=True, force_weights=True,
     weighted_spans_others = [
         t.weighted_spans.other if t.weighted_spans else None for t in targets]
 
+    has_values_for_weights = any(
+        fw.value is not None for t in targets for fw in chain(
+            t.feature_weights.pos, t.feature_weights.neg))
+
     return template.render(
         include_styles=include_styles,
         force_weights=force_weights,
@@ -68,6 +73,7 @@ def format_as_html(explanation, include_styles=True, force_weights=True,
         td1_styles='padding: 0 1em 0 0.5em; text-align: right; border: none;',
         tdm_styles='padding: 0 0.5em 0 0.5em; text-align: center; border: none;',
         td2_styles='padding: 0 0.5em 0 0.5em; text-align: left; border: none;',
+        td3_styles='padding: 0 0.5em 0 1em; text-align: right; border: none;',
         horizontal_layout_table_styles=
         'border-collapse: collapse; border: none; margin-bottom: 1.5em;',
         horizontal_layout_td_styles=
@@ -89,6 +95,8 @@ def format_as_html(explanation, include_styles=True, force_weights=True,
             for other in weighted_spans_others if other),
         targets_with_weighted_spans=list(
             zip(targets, rendered_weighted_spans, weighted_spans_others)),
+        has_values_for_weights=has_values_for_weights,
+        weights_table_span=3 if has_values_for_weights else 2,
     )
 
 
@@ -265,6 +273,12 @@ def _format_decision_tree(treedict):
         return _graphviz.dot2svg(treedict.graphviz)
     else:
         return tree2text(treedict)
+
+
+def _format_value(value):
+    if value is None:
+        return ''
+    return '{:+.3f}'.format(value)
 
 
 def html_escape(text):
