@@ -185,7 +185,6 @@ class TextExplainer(BaseEstimator):
         A dictionary with metrics of how well the local
         classification pipeline approximates the black-box pipeline.
         Only available after :func:`fit`.
-
     """
     def __init__(self,
                  n_samples=5000,  # type: int

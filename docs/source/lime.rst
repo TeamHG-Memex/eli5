@@ -3,11 +3,6 @@
 LIME
 ====
 
-.. warning::
-
-    eli5 LIME implementation is experimental and unchecked on real tasks.
-    It will be improved in future.
-
 Algorithm
 ---------
 
@@ -62,6 +57,11 @@ It sounds too good to be true, and indeed there are caveats:
    eli5.lime provides dataset generation utilities for text data
    (remove random words) and for arbitrary data
    (sampling using Kernel Density Estimation).
+
+   For text data eli5 also provides :class:`eli5.lime.TextExplainer`
+   which brings together all LIME steps and allows to explain text classifiers;
+   it still needs to make assumptions about the classifier in order to
+   generate efficient fake dataset.
 
 3. Similarity metric has a huge effect on a result. By choosing
    neighbourhood of a different size one can get opposite explanations.
