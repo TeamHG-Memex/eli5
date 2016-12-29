@@ -1,3 +1,5 @@
+.. _lime-tutorial:
+
 .. note::
 
     This tutorial can be run as an IPython notebook_.

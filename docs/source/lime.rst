@@ -6,8 +6,8 @@ LIME
 Algorithm
 ---------
 
-LIME_ (Ribeiro et. al. 2016) is an algorithm to explain predictions of
-black-box estimators:
+LIME_ (Ribeiro et. al. 2016) is an algorithm to explain predictions
+of black-box estimators:
 
 1. Generate a fake dataset from the example we're going to explain.
 
@@ -35,6 +35,16 @@ black-box estimators:
    shouldn't be trusted.
 
 .. _LIME: http://arxiv.org/abs/1602.04938
+
+eli5.lime
+---------
+
+To understand how to use ``eli5.lime`` with text data check the
+:ref:`TextExplainer tutorial <lime-tutorial>`. API reference is available
+:mod:`here <eli5.lime>`. Currently eli5 doesn't provide a lot of helpers
+for LIME + non-text data, but there is an IPyhton
+`notebook <https://github.com/TeamHG-Memex/eli5/blob/master/notebooks/LIME%20and%20synthetic%20data.ipynb>`__
+with an example of applying LIME for such tasks.
 
 Caveats
 -------
@@ -66,7 +76,6 @@ It sounds too good to be true, and indeed there are caveats:
 3. Similarity metric has a huge effect on a result. By choosing
    neighbourhood of a different size one can get opposite explanations.
 
-
 Alternative implementations
 ---------------------------
 
@@ -84,16 +93,4 @@ canonical LIME implementation:
    while canonical library fits regression model on probability output.
 
 There are also features which are supported by original implementation,
-but not by eli5, and the UIs are different. Currently
-ELI5 implementation is experimental and not battle-tested.
-
-Example: LIME on a synthetic data
----------------------------------
-
-See `this <https://github.com/TeamHG-Memex/eli5/blob/master/notebooks/LIME%20and%20synthetic%20data.ipynb>`__ IPython notebook.
-
-API
----
-
-See :mod:`eli5.lime`.
-
+but not by eli5, and the UIs are different.
