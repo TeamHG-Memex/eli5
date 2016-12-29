@@ -92,7 +92,7 @@ def test_text_explainer_position_dependent():
         return [0, 1] if len(tokens) >= 2 and tokens[1] == 'bar' else [1, 0]
 
     # bag of words model is not powerful enough to explain predict_proba above
-    te = TextExplainer(random_state=42)
+    te = TextExplainer(random_state=42, vec=CountVectorizer())
     te.fit(text, predict_proba)
     print(te.metrics_)
     assert te.metrics_['score'] < 0.9

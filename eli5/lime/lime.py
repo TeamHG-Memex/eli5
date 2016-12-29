@@ -249,7 +249,10 @@ class TextExplainer(BaseEstimator):
                         ngram_range=(2, 5),
                     )
                 else:
-                    vec = CountVectorizer(token_pattern=self.token_pattern)
+                    vec = CountVectorizer(
+                        token_pattern=self.token_pattern,
+                        ngram_range=(1, 2),
+                    )
             self.vec = vec
 
     def fit(self,
