@@ -1072,9 +1072,10 @@ a classifier which uses char ngrams as features:
 
 
 This pipeline is supported by eli5 directly, so in practice there is no
-need to use :class:`~.TextExplainer` for it. We're using it as an example - it
-is possible check the "true" explanation first, without using
-:class:`~.TextExplainer`, and then compare it with :class:`~.TextExplainer` results.
+need to use :class:`~.TextExplainer` for it. We're using this pipeline as an
+example - it is possible check the "true" explanation first, without
+using :class:`~.TextExplainer`, and then compare the results with
+:class:`~.TextExplainer` results.
 
 .. code:: ipython3
 
