@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
+from functools import partial
 import re
 from singledispatch import singledispatch
 from typing import Any, Dict, List, Tuple
@@ -19,7 +20,7 @@ from eli5.formatters.features import FormattedFeatureName
 from eli5.explain import explain_weights, explain_prediction
 from eli5.sklearn.text import add_weighted_spans
 from eli5.sklearn.utils import (
-    get_feature_names, get_X, handle_vec, predict_proba)
+    add_intercept, get_feature_names, get_X, handle_vec, predict_proba)
 from eli5.utils import argsort_k_largest_positive, get_target_display_names
 from eli5._decision_path import DECISION_PATHS_CAVEATS
 from eli5._feature_weights import get_top_features
@@ -118,9 +119,6 @@ def explain_prediction_xgboost(
         # them as having an intercept
         feature_names.bias_name = '<BIAS>'
 
-    missing = FormattedFeatureName('Missing features')
-    missing_idx = feature_names.add_feature(missing)
-
     X = get_X(doc, vec, vectorized=vectorized)
     if sp.issparse(X):
         # Work around XGBoost issue:
@@ -128,13 +126,13 @@ def explain_prediction_xgboost(
         X = X.tocsc()
 
     proba = predict_proba(xgb, X)
-    scores_weights = _prediction_feature_weights(
-        xgb, X, feature_names, missing_idx)
+    scores_weights = _prediction_feature_weights(xgb, X, feature_names)
 
     is_multiclass = _xgb_n_targets(xgb) > 1
     is_regression = isinstance(xgb, XGBRegressor)
     names = xgb.classes_ if not is_regression else ['y']
     display_names = get_target_display_names(names, target_names, targets)
+    x, = add_intercept(X)
 
     res = Explanation(
         estimator=repr(xgb),
@@ -153,7 +151,7 @@ def explain_prediction_xgboost(
             target_expl = TargetExplanation(
                 target=label,
                 feature_weights=get_top_features(
-                    feature_names, feature_weights, top),
+                    feature_names, feature_weights, top, x, xgb.missing),
                 score=score,
                 proba=proba[label_id] if proba is not None else None,
             )
@@ -164,7 +162,7 @@ def explain_prediction_xgboost(
         target_expl = TargetExplanation(
             target=display_names[-1][1],
             feature_weights=get_top_features(
-                feature_names, feature_weights, top),
+                feature_names, feature_weights, top, x, xgb.missing),
             score=score,
             proba=proba[1] if proba is not None else None,
         )
@@ -174,7 +172,7 @@ def explain_prediction_xgboost(
     return res
 
 
-def _prediction_feature_weights(xgb, X, feature_names, missing_idx):
+def _prediction_feature_weights(xgb, X, feature_names):
     """ For each target, return score and numpy array with feature weights
     on this prediction, following an idea from
     http://blog.datadive.net/interpreting-random-forests/
@@ -185,10 +183,8 @@ def _prediction_feature_weights(xgb, X, feature_names, missing_idx):
     tree_dumps = booster.get_dump(with_stats=True)
     assert len(tree_dumps) == len(leaf_ids)
 
-    def target_feature_weights(_leaf_ids, _tree_dumps):
-        return _target_feature_weights(
-            _leaf_ids, _tree_dumps, feature_names, missing_idx, X, xgb.missing)
-
+    target_feature_weights = partial(
+        _target_feature_weights, feature_names=feature_names)
     n_targets = _xgb_n_targets(xgb)
     if n_targets > 1:
         # For multiclass, XGBoost stores dumps and leaf_ids in a 1d array,
@@ -203,8 +199,7 @@ def _prediction_feature_weights(xgb, X, feature_names, missing_idx):
     return scores_weights
 
 
-def _target_feature_weights(
-        leaf_ids, tree_dumps, feature_names, missing_idx, X, missing):
+def _target_feature_weights(leaf_ids, tree_dumps, feature_names):
     feature_weights = np.zeros(len(feature_names))
     # All trees in XGBoost give equal contribution to the prediction:
     # it is equal to sum of "leaf" values in leafs
@@ -221,19 +216,11 @@ def _target_feature_weights(
         # Check how each split changes "leaf" value
         for node, child in zip(path, path[1:]):
             f_num_match = re.search('^f(\d+)$', node['split'])
-            feature_idx = int(f_num_match.groups()[0])
-            assert feature_idx >= 0
-            idx = (missing_idx if _is_missing(X, feature_idx, missing)
-                   else feature_idx)
+            idx = int(f_num_match.groups()[0])
             feature_weights[idx] += child['leaf'] - node['leaf']
         # Root "leaf" value is interpreted as bias
         feature_weights[feature_names.bias_idx] += path[0]['leaf']
     return score, feature_weights
-
-
-def _is_missing(X, feature_idx, missing):
-    value = X[0, feature_idx]
-    return np.isnan(value) if np.isnan(missing) else value == missing
 
 
 def _indexed_leafs(parent):

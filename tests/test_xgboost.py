@@ -88,6 +88,8 @@ def test_explain_prediction_clf_xor():
     ys = np.array([x == y for x, y in true_xs])
     clf = XGBClassifier(n_estimators=100, max_depth=2)
     clf.fit(xs, ys)
+    res = explain_prediction(clf, np.array([1, 1]))
+    format_as_all(res, clf)
     for x in [[0, 1], [1, 0], [0, 0], [1, 1]]:
         res = explain_prediction(clf, np.array(x))
         print(x)
@@ -102,6 +104,8 @@ def test_explain_prediction_clf_interval():
     ys = np.array([x == 1 for x, _ in true_xs])
     clf = XGBClassifier(n_estimators=100, max_depth=2)
     clf.fit(xs, ys)
+    res = explain_prediction(clf, np.array([1, 1]))
+    format_as_all(res, clf)
     for x in [[0, 1], [1, 1], [2, 1], [0.8, 5], [1.2, 5]]:
         res = explain_prediction(clf, np.array(x))
         print(x)
@@ -121,6 +125,7 @@ def test_explain_prediction_reg(boston_train):
     check_targets_scores(res)
     for expl in format_as_all(res, reg):
         assert 'LSTAT' in expl
+    format_as_all(res, reg)
 
 
 def test_explain_prediction_feature_union_dense():
@@ -142,7 +147,7 @@ def test_explain_prediction_feature_union_dense():
     res = explain_prediction(reg, xs[0], vec=vec, feature_names=['_x_', '_y_'])
     check_targets_scores(res)
     for expl in format_as_all(res, reg):
-        assert 'Missing features' in expl
+        assert 'Missing' in expl
         assert '_y_' in expl
         assert '_x_' not in expl
 

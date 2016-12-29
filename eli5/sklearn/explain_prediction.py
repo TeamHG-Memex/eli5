@@ -37,6 +37,7 @@ from sklearn.tree import (   # type: ignore
 from eli5.base import Explanation, TargetExplanation
 from eli5.utils import get_target_display_names
 from eli5.sklearn.utils import (
+    add_intercept,
     get_coef,
     get_default_target_names,
     get_X,
@@ -105,7 +106,7 @@ def explain_prediction_linear_classifier(clf, doc,
     score, = clf.decision_function(X)
 
     if has_intercept(clf):
-        X = _add_intercept(X)
+        X = add_intercept(X)
     x, = X
 
     res = Explanation(
@@ -167,7 +168,7 @@ def explain_prediction_linear_regressor(reg, doc,
     score, = reg.predict(X)
 
     if has_intercept(reg):
-        X = _add_intercept(X)
+        X = add_intercept(X)
     x, = X
 
     res = Explanation(
@@ -269,7 +270,7 @@ def explain_prediction_tree_classifier(
     is_multiclass = clf.n_classes_ > 2
     feature_weights = _trees_feature_weights(
         clf, X, feature_names, clf.n_classes_)
-    x, = _add_intercept(X)
+    x, = add_intercept(X)
 
     def _weights(label_id):
         scores = feature_weights[:, label_id]
@@ -342,7 +343,7 @@ def explain_prediction_tree_regressor(
     num_targets = getattr(reg, 'n_outputs_', 1)
     is_multitarget = num_targets > 1
     feature_weights = _trees_feature_weights(reg, X, feature_names, num_targets)
-    x, = _add_intercept(X)
+    x, = add_intercept(X)
 
     def _weights(label_id):
         scores = feature_weights[:, label_id]
@@ -438,12 +439,3 @@ def _multiply(X, coef):
         return X.multiply(sp.csr_matrix(coef))
     else:
         return np.multiply(X, coef)
-
-
-def _add_intercept(X):
-    """ Add intercept column to X """
-    intercept = np.ones((X.shape[0], 1))
-    if sp.issparse(X):
-        return sp.hstack([X, intercept]).tocsr()
-    else:
-        return np.hstack([X, intercept])

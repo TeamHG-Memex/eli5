@@ -278,7 +278,10 @@ def _format_decision_tree(treedict):
 def _format_value(value):
     if value is None:
         return ''
-    return '{:+.3f}'.format(value)
+    elif np.isnan(value):
+        return 'Missing'
+    else:
+        return '{:+.3f}'.format(value)
 
 
 def html_escape(text):
