@@ -9,14 +9,14 @@
         <thead>
         <tr style="{{ tr_styles }}">
             <th style="{{ td1_styles }}">
-                {% if show_values_for_weights %}
+                {% if explaining_prediction %}
                     Contribution
                 {% else %}
                     Weight
                 {% endif %}
             </th>
             <th style="{{ td2_styles }}">Feature</th>
-            {% if show_values_for_weights %}
+            {% if show_feature_values %}
                 <th style="{{ td3_styles }}">Value</th>
             {% endif %}
         </tr>

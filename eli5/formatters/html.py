@@ -35,7 +35,8 @@ template_env.filters.update(dict(
 
 def format_as_html(explanation, include_styles=True, force_weights=True,
                    show=fields.ALL, preserve_density=None,
-                   highlight_spaces=None, horizontal_layout=True):
+                   highlight_spaces=None, horizontal_layout=True,
+                   show_feature_values=True):
     """ Format explanation as html.
     Most styles are inline, but some are included separately in <style> tag,
     you can omit them by passing ``include_styles=False`` and call
@@ -49,6 +50,8 @@ def format_as_html(explanation, include_styles=True, force_weights=True,
     False turns it off.
     If ``horizontal_layout`` is True (default), multiclass classifier
     weights are laid out horizontally.
+    If ``show_feature_values`` is True (default), feature values are shown
+    if present.
     """
     template = template_env.get_template('explain.html')
     if highlight_spaces is None:
@@ -56,7 +59,8 @@ def format_as_html(explanation, include_styles=True, force_weights=True,
     targets = explanation.targets or []
     if len(targets) == 1:
         horizontal_layout = False
-    show_values_for_weights = has_any_values_for_weights(explanation)
+    explaining_prediction = has_any_values_for_weights(explanation)
+    show_feature_values = show_feature_values and explaining_prediction
 
     rendered_weighted_spans = render_targets_weighted_spans(
         targets, preserve_density)
@@ -93,8 +97,9 @@ def format_as_html(explanation, include_styles=True, force_weights=True,
             for other in weighted_spans_others if other),
         targets_with_weighted_spans=list(
             zip(targets, rendered_weighted_spans, weighted_spans_others)),
-        show_values_for_weights=show_values_for_weights,
-        weights_table_span=3 if show_values_for_weights else 2,
+        show_feature_values=show_feature_values,
+        weights_table_span=3 if show_feature_values else 2,
+        explaining_prediction=explaining_prediction,
     )
 
 

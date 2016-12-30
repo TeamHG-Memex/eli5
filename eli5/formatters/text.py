@@ -17,12 +17,15 @@ _ELLIPSIS = '...' if six.PY2 else '…'
 _SPACE = '_' if six.PY2 else '░'
 
 
-def format_as_text(expl, show=fields.ALL, highlight_spaces=None):
+def format_as_text(expl, show=fields.ALL, highlight_spaces=None,
+                   show_feature_values=True):
     """ Format explanation as text.
     If ``highlight_spaces`` is None (default), spaces will be highlighted in
     feature names only if there are any spaces at the start or at the end of the
     feature. Setting it to True forces space highlighting, and setting it to False
     turns it off.
+    If ``show_feature_values`` is True (default), feature values are shown
+    if present.
     """
     lines = []  # type: List[str]
 
@@ -32,7 +35,8 @@ def format_as_text(expl, show=fields.ALL, highlight_spaces=None):
     if expl.error:  # always shown
         lines.extend(_error_lines(expl))
 
-    show_values_for_weights = has_any_values_for_weights(expl)
+    explaining_prediction = has_any_values_for_weights(expl)
+    show_feature_values = show_feature_values and explaining_prediction
 
     for key in show:
         if not getattr(expl, key, None):
@@ -49,7 +53,11 @@ def format_as_text(expl, show=fields.ALL, highlight_spaces=None):
 
         if key == 'targets':
             lines.extend(_targets_lines(
-                expl, highlight_spaces, show_values_for_weights))
+                expl,
+                hl_spaces=highlight_spaces,
+                show_feature_values=show_feature_values,
+                explaining_prediction=explaining_prediction,
+            ))
 
         if key == 'feature_importances':
             lines.extend(_feature_importances_lines(
@@ -113,7 +121,8 @@ def _transition_features_lines(explanation):
     ]
 
 
-def _targets_lines(explanation, hl_spaces, show_values_for_weights):
+def _targets_lines(explanation, hl_spaces, show_feature_values,
+                   explaining_prediction):
     lines = []
 
     for target in explanation.targets:
@@ -127,15 +136,18 @@ def _targets_lines(explanation, hl_spaces, show_values_for_weights):
             scores)
         lines.append(header)
 
-        if show_values_for_weights:
-            table_header = ['Contribution', 'Feature', 'Value']
+        if explaining_prediction:
+            table_header = ['Contribution', 'Feature']
+        else:
+            table_header = ['Weight', 'Feature']
+        if show_feature_values:
+            table_header.append('Value')
             table_line = lambda fw: [
                 format_value(fw.weight),
                 _format_feature(fw.feature, hl_spaces),
                 format_value(fw.value)]
             col_align = 'rlr'
         else:
-            table_header = ['Weight', 'Feature']
             table_line = lambda fw: [
                 format_value(fw.weight), _format_feature(fw.feature, hl_spaces)]
             col_align = 'rl'

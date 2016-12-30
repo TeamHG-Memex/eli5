@@ -3,7 +3,7 @@ import re
 import six
 from typing import Any, Union, List, Dict
 
-import numpy as np
+import numpy as np  # type: ignore
 
 from eli5.base import Explanation
 from .features import FormattedFeatureName
