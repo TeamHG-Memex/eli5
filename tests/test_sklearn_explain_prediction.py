@@ -71,7 +71,7 @@ def assert_linear_regression_explained(boston_train, reg, explain_prediction,
                                        atol=1e-8):
     X, y, feature_names = boston_train
     reg.fit(X, y)
-    res = explain_prediction(reg, X[0])
+    res = explain_prediction(reg, X[0], feature_names=feature_names)
     expl_text, expl_html = expls = format_as_all(res, reg)
 
     assert len(res.targets) == 1
@@ -79,7 +79,7 @@ def assert_linear_regression_explained(boston_train, reg, explain_prediction,
     assert target.target == 'y'
     pos, neg = (get_all_features(target.feature_weights.pos),
                 get_all_features(target.feature_weights.neg))
-    assert 'x11' in pos or 'x11' in neg
+    assert 'LSTAT' in pos or 'LSTAT' in neg
 
     if has_intercept(reg):
         assert '<BIAS>' in pos or '<BIAS>' in neg
@@ -91,7 +91,7 @@ def assert_linear_regression_explained(boston_train, reg, explain_prediction,
         assert 'BIAS' not in expl_html
 
     for expl in [expl_text, expl_html]:
-        assert 'x11' in expl
+        assert 'LSTAT' in expl
         assert '(score' in expl
     assert "'y'" in expl_text
     assert '<b>y</b>' in strip_blanks(expl_html)
@@ -99,7 +99,7 @@ def assert_linear_regression_explained(boston_train, reg, explain_prediction,
     for expl in expls:
         assert_feature_values_present(expl, feature_names, X[0])
 
-    assert res == explain_prediction(reg, X[0])
+    assert res == explain_prediction(reg, X[0], feature_names=feature_names)
     check_targets_scores(res, atol=atol)
 
 
