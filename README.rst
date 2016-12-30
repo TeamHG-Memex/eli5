@@ -30,11 +30,13 @@ It provides support for the following machine learning frameworks and packages:
 * scikit-learn_. Currently ELI5 allows to explain weights and predictions
   of scikit-learn linear classifiers and regressors, print decision trees
   as text or as SVG, show feature importances and explain predictions
-  of random forests.
+  of random forests. ELI5 understands text processing utilities from
+  scikit-learn and can highlight text data accordingly. It also allows
+  to debug scikit-learn pipelines which contain HashingVectorizer, by
+  undoing hashing.
 
-  ELI5 understands text processing utilities from scikit-learn and can
-  highlight text data accordingly. It also allows to debug scikit-learn
-  pipelines which contain HashingVectorizer, by undoing hashing.
+* xgboost_ - show feature importances and explain predictions of XGBClassifier
+  and XGBRegressor.
 
 * lightning_ - explain weights and predictions of lightning classifiers and
   regressors.
@@ -42,12 +44,10 @@ It provides support for the following machine learning frameworks and packages:
 * sklearn-crfsuite_. ELI5 allows to check weights of sklearn_crfsuite.CRF
   models.
 
-* xgboost_ - show feature importances and explain predictions of XGBClassifier
-  and XGBRegressor.
-
-ELI5 also provides an alternative implementation of LIME_ algorithm,
-which allows to explain predictions of any black-box classifier. This feature
-is currently experimental.
+ELI5 also provides TextExplainer_ which allows to explain predictions
+of any text classifier using LIME_ algorithm (Ribeiro et al., 2016).
+There are utilities for using LIME with non-text data and arbitrary black-box
+classifiers as well, but this feature is currently experimental.
 
 Explanation and formatting are separated; you can get text-based explanation
 to display in console, HTML version embeddable in an IPython notebook
@@ -58,6 +58,7 @@ rendering and formatting on a client.
 .. _scikit-learn: https://github.com/scikit-learn/scikit-learn
 .. _sklearn-crfsuite: https://github.com/TeamHG-Memex/sklearn-crfsuite
 .. _LIME: http://eli5.readthedocs.io/en/latest/lime.html
+.. _TextExplainer: http://eli5.readthedocs.io/en/latest/tutorials/complex-pipelines.html
 .. _xgboost: https://github.com/dmlc/xgboost
 
 License is MIT.
