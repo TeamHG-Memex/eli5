@@ -194,6 +194,10 @@ def show_prediction(estimator, doc, **kwargs):
 
         Default is None.
 
+    show_feature_values : bool
+        When True, feature values are shown along with feature contributions.
+        Default is True.
+
     **kwargs: dict
         Keyword arguments. All keyword arguments are passed to
         concrete explain_prediction... implementations.
