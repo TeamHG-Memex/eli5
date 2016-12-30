@@ -9,7 +9,8 @@ from .formatters import format_as_html, fields
 
 FORMAT_KWARGS = {'include_styles', 'force_weights',
                  'show', 'preserve_density',
-                 'highlight_spaces', 'horizontal_layout'}
+                 'highlight_spaces', 'horizontal_layout',
+                 'show_feature_values'}
 
 
 def show_weights(estimator, **kwargs):
