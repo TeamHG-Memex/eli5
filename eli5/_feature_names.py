@@ -3,6 +3,7 @@ import six
 from typing import Any, Iterable, Tuple, Sized, List
 
 import numpy as np  # type: ignore
+import scipy.sparse as sp  # type: ignore
 
 
 class FeatureNames(Sized):
@@ -77,8 +78,8 @@ class FeatureNames(Sized):
         if self.has_bias:
             return self.n_features
 
-    def filtered_by_re(self, feature_re):
-        # type: (str) -> Tuple[FeatureNames, List[int]]
+    def filtered(self, feature_flt, x=None):
+        # type: (Any, Any) -> Tuple[FeatureNames, List[int]]
         """ Return feature names filtered by a regular expression ``feature_re``,
         and indices of filtered elements.
         """
@@ -92,15 +93,21 @@ class FeatureNames(Sized):
         elif self.feature_names is None:
             indexed_names = []
         assert indexed_names is not None
-        if isinstance(feature_re, six.string_types):
-            filter_fn = lambda x: re.search(feature_re, x, re.U)
+
+        if x is not None:
+            if sp.issparse(x) and len(x.shape) == 2:
+                assert x.shape[0] == 1
+                flt = lambda name, i: feature_flt(name, x[0, i])
+            else:
+                flt = lambda name, i: feature_flt(name, x[i])
         else:
-            filter_fn = lambda x: re.search(feature_re, x)
+            flt = lambda name, i: feature_flt(name)
+
         for idx, name in indexed_names:
-            if any(filter_fn(n) for n in _feature_names(name)):
+            if any(flt(n, idx) for n in _all_feature_names(name)):
                 indices.append(idx)
                 filtered_feature_names.append(name)
-        if self.has_bias and filter_fn(self.bias_name):
+        if self.has_bias and flt(self.bias_name, self.bias_idx):
             indices.append(self.bias_idx)
         return (
             FeatureNames(
@@ -131,11 +138,13 @@ class FeatureNames(Sized):
         return idx
 
 
-def _feature_names(name):
+def _all_feature_names(name):
+    """ All feature names for a feature: usually just the feature itself,
+    but can be several features for unhashed features with collisions.
+    """
     if isinstance(name, bytes):
         return [name.decode('utf8')]
     elif isinstance(name, list):
         return [x['name'] for x in name]
     else:
         return [name]
-

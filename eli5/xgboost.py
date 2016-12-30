@@ -59,7 +59,7 @@ def explain_weights_xgboost(xgb,
                             target_names=None,  # ignored
                             targets=None,  # ignored
                             feature_names=None,
-                            feature_re=None):
+                            feature_flt=None):
     """
     Return an explanation of an XGBoost estimator (via scikit-learn wrapper
     XGBClassifier or XGBRegressor) as feature importances.
@@ -69,8 +69,8 @@ def explain_weights_xgboost(xgb,
     feature_names = get_feature_names(
         xgb, vec, feature_names=feature_names, num_features=num_features)
 
-    if feature_re is not None:
-        feature_names, flt_indices = feature_names.filtered_by_re(feature_re)
+    if feature_flt is not None:
+        feature_names, flt_indices = feature_names.filtered(feature_flt)
         coef = coef[flt_indices]
 
     indices = argsort_k_largest_positive(coef, top)

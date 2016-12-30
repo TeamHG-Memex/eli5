@@ -17,15 +17,15 @@ def explain_weights_sklearn_crfsuite(crf,
                                      top=20,
                                      target_names=None,
                                      targets=None,
-                                     feature_re=None):
+                                     feature_flt=None):
     """ Explain sklearn_crfsuite.CRF weights """
     feature_names = np.array(crf.attributes_)
     state_coef = crf_state_coef(crf).todense().A
     transition_coef = crf_transition_coef(crf)
 
-    if feature_re:
+    if feature_flt:
         state_feature_names, flt_indices = (
-            FeatureNames(feature_names).filtered_by_re(feature_re))
+            FeatureNames(feature_names).filtered(feature_flt))
         state_feature_names = np.array(state_feature_names.feature_names)
         state_coef = state_coef[:, flt_indices]
     else:

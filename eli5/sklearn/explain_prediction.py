@@ -35,7 +35,7 @@ from sklearn.tree import (   # type: ignore
 )
 
 from eli5.base import Explanation, TargetExplanation
-from eli5.utils import get_target_display_names
+from eli5.utils import get_target_display_names, mask
 from eli5.sklearn.utils import (
     add_intercept,
     get_coef,
@@ -97,6 +97,7 @@ def explain_prediction_linear_classifier(clf, doc,
                                          target_names=None,
                                          targets=None,
                                          feature_names=None,
+                                         feature_flt=None,
                                          vectorized=False):
     """ Explain prediction of a linear classifier. """
     vec, feature_names = handle_vec(clf, doc, vec, vectorized, feature_names)
@@ -109,15 +110,21 @@ def explain_prediction_linear_classifier(clf, doc,
         X = add_intercept(X)
     x, = X
 
+    if feature_flt is not None:
+        feature_names, flt_indices = feature_names.filtered(feature_flt, x)
+
     res = Explanation(
         estimator=repr(clf),
         method='linear model',
         targets=[],
     )
 
-    def _weights(label_id):
+    def _weights(x, label_id):
         coef = get_coef(clf, label_id)
         scores = _multiply(x, coef)
+        if feature_flt is not None:
+            scores = scores[flt_indices]
+            x = mask(x, flt_indices)
         return get_top_features(feature_names, scores, top, x)
 
     display_names = get_target_display_names(clf.classes_, target_names,
@@ -127,7 +134,7 @@ def explain_prediction_linear_classifier(clf, doc,
         for label_id, label in display_names:
             target_expl = TargetExplanation(
                 target=label,
-                feature_weights=_weights(label_id),
+                feature_weights=_weights(x, label_id),
                 score=score[label_id],
                 proba=proba[label_id] if proba is not None else None,
             )
@@ -136,7 +143,7 @@ def explain_prediction_linear_classifier(clf, doc,
     else:
         target_expl = TargetExplanation(
             target=display_names[1][1],
-            feature_weights=_weights(0),
+            feature_weights=_weights(x, 0),
             score=score,
             proba=proba[1] if proba is not None else None,
         )

@@ -243,7 +243,7 @@ def test_explain_linear_tuple_top(newsgroups_train):
     [CountVectorizer()],
     [HashingVectorizer(norm=None)],
 ])
-def test_explain_linear_feature_re(newsgroups_train, vec):
+def test_explain_linear_feature_flt(newsgroups_train, vec):
     clf = LogisticRegression(random_state=42)
     docs, y, target_names = newsgroups_train
     X = vec.fit_transform(docs)
@@ -252,7 +252,8 @@ def test_explain_linear_feature_re(newsgroups_train, vec):
         vec = InvertableHashingVectorizer(vec)
         vec.fit(docs)
 
-    res = explain_weights(clf, vec=vec, feature_re='^ath')
+    res = explain_weights(
+        clf, vec=vec, feature_flt=lambda name: name.startswith('ath'))
     text_expl, _ = expls = format_as_all(res, clf)
     for expl in expls:
         assert 'atheists' in expl
@@ -260,7 +261,8 @@ def test_explain_linear_feature_re(newsgroups_train, vec):
         assert 'space' not in expl
         assert 'BIAS' not in expl
 
-    res = explain_weights(clf, vec=vec, feature_re='(^ath|^<BIAS>$)')
+    res = explain_weights(
+        clf, vec=vec, feature_flt=re.compile('(^ath|^<BIAS>$)').search)
     text_expl, _ = expls = format_as_all(res, clf)
     for expl in expls:
         assert 'atheists' in expl
@@ -310,15 +312,16 @@ def test_explain_random_forest(newsgroups_train, clf):
     [RandomForestClassifier(n_estimators=100, random_state=42)],
     [DecisionTreeClassifier(max_depth=3, random_state=42)],
 ])
-def test_explain_random_forest_and_tree_feature_re(newsgroups_train, clf):
+def test_explain_random_forest_and_tree_feature_flt(newsgroups_train, clf):
     docs, y, target_names = newsgroups_train
     vec = CountVectorizer()
     X = vec.fit_transform(docs)
     clf.fit(X.toarray(), y)
     top = 30
     res = explain_weights(
-        clf, vec=vec, target_names=target_names, feature_re='^a', top=top)
-    res.decision_tree = None  # does not respect feature_re
+        clf, vec=vec, target_names=target_names,
+        feature_flt=re.compile('^a').search, top=top)
+    res.decision_tree = None  # does not respect feature_flt
     for expl in format_as_all(res, clf):
         assert 'am' in expl
         assert 'god' not in expl  # filtered out
@@ -365,12 +368,12 @@ def test_explain_linear_regression(boston_train, reg):
     assert_explained_weights_linear_regressor(boston_train, reg)
 
 
-def test_explain_linear_regression_feature_re(boston_train):
+def test_explain_linear_regression_feature_flt(boston_train):
     clf = ElasticNet(random_state=42)
     X, y, feature_names = boston_train
     clf.fit(X, y)
     res = explain_weights(clf, feature_names=feature_names,
-                          feature_re=re.compile('ratio$', re.I))
+                          feature_flt=re.compile('ratio$', re.I).search)
     for expl in format_as_all(res, clf):
         assert 'PTRATIO' in expl
         assert 'LSTAT' not in expl
