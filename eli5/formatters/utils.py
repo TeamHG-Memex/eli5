@@ -122,8 +122,8 @@ def tabulate(data,  # type: List[List[Any]]
     if header:
         data.insert(1, ['-' * width for width in col_width])
 
-    line_tpl = '  '.join(
-        '{:%s%s}' % ({'l': '', 'r': '>', 'c': '^'}[align], width)
+    line_tpl = u'  '.join(
+        u'{:%s%s}' % ({'l': '', 'r': '>', 'c': '^'}[align], width)
         for align, width in zip(col_align, col_width))
     return [line_tpl.format(*row) for row in data]
 
