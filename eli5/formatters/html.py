@@ -11,7 +11,7 @@ from eli5 import _graphviz
 from eli5.base import TargetExplanation
 from eli5.utils import max_or_0
 from .utils import (
-    format_signed, has_any_values_for_weights, replace_spaces,
+    format_signed, format_value, has_any_values_for_weights, replace_spaces,
     should_highlight_spaces)
 from . import fields
 from .features import FormattedFeatureName
@@ -28,7 +28,7 @@ template_env.filters.update(dict(
     remaining_weight_color=lambda ws, w_range, pos_neg:
         format_hsl(remaining_weight_color_hsl(ws, w_range, pos_neg)),
     format_feature=lambda f, w, hl: _format_feature(f, w, hl_spaces=hl),
-    format_value=lambda v: _format_value(v),
+    format_value=format_value,
     format_decision_tree=lambda tree: _format_decision_tree(tree),
 ))
 
@@ -56,7 +56,7 @@ def format_as_html(explanation, include_styles=True, force_weights=True,
     targets = explanation.targets or []
     if len(targets) == 1:
         horizontal_layout = False
-    has_values_for_weights = has_any_values_for_weights(explanation)
+    show_values_for_weights = has_any_values_for_weights(explanation)
 
     rendered_weighted_spans = render_targets_weighted_spans(
         targets, preserve_density)
@@ -93,8 +93,8 @@ def format_as_html(explanation, include_styles=True, force_weights=True,
             for other in weighted_spans_others if other),
         targets_with_weighted_spans=list(
             zip(targets, rendered_weighted_spans, weighted_spans_others)),
-        has_values_for_weights=has_values_for_weights,
-        weights_table_span=3 if has_values_for_weights else 2,
+        show_values_for_weights=show_values_for_weights,
+        weights_table_span=3 if show_values_for_weights else 2,
     )
 
 
@@ -271,15 +271,6 @@ def _format_decision_tree(treedict):
         return _graphviz.dot2svg(treedict.graphviz)
     else:
         return tree2text(treedict)
-
-
-def _format_value(value):
-    if value is None:
-        return ''
-    elif np.isnan(value):
-        return 'Missing'
-    else:
-        return '{:+.3f}'.format(value)
 
 
 def html_escape(text):

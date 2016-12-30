@@ -31,7 +31,11 @@ def test_format_as_dict():
            'targets': [
                {'target': 'y',
                 'feature_weights': {
-                    'pos': [{'feature': 'a', 'weight': 13.0, 'std': None}],
+                    'pos': [{
+                        'feature': 'a',
+                        'weight': 13.0,
+                        'std': None,
+                        'value': None}],
                     'pos_remaining': 0,
                     'neg': [],
                     'neg_remaining': 0,

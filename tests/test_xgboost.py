@@ -149,7 +149,7 @@ def test_explain_prediction_feature_union_dense():
     for expl in format_as_all(res, reg):
         assert 'Missing' in expl
         assert '_y_' in expl
-        assert '_x_' not in expl
+        assert '_x_' in expl
 
 
 def test_explain_prediction_feature_union_sparse(newsgroups_train_binary):

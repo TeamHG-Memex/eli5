@@ -64,7 +64,7 @@ def test_highlight_spaces(boston_train, hl_spaces, add_invisible_spaces):
     # last is left unmodified to check that we are doing "any", not "all"
     modified_feature_names = \
         [('{} ' if add_invisible_spaces else 'A {}').format(name)
-        for name in feature_names[:-1]] + [feature_names[-1]]
+         for name in feature_names[:-1]] + [feature_names[-1]]
     reg.fit(X, y)
     res = explain_weights_sklearn(
         reg, feature_names=modified_feature_names, top=len(feature_names) + 1)

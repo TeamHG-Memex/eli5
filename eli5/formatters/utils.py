@@ -1,7 +1,9 @@
 from itertools import chain
 import re
-from typing import Union, List, Dict
+import six
+from typing import Any, Union, List, Dict
 
+import numpy as np
 
 from eli5.base import Explanation
 from .features import FormattedFeatureName
@@ -84,3 +86,52 @@ def has_any_values_for_weights(explanation):
             t.feature_weights.pos, t.feature_weights.neg))
     else:
         return False
+
+
+def tabulate(data,  # type: List[List[Any]]
+             header=None,  # type: List[Any]
+             col_align=None,  # type: Union[str, List[str]]
+             ):
+    # type: (...) -> List[str]
+    """ Format data as a table without any fancy features.
+    col_align: l/r/c or a list/string of l/r/c. l = left, r = right, c = center
+    Return a list of strings (lines of the table).
+    """
+    if not data and not header:
+        return []
+    n_cols = len(data[0] if data else header)
+    if not all(len(row) == n_cols for row in data):
+        raise ValueError('data is not rectangular')
+
+    if col_align is None:
+        col_align = ['l'] * n_cols
+    elif isinstance(col_align, six.string_types) and len(col_align) == 1:
+        col_align = [col_align] * n_cols
+    else:
+        col_align = list(col_align)
+        if len(col_align) != n_cols:
+            raise ValueError('col_align length does not match number of columns')
+
+    if header and len(header) != n_cols:
+        raise ValueError('header length does not match number of columns')
+
+    if header:
+        data = [header] + data
+    data = [[six.text_type(x) for x in row] for row in data]
+    col_width = [max(len(row[col_i]) for row in data) for col_i in range(n_cols)]
+    if header:
+        data.insert(1, ['-' * width for width in col_width])
+
+    line_tpl = '  '.join(
+        '{:%s%s}' % ({'l': '', 'r': '>', 'c': '^'}[align], width)
+        for align, width in zip(col_align, col_width))
+    return [line_tpl.format(*row) for row in data]
+
+
+def format_value(value):
+    if value is None:
+        return ''
+    elif np.isnan(value):
+        return 'Missing'
+    else:
+        return '{:+.3f}'.format(value)

@@ -4,14 +4,11 @@ from itertools import chain
 import six
 from typing import List
 
-import tabulate
-
-from eli5.base import FeatureImportances
 from . import fields
 from .features import FormattedFeatureName
 from .utils import (
-    format_signed, has_any_values_for_weights, replace_spaces,
-    should_highlight_spaces)
+    format_signed, format_value, has_any_values_for_weights, replace_spaces,
+    should_highlight_spaces, tabulate)
 from .trees import tree2text
 
 
@@ -35,6 +32,8 @@ def format_as_text(expl, show=fields.ALL, highlight_spaces=None):
     if expl.error:  # always shown
         lines.extend(_error_lines(expl))
 
+    show_values_for_weights = has_any_values_for_weights(expl)
+
     for key in show:
         if not getattr(expl, key, None):
             continue
@@ -49,7 +48,8 @@ def format_as_text(expl, show=fields.ALL, highlight_spaces=None):
             lines.extend(_transition_features_lines(expl))
 
         if key == 'targets':
-            lines.extend(_targets_lines(expl, hl_spaces=highlight_spaces))
+            lines.extend(_targets_lines(
+                expl, highlight_spaces, show_values_for_weights))
 
         if key == 'feature_importances':
             lines.extend(_feature_importances_lines(
@@ -96,6 +96,7 @@ def _fi_lines(feature_importances, hl_spaces):
                 std=2 * fw.std,
             )
 
+
 def _decision_tree_lines(explanation):
     return ["", tree2text(explanation.decision_tree)]
 
@@ -112,9 +113,8 @@ def _transition_features_lines(explanation):
     ]
 
 
-def _targets_lines(explanation, hl_spaces):
+def _targets_lines(explanation, hl_spaces, show_values_for_weights):
     lines = []
-    has_values_for_weights = has_any_values_for_weights(explanation)
 
     for target in explanation.targets:
         scores = _format_scores(target.proba, target.score)
@@ -127,35 +127,41 @@ def _targets_lines(explanation, hl_spaces):
             scores)
         lines.append(header)
 
-        if has_values_for_weights:
+        if show_values_for_weights:
             table_header = ['Contribution', 'Feature', 'Value']
             table_line = lambda fw: [
-                fw.weight, _format_feature(fw.feature, hl_spaces), fw.value]
+                format_value(fw.weight),
+                _format_feature(fw.feature, hl_spaces),
+                format_value(fw.value)]
+            col_align = 'rlr'
         else:
             table_header = ['Weight', 'Feature']
             table_line = lambda fw: [
-                fw.weight, _format_feature(fw.feature, hl_spaces)]
+                format_value(fw.weight), _format_feature(fw.feature, hl_spaces)]
+            col_align = 'rl'
 
         w = target.feature_weights
-        table = tabulate.tabulate(
-            [table_line(fw) for fw in chain(w.pos, w.neg)],
-            headers=table_header,
-            numalign='right',
-            floatfmt='+.3f',
-        ).split('\n')
-        table = [table[1]] + table  # add extra header separator
-        max_width = len(table[0])
+        table = tabulate(
+            [table_line(fw) for fw in chain(w.pos, reversed(w.neg))],
+            header=table_header,
+            col_align=col_align,
+        )
+        header_sep = table[1]
+        max_width = len(header_sep)
+        table = [header_sep] + table
         pos_table = '\n'.join(table[:-len(w.neg)])
         neg_table = '\n'.join(table[-len(w.neg):])
 
-        lines.append(pos_table)
+        if pos_table:
+            lines.append(pos_table)
         if w.pos_remaining:
             lines.append(
                 _format_remaining(w.pos_remaining, 'positive', max_width))
         if w.neg_remaining:
             lines.append(
                 _format_remaining(w.neg_remaining, 'negative', max_width))
-        lines.append(neg_table)
+        if neg_table:
+            lines.append(neg_table)
 
         lines.append('')
     return lines
@@ -168,14 +174,6 @@ def _format_scores(proba, score):
     if score is not None:
         scores.append("score=%0.3f" % score)
     return ", ".join(scores)
-
-
-def _format_feature_weights(feature_weights, sz, hl_spaces):
-    return [
-        u'{weight:+8.3f}  {feature}'.format(
-            weight=fw.weight,
-            feature=_format_feature(fw.feature, hl_spaces=hl_spaces).ljust(sz))
-        for fw in feature_weights]
 
 
 def _format_remaining(remaining, kind, width):
