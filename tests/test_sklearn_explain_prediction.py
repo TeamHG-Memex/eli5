@@ -72,7 +72,7 @@ def assert_linear_regression_explained(boston_train, reg, explain_prediction,
     X, y, feature_names = boston_train
     reg.fit(X, y)
     res = explain_prediction(reg, X[0])
-    expl_text, expl_html = format_as_all(res, reg)
+    expl_text, expl_html = expls = format_as_all(res, reg)
 
     assert len(res.targets) == 1
     target = res.targets[0]
@@ -95,6 +95,9 @@ def assert_linear_regression_explained(boston_train, reg, explain_prediction,
         assert '(score' in expl
     assert "'y'" in expl_text
     assert '<b>y</b>' in strip_blanks(expl_html)
+
+    for expl in expls:
+        assert_feature_values_present(expl, feature_names, X[0])
 
     assert res == explain_prediction(reg, X[0])
     check_targets_scores(res, atol=atol)
@@ -121,6 +124,16 @@ def assert_multitarget_linear_regression_explained(reg, explain_prediction):
 
     assert res == explain_prediction(reg, X[0])
     check_targets_scores(res)
+
+
+def assert_feature_values_present(expl, feature_names, x):
+    assert 'Value' in expl
+    any_features = False
+    for feature, value in zip(feature_names, x):
+        if feature in expl:
+            assert '{:+.3f}'.format(value) in expl
+            any_features = True
+    assert any_features
 
 
 @pytest.mark.parametrize(['clf'], [
@@ -182,6 +195,7 @@ def test_explain_tree_clf_multiclass(clf, iris_train):
             assert target in expl
         assert 'BIAS' in expl
         assert any(f in expl for f in feature_names)
+        assert_feature_values_present(expl, feature_names, X[0])
     check_targets_scores(res)
 
 
@@ -235,8 +249,8 @@ def test_explain_tree_regressor(reg, boston_train):
     X, y, feature_names = boston_train
     reg.fit(X, y)
     res = explain_prediction(reg, X[0], feature_names=feature_names)
-    print(X[0])
-    format_as_all(res, reg)
+    for expl in format_as_all(res, reg):
+        assert_feature_values_present(expl, feature_names, X[0])
     all_expls = []
     for i, x in enumerate(X[:5]):
         res = explain_prediction(reg, x, feature_names=feature_names)

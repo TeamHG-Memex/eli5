@@ -104,8 +104,10 @@ def test_explain_prediction_clf_interval():
     ys = np.array([x == 1 for x, _ in true_xs])
     clf = XGBClassifier(n_estimators=100, max_depth=2)
     clf.fit(xs, ys)
-    res = explain_prediction(clf, np.array([1, 1]))
-    format_as_all(res, clf)
+    res = explain_prediction(clf, np.array([1.23, 1.45]))
+    for expl in format_as_all(res, clf):
+        assert 'x0' in expl
+        assert '1.23' in expl
     for x in [[0, 1], [1, 1], [2, 1], [0.8, 5], [1.2, 5]]:
         res = explain_prediction(clf, np.array(x))
         print(x)
