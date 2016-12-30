@@ -7,7 +7,7 @@ and provides a way to output result in text-based format.
 """
 from __future__ import absolute_import, division
 
-from sklearn.tree import _tree, export_graphviz
+from sklearn.tree import _tree, export_graphviz  # type: ignore
 
 from eli5.base import TreeInfo, NodeInfo
 

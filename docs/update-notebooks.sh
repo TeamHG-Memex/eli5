@@ -24,6 +24,28 @@ sed -i '' 's/class="eli5-transition-features"/class="docutils"/g' \
     source/_notebooks/debug-sklearn-crfsuite.rst
 
 
+# TextExplainer (debugging complex text processing pipelines with LIME)
+jupyter nbconvert \
+        --to rst \
+        --stdout \
+        '../notebooks/TextExplainer.ipynb' \
+        > source/_notebooks/text-explainer.rst
+
+sed -i '' 's/``TextExplainer``/:class:`~.TextExplainer`/g' \
+    source/_notebooks/text-explainer.rst
+
+sed -i '' 's/``TextExplainer.fit``/:meth:`~.TextExplainer.fit`/g' \
+    source/_notebooks/text-explainer.rst
+
+sed -i '' 's/``MaskingTextSampler``/:class:`~.MaskingTextSampler`/g' \
+    source/_notebooks/text-explainer.rst
+
+sed -i '' 's/``MaskingTextSamplers``/:class:`~.MaskingTextSamplers`/g' \
+    source/_notebooks/text-explainer.rst
+
+sed -i '' 's/<svg width="790pt" height="280pt"/<svg width="520pt" height="180pt"/g' \
+    source/_notebooks/text-explainer.rst
+
 # LIME
 #jupyter nbconvert \
 #        --to rst \

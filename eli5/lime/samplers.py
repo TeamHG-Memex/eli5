@@ -1,21 +1,21 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 import abc
-import six
-import math
-from typing import List, Tuple
 from functools import partial
+from typing import List, Tuple, Any, Union, Dict
+import six
 
-import numpy as np
+import numpy as np  # type: ignore
+from scipy.stats import itemfreq  # type: ignore
+from sklearn.base import BaseEstimator, clone  # type: ignore
+from sklearn.neighbors import KernelDensity  # type: ignore
+from sklearn.metrics import pairwise_distances  # type: ignore
+from sklearn.model_selection import GridSearchCV, KFold  # type: ignore
+from sklearn.utils import check_random_state  # type: ignore
 
+from eli5.utils import vstack
 from eli5.lime.utils import rbf
-from sklearn.base import BaseEstimator, clone
-from sklearn.neighbors import KernelDensity
-from sklearn.metrics import pairwise_distances
-from sklearn.model_selection import GridSearchCV, KFold
-from sklearn.utils import check_random_state
-
-from .textutils import generate_samples, DEFAULT_TOKEN_PATTERN
+from .textutils import generate_samples, DEFAULT_TOKEN_PATTERN, TokenizedText
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -38,56 +38,157 @@ class BaseSampler(BaseEstimator):
 
 class MaskingTextSampler(BaseSampler):
     """
-    Sampler for text data. It randomly removes tokens from text.
+    Sampler for text data. It randomly removes or replaces tokens from text.
 
     Parameters
     ----------
     token_pattern : str, optional
         Regexp for token matching
-    bow : bool or float, optional
-        Sampler could either remove all instances of a given token
-        (bag of words sampling) or remove just a sing token.
-        ``bow`` argument is a ratio of samples which had all instances
-        of a token removed. True means 1.0, False means 0.0.
+    bow : bool, optional
+        Sampler could either replace all instances of a given token
+        (bow=True, bag of words sampling) or replace just a single token
+        (bow=False).
     random_state : integer or numpy.random.RandomState, optional
         random state
+    replacement : str
+        Defalt value is '' - by default tokens are removed. If you want to
+        preserve the total token count set ``replacement`` to a non-empty
+        string, e.g. 'UNKN'.
+    min_replace : int or float
+        A minimum number of tokens to replace. Default is 1, meaning 1 token.
+        If this value is float in range [0.0, 1.0], it is used as a ratio.
+        More than min_replace tokens could be replaced if group_size > 1.
+    max_replace : int or float
+        A maximum number of tokens to replace. Default is 1.0, meaning
+        all tokens can be replaced. If this value is float in range
+        [0.0, 0.1], it is used as a ratio.
+    group_size : int
+        When group_size > 1, groups of nearby tokens are replaced all
+        in once (each token is still replaced with a replacement).
+        Default is 1, meaning individual tokens are replaced.
     """
-    def __init__(self, token_pattern=None, bow=1.0, random_state=None):
-        if not (0 <= bow <= 1.0):
-            raise ValueError("bow argument is out of "
-                             "[0, 1] range: {}".format(bow))
+    def __init__(self,
+                 token_pattern=None,  # type: str
+                 bow=True,            # type: bool
+                 random_state=None,
+                 replacement='',      # type: str
+                 min_replace=1,       # type: Union[int, float]
+                 max_replace=1.0,     # type: Union[int, float]
+                 group_size=1,        # type: int
+                 ):
+        # type: (...) -> None
         self.token_pattern = token_pattern or DEFAULT_TOKEN_PATTERN
-        self.bow = float(bow)
+        self.bow = bow
         self.random_state = random_state
+        self.replacement = replacement
+        self.min_replace = min_replace
+        self.max_replace = max_replace
+        self.group_size = group_size
         self.rng_ = check_random_state(self.random_state)
 
     def sample_near(self, doc, n_samples=1):
         # type: (str, int) -> Tuple[List[str], np.ndarray]
-        n_bow = int(math.ceil(self.bow * n_samples))
-        n_not_bow = int(math.floor((1 - self.bow) * n_samples))
-        gen_samples = partial(generate_samples,
-                              doc,
-                              token_pattern=self.token_pattern,
+        docs, similarities, mask, text = self.sample_near_with_mask(
+            doc=doc, n_samples=n_samples
+        )
+        return docs, similarities
+
+    def sample_near_with_mask(self,
+                              doc,         # type: Union[TokenizedText, str]
+                              n_samples=1  # type: int
+                              ):
+        # type: (...) -> Tuple[List[str], np.ndarray, np.ndarray, TokenizedText]
+        if not isinstance(doc, TokenizedText):
+            doc = TokenizedText(doc, token_pattern=self.token_pattern)
+
+        gen_samples = partial(generate_samples, doc,
+                              n_samples=n_samples,
+                              replacement=self.replacement,
+                              min_replace=self.min_replace,
+                              max_replace=self.max_replace,
+                              group_size=self.group_size,
                               random_state=self.rng_)
+        docs, similarity, mask = gen_samples(bow=self.bow)
+        return docs, similarity, mask, doc
 
-        all_docs = []
-        similarities = []
-        if n_bow:
-            docs, similarity = gen_samples(bow=True, n_samples=n_bow)
-            all_docs.extend(docs)
-            similarities.append(similarity)
-        if n_not_bow:
-            docs, similarity = gen_samples(bow=False, n_samples=n_not_bow)
-            all_docs.extend(docs)
-            similarities.append(similarity)
 
-        # XXX: should it use RBF kernel as well, instead of raw
-        # cosine similarity?
-        if similarities:
-            similarities = np.hstack(similarities)
+class MaskingTextSamplers(BaseSampler):
+    """
+    Union of MaskingText samplers, with weights.
+    :meth:`sample_near` or :meth:`sample_near_with_mask` generate
+    a requested number of samples using all samplers; a probability of
+    using a sampler is proportional to its weight.
+
+    All samplers must use the same token_pattern in order for
+    :meth:`sample_near_with_mask` to work.
+
+    Create it with a list of {param: value} dicts
+    with :class:`MaskingTextSampler` paremeters.
+    """
+    def __init__(self,
+                 sampler_params,      # type: List[Dict[str, Any]]
+                 token_pattern=None,  # type: str
+                 random_state=None,
+                 weights=None,        # type: Union[np.ndarray, List[float]]
+                 ):
+        # type: (...) -> None
+        self.random_state = random_state
+        self.rng_ = check_random_state(random_state)
+        self.token_pattern = token_pattern
+        self.samplers = list(map(self._create_sampler, sampler_params))
+        if weights is None:
+            self.weights = np.ones(len(self.samplers))
         else:
-            similarities = np.array(similarities)
-        return list(all_docs), similarities
+            self.weights = np.array(weights)
+        self.weights /= self.weights.sum()
+
+    def _create_sampler(self, extra):
+        # type: (Dict) -> MaskingTextSampler
+        params = dict(
+            token_pattern=self.token_pattern,
+            random_state=self.rng_,
+        )
+        params.update(extra)
+        return MaskingTextSampler(**params)
+
+    def sample_near(self, doc, n_samples=1):
+        # type: (str, int) -> Tuple[List[str], np.ndarray]
+        assert n_samples >= 1
+        all_docs = []  # type: List[str]
+        similarities = []
+        for sampler, freq in self._sampler_n_samples(n_samples):
+            docs, sims = sampler.sample_near(doc, n_samples=freq)
+            all_docs.extend(docs)
+            similarities.append(sims)
+        return all_docs, np.hstack(similarities)
+
+    def sample_near_with_mask(self,
+                              doc,         # type: str
+                              n_samples=1  # type: int
+                              ):
+        # type: (...) -> Tuple[List[str], np.ndarray, np.ndarray, TokenizedText]
+        assert n_samples >= 1
+        text = TokenizedText(doc, token_pattern=self.token_pattern)
+        all_docs = []  # type: List[str]
+        similarities = []
+        masks = []
+        for sampler, freq in self._sampler_n_samples(n_samples):
+            docs, sims, mask, _text = sampler.sample_near_with_mask(text, freq)
+            all_docs.extend(docs)
+            similarities.append(sims)
+            masks.append(mask)
+        return all_docs, np.hstack(similarities), vstack(masks), text
+
+    def _sampler_n_samples(self, n_samples):
+        """ Return (sampler, n_samplers) tuples """
+        sampler_indices = self.rng_.choice(range(len(self.samplers)),
+                                           size=n_samples,
+                                           replace=True,
+                                           p=self.weights)
+        return [
+            (self.samplers[idx], freq)
+            for idx, freq in itemfreq(sampler_indices)
+        ]
 
 
 _BANDWIDTHS = np.hstack([

@@ -6,9 +6,9 @@ from sklearn.utils import shuffle
 
 NEWSGROUPS_CATEGORIES = [
     'alt.atheism',
-    'talk.religion.misc',
     'comp.graphics',
     'sci.space',
+    'talk.religion.misc',
 ]
 NEWSGROUPS_CATEGORIES_BINARY = [
     'alt.atheism',
@@ -25,6 +25,7 @@ def _get_newsgroups(binary=False, remove_chrome=False, test=False, size=SIZE):
     data = fetch_20newsgroups(subset=subset, categories=categories,
                               shuffle=True, random_state=42,
                               remove=remove)
+    assert data.target_names == categories
     return data.data[:size], data.target[:size], data.target_names
 
 

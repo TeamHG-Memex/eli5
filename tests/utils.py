@@ -85,7 +85,7 @@ def get_names_coefs(feature_weights):
 
 
 def check_targets_scores(explanation, atol=1e-8):
-    # type: (Explanation) -> None
+    # type: (Explanation, float) -> None
     """ Check that feature weights sum to target score or proba,
     and that there are no "remaining" features.
     """

@@ -14,6 +14,7 @@ eli5.lime.samplers
 
 .. automodule:: eli5.lime.samplers
     :members:
+    :undoc-members:
 
 
 eli5.lime.textutils

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 
-from IPython.display import HTML
+from IPython.display import HTML  # type: ignore
 
 from .explain import explain_weights, explain_prediction
 from .formatters import format_as_html, fields

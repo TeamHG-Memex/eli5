@@ -7,9 +7,12 @@ from collections import defaultdict, Counter
 from itertools import chain
 from typing import List, Iterable, Any, Dict
 
-import numpy as np
-from sklearn.base import BaseEstimator, TransformerMixin
-from sklearn.feature_extraction.text import HashingVectorizer, FeatureHasher
+import numpy as np  # type: ignore
+from sklearn.base import BaseEstimator, TransformerMixin  # type: ignore
+from sklearn.feature_extraction.text import (  # type: ignore
+    HashingVectorizer,
+    FeatureHasher,
+)
 
 from eli5._feature_names import FeatureNames
 

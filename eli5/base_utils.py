@@ -1,6 +1,6 @@
 import inspect
 
-import attr
+import attr  # type: ignore
 
 
 def attrs(class_):

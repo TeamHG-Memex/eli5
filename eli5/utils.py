@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-import numpy as np
-from scipy import sparse as sp
+import numpy as np  # type: ignore
+from scipy import sparse as sp  # type: ignore
 
 
 def argsort_k_largest(x, k):
@@ -41,7 +41,28 @@ def mask(x, indices):
     return x[indices]
 
 
+def indices_to_bool_mask(indices, size):
+    """ Convert indices to a boolean (integer) mask.
+
+    >>> indices_to_bool_mask(np.array([2, 3]), 4)
+    array([False, False, True, True], dtype=bool)
+
+    >>> indices_to_bool_mask([2, 3], 4)
+    array([False, False, True, True], dtype=bool)
+
+    >>> indices_to_bool_mask(np.array([5]), 2)
+    Traceback (most recent call last):
+    ...
+    IndexError: index 5 is out of bounds for axis 1 with size 2
+    """
+    mask = np.zeros(size, dtype=bool)
+    mask[indices] = 1
+    return mask
+
+
 def vstack(blocks, format=None, dtype=None):
+    if not blocks:
+        return np.array([])
     if any(sp.issparse(b) for b in blocks):
         return sp.vstack(blocks, format=format, dtype=dtype)
     else:

@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 
-import numpy as np
-from scipy import sparse as sp
-from sklearn_crfsuite import CRF
+import numpy as np  # type: ignore
+from scipy import sparse as sp  # type: ignore
+from sklearn_crfsuite import CRF  # type: ignore
 
 from eli5.base import Explanation, TargetExplanation, TransitionFeatureWeights
 from eli5.explain import explain_weights

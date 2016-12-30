@@ -8,14 +8,15 @@ from hypothesis.strategies import integers, text
 
 from eli5.lime.samplers import (
     MaskingTextSampler,
+    MaskingTextSamplers,
     UnivariateKernelDensitySampler,
     MultivariateKernelDensitySampler
 )
 from sklearn.neighbors import KernelDensity
 
 
-@pytest.mark.parametrize(["bow"], [[True], [False], [0.5], [0.99], [0], [1]])
-@given(text=text(), n_samples=integers(0, 3))
+@pytest.mark.parametrize(["bow"], [[True], [False]])
+@given(text=text(), n_samples=integers(1, 3))
 def test_masking_text_sampler_length(text, n_samples, bow):
     sampler = MaskingTextSampler(bow=bow)
     sampler.fit([text])
@@ -39,8 +40,11 @@ def test_masking_text_sampler_bow():
     assert 'foo  bar baz' not in samples
 
 
-def test_masking_text_sampler_both():
-    sampler = MaskingTextSampler(bow=0.5, random_state=42)
+def test_masking_text_sampler_union():
+    sampler = MaskingTextSamplers([
+        dict(bow=False),
+        dict(bow=True),
+    ], random_state=42)
     samples, sims = sampler.sample_near('foo bar bar baz', n_samples=10000)
     assert 'foo bar bar baz' not in samples
     assert 'foo bar bar ' in samples
@@ -61,9 +65,38 @@ def test_masking_text_sampler():
     assert '   ' in samples
 
 
-def test_masking_text_sampler_bad_argument():
-    with pytest.raises(ValueError):
-        s = MaskingTextSampler(bow=2.0)
+def test_masking_text_sampler_ratios():
+    sampler = MaskingTextSampler(min_replace=2)
+    samples, sims = sampler.sample_near('foo bar baz', n_samples=100)
+    assert {s.strip() for s in samples} == {'foo', 'bar', 'baz', ''}
+
+    sampler = MaskingTextSampler(max_replace=1)
+    samples, sims = sampler.sample_near('foo bar baz', n_samples=100)
+    assert {s.strip() for s in samples} == {'foo bar', 'foo  baz', 'bar baz'}
+
+    sampler = MaskingTextSampler(max_replace=0.3)  # should be 1
+    samples, sims = sampler.sample_near('foo bar baz', n_samples=100)
+    assert {s.strip() for s in samples} == {'foo bar', 'foo  baz', 'bar baz'}
+
+    sampler = MaskingTextSampler(min_replace=0.9)  # should be 2
+    samples, sims = sampler.sample_near('foo bar baz', n_samples=100)
+    assert {s.strip() for s in samples} == {'foo', 'bar', 'baz', ''}
+
+
+def test_masking_samplers_random_state():
+    params = [{'bow': True}, {'bow': False}]
+    s1 = MaskingTextSamplers(params, random_state=42)
+    s2 = MaskingTextSamplers(params, random_state=42)
+    s3 = MaskingTextSamplers(params, random_state=24)
+
+    doc = 'foo bar baz egg spam egg spam'
+
+    samples1, _ = s1.sample_near(doc, n_samples=50)
+    samples2, _ = s2.sample_near(doc, n_samples=50)
+    samples3, _ = s3.sample_near(doc, n_samples=50)
+
+    assert samples1 == samples2
+    assert samples1 != samples3
 
 
 def test_univariate_kde_sampler():

@@ -4,8 +4,8 @@ import cgi
 from itertools import groupby
 from typing import List
 
-import numpy as np
-from jinja2 import Environment, PackageLoader
+import numpy as np  # type: ignore
+from jinja2 import Environment, PackageLoader  # type: ignore
 
 from eli5 import _graphviz
 from eli5.base import TargetExplanation

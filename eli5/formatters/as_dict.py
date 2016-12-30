@@ -1,7 +1,7 @@
 import six
 
-import attr
-import numpy as np
+import attr   # type: ignore
+import numpy as np   # type: ignore
 
 from .features import FormattedFeatureName
 

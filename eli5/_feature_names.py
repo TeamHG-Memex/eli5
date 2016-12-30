@@ -2,7 +2,7 @@ import re
 import six
 from typing import Any, Iterable, Tuple, Sized, List
 
-import numpy as np
+import numpy as np  # type: ignore
 
 
 class FeatureNames(Sized):

@@ -2,10 +2,10 @@
 from __future__ import absolute_import
 from typing import Any, Optional
 
-import numpy as np
-import scipy.sparse as sp
-from sklearn.multiclass import OneVsRestClassifier
-from sklearn.feature_extraction.text import HashingVectorizer
+import numpy as np  # type: ignore
+import scipy.sparse as sp  # type: ignore
+from sklearn.multiclass import OneVsRestClassifier  # type: ignore
+from sklearn.feature_extraction.text import HashingVectorizer  # type: ignore
 
 from eli5.sklearn.unhashing import InvertableHashingVectorizer, is_invhashing
 from eli5._feature_names import FeatureNames

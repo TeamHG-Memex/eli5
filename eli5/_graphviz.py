@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import graphviz
+import graphviz  # type: ignore
 
 
 def is_supported():
