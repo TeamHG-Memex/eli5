@@ -158,9 +158,7 @@ def _targets_lines(explanation, hl_spaces, show_feature_values,
             header=table_header,
             col_align=col_align,
         )
-        header_sep = table[1]
-        max_width = len(header_sep)
-        table = [header_sep] + table
+        max_width = len(table[1])
         pos_table = '\n'.join(table[:-len(w.neg)])
         neg_table = '\n'.join(table[-len(w.neg):])
 
