@@ -58,7 +58,7 @@ rendering and formatting on a client.
 .. _scikit-learn: https://github.com/scikit-learn/scikit-learn
 .. _sklearn-crfsuite: https://github.com/TeamHG-Memex/sklearn-crfsuite
 .. _LIME: http://eli5.readthedocs.io/en/latest/lime.html
-.. _TextExplainer: http://eli5.readthedocs.io/en/latest/tutorials/complex-pipelines.html
+.. _TextExplainer: http://eli5.readthedocs.io/en/latest/tutorials/black-box-text-classifiers.html
 .. _xgboost: https://github.com/dmlc/xgboost
 
 License is MIT.

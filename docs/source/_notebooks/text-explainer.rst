@@ -1,6 +1,6 @@
 
-TextExplainer: debugging complex text processing pipelines using LIME
-=====================================================================
+TextExplainer: debugging black-box text classifiers
+===================================================
 
 While eli5 supports many classifiers and preprocessing methods, it can't
 support them all.

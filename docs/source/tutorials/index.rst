@@ -7,5 +7,5 @@ Tutorials
    :maxdepth: 2
 
    ./sklearn-text
-   ./complex-pipelines
+   ./black-box-text-classifiers
    ./sklearn_crfsuite
