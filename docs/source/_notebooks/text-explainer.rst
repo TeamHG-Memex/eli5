@@ -7,11 +7,11 @@ support them all.
 
 If a library is not supported by eli5 directly, or the text processing
 pipeline is too complex for eli5, eli5 can still help - it provides an
-implementation of LIME (Ribeiro et al., 2016) algorithm which allows to
-explain predictions of arbitrary classifiers (including text
-classifiers). ``eli5.lime`` can also help when it is hard to get exact
-mapping between model coefficients and text features, e.g. if there is
-dimension reduction involved.
+implementation of `LIME <http://arxiv.org/abs/1602.04938>`__ (Ribeiro et
+al., 2016) algorithm which allows to explain predictions of arbitrary
+classifiers, including text classifiers. ``eli5.lime`` can also help
+when it is hard to get exact mapping between model coefficients and text
+features, e.g. if there is dimension reduction involved.
 
 Example problem: LSA+SVM for 20 Newsgroups dataset
 --------------------------------------------------
