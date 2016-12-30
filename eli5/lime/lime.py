@@ -63,7 +63,7 @@ class TextExplainer(BaseEstimator):
         in account separately. When False (default) a vectorized passed in
         ``vec`` or a default vectorizer is used.
 
-        Default vectorizer converts text to vector using bag-of-word
+        Default vectorizer converts text to vector using bag-of-ngrams
         or bag-of-char-ngrams approach (depending on ``char_based`` argument).
         It means that it may be not powerful enough to approximate a black-box
         classifier which e.g. takes in account word FOO in the beginning of
@@ -73,11 +73,9 @@ class TextExplainer(BaseEstimator):
         to account for that, but it can become more noisy and require
         larger ``n_samples`` to get an OK explanation.
 
-        When ``char_based=False`` instead of using ``position_dependent``
-        you can also pass a token ngram-based vectorizer as ``vec``,
-        e.g. ``CountVectorizer(ngram_range=(1,2))``. This is still less
-        powerful than ``position_dependent=True``, but can give similar
-        results in practice.
+        When ``char_based=False`` the default vectorizer uses word bigrams
+        in addition to unigrams; this is less powerful than
+        ``position_dependent=True``, but can give similar results in practice.
     rbf_sigma : float, optional
         Sigma parameter of RBF kernel used to post-process cosine similarity
         values. Default is None, meaning no post-processing
