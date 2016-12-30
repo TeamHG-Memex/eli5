@@ -540,7 +540,7 @@ attribute:
      and children, and the childbirth  .
 
 
-By default :class:`~.TextExplainer` generated 5000 distorted texts (use
+By default :class:`~.TextExplainer` generates 5000 distorted texts (use
 ``n_samples`` argument to change the amount):
 
 .. code:: ipython3
@@ -1744,7 +1744,7 @@ assumptions about black-box classifier, such as:
    shifted.
 
 Depending on assumptions we should choose both dataset generation method
-and a white-box classifier. There is a tradeoff between genereality and
+and a white-box classifier. There is a tradeoff between generality and
 speed.
 
 Simple bag-of-words assumptions allow for fast sample generation, and
