@@ -1,6 +1,27 @@
 Changelog
 =========
 
+0.3 (TBA)
+---------
+
+* :func:`eli5.explain_prediction` works for XGBClassifier, XGBRegressor
+  from XGBoost and for ExtraTreesClassifier, ExtraTreesRegressor,
+  GradientBoostingClassifier, GradientBoostingRegressor,
+  RandomForestClassifier, RandomForestRegressor, DecisionTreeClassifier
+  and DecisionTreeRegressor from scikit-learn.
+  Explanation method is based on
+  http://blog.datadive.net/interpreting-random-forests/ .
+* :ref:`TextExplainer <lime-tutorial>` allows to explain predictions
+  of black-box text classification pipelines using LIME algorithm;
+  many improvements in :ref:`eli5.lime <eli5-lime>`.
+* better ``sklearn.pipeline.FeatureUnion`` support in
+  :func:`eli5.explain_prediction`;
+* rendering performance is improved;
+* a number of remaining feature importances is shown when the feature
+  importance table is truncated;
+* styling of feature importances tables is fixed.
+
+
 0.2 (2016-12-03)
 ----------------
 
