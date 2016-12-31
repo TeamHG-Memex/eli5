@@ -45,7 +45,13 @@ def test_explain_xgboost_regressor(boston_train):
         assert 'LSTAT' in expl
 
 
-def test_explain_prediction_clf_binary(newsgroups_train_binary_big):
+@pytest.mark.parametrize(['emf', 'top'], [
+    [False, None],
+    [False, 10],
+    [True, None],
+    [True, 10],
+])
+def test_explain_prediction_clf_binary(newsgroups_train_binary_big, emf, top):
     docs, ys, target_names = newsgroups_train_binary_big
     vec = CountVectorizer(stop_words='english')
     clf = XGBClassifier(n_estimators=100, max_depth=2, missing=0)
@@ -53,18 +59,25 @@ def test_explain_prediction_clf_binary(newsgroups_train_binary_big):
     clf.fit(xs, ys)
     res = explain_prediction(
         clf, 'computer graphics in space: a sign of atheism',
-        vec=vec, target_names=target_names)
+        vec=vec, target_names=target_names, expand_missing_features=emf, top=top)
     format_as_all(res, clf)
-    check_targets_scores(res)
+    if top is None:
+        check_targets_scores(res)
     weights = res.targets[0].feature_weights
     pos_features = get_all_features(weights.pos)
     neg_features = get_all_features(weights.neg)
     assert 'graphics' in pos_features
     assert 'computer' in pos_features
     assert 'atheism' in neg_features
+    if emf:
+        assert 'god (missing)' in pos_features
+        assert 'file (missing)' in neg_features
+    else:
+        assert not any('missing' in str(f) for f in pos_features)
 
 
-def test_explain_prediction_clf_multitarget(newsgroups_train):
+@pytest.mark.parametrize(['emf'], [[True], [False]])
+def test_explain_prediction_clf_multitarget(newsgroups_train, emf):
     docs, ys, target_names = newsgroups_train
     vec = CountVectorizer(stop_words='english')
     xs = vec.fit_transform(docs)
@@ -72,7 +85,7 @@ def test_explain_prediction_clf_multitarget(newsgroups_train):
     clf.fit(xs, ys)
     res = explain_prediction(
         clf, 'computer graphics in space: a new religion',
-        vec=vec, target_names=target_names)
+        vec=vec, target_names=target_names, expand_missing_features=emf)
     format_as_all(res, clf)
     check_targets_scores(res)
     graphics_weights = res.targets[1].feature_weights
@@ -81,7 +94,8 @@ def test_explain_prediction_clf_multitarget(newsgroups_train):
     assert 'religion' in get_all_features(religion_weights.pos)
 
 
-def test_explain_prediction_clf_xor():
+@pytest.mark.parametrize(['emf'], [[True], [False]])
+def test_explain_prediction_clf_xor(emf):
     true_xs = [[np.random.randint(2), np.random.randint(2)] for _ in range(100)]
     xs = np.array([[np.random.normal(x, 0.2), np.random.normal(y, 0.2)]
                    for x, y in true_xs])
@@ -89,10 +103,12 @@ def test_explain_prediction_clf_xor():
     clf = XGBClassifier(n_estimators=100, max_depth=2)
     clf.fit(xs, ys)
     for x in [[0, 1], [1, 0], [0, 0], [1, 1]]:
-        res = explain_prediction(clf, np.array(x))
+        res = explain_prediction(clf, np.array(x), expand_missing_features=emf)
         print(x)
-        print(format_as_text(res, show=fields.WEIGHTS))
+        expl = format_as_text(res, show=fields.WEIGHTS)
+        print(expl)
         check_targets_scores(res)
+        assert 'missing' not in expl
 
 
 def test_explain_prediction_clf_interval():

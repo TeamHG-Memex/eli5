@@ -73,11 +73,14 @@ def test_slice():
         [FeatureNames(n_features=5, unkn_template='%d')],
     ])
 def test_add_feature(feature_names):
-    len_before = len(feature_names)
-    storage = feature_names.feature_names
-    new_feature = 'new'
-    new_idx = feature_names.add_feature(new_feature)
-    assert len(feature_names) == len_before + 1
-    assert feature_names[new_idx] == new_feature
-    if storage is not None:
-        assert storage is not feature_names.feature_names
+    for i in range(3):
+        len_before = len(feature_names)
+        storage = feature_names.feature_names
+        new_feature = 'new {}'.format(i)
+        new_idx = feature_names.add_feature(new_feature)
+        assert len(feature_names) == len_before + 1
+        assert feature_names[new_idx] == new_feature
+        if i > 0:
+            assert storage is feature_names.feature_names
+        elif storage is not None:
+            assert storage is not feature_names.feature_names
