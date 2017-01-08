@@ -8,16 +8,24 @@ from sklearn.base import BaseEstimator  # type: ignore
 from sklearn.linear_model import (   # type: ignore
     ElasticNet,  # includes Lasso, MultiTaskElasticNet, etc.
     ElasticNetCV,
+    HuberRegressor,
     Lars,
+    LassoCV,
     LinearRegression,
     LogisticRegression,
     LogisticRegressionCV,
+    OrthogonalMatchingPursuit,
+    OrthogonalMatchingPursuitCV,
     PassiveAggressiveClassifier,
+    PassiveAggressiveRegressor,
     Perceptron,
     Ridge,
+    RidgeClassifier,
+    RidgeClassifierCV,
     RidgeCV,
     SGDClassifier,
     SGDRegressor,
+    TheilSenRegressor,
 )
 from sklearn.multiclass import OneVsRestClassifier  # type: ignore
 from sklearn.svm import LinearSVC, LinearSVR  # type: ignore
@@ -131,6 +139,8 @@ def explain_weights_ovr_sklearn(ovr, **kwargs):
 @explain_weights_sklearn.register(PassiveAggressiveClassifier)
 @explain_weights_sklearn.register(Perceptron)
 @explain_weights_sklearn.register(LinearSVC)
+@explain_weights_sklearn.register(RidgeClassifier)
+@explain_weights_sklearn.register(RidgeClassifierCV)
 def explain_linear_classifier_weights(clf,
                                       vec=None,
                                       top=_TOP,
@@ -328,12 +338,18 @@ def explain_decision_tree(clf,
 
 @explain_weights_sklearn.register(ElasticNet)
 @explain_weights_sklearn.register(ElasticNetCV)
+@explain_weights_sklearn.register(HuberRegressor)
 @explain_weights_sklearn.register(Lars)
+@explain_weights_sklearn.register(LassoCV)
 @explain_weights_sklearn.register(LinearRegression)
 @explain_weights_sklearn.register(LinearSVR)
+@explain_weights_sklearn.register(OrthogonalMatchingPursuit)
+@explain_weights_sklearn.register(OrthogonalMatchingPursuitCV)
+@explain_weights_sklearn.register(PassiveAggressiveRegressor)
 @explain_weights_sklearn.register(Ridge)
 @explain_weights_sklearn.register(RidgeCV)
 @explain_weights_sklearn.register(SGDRegressor)
+@explain_weights_sklearn.register(TheilSenRegressor)
 def explain_linear_regressor_weights(reg,
                                      vec=None,
                                      top=_TOP,

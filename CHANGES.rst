@@ -19,8 +19,12 @@ Changelog
 * rendering performance is improved;
 * a number of remaining feature importances is shown when the feature
   importance table is truncated;
-* styling of feature importances tables is fixed.
-
+* styling of feature importances tables is fixed;
+* :func:`eli5.explain_weights` and :func:`explain_prediction` support
+  more linear estimators from scikit-learn: HuberRegressor, LarsCV, LassoCV,
+  LassoLars, LassoLarsCV, LassoLarsIC, OrthogonalMatchingPursuit,
+  OrthogonalMatchingPursuitCV, PassiveAggressiveRegressor,
+  RidgeClassifier, RidgeClassifierCV, TheilSenRegressor.
 
 0.2 (2016-12-03)
 ----------------

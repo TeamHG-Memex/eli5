@@ -14,17 +14,29 @@ from sklearn.feature_extraction.text import (
 from sklearn.linear_model import (
     ElasticNet,
     ElasticNetCV,
+    HuberRegressor,
     Lars,
+    LarsCV,
     Lasso,
+    LassoCV,
+    LassoLars,
+    LassoLarsCV,
+    LassoLarsIC,
     LinearRegression,
     LogisticRegression,
     LogisticRegressionCV,
+    OrthogonalMatchingPursuit,
+    OrthogonalMatchingPursuitCV,
     PassiveAggressiveClassifier,
+    PassiveAggressiveRegressor,
     Perceptron,
     Ridge,
+    RidgeClassifier,
+    RidgeClassifierCV,
     RidgeCV,
     SGDClassifier,
     SGDRegressor,
+    TheilSenRegressor,
 )
 from sklearn.svm import LinearSVC, LinearSVR
 from sklearn.ensemble import (
@@ -99,7 +111,7 @@ def assert_explained_weights_linear_regressor(boston_train, reg, has_bias=True):
 
     for expl in [expl_text, expl_html]:
         assert 'x12' in expl
-        assert 'x9' in expl
+        assert 'x5' in expl
 
     if has_bias:
         assert '<BIAS>' in expl_text
@@ -107,7 +119,7 @@ def assert_explained_weights_linear_regressor(boston_train, reg, has_bias=True):
 
     pos, neg = top_pos_neg(res, 'y')
     assert 'x12' in pos or 'x12' in neg
-    assert 'x9' in neg or 'x9' in pos
+    assert 'x5' in neg or 'x5' in pos
 
     if has_bias:
         assert '<BIAS>' in neg or '<BIAS>' in pos
@@ -120,6 +132,8 @@ def assert_explained_weights_linear_regressor(boston_train, reg, has_bias=True):
     [LogisticRegression(random_state=42, multi_class='multinomial', solver='lbfgs')],
     [LogisticRegression(random_state=42, fit_intercept=False)],
     [LogisticRegressionCV(random_state=42)],
+    [RidgeClassifier(random_state=42)],
+    [RidgeClassifierCV()],
     [SGDClassifier(random_state=42)],
     [SGDClassifier(random_state=42, loss='log')],
     [PassiveAggressiveClassifier(random_state=42)],
@@ -353,13 +367,23 @@ def test_unsupported():
 @pytest.mark.parametrize(['reg'], [
     [ElasticNet(random_state=42)],
     [ElasticNetCV(random_state=42)],
+    [HuberRegressor()],
     [Lars()],
+    [LarsCV(max_n_alphas=10)],
     [Lasso(random_state=42)],
+    [LassoCV(random_state=42)],
+    [LassoLars(alpha=0.01)],
+    [LassoLarsCV(max_n_alphas=10)],
+    [LassoLarsIC()],
+    [OrthogonalMatchingPursuit(n_nonzero_coefs=10)],
+    [OrthogonalMatchingPursuitCV()],
+    [PassiveAggressiveRegressor(C=0.1, random_state=42)],
     [Ridge(random_state=42)],
     [RidgeCV()],
     [SGDRegressor(random_state=42)],
     [LinearRegression()],
     [LinearSVR(random_state=42)],
+    [TheilSenRegressor(random_state=42)],
 ])
 def test_explain_linear_regression(boston_train, reg):
     assert_explained_weights_linear_regressor(boston_train, reg)
