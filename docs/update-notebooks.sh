@@ -24,7 +24,7 @@ sed -i '' 's/class="eli5-transition-features"/class="docutils"/g' \
     source/_notebooks/debug-sklearn-crfsuite.rst
 
 
-# TextExplainer (debugging complex text processing pipelines with LIME)
+# TextExplainer (debugging black-box text classifiers)
 jupyter nbconvert \
         --to rst \
         --stdout \

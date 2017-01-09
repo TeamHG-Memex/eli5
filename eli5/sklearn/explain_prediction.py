@@ -16,16 +16,24 @@ from sklearn.ensemble import (  # type: ignore
 from sklearn.linear_model import (  # type: ignore
     ElasticNet,  # includes Lasso, MultiTaskElasticNet, etc.
     ElasticNetCV,
+    HuberRegressor,
     Lars,
+    LassoCV,
     LinearRegression,
     LogisticRegression,
     LogisticRegressionCV,
+    OrthogonalMatchingPursuit,
+    OrthogonalMatchingPursuitCV,
     PassiveAggressiveClassifier,
+    PassiveAggressiveRegressor,
     Perceptron,
     Ridge,
     RidgeCV,
+    RidgeClassifier,
+    RidgeClassifierCV,
     SGDClassifier,
     SGDRegressor,
+    TheilSenRegressor,
 )
 from sklearn.svm import LinearSVC, LinearSVR  # type: ignore
 from sklearn.multiclass import OneVsRestClassifier  # type: ignore
@@ -91,6 +99,8 @@ def explain_prediction_ovr_sklearn(clf, doc, **kwargs):
 @explain_prediction_sklearn.register(PassiveAggressiveClassifier)
 @explain_prediction_sklearn.register(Perceptron)
 @explain_prediction_sklearn.register(LinearSVC)
+@explain_prediction_sklearn.register(RidgeClassifier)
+@explain_prediction_sklearn.register(RidgeClassifierCV)
 def explain_prediction_linear_classifier(clf, doc,
                                          vec=None,
                                          top=None,
@@ -150,12 +160,18 @@ def explain_prediction_linear_classifier(clf, doc,
 
 @explain_prediction_sklearn.register(ElasticNet)
 @explain_prediction_sklearn.register(ElasticNetCV)
+@explain_prediction_sklearn.register(HuberRegressor)
 @explain_prediction_sklearn.register(Lars)
+@explain_prediction_sklearn.register(LassoCV)
 @explain_prediction_sklearn.register(LinearRegression)
 @explain_prediction_sklearn.register(LinearSVR)
+@explain_prediction_sklearn.register(OrthogonalMatchingPursuit)
+@explain_prediction_sklearn.register(OrthogonalMatchingPursuitCV)
+@explain_prediction_sklearn.register(PassiveAggressiveRegressor)
 @explain_prediction_sklearn.register(Ridge)
 @explain_prediction_sklearn.register(RidgeCV)
 @explain_prediction_sklearn.register(SGDRegressor)
+@explain_prediction_sklearn.register(TheilSenRegressor)
 def explain_prediction_linear_regressor(reg, doc,
                                         vec=None,
                                         top=None,

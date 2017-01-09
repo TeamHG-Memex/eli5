@@ -17,17 +17,29 @@ from sklearn.ensemble import (
 from sklearn.linear_model import (
     ElasticNet,
     ElasticNetCV,
+    HuberRegressor,
     Lars,
+    LarsCV,
     Lasso,
+    LassoCV,
+    LassoLars,
+    LassoLarsCV,
+    LassoLarsIC,
     LinearRegression,
     LogisticRegression,
     LogisticRegressionCV,
+    OrthogonalMatchingPursuit,
+    OrthogonalMatchingPursuitCV,
     PassiveAggressiveClassifier,
+    PassiveAggressiveRegressor,
     Perceptron,
     Ridge,
+    RidgeClassifier,
+    RidgeClassifierCV,
     RidgeCV,
     SGDClassifier,
     SGDRegressor,
+    TheilSenRegressor,
 )
 from sklearn.svm import LinearSVC, LinearSVR
 from sklearn.multiclass import OneVsRestClassifier
@@ -175,6 +187,8 @@ def assert_feature_values_present(expl, feature_names, x):
     [SGDClassifier(loss='log', random_state=42)],
     [PassiveAggressiveClassifier(random_state=42)],
     [Perceptron(random_state=42)],
+    [RidgeClassifier(random_state=42)],
+    [RidgeClassifierCV()],
     [LinearSVC(random_state=42)],
     [OneVsRestClassifier(LogisticRegression(random_state=42))],
 ])
@@ -186,13 +200,23 @@ def test_explain_linear(newsgroups_train, clf):
 @pytest.mark.parametrize(['reg'], [
     [ElasticNet(random_state=42)],
     [ElasticNetCV(random_state=42)],
+    [HuberRegressor()],
     [Lars()],
+    [LarsCV(max_n_alphas=10)],
     [Lasso(random_state=42)],
+    [LassoCV(n_alphas=10)],
+    [LassoLars(alpha=0.1)],
+    [LassoLarsCV(max_n_alphas=10)],
+    [LassoLarsIC()],
     [LinearRegression()],
     [LinearSVR(random_state=42)],
+    [OrthogonalMatchingPursuit(n_nonzero_coefs=10)],
+    [OrthogonalMatchingPursuitCV()],
+    [PassiveAggressiveRegressor(C=0.1)],
     [Ridge(random_state=42)],
     [RidgeCV()],
     [SGDRegressor(random_state=42)],
+    [TheilSenRegressor()],
 ])
 def test_explain_linear_regression(boston_train, reg):
     assert_linear_regression_explained(boston_train, reg, explain_prediction)
