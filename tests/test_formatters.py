@@ -99,12 +99,12 @@ def test_show_feature_values():
     clf = LinearRegression()
     clf.fit(np.array([[1, 0.1], [0, 0]]), np.array([0, 1]))
     res = explain_weights_sklearn(clf)
-    for expl in format_as_all(res, clf):
+    for expl in format_as_all(res, clf, show_feature_values=True):
         assert 'Value' not in expl
         assert 'Weight' in expl
         assert 'x0' in expl
     res = explain_prediction_sklearn(clf, np.array([1.52, 0.5]))
-    for expl in format_as_all(res, clf):
+    for expl in format_as_all(res, clf, show_feature_values=True):
         assert 'Contribution' in expl
         assert 'Value' in expl
         assert 'x0' in expl

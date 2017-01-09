@@ -105,7 +105,7 @@ def test_explain_prediction_clf_interval():
     clf = XGBClassifier(n_estimators=100, max_depth=2)
     clf.fit(xs, ys)
     res = explain_prediction(clf, np.array([1.23, 1.45]))
-    for expl in format_as_all(res, clf):
+    for expl in format_as_all(res, clf, show_feature_values=True):
         assert 'x0' in expl
         assert '1.23' in expl
     for x in [[0, 1], [1, 1], [2, 1], [0.8, 5], [1.2, 5]]:
@@ -148,7 +148,7 @@ def test_explain_prediction_feature_union_dense():
     reg.fit(vec.transform(xs), ys)
     res = explain_prediction(reg, xs[0], vec=vec, feature_names=['_x_', '_y_'])
     check_targets_scores(res)
-    for expl in format_as_all(res, reg):
+    for expl in format_as_all(res, reg, show_feature_values=True):
         assert 'Missing' in expl
         assert '_y_' in expl
         assert '_x_' in expl

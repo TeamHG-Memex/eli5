@@ -36,7 +36,7 @@ template_env.filters.update(dict(
 def format_as_html(explanation, include_styles=True, force_weights=True,
                    show=fields.ALL, preserve_density=None,
                    highlight_spaces=None, horizontal_layout=True,
-                   show_feature_values=True):
+                   show_feature_values=False):
     """ Format explanation as html.
     Most styles are inline, but some are included separately in <style> tag,
     you can omit them by passing ``include_styles=False`` and call
@@ -50,8 +50,8 @@ def format_as_html(explanation, include_styles=True, force_weights=True,
     False turns it off.
     If ``horizontal_layout`` is True (default), multiclass classifier
     weights are laid out horizontally.
-    If ``show_feature_values`` is True (default), feature values are shown
-    if present.
+    If ``show_feature_values`` is True, feature values are shown if present.
+    Default is False.
     """
     template = template_env.get_template('explain.html')
     if highlight_spaces is None:

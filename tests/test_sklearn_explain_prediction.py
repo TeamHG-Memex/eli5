@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
+from functools import partial
 from pprint import pprint
 
 import pytest
@@ -37,6 +38,9 @@ from eli5.formatters import format_as_text, fields
 from eli5.sklearn.utils import has_intercept
 from .utils import (
     format_as_all, strip_blanks, get_all_features, check_targets_scores)
+
+
+format_as_all = partial(format_as_all, show_feature_values=True)
 
 
 def assert_multiclass_linear_classifier_explained(newsgroups_train, clf,
