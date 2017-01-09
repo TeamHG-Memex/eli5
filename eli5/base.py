@@ -173,10 +173,12 @@ class TreeInfo(object):
                  criterion,  # type: str
                  tree,  # type: NodeInfo
                  graphviz,  # type: str
+                 is_classification, # type: bool
                  ):
         self.criterion = criterion
         self.tree = tree
         self.graphviz = graphviz
+        self.is_classification = is_classification
 
 
 @attrs

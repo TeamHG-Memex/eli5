@@ -1,21 +1,23 @@
 # -*- coding: utf-8 -*-
+from eli5.base import TreeInfo, NodeInfo
 
 
-def tree2text(treedict, indent=4):
+def tree2text(tree_obj, indent=4):
+    # type: (TreeInfo, int) -> str
     """
     Return text representation of a decision tree.
     """
     parts = []
 
     def _format_node(node, depth=0):
+        # type: (NodeInfo, int) -> None
         def p(*args):
             parts.append(" " * depth * indent)
             parts.extend(args)
 
         if node.is_leaf:
-            value = node.value_ratio
-            value_repr = ", ".join("{:0.3f}".format(v) for v in value)
-            parts.append("  ---> [{value}]".format(value=value_repr))
+            value_repr = _format_leaf_value(tree_obj, node)
+            parts.append("  ---> {}".format(value_repr))
         else:
             feat_name = node.feature_name
 
@@ -38,5 +40,29 @@ def tree2text(treedict, indent=4):
                 ))
             _format_node(node.right, depth=depth + 1)
 
-    _format_node(treedict.tree)
+    _format_node(tree_obj.tree)
     return "".join(parts)
+
+
+def _format_leaf_value(tree_obj, node):
+    if tree_obj.is_classification:
+        if len(node.value_ratio) == 2:
+            return "{:0.3f}".format(node.value_ratio[1])
+        else:
+            return _format_array(node.value_ratio, "{:0.3f}")
+    else:
+        value = node.value
+        if len(value) == 1:
+            return "{}".format(value[0])
+        else:
+            assert all(len(v) == 1 for v in value)
+            return _format_array([v[0] for v in value], "{}")
+
+
+def _format_array(x, fmt):
+    """
+    >>> _format_array([0, 1.0], "{:0.3f}")
+    '[0.000, 1.000]'
+    """
+    value_repr = ", ".join(fmt.format(v) for v in x)
+    return "[{}]".format(value_repr)
