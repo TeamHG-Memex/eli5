@@ -60,7 +60,7 @@ def _format_leaf_value(tree_obj, node):
 
 def _format_array(x, fmt):
     """
-    >>> _format_array([0, 1.0])
+    >>> _format_array([0, 1.0], "{:0.3f}")
     '[0.000, 1.000]'
     """
     value_repr = ", ".join(fmt.format(v) for v in x)
