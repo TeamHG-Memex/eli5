@@ -55,7 +55,8 @@ def _format_leaf_value(tree_obj, node):
         if len(value) == 1:
             return "{}".format(value[0])
         else:
-            return _format_array(value, "{}")
+            assert all(len(v) == 1 for v in value)
+            return _format_array([v[0] for v in value], "{}")
 
 
 def _format_array(x, fmt):

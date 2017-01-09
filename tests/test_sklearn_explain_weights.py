@@ -448,6 +448,21 @@ def test_explain_linear_regression_multitarget(reg):
     assert res == explain_weights(reg)
 
 
+def test_explain_decision_tree_regressor_multitarget():
+    X, y = make_regression(n_samples=100, n_targets=3, n_features=10,
+                           random_state=42)
+    reg = DecisionTreeRegressor(random_state=42, max_depth=3)
+    reg.fit(X, y)
+    res = explain_weights(reg)
+    expl_text, expl_html = format_as_all(res, reg)
+
+    assert 'x9' in expl_text
+    assert '---> [' in expl_text
+    assert '---> [[' not in expl_text
+
+    assert res == explain_weights(reg)
+
+
 @pytest.mark.parametrize(['clf'], [
     [DecisionTreeClassifier()],
     [ExtraTreesClassifier()],
