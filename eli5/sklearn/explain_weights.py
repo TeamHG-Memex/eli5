@@ -235,6 +235,15 @@ def explain_rf_feature_importance(clf,
                                   feature_re=None):
     """
     Return an explanation of a tree-based ensemble estimator.
+
+    See :func:`eli5.explain_weights` for description of
+    ``top``, ``feature_names`` and ``feature_re`` parameters.
+
+    ``target_names`` and ``targets`` parameters are ignored.
+
+    ``vec`` is a vectorizer instance used to transform
+    raw features to the input of the estimator (e.g. a fitted
+    CountVectorizer instance); you can pass it instead of ``feature_names``.
     """
     feature_names = get_feature_names(clf, vec, feature_names=feature_names)
     coef = clf.feature_importances_
@@ -271,6 +280,20 @@ def explain_decision_tree(clf,
                           **export_graphviz_kwargs):
     """
     Return an explanation of a decision tree.
+
+    See :func:`eli5.explain_weights` for description of
+    ``top``, ``target_names``, ``feature_names`` and ``feature_re`` parameters.
+
+    ``targets`` parameter is ignored.
+
+    ``vec`` is a vectorizer instance used to transform
+    raw features to the input of the estimator (e.g. a fitted
+    CountVectorizer instance); you can pass it instead of ``feature_names``.
+
+    All other keyword arguments are passed to
+    `sklearn.tree.export_graphviz`_ function.
+
+    .. _sklearn.tree.export_graphviz: http://scikit-learn.org/stable/modules/generated/sklearn.tree.export_graphviz.html
     """
     feature_names = get_feature_names(clf, vec, feature_names=feature_names)
     coef = clf.feature_importances_
