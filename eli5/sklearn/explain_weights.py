@@ -109,7 +109,7 @@ def explain_weights_sklearn(estimator, vec=None, top=_TOP,
                             target_names=None,
                             targets=None,
                             feature_names=None, coef_scale=None,
-                            feature_flt=None):
+                            feature_re=None, feature_filter=None):
     """ Return an explanation of an estimator """
     return Explanation(
         estimator=repr(estimator),
@@ -148,7 +148,8 @@ def explain_linear_classifier_weights(clf,
                                       targets=None,
                                       feature_names=None,
                                       coef_scale=None,
-                                      feature_flt=None,
+                                      feature_re=None,
+                                      feature_filter=None,
                                       ):
     """
     Return an explanation of a linear classifier weights.
@@ -170,14 +171,14 @@ def explain_linear_classifier_weights(clf,
     feature_names, coef_scale = handle_hashing_vec(vec, feature_names,
                                                    coef_scale)
     feature_names = get_feature_names(clf, vec, feature_names=feature_names)
-    if feature_flt is not None:
-        feature_names, flt_indices = feature_names.filtered(feature_flt)
+    feature_names, flt_indices = feature_names.handle_filter(
+        feature_filter, feature_re)
 
     _extra_caveats = "\n" + HASHING_CAVEATS if is_invhashing(vec) else ''
 
     def _features(label_id):
         coef = get_coef(clf, label_id, scale=coef_scale)
-        if feature_flt is not None:
+        if flt_indices is not None:
             coef = coef[flt_indices]
         return get_top_features(feature_names, coef, top)
 
@@ -221,7 +222,9 @@ def explain_rf_feature_importance(clf,
                                   target_names=None,  # ignored
                                   targets=None,       # ignored
                                   feature_names=None,
-                                  feature_flt=None):
+                                  feature_re=None,
+                                  feature_filter=None,
+                                  ):
     """
     Return an explanation of a tree-based ensemble classifier in the
     following format::
@@ -243,8 +246,9 @@ def explain_rf_feature_importance(clf,
     trees = np.array(clf.estimators_).ravel()
     coef_std = np.std([tree.feature_importances_ for tree in trees], axis=0)
 
-    if feature_flt is not None:
-        feature_names, flt_indices = feature_names.filtered(feature_flt)
+    feature_names, flt_indices = feature_names.handle_filter(
+        feature_filter, feature_re)
+    if flt_indices is not None:
         coef = coef[flt_indices]
         coef_std = coef_std[flt_indices]
 
@@ -268,7 +272,8 @@ def explain_decision_tree(clf,
                           target_names=None,
                           targets=None,  # ignored
                           feature_names=None,
-                          feature_flt=None,
+                          feature_re=None,
+                          feature_filter=None,
                           **export_graphviz_kwargs):
     """
     Return an explanation of a decision tree classifier in the
@@ -291,8 +296,9 @@ def explain_decision_tree(clf,
     feature_names = get_feature_names(clf, vec, feature_names=feature_names)
     coef = clf.feature_importances_
     tree_feature_names = feature_names
-    if feature_flt is not None:
-        feature_names, flt_indices = feature_names.filtered(feature_flt)
+    feature_names, flt_indices = feature_names.handle_filter(
+        feature_filter, feature_re)
+    if flt_indices is not None:
         coef = coef[flt_indices]
     indices = argsort_k_largest_positive(coef, top)
     names, values = feature_names[indices], coef[indices]
@@ -336,7 +342,8 @@ def explain_linear_regressor_weights(reg,
                                      targets=None,
                                      feature_names=None,
                                      coef_scale=None,
-                                     feature_flt=None,
+                                     feature_re=None,
+                                     feature_filter=None,
                                      ):
     """
     Return an explanation of a linear regressor weights.
@@ -356,13 +363,13 @@ def explain_linear_regressor_weights(reg,
     feature_names, coef_scale = handle_hashing_vec(vec, feature_names,
                                                    coef_scale)
     feature_names = get_feature_names(reg, vec, feature_names=feature_names)
-    if feature_flt is not None:
-        feature_names, flt_indices = feature_names.filtered(feature_flt)
+    feature_names, flt_indices = feature_names.handle_filter(
+        feature_filter, feature_re)
     _extra_caveats = "\n" + HASHING_CAVEATS if is_invhashing(vec) else ''
 
     def _features(target_id):
         coef = get_coef(reg, target_id, scale=coef_scale)
-        if feature_flt is not None:
+        if flt_indices is not None:
             coef = coef[flt_indices]
         return get_top_features(feature_names, coef, top)
 

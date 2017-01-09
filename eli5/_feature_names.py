@@ -78,7 +78,7 @@ class FeatureNames(Sized):
         if self.has_bias:
             return self.n_features
 
-    def filtered(self, feature_flt, x=None):
+    def filtered(self, feature_filter, x=None):
         # type: (Any, Any) -> Tuple[FeatureNames, List[int]]
         """ Return feature names filtered by a regular expression ``feature_re``,
         and indices of filtered elements.
@@ -97,11 +97,11 @@ class FeatureNames(Sized):
         if x is not None:
             if sp.issparse(x) and len(x.shape) == 2:
                 assert x.shape[0] == 1
-                flt = lambda nm, i: feature_flt(nm, x[0, i])
+                flt = lambda nm, i: feature_filter(nm, x[0, i])
             else:
-                flt = lambda nm, i: feature_flt(nm, x[i])
+                flt = lambda nm, i: feature_filter(nm, x[i])
         else:
-            flt = lambda nm, i: feature_flt(nm)
+            flt = lambda nm, i: feature_filter(nm)
 
         for idx, name in indexed_names:
             if any(flt(nm, idx) for nm in _all_feature_names(name)):
@@ -116,6 +116,20 @@ class FeatureNames(Sized):
                 unkn_template=self.unkn_template,
             ),
             indices)
+
+    def handle_filter(self, feature_filter, feature_re, x=None):
+        if feature_re is not None and feature_filter:
+            raise TypeError('pass either feature_filter or feature_re')
+        if feature_re is not None:
+            if x is not None:
+                feature_filter = lambda name, _: re.search(feature_re, name)
+            else:
+                feature_filter = lambda name: re.search(feature_re, name)
+
+        if feature_filter is not None:
+            return self.filtered(feature_filter, x)
+        else:
+            return self, None
 
     def add_feature(self, feature):
         # type: (Any) -> int

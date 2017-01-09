@@ -63,9 +63,9 @@ def assert_multiclass_linear_classifier_explained(newsgroups_train, clf,
     X = vec.fit_transform(docs)
     clf.fit(X, y)
 
-    get_res = lambda feature_flt=None: explain_prediction(
+    get_res = lambda feature_filter=None: explain_prediction(
         clf, docs[0], vec=vec, target_names=target_names, top=20,
-        feature_flt=feature_flt)
+        feature_filter=feature_filter)
     res = get_res()
     pprint(res)
     expl_text, expl_html = format_as_all(res, clf)
@@ -84,7 +84,7 @@ def assert_multiclass_linear_classifier_explained(newsgroups_train, clf,
 
     assert res == get_res()
 
-    flt_res = get_res(feature_flt=lambda name, _: name == 'file')
+    flt_res = get_res(feature_filter=lambda name, _: name == 'file')
     format_as_all(flt_res, clf)
     for e in flt_res.targets:
         if e.target == 'comp.graphics':
@@ -134,7 +134,7 @@ def assert_linear_regression_explained(boston_train, reg, explain_prediction,
     check_targets_scores(res, atol=atol)
 
     flt_res = explain_prediction(reg, X[0], feature_names=feature_names,
-                                 feature_flt=lambda name, v: name != 'LSTAT')
+                                 feature_filter=lambda name, v: name != 'LSTAT')
     format_as_all(flt_res, reg)
     flt_target = flt_res.targets[0]
     flt_pos, flt_neg = get_pos_neg_features(flt_target.feature_weights)

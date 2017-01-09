@@ -107,7 +107,8 @@ def explain_prediction_linear_classifier(clf, doc,
                                          target_names=None,
                                          targets=None,
                                          feature_names=None,
-                                         feature_flt=None,
+                                         feature_re=None,
+                                         feature_filter=None,
                                          vectorized=False):
     """ Explain prediction of a linear classifier. """
     vec, feature_names = handle_vec(clf, doc, vec, vectorized, feature_names)
@@ -120,10 +121,8 @@ def explain_prediction_linear_classifier(clf, doc,
         X = add_intercept(X)
     x, = X
 
-    if feature_flt is not None:
-        feature_names, flt_indices = feature_names.filtered(feature_flt, x)
-    else:
-        flt_indices = None
+    feature_names, flt_indices = feature_names.handle_filter(
+        feature_filter, feature_re, x)
 
     res = Explanation(
         estimator=repr(clf),
@@ -178,7 +177,8 @@ def explain_prediction_linear_regressor(reg, doc,
                                         target_names=None,
                                         targets=None,
                                         feature_names=None,
-                                        feature_flt=None,
+                                        feature_re=None,
+                                        feature_filter=None,
                                         vectorized=False):
     """ Explain prediction of a linear regressor. """
     vec, feature_names = handle_vec(reg, doc, vec, vectorized, feature_names)
@@ -190,10 +190,8 @@ def explain_prediction_linear_regressor(reg, doc,
         X = add_intercept(X)
     x, = X
 
-    if feature_flt is not None:
-        feature_names, flt_indices = feature_names.filtered(feature_flt, x)
-    else:
-        flt_indices = None
+    feature_names, flt_indices = feature_names.handle_filter(
+        feature_filter, feature_re, x)
 
     res = Explanation(
         estimator=repr(reg),

@@ -59,7 +59,8 @@ def explain_weights_xgboost(xgb,
                             target_names=None,  # ignored
                             targets=None,  # ignored
                             feature_names=None,
-                            feature_flt=None):
+                            feature_re=None,
+                            feature_filter=None):
     """
     Return an explanation of an XGBoost estimator (via scikit-learn wrapper
     XGBClassifier or XGBRegressor) as feature importances.
@@ -69,8 +70,9 @@ def explain_weights_xgboost(xgb,
     feature_names = get_feature_names(
         xgb, vec, feature_names=feature_names, num_features=num_features)
 
-    if feature_flt is not None:
-        feature_names, flt_indices = feature_names.filtered(feature_flt)
+    feature_names, flt_indices = feature_names.handle_filter(
+        feature_filter, feature_re)
+    if flt_indices is not None:
         coef = coef[flt_indices]
 
     indices = argsort_k_largest_positive(coef, top)
@@ -98,7 +100,8 @@ def explain_prediction_xgboost(
         targets=None,
         feature_names=None,
         vectorized=False,
-        feature_flt=None,
+        feature_re=None,
+        feature_filter=None,
     ):
     """ Return an explanation of XGBoost prediction (via scikit-learn wrapper
     XGBClassifier or XGBRegressor) as feature weights.
@@ -130,8 +133,8 @@ def explain_prediction_xgboost(
 
     proba = predict_proba(xgb, X)
     scores_weights = _prediction_feature_weights(xgb, X, feature_names)
-    if feature_flt is not None:
-        feature_names, flt_indices = feature_names.filtered(feature_flt, x)
+    feature_names, flt_indices = feature_names.handle_filter(
+        feature_filter, feature_re, x)
 
     is_multiclass = _xgb_n_targets(xgb) > 1
     is_regression = isinstance(xgb, XGBRegressor)
@@ -153,7 +156,7 @@ def explain_prediction_xgboost(
     def get_score_feature_weights(_label_id):
         _score, _feature_weights = scores_weights[_label_id]
         _x = x
-        if feature_flt is not None:
+        if flt_indices is not None:
             _x = mask(_x, flt_indices)
             _feature_weights = mask(_feature_weights, flt_indices)
         return _score, get_top_features(

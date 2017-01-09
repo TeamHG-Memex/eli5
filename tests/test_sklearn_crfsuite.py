@@ -51,12 +51,12 @@ def test_sklearn_crfsuite(xseq, yseq):
     assert '<th>rainy</th><th>sunny</th>' in html_nospaces
 
 
-def test_sklearn_crfsuite_feature_flt(xseq, yseq):
+def test_sklearn_crfsuite_feature_re(xseq, yseq):
     crf = CRF(c1=0.0, c2=0.1, max_iterations=50)
     crf.fit([xseq], [yseq])
 
     expl = explain_weights(
-        crf, feature_flt=re.compile(u'(солн|clean)', re.U).search)
+        crf, feature_re=re.compile(u'(солн|clean)', re.U))
     for expl in format_as_all(expl, crf):
         assert u'солн' in expl
         assert u'clean' in expl
