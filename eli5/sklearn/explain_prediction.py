@@ -106,8 +106,26 @@ def explain_prediction_linear_classifier(clf, doc,
                                          target_names=None,
                                          targets=None,
                                          feature_names=None,
-                                         vectorized=False):
-    """ Explain prediction of a linear classifier. """
+                                         vectorized=False
+                                         ):
+    """
+    Explain prediction of a linear classifier.
+
+    See :func:`eli5.explain_prediction` for description of
+    ``top``, ``target_names``, ``targets``, ``feature_names`` and
+    ``feature_re`` parameters.
+
+    ``vec`` is a vectorizer instance used to transform
+    raw features to the input of the classifier ``clf``
+    (e.g. a fitted CountVectorizer instance); you can pass it
+    instead of ``feature_names``.
+
+    ``vectorized`` is a flag which tells eli5 if ``doc`` should be
+    passed through ``vec`` or not. By default it is False, meaning that
+    if ``vec`` is not None, ``vec.transform([doc])`` is passed to the
+    classifier. Set it to False if you're using ``vec`` to get feature names,
+    but ``doc`` is already vectorized.
+    """
     vec, feature_names = handle_vec(clf, doc, vec, vectorized, feature_names)
     X = get_X(doc, vec=vec, vectorized=vectorized, to_dense=True)
 
@@ -176,7 +194,23 @@ def explain_prediction_linear_regressor(reg, doc,
                                         targets=None,
                                         feature_names=None,
                                         vectorized=False):
-    """ Explain prediction of a linear regressor. """
+    """
+    Explain prediction of a linear regressor.
+
+    See :func:`eli5.explain_prediction` for description of
+    ``top``, ``target_names``, ``targets``, ``feature_names`` and
+    ``feature_re`` parameters.
+
+    ``vec`` is a vectorizer instance used to transform
+    raw features to the input of the classifier ``clf``;
+    you can pass it instead of ``feature_names``.
+
+    ``vectorized`` is a flag which tells eli5 if ``doc`` should be
+    passed through ``vec`` or not. By default it is False, meaning that
+    if ``vec`` is not None, ``vec.transform([doc])`` is passed to the
+    regressor ``reg``. Set it to False if you're using ``vec`` to get
+    feature names, but ``doc`` is already vectorized.
+    """
     vec, feature_names = handle_vec(reg, doc, vec, vectorized, feature_names)
     X = get_X(doc, vec=vec, vectorized=vectorized, to_dense=True)
 
