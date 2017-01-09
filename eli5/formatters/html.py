@@ -100,7 +100,21 @@ def format_as_html(explanation, include_styles=True, force_weights=True,
         show_feature_values=show_feature_values,
         weights_table_span=3 if show_feature_values else 2,
         explaining_prediction=explaining_prediction,
+        weight_help=html_escape(WEIGHT_HELP),
+        contribution_help=html_escape(CONTRIBUTION_HELP),
     )
+
+
+WEIGHT_HELP = '''\
+Feature weights. Note that weights do not account for feature value scales,
+so if feature values have different scales, features with highest weights
+might not be the most important.\
+'''.replace('\n', ' ')
+CONTRIBUTION_HELP = '''\
+Feature contribution already accounts for the feature value, and the sum
+of feature contributions is equal to the score or, for some classifiers,
+to the probability. Feature values are shown if "show_feature_values" is True.\
+'''.replace('\n', ' ')
 
 
 def format_html_styles():

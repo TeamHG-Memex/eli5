@@ -8,13 +8,15 @@
            style="{{ target_table_styles }}{% if in_horizontal_layout %} width: 100%;{% else %} margin-bottom: 2em;{% endif %}">
         <thead>
         <tr style="{{ tr_styles }}">
-            <th style="{{ td1_styles }}">
-                {% if explaining_prediction %}
-                    Contribution
-                {% else %}
-                    Weight
-                {% endif %}
-            </th>
+            {% if explaining_prediction %}
+                <th style="{{ td1_styles }}" title="{{ contribution_help }}">
+                    Contribution<sup>?</sup>
+                </th>
+            {% else %}
+                <th style="{{ td1_styles }}" title="{{ weight_help }}">
+                    Weight<sup>?</sup>
+                </th>
+            {% endif %}
             <th style="{{ td2_styles }}">Feature</th>
             {% if show_feature_values %}
                 <th style="{{ td3_styles }}">Value</th>
