@@ -148,45 +148,24 @@ def explain_linear_classifier_weights(clf,
                                       targets=None,
                                       feature_names=None,
                                       coef_scale=None,
-                                      feature_re=None):
+                                      feature_re=None
+                                      ):
     """
-    Return an explanation of a linear classifier weights in the following
-    format::
+    Return an explanation of a linear classifier weights.
 
-        Explanation(
-            estimator="<classifier repr>",
-            method="<interpretation method>",
-            description="<human readable description>",
-            targets=[
-                TargetExplanation(
-                    target="<class name>",
-                    feature_weights=FeatureWeights(
-                        # positive weights
-                        pos=[
-                            (feature_name, coefficient),
-                            ...
-                        ],
+    See :func:`eli5.explain_weights` for description of
+    ``top``, ``target_names``, ``targets``, ``feature_names`` and
+    ``feature_re`` parameters.
 
-                        # negative weights
-                        neg=[
-                            (feature_name, coefficient),
-                            ...
-                        ],
+    ``vec`` is a vectorizer instance used to transform
+    raw features to the input of the classifier ``clf``
+    (e.g. a fitted CountVectorizer instance); you can pass it
+    instead of ``feature_names``.
 
-                        # A number of features not shown
-                        pos_remaining = <int>,
-                        neg_remaining = <int>,
-
-                        # Sum of feature weights not shown
-                        # pos_remaining_sum = <float>,
-                        # neg_remaining_sum = <float>,
-                    ),
-                ),
-                ...
-            ]
-        )
-
-    To print it use utilities from eli5.formatters.
+    ``coef_scale`` is a 1D np.ndarray with a scaling coefficient
+    for each feature; coef[i] = coef[i] * coef_scale[i] if
+    coef_scale[i] is not nan. Use it if you want to scale coefficients
+    before displaying them, to take input feature sign or scale in account.
     """
     feature_names, coef_scale = handle_hashing_vec(vec, feature_names,
                                                    coef_scale)
@@ -357,45 +336,22 @@ def explain_linear_regressor_weights(reg,
                                      targets=None,
                                      feature_names=None,
                                      coef_scale=None,
-                                     feature_re=None):
+                                     feature_re=None
+                                     ):
     """
-    Return an explanation of a linear regressor weights in the following
-    format::
+    Return an explanation of a linear regressor weights.
+    See :func:`eli5.explain_weights` for description of
+    ``top``, ``target_names``, ``targets``, ``feature_names`` and
+    ``feature_re`` parameters.
 
-        Explanation(
-            estimator="<regressor repr>",
-            method="<interpretation method>",
-            description="<human readable description>",
-            targets=[
-                TargetExplanation(
-                    target="<target name>",
-                    feature_weights=FeatureWeights(
-                        # positive weights
-                        pos=[
-                            (feature_name, coefficient),
-                            ...
-                        ],
+    ``vec`` is a vectorizer instance used to transform
+    raw features to the input of the regressor ``reg``; you can
+    pass it instead of ``feature_names``.
 
-                        # negative weights
-                        neg=[
-                            (feature_name, coefficient),
-                            ...
-                        ],
-
-                        # A number of features not shown
-                        pos_remaining = <int>,
-                        neg_remaining = <int>,
-
-                        # Sum of feature weights not shown
-                        # pos_remaining_sum = <float>,
-                        # neg_remaining_sum = <float>,
-                    ),
-                ),
-                ...
-            ]
-        )
-
-    To print it use utilities from eli5.formatters.
+    ``coef_scale`` is a 1D np.ndarray with a scaling coefficient
+    for each feature; coef[i] = coef[i] * coef_scale[i] if
+    coef_scale[i] is not nan. Use it if you want to scale coefficients
+    before displaying them, to take input feature sign or scale in account.
     """
     feature_names, coef_scale = handle_hashing_vec(vec, feature_names,
                                                    coef_scale)
