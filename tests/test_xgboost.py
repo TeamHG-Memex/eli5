@@ -22,15 +22,15 @@ from .test_sklearn_explain_weights import (
 
 
 def test_explain_xgboost(newsgroups_train):
-    _check_rf_classifier(newsgroups_train, XGBClassifier())
+    _check_rf_classifier(newsgroups_train, XGBClassifier(n_estimators=10))
 
 
 def test_explain_xgboost_feature_re(newsgroups_train):
-    _check_rf_feature_re(newsgroups_train, XGBClassifier())
+    _check_rf_feature_re(newsgroups_train, XGBClassifier(n_estimators=10))
 
 
 def test_feature_importances_no_remaining():
-    _check_rf_no_remaining(XGBClassifier())
+    _check_rf_no_remaining(XGBClassifier(n_estimators=10))
 
 
 def test_explain_xgboost_regressor(boston_train):
@@ -38,7 +38,7 @@ def test_explain_xgboost_regressor(boston_train):
     reg = XGBRegressor()
     reg.fit(xs, ys)
     res = explain_weights(reg)
-    for expl in  format_as_all(res, reg):
+    for expl in format_as_all(res, reg):
         assert 'x12' in expl
     res = explain_weights(reg, feature_names=feature_names)
     for expl in format_as_all(res, reg):
