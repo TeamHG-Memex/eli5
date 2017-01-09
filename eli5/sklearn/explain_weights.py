@@ -226,11 +226,11 @@ def explain_linear_classifier_weights(clf,
 @explain_weights_sklearn.register(GradientBoostingRegressor)
 @explain_weights_sklearn.register(AdaBoostClassifier)
 @explain_weights_sklearn.register(AdaBoostRegressor)
-def explain_rf_feature_importance(clf,
+def explain_rf_feature_importance(estimator,
                                   vec=None,
                                   top=_TOP,
                                   target_names=None,  # ignored
-                                  targets=None,       # ignored
+                                  targets=None,  # ignored
                                   feature_names=None,
                                   feature_re=None):
     """
@@ -245,9 +245,10 @@ def explain_rf_feature_importance(clf,
     raw features to the input of the estimator (e.g. a fitted
     CountVectorizer instance); you can pass it instead of ``feature_names``.
     """
-    feature_names = get_feature_names(clf, vec, feature_names=feature_names)
-    coef = clf.feature_importances_
-    trees = np.array(clf.estimators_).ravel()
+    feature_names = get_feature_names(estimator, vec,
+                                      feature_names=feature_names)
+    coef = estimator.feature_importances_
+    trees = np.array(estimator.estimators_).ravel()
     coef_std = np.std([tree.feature_importances_ for tree in trees], axis=0)
 
     if feature_re is not None:
@@ -263,14 +264,14 @@ def explain_rf_feature_importance(clf,
             remaining=np.count_nonzero(coef) - len(indices),
         ),
         description=DESCRIPTION_RANDOM_FOREST,
-        estimator=repr(clf),
+        estimator=repr(estimator),
         method='feature importances',
     )
 
 
 @explain_weights_sklearn.register(DecisionTreeClassifier)
 @explain_weights_sklearn.register(DecisionTreeRegressor)
-def explain_decision_tree(clf,
+def explain_decision_tree(estimator,
                           vec=None,
                           top=_TOP,
                           target_names=None,
@@ -295,8 +296,9 @@ def explain_decision_tree(clf,
 
     .. _sklearn.tree.export_graphviz: http://scikit-learn.org/stable/modules/generated/sklearn.tree.export_graphviz.html
     """
-    feature_names = get_feature_names(clf, vec, feature_names=feature_names)
-    coef = clf.feature_importances_
+    feature_names = get_feature_names(estimator, vec,
+                                      feature_names=feature_names)
+    coef = estimator.feature_importances_
     tree_feature_names = feature_names
     if feature_re is not None:
         feature_names, flt_indices = feature_names.filtered_by_re(feature_re)
@@ -305,7 +307,7 @@ def explain_decision_tree(clf,
     names, values = feature_names[indices], coef[indices]
     export_graphviz_kwargs.setdefault("proportion", True)
     tree_info = get_tree_info(
-        clf,
+        estimator,
         feature_names=tree_feature_names,
         class_names=target_names,
         **export_graphviz_kwargs)
@@ -317,7 +319,7 @@ def explain_decision_tree(clf,
         ),
         decision_tree=tree_info,
         description=DESCRIPTION_DECISION_TREE,
-        estimator=repr(clf),
+        estimator=repr(estimator),
         method='decision tree',
     )
 
