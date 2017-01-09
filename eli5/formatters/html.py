@@ -111,7 +111,8 @@ so if feature values have different scales, features with highest weights
 might not be the most important.\
 '''.replace('\n', ' ')
 CONTRIBUTION_HELP = '''\
-Feature contribution already accounts for the feature value, and the sum
+Feature contribution already accounts for the feature value
+(for linear models, contribution = weight * feature value), and the sum
 of feature contributions is equal to the score or, for some classifiers,
 to the probability. Feature values are shown if "show_feature_values" is True.\
 '''.replace('\n', ' ')
