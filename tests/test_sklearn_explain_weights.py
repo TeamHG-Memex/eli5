@@ -325,19 +325,23 @@ def test_explain_tree_classifier(newsgroups_train, clf):
 
 
 @pytest.mark.parametrize(['reg'], [
-    # [DecisionTreeRegressor()],
-    [ExtraTreesRegressor()],
-    [GradientBoostingRegressor(learning_rate=0.075)],
-    [RandomForestRegressor()],
-    [AdaBoostRegressor()],
+    [DecisionTreeRegressor(random_state=42)],
+    [ExtraTreesRegressor(random_state=42)],
+    [GradientBoostingRegressor(learning_rate=0.075, random_state=42)],
+    [RandomForestRegressor(random_state=42)],
+    [AdaBoostRegressor(random_state=42)],
 ])
 def test_explain_tree_regressor(reg, boston_train):
     X, y, feature_names = boston_train
     reg.fit(X, y)
     res = explain_weights(reg, feature_names=feature_names)
-    for expl in format_as_all(res, reg):
+    expl_text, expl_html = format_as_all(res, reg)
+    for expl in [expl_text, expl_html]:
         assert 'BIAS' not in expl
         assert 'LSTAT' in expl
+
+    if isinstance(reg, DecisionTreeRegressor):
+        assert '---> 50' in expl_text
 
 
 @pytest.mark.parametrize(['clf'], [

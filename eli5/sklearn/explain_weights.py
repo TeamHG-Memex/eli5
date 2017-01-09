@@ -40,11 +40,10 @@ from sklearn.ensemble import (  # type: ignore
     RandomForestRegressor,
     ExtraTreesClassifier,
     ExtraTreesRegressor,
-
 )
 from sklearn.tree import (  # type: ignore
     DecisionTreeClassifier,
-    # DecisionTreeRegressor,
+    DecisionTreeRegressor,
 )
 
 from eli5.base import (
@@ -261,7 +260,7 @@ def explain_rf_feature_importance(clf,
 
 
 @explain_weights_sklearn.register(DecisionTreeClassifier)
-# @explain_weights_sklearn.register(DecisionTreeRegressor)
+@explain_weights_sklearn.register(DecisionTreeRegressor)
 def explain_decision_tree(clf,
                           vec=None,
                           top=_TOP,

@@ -7,6 +7,7 @@ and provides a way to output result in text-based format.
 """
 from __future__ import absolute_import, division
 
+from sklearn.base import ClassifierMixin
 from sklearn.tree import _tree, export_graphviz  # type: ignore
 
 from eli5.base import TreeInfo, NodeInfo
@@ -23,6 +24,7 @@ def get_tree_info(decision_tree, feature_names=None, **export_graphviz_kwargs):
         graphviz=tree2dot(decision_tree,
                           feature_names=feature_names,
                           **export_graphviz_kwargs),
+        is_classification=isinstance(decision_tree, ClassifierMixin),
     )
 
 
