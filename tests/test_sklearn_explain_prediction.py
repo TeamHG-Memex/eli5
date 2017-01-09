@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
+from functools import partial
 from pprint import pprint
 
 import pytest
@@ -51,6 +52,9 @@ from .utils import (
     format_as_all, strip_blanks, get_all_features, check_targets_scores)
 
 
+format_as_all = partial(format_as_all, show_feature_values=True)
+
+
 def assert_multiclass_linear_classifier_explained(newsgroups_train, clf,
                                                   explain_prediction):
     docs, y, target_names = newsgroups_train
@@ -83,15 +87,15 @@ def assert_linear_regression_explained(boston_train, reg, explain_prediction,
                                        atol=1e-8):
     X, y, feature_names = boston_train
     reg.fit(X, y)
-    res = explain_prediction(reg, X[0])
-    expl_text, expl_html = format_as_all(res, reg)
+    res = explain_prediction(reg, X[0], feature_names=feature_names)
+    expl_text, expl_html = expls = format_as_all(res, reg)
 
     assert len(res.targets) == 1
     target = res.targets[0]
     assert target.target == 'y'
     pos, neg = (get_all_features(target.feature_weights.pos),
                 get_all_features(target.feature_weights.neg))
-    assert 'x11' in pos or 'x11' in neg
+    assert 'LSTAT' in pos or 'LSTAT' in neg
 
     if has_intercept(reg):
         assert '<BIAS>' in pos or '<BIAS>' in neg
@@ -103,12 +107,15 @@ def assert_linear_regression_explained(boston_train, reg, explain_prediction,
         assert 'BIAS' not in expl_html
 
     for expl in [expl_text, expl_html]:
-        assert 'x11' in expl
+        assert 'LSTAT' in expl
         assert '(score' in expl
     assert "'y'" in expl_text
     assert '<b>y</b>' in strip_blanks(expl_html)
 
-    assert res == explain_prediction(reg, X[0])
+    for expl in expls:
+        assert_feature_values_present(expl, feature_names, X[0])
+
+    assert res == explain_prediction(reg, X[0], feature_names=feature_names)
     check_targets_scores(res, atol=atol)
 
 
@@ -133,6 +140,16 @@ def assert_multitarget_linear_regression_explained(reg, explain_prediction):
 
     assert res == explain_prediction(reg, X[0])
     check_targets_scores(res)
+
+
+def assert_feature_values_present(expl, feature_names, x):
+    assert 'Value' in expl
+    any_features = False
+    for feature, value in zip(feature_names, x):
+        if feature in expl:
+            assert '{:+.3f}'.format(value) in expl
+            any_features = True
+    assert any_features
 
 
 @pytest.mark.parametrize(['clf'], [
@@ -206,6 +223,7 @@ def test_explain_tree_clf_multiclass(clf, iris_train):
             assert target in expl
         assert 'BIAS' in expl
         assert any(f in expl for f in feature_names)
+        assert_feature_values_present(expl, feature_names, X[0])
     check_targets_scores(res)
 
 
@@ -218,6 +236,8 @@ def test_explain_tree_clf_multiclass(clf, iris_train):
 def test_explain_tree_clf_binary(clf, iris_train_binary):
     X, y, feature_names = iris_train_binary
     clf.fit(X, y)
+    res = explain_prediction(clf, X[0], feature_names=feature_names)
+    format_as_all(res, clf)
     all_expls = []
     for x in X[:5]:
         res = explain_prediction(clf, x, feature_names=feature_names)
@@ -256,6 +276,9 @@ def test_explain_tree_regressor_multitarget(reg):
 def test_explain_tree_regressor(reg, boston_train):
     X, y, feature_names = boston_train
     reg.fit(X, y)
+    res = explain_prediction(reg, X[0], feature_names=feature_names)
+    for expl in format_as_all(res, reg):
+        assert_feature_values_present(expl, feature_names, X[0])
     all_expls = []
     for i, x in enumerate(X[:5]):
         res = explain_prediction(reg, x, feature_names=feature_names)
@@ -279,4 +302,4 @@ def test_explain_tree_classifier_text(clf, newsgroups_train_big):
     clf.fit(X, y)
     res = explain_prediction(clf, docs[0], vec=vec, target_names=target_names)
     check_targets_scores(res)
-    print(format_as_text(res, show=fields.WEIGHTS))
+    format_as_all(res, clf)

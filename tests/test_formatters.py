@@ -3,6 +3,7 @@ from __future__ import absolute_import
 import re
 
 import pytest
+import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression, LinearRegression
 
@@ -64,7 +65,7 @@ def test_highlight_spaces(boston_train, hl_spaces, add_invisible_spaces):
     # last is left unmodified to check that we are doing "any", not "all"
     modified_feature_names = \
         [('{} ' if add_invisible_spaces else 'A {}').format(name)
-        for name in feature_names[:-1]] + [feature_names[-1]]
+         for name in feature_names[:-1]] + [feature_names[-1]]
     reg.fit(X, y)
     res = explain_weights_sklearn(
         reg, feature_names=modified_feature_names, top=len(feature_names) + 1)
@@ -93,3 +94,23 @@ def test_highlight_spaces(boston_train, hl_spaces, add_invisible_spaces):
                     else:
                         assert ('A' + _SPACE + f) in expl
 
+
+def test_show_feature_values():
+    clf = LinearRegression()
+    clf.fit(np.array([[1, 0.1], [0, 0]]), np.array([0, 1]))
+    res = explain_weights_sklearn(clf)
+    for expl in format_as_all(res, clf, show_feature_values=True):
+        assert 'Value' not in expl
+        assert 'Weight' in expl
+        assert 'x0' in expl
+    res = explain_prediction_sklearn(clf, np.array([1.52, 0.5]))
+    for expl in format_as_all(res, clf, show_feature_values=True):
+        assert 'Contribution' in expl
+        assert 'Value' in expl
+        assert 'x0' in expl
+        assert '1.52' in expl
+    for expl in format_as_all(res, clf, show_feature_values=False):
+        assert 'Contribution' in expl
+        assert 'Value' not in expl
+        assert 'x0' in expl
+        assert '1.52' not in expl

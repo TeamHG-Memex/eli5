@@ -200,3 +200,12 @@ def handle_vec(clf, doc, vec, vectorized, feature_names, num_features=None):
     feature_names = get_feature_names(
         clf, vec, feature_names=feature_names, num_features=num_features)
     return vec, feature_names
+
+
+def add_intercept(X):
+    """ Add intercept column to X """
+    intercept = np.ones((X.shape[0], 1))
+    if sp.issparse(X):
+        return sp.hstack([X, intercept]).tocsr()
+    else:
+        return np.hstack([X, intercept])
