@@ -19,6 +19,7 @@ from .test_sklearn_explain_weights import (
     test_explain_random_forest_and_tree_feature_flt as _check_rf_feature_flt,
     test_feature_importances_no_remaining as _check_rf_no_remaining,
 )
+from .test_sklearn_explain_prediction import assert_linear_regression_explained
 
 
 def test_explain_xgboost(newsgroups_train):
@@ -116,26 +117,17 @@ def test_explain_prediction_clf_interval():
 
 
 def test_explain_prediction_reg(boston_train):
-    xs, ys, feature_names = boston_train
-    reg = XGBRegressor()
-    reg.fit(xs, ys)
-    res = explain_prediction(reg, xs[0])
-    check_targets_scores(res)
-    for expl in  format_as_all(res, reg):
-        assert 'x12' in expl
-    res = explain_prediction(reg, xs[0], feature_names=feature_names)
-    check_targets_scores(res)
-    for expl in format_as_all(res, reg):
-        assert 'LSTAT' in expl
-    format_as_all(res, reg)
+    assert_linear_regression_explained(
+        boston_train, XGBRegressor(), explain_prediction,
+        reg_has_intercept=True)
 
 
 def test_explain_prediction_feature_union_dense():
     # Test FeatureUnion handling and missing features in dense matrix
-    tranformer = lambda key: FunctionTransformer(
+    transformer = lambda key: FunctionTransformer(
         lambda xs: np.array([[x.get(key, np.nan)] for x in xs]),
         validate=False)
-    vec = FeatureUnion([('x', tranformer('x')), ('y', tranformer('y'))])
+    vec = FeatureUnion([('x', transformer('x')), ('y', transformer('y'))])
     gauss = np.random.normal
     data = [(gauss(1), 2 + 10 * gauss(1)) for _ in range(200)]
     ys = [-3 * x + y for x, y in data]

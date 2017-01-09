@@ -51,17 +51,19 @@ def assert_multiclass_linear_classifier_explained(newsgroups_train, clf,
     X = vec.fit_transform(docs)
     clf.fit(X, y)
 
-    get_res = lambda: explain_prediction(
-        clf, docs[0], vec=vec, target_names=target_names, top=20)
+    get_res = lambda feature_flt=None: explain_prediction(
+        clf, docs[0], vec=vec, target_names=target_names, top=20,
+        feature_flt=feature_flt)
     res = get_res()
     pprint(res)
     expl_text, expl_html = format_as_all(res, clf)
 
+    file_weight = None
     for e in res.targets:
-        if e.target != 'comp.graphics':
-            continue
-        pos = get_all_features(e.feature_weights.pos)
-        assert 'file' in pos
+        if e.target == 'comp.graphics':
+            pos = get_all_features(e.feature_weights.pos, with_weights=True)
+            assert 'file' in pos
+            file_weight = pos['file']
 
     for expl in [expl_text, expl_html]:
         for label in target_names:
@@ -70,9 +72,18 @@ def assert_multiclass_linear_classifier_explained(newsgroups_train, clf,
 
     assert res == get_res()
 
+    flt_res = get_res(feature_flt=lambda name, _: name == 'file')
+    format_as_all(flt_res, clf)
+    for e in flt_res.targets:
+        if e.target == 'comp.graphics':
+            pos = get_all_features(e.feature_weights.pos, with_weights=True)
+            assert 'file' in pos
+            assert pos['file'] == file_weight
+            assert len(pos) == 1
+
 
 def assert_linear_regression_explained(boston_train, reg, explain_prediction,
-                                       atol=1e-8):
+                                       atol=1e-8, reg_has_intercept=None):
     X, y, feature_names = boston_train
     reg.fit(X, y)
     res = explain_prediction(reg, X[0], feature_names=feature_names)
@@ -81,11 +92,15 @@ def assert_linear_regression_explained(boston_train, reg, explain_prediction,
     assert len(res.targets) == 1
     target = res.targets[0]
     assert target.target == 'y'
-    pos, neg = (get_all_features(target.feature_weights.pos),
-                get_all_features(target.feature_weights.neg))
+    get_pos_neg_features = lambda fw: (
+        get_all_features(fw.pos, with_weights=True),
+        get_all_features(fw.neg, with_weights=True))
+    pos, neg = get_pos_neg_features(target.feature_weights)
     assert 'LSTAT' in pos or 'LSTAT' in neg
 
-    if has_intercept(reg):
+    if reg_has_intercept is None:
+        reg_has_intercept = has_intercept(reg)
+    if reg_has_intercept:
         assert '<BIAS>' in pos or '<BIAS>' in neg
         assert '<BIAS>' in expl_text
         assert '&lt;BIAS&gt;' in expl_html
@@ -105,6 +120,17 @@ def assert_linear_regression_explained(boston_train, reg, explain_prediction,
 
     assert res == explain_prediction(reg, X[0], feature_names=feature_names)
     check_targets_scores(res, atol=atol)
+
+    flt_res = explain_prediction(reg, X[0], feature_names=feature_names,
+                                 feature_flt=lambda name, v: name != 'LSTAT')
+    format_as_all(flt_res, reg)
+    flt_target = flt_res.targets[0]
+    flt_pos, flt_neg = get_pos_neg_features(flt_target.feature_weights)
+    assert 'LSTAT' not in flt_pos and 'LSTAT' not in flt_neg
+    flt_all = dict(flt_pos, **flt_neg)
+    expected = dict(pos, **neg)
+    expected.pop('LSTAT')
+    assert flt_all == expected
 
 
 def assert_multitarget_linear_regression_explained(reg, explain_prediction):

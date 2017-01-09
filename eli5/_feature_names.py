@@ -97,14 +97,14 @@ class FeatureNames(Sized):
         if x is not None:
             if sp.issparse(x) and len(x.shape) == 2:
                 assert x.shape[0] == 1
-                flt = lambda name, i: feature_flt(name, x[0, i])
+                flt = lambda nm, i: feature_flt(nm, x[0, i])
             else:
-                flt = lambda name, i: feature_flt(name, x[i])
+                flt = lambda nm, i: feature_flt(nm, x[i])
         else:
-            flt = lambda name, i: feature_flt(name)
+            flt = lambda nm, i: feature_flt(nm)
 
         for idx, name in indexed_names:
-            if any(flt(n, idx) for n in _all_feature_names(name)):
+            if any(flt(nm, idx) for nm in _all_feature_names(name)):
                 indices.append(idx)
                 filtered_feature_names.append(name)
         if self.has_bias and flt(self.bias_name, self.bias_idx):

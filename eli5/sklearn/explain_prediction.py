@@ -112,6 +112,8 @@ def explain_prediction_linear_classifier(clf, doc,
 
     if feature_flt is not None:
         feature_names, flt_indices = feature_names.filtered(feature_flt, x)
+    else:
+        flt_indices = None
 
     res = Explanation(
         estimator=repr(clf),
@@ -119,14 +121,7 @@ def explain_prediction_linear_classifier(clf, doc,
         targets=[],
     )
 
-    def _weights(x, label_id):
-        coef = get_coef(clf, label_id)
-        scores = _multiply(x, coef)
-        if feature_flt is not None:
-            scores = scores[flt_indices]
-            x = mask(x, flt_indices)
-        return get_top_features(feature_names, scores, top, x)
-
+    _weights = _linear_weights(clf, x, top, feature_names, flt_indices)
     display_names = get_target_display_names(clf.classes_, target_names,
                                              targets)
 
@@ -134,7 +129,7 @@ def explain_prediction_linear_classifier(clf, doc,
         for label_id, label in display_names:
             target_expl = TargetExplanation(
                 target=label,
-                feature_weights=_weights(x, label_id),
+                feature_weights=_weights(label_id),
                 score=score[label_id],
                 proba=proba[label_id] if proba is not None else None,
             )
@@ -143,7 +138,7 @@ def explain_prediction_linear_classifier(clf, doc,
     else:
         target_expl = TargetExplanation(
             target=display_names[1][1],
-            feature_weights=_weights(x, 0),
+            feature_weights=_weights(0),
             score=score,
             proba=proba[1] if proba is not None else None,
         )
@@ -167,6 +162,7 @@ def explain_prediction_linear_regressor(reg, doc,
                                         target_names=None,
                                         targets=None,
                                         feature_names=None,
+                                        feature_flt=None,
                                         vectorized=False):
     """ Explain prediction of a linear regressor. """
     vec, feature_names = handle_vec(reg, doc, vec, vectorized, feature_names)
@@ -178,6 +174,11 @@ def explain_prediction_linear_regressor(reg, doc,
         X = add_intercept(X)
     x, = X
 
+    if feature_flt is not None:
+        feature_names, flt_indices = feature_names.filtered(feature_flt, x)
+    else:
+        flt_indices = None
+
     res = Explanation(
         estimator=repr(reg),
         method='linear model',
@@ -185,11 +186,7 @@ def explain_prediction_linear_regressor(reg, doc,
         is_regression=True,
     )
 
-    def _weights(label_id):
-        coef = get_coef(reg, label_id)
-        scores = _multiply(x, coef)
-        return get_top_features(feature_names, scores, top, x)
-
+    _weights = _linear_weights(reg, x, top, feature_names, flt_indices)
     names = get_default_target_names(reg)
     display_names = get_target_display_names(names, target_names, targets)
 
@@ -446,3 +443,17 @@ def _multiply(X, coef):
         return X.multiply(sp.csr_matrix(coef))
     else:
         return np.multiply(X, coef)
+
+
+def _linear_weights(clf, x, top, feature_names, flt_indices):
+    """ Return top weights getter for label_id.
+    """
+    def _weights(label_id):
+        coef = get_coef(clf, label_id)
+        _x = x
+        scores = _multiply(_x, coef)
+        if flt_indices is not None:
+            scores = scores[flt_indices]
+            _x = mask(_x, flt_indices)
+        return get_top_features(feature_names, scores, top, _x)
+    return _weights
