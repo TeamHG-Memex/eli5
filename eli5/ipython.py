@@ -9,7 +9,8 @@ from .formatters import format_as_html, fields
 
 FORMAT_KWARGS = {'include_styles', 'force_weights',
                  'show', 'preserve_density',
-                 'highlight_spaces', 'horizontal_layout'}
+                 'highlight_spaces', 'horizontal_layout',
+                 'show_feature_values'}
 
 
 def show_weights(estimator, **kwargs):
@@ -193,6 +194,10 @@ def show_prediction(estimator, doc, **kwargs):
         and not preserved for "word" analyzers.
 
         Default is None.
+
+    show_feature_values : bool
+        When True, feature values are shown along with feature contributions.
+        Default is False.
 
     **kwargs: dict
         Keyword arguments. All keyword arguments are passed to

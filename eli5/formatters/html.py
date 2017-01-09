@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 import cgi
-from itertools import groupby
+from itertools import groupby, chain
 from typing import List
 
 import numpy as np  # type: ignore
@@ -11,7 +11,8 @@ from eli5 import _graphviz
 from eli5.base import TargetExplanation
 from eli5.utils import max_or_0
 from .utils import (
-    format_signed, replace_spaces, should_highlight_spaces)
+    format_signed, format_value, has_any_values_for_weights, replace_spaces,
+    should_highlight_spaces)
 from . import fields
 from .features import FormattedFeatureName
 from .trees import tree2text
@@ -27,13 +28,15 @@ template_env.filters.update(dict(
     remaining_weight_color=lambda ws, w_range, pos_neg:
         format_hsl(remaining_weight_color_hsl(ws, w_range, pos_neg)),
     format_feature=lambda f, w, hl: _format_feature(f, w, hl_spaces=hl),
+    format_value=format_value,
     format_decision_tree=lambda tree: _format_decision_tree(tree),
 ))
 
 
 def format_as_html(explanation, include_styles=True, force_weights=True,
                    show=fields.ALL, preserve_density=None,
-                   highlight_spaces=None, horizontal_layout=True):
+                   highlight_spaces=None, horizontal_layout=True,
+                   show_feature_values=False):
     """ Format explanation as html.
     Most styles are inline, but some are included separately in <style> tag,
     you can omit them by passing ``include_styles=False`` and call
@@ -47,6 +50,8 @@ def format_as_html(explanation, include_styles=True, force_weights=True,
     False turns it off.
     If ``horizontal_layout`` is True (default), multiclass classifier
     weights are laid out horizontally.
+    If ``show_feature_values`` is True, feature values are shown if present.
+    Default is False.
     """
     template = template_env.get_template('explain.html')
     if highlight_spaces is None:
@@ -54,6 +59,8 @@ def format_as_html(explanation, include_styles=True, force_weights=True,
     targets = explanation.targets or []
     if len(targets) == 1:
         horizontal_layout = False
+    explaining_prediction = has_any_values_for_weights(explanation)
+    show_feature_values = show_feature_values and explaining_prediction
 
     rendered_weighted_spans = render_targets_weighted_spans(
         targets, preserve_density)
@@ -68,6 +75,7 @@ def format_as_html(explanation, include_styles=True, force_weights=True,
         td1_styles='padding: 0 1em 0 0.5em; text-align: right; border: none;',
         tdm_styles='padding: 0 0.5em 0 0.5em; text-align: center; border: none;',
         td2_styles='padding: 0 0.5em 0 0.5em; text-align: left; border: none;',
+        td3_styles='padding: 0 0.5em 0 1em; text-align: right; border: none;',
         horizontal_layout_table_styles=
         'border-collapse: collapse; border: none; margin-bottom: 1.5em;',
         horizontal_layout_td_styles=
@@ -89,7 +97,25 @@ def format_as_html(explanation, include_styles=True, force_weights=True,
             for other in weighted_spans_others if other),
         targets_with_weighted_spans=list(
             zip(targets, rendered_weighted_spans, weighted_spans_others)),
+        show_feature_values=show_feature_values,
+        weights_table_span=3 if show_feature_values else 2,
+        explaining_prediction=explaining_prediction,
+        weight_help=html_escape(WEIGHT_HELP),
+        contribution_help=html_escape(CONTRIBUTION_HELP),
     )
+
+
+WEIGHT_HELP = '''\
+Feature weights. Note that weights do not account for feature value scales,
+so if feature values have different scales, features with highest weights
+might not be the most important.\
+'''.replace('\n', ' ')
+CONTRIBUTION_HELP = '''\
+Feature contribution already accounts for the feature value
+(for linear models, contribution = weight * feature value), and the sum
+of feature contributions is equal to the score or, for some classifiers,
+to the probability. Feature values are shown if "show_feature_values" is True.\
+'''.replace('\n', ' ')
 
 
 def format_html_styles():

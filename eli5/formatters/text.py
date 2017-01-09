@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
+from itertools import chain
 import six
 from typing import List
 
-from eli5.base import FeatureImportances
 from . import fields
 from .features import FormattedFeatureName
-from .utils import format_signed, replace_spaces, should_highlight_spaces
+from .utils import (
+    format_signed, format_value, has_any_values_for_weights, replace_spaces,
+    should_highlight_spaces, tabulate)
 from .trees import tree2text
 
 
@@ -15,12 +17,15 @@ _ELLIPSIS = '...' if six.PY2 else '…'
 _SPACE = '_' if six.PY2 else '░'
 
 
-def format_as_text(expl, show=fields.ALL, highlight_spaces=None):
+def format_as_text(expl, show=fields.ALL, highlight_spaces=None,
+                   show_feature_values=False):
     """ Format explanation as text.
     If ``highlight_spaces`` is None (default), spaces will be highlighted in
     feature names only if there are any spaces at the start or at the end of the
     feature. Setting it to True forces space highlighting, and setting it to False
     turns it off.
+    If ``show_feature_values`` is True, feature values are shown if present.
+    Default is False.
     """
     lines = []  # type: List[str]
 
@@ -29,6 +34,9 @@ def format_as_text(expl, show=fields.ALL, highlight_spaces=None):
 
     if expl.error:  # always shown
         lines.extend(_error_lines(expl))
+
+    explaining_prediction = has_any_values_for_weights(expl)
+    show_feature_values = show_feature_values and explaining_prediction
 
     for key in show:
         if not getattr(expl, key, None):
@@ -44,7 +52,12 @@ def format_as_text(expl, show=fields.ALL, highlight_spaces=None):
             lines.extend(_transition_features_lines(expl))
 
         if key == 'targets':
-            lines.extend(_targets_lines(expl, hl_spaces=highlight_spaces))
+            lines.extend(_targets_lines(
+                expl,
+                hl_spaces=highlight_spaces,
+                show_feature_values=show_feature_values,
+                explaining_prediction=explaining_prediction,
+            ))
 
         if key == 'feature_importances':
             lines.extend(_feature_importances_lines(
@@ -69,25 +82,27 @@ def _error_lines(explanation):
 
 
 def _feature_importances_lines(explanation, hl_spaces):
-    feature_importances = explanation.feature_importances  # type: FeatureImportances
-    has_std = False
+    max_width = 0
+    for line in _fi_lines(explanation.feature_importances, hl_spaces):
+        max_width = max(max_width, len(line))
+        yield line
+    if explanation.feature_importances.remaining:
+        yield _format_remaining(
+            explanation.feature_importances.remaining, kind='', width=max_width)
+
+
+def _fi_lines(feature_importances, hl_spaces):
     for fw in feature_importances.importances:
         featname = _format_feature(fw.feature, hl_spaces)
         if fw.std is None:
             yield u'{w:0.4f}  {feature}'.format(feature=featname, w=fw.weight)
         else:
-            has_std = True
             yield u'{w:0.4f} {plus} {std:0.4f}  {feature}'.format(
                 feature=featname,
                 w=fw.weight,
                 plus=_PLUS_MINUS,
                 std=2 * fw.std,
             )
-    if feature_importances.remaining:
-        yield _format_remaining(
-            feature_importances.remaining, kind='',
-            left_col_width=(14 + len(_PLUS_MINUS)) if has_std else 6,
-        )
 
 
 def _decision_tree_lines(explanation):
@@ -106,9 +121,10 @@ def _transition_features_lines(explanation):
     ]
 
 
-def _targets_lines(explanation, hl_spaces):
+def _targets_lines(explanation, hl_spaces, show_feature_values,
+                   explaining_prediction):
     lines = []
-    sz = _max_feature_size(explanation.targets)
+
     for target in explanation.targets:
         scores = _format_scores(target.proba, target.score)
         if scores:
@@ -119,17 +135,45 @@ def _targets_lines(explanation, hl_spaces):
             target.target,
             scores)
         lines.append(header)
-        lines.append("-" * (sz + 10))
+
+        if explaining_prediction:
+            table_header = ['Contribution', 'Feature']
+        else:
+            table_header = ['Weight', 'Feature']
+        if show_feature_values:
+            table_header.append('Value')
+            table_line = lambda fw: [
+                format_value(fw.weight),
+                _format_feature(fw.feature, hl_spaces),
+                format_value(fw.value)]
+            col_align = 'rlr'
+        else:
+            table_line = lambda fw: [
+                format_value(fw.weight), _format_feature(fw.feature, hl_spaces)]
+            col_align = 'rl'
 
         w = target.feature_weights
-        lines.extend(_format_feature_weights(w.pos, sz, hl_spaces=hl_spaces))
+        table = tabulate(
+            [table_line(fw) for fw in chain(w.pos, reversed(w.neg))],
+            header=table_header,
+            col_align=col_align,
+        )
+        max_width = len(table[1])
+        pos_table = '\n'.join(table[:-len(w.neg)])
+        neg_table = '\n'.join(table[-len(w.neg):])
+
+        if pos_table:
+            lines.append(pos_table)
         if w.pos_remaining:
-            lines.append(_format_remaining(w.pos_remaining, 'positive'))
+            lines.append(
+                _format_remaining(w.pos_remaining, 'positive', max_width))
         if w.neg_remaining:
-            lines.append(_format_remaining(w.neg_remaining, 'negative'))
-        lines.extend(
-            _format_feature_weights(reversed(w.neg), sz, hl_spaces=hl_spaces))
-        lines.append("")
+            lines.append(
+                _format_remaining(w.neg_remaining, 'negative', max_width))
+        if neg_table:
+            lines.append(neg_table)
+
+        lines.append('')
     return lines
 
 
@@ -142,33 +186,13 @@ def _format_scores(proba, score):
     return ", ".join(scores)
 
 
-def _maxlen(feature_weights):
-    if not feature_weights:
-        return 0
-    return max(len(_format_feature(fw.feature, hl_spaces=False))
-               for fw in feature_weights)
-
-
-def _max_feature_size(explanation):
-    def _max_feature_length(w):
-        return _maxlen(w.pos + w.neg)
-    return max(_max_feature_length(e.feature_weights) for e in explanation)
-
-
-def _format_feature_weights(feature_weights, sz, hl_spaces):
-    return [
-        u'{weight:+8.3f}  {feature}'.format(
-            weight=fw.weight,
-            feature=_format_feature(fw.feature, hl_spaces=hl_spaces).ljust(sz))
-        for fw in feature_weights]
-
-
-def _format_remaining(remaining, kind, left_col_width=8):
-    return '{ellipsis}  ({remaining} more {kind}features)'.format(
-        ellipsis=_ELLIPSIS.rjust(left_col_width),
+def _format_remaining(remaining, kind, width):
+    s = '{ellipsis} {remaining} more {kind}{ellipsis}'.format(
+        ellipsis=_ELLIPSIS,
         remaining=remaining,
         kind=(kind + ' ') if kind else '',
     )
+    return ('{:^%d}' % width).format(s)
 
 
 def _format_feature(name, hl_spaces):

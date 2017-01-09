@@ -8,8 +8,19 @@
            style="{{ target_table_styles }}{% if in_horizontal_layout %} width: 100%;{% else %} margin-bottom: 2em;{% endif %}">
         <thead>
         <tr style="{{ tr_styles }}">
-            <th style="{{ td1_styles }}">Weight</th>
+            {% if explaining_prediction %}
+                <th style="{{ td1_styles }}" title="{{ contribution_help }}">
+                    Contribution<sup>?</sup>
+                </th>
+            {% else %}
+                <th style="{{ td1_styles }}" title="{{ weight_help }}">
+                    Weight<sup>?</sup>
+                </th>
+            {% endif %}
             <th style="{{ td2_styles }}">Feature</th>
+            {% if show_feature_values %}
+                <th style="{{ td3_styles }}">Value</th>
+            {% endif %}
         </tr>
         </thead>
         <tbody>
@@ -18,7 +29,7 @@
         {% endfor %}
         {% if wts.pos_remaining %}
             <tr style="background-color: {{ wts.pos|remaining_weight_color(w_range, 'pos') }}; {{ tr_styles }}">
-                <td colspan="2" style="{{ tdm_styles }}">
+                <td colspan="{{ weights_table_span }}" style="{{ tdm_styles }}">
                     <i>&hellip; {{ wts.pos_remaining }} more positive &hellip;</i>
                 </td>
             </tr>
@@ -26,7 +37,7 @@
 
         {% if wts.neg_remaining %}
             <tr style="background-color: {{ wts.neg|remaining_weight_color(w_range, 'neg') }}; {{ tr_styles }}">
-                <td colspan="2" style="{{ tdm_styles }}">
+                <td colspan="{{ weights_table_span }}" style="{{ tdm_styles }}">
                     <i>&hellip; {{ wts.neg_remaining }} more negative &hellip;</i>
                 </td>
             </tr>

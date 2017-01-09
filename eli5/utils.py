@@ -34,11 +34,16 @@ def argsort_k_smallest(x, k):
 def mask(x, indices):
     """
     The same as x[indices], but return an empty array if indices are empty,
-    instead of returning all x elements.
+    instead of returning all x elements,
+    and handles sparse "vectors", returning dense arrays for them.
     """
     if not indices.shape[0]:
         return np.array([])
-    return x[indices]
+    elif sp.issparse(x) and len(x.shape) == 2 and len(indices.shape) == 1:
+        assert x.shape[0] == 1
+        return x[0, indices].toarray()[0]
+    else:
+        return x[indices]
 
 
 def indices_to_bool_mask(indices, size):
