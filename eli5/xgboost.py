@@ -155,9 +155,14 @@ def explain_prediction_xgboost(
         _x = x
         if feature_flt is not None:
             _x = mask(_x, flt_indices)
+            all_weights_sum = _feature_weights.sum()
             _feature_weights = mask(_feature_weights, flt_indices)
+            filtered_weights = all_weights_sum - _feature_weights.sum()
+        else:
+            filtered_weights = 0
         return _score, get_top_features(
-            feature_names, _feature_weights, top, _x, xgb.missing)
+            feature_names, _feature_weights, top, _x,
+            missing=xgb.missing, filtered_weights=filtered_weights)
 
     if is_multiclass:
         for label_id, label in display_names:

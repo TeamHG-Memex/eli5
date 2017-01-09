@@ -5,6 +5,7 @@ import numpy as np  # type: ignore
 
 from eli5.base import FeatureWeights, FeatureWeight
 from .utils import argsort_k_largest_positive, argsort_k_smallest, mask
+from .formatters.features import FormattedFeatureName
 
 
 def _get_top_features(feature_names, coef, top, x, missing):
@@ -39,17 +40,34 @@ def _get_top_features(feature_names, coef, top, x, missing):
     return pos, neg
 
 
-def get_top_features(feature_names, coef, top, x=None, missing=np.nan):
+def get_top_features(feature_names, coef, top, x=None, missing=np.nan,
+                     filtered_weights=0):
     pos, neg = _get_top_features(feature_names, coef, top, x, missing)
     pos_coef = coef > 0
     neg_coef = coef < 0
+    pos_remaining = pos_coef.sum() - len(pos)
+    neg_remaining = neg_coef.sum() - len(neg)
+    if filtered_weights:
+        filtered_out = FeatureWeight(
+            '<Filtered by feature_flt>', filtered_weights)
+        # TODO - test!!!
+        if filtered_weights > 0:
+            for idx, fw in enumerate(pos):
+                if fw.weight < filtered_weights:
+                    pos.insert(idx, filtered_out)
+                    break
+        elif filtered_weights < 0:
+            for idx, fw in enumerate(neg):
+                if fw.weight > filtered_weights:
+                    neg.insert(idx, filtered_out)
+                    break
     # pos_sum = sum(w for name, w in pos or [['', 0]])
     # neg_sum = sum(w for name, w in neg or [['', 0]])
     return FeatureWeights(
          pos=pos,
          neg=neg,
-         pos_remaining=pos_coef.sum() - len(pos),
-         neg_remaining=neg_coef.sum() - len(neg),
+         pos_remaining=pos_remaining,
+         neg_remaining=neg_remaining,
          # pos_remaining_sum=coef[pos_coef].sum() - pos_sum,
          # neg_remaining_sum=coef[neg_coef].sum() - neg_sum,
     )
