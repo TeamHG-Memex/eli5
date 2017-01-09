@@ -33,11 +33,19 @@ from sklearn.svm import LinearSVC, LinearSVR  # type: ignore
 from sklearn.naive_bayes import BernoulliNB, MultinomialNB    # type: ignore
 from sklearn.ensemble import (  # type: ignore
     GradientBoostingClassifier,
+    GradientBoostingRegressor,
     AdaBoostClassifier,
+    AdaBoostRegressor,
     RandomForestClassifier,
-    ExtraTreesClassifier
+    RandomForestRegressor,
+    ExtraTreesClassifier,
+    ExtraTreesRegressor,
+
 )
-from sklearn.tree import DecisionTreeClassifier  # type: ignore
+from sklearn.tree import (  # type: ignore
+    DecisionTreeClassifier,
+    # DecisionTreeRegressor,
+)
 
 from eli5.base import (
     Explanation, TargetExplanation, FeatureWeight, FeatureImportances)
@@ -212,9 +220,13 @@ def explain_linear_classifier_weights(clf,
 
 
 @explain_weights_sklearn.register(RandomForestClassifier)
+@explain_weights_sklearn.register(RandomForestRegressor)
 @explain_weights_sklearn.register(ExtraTreesClassifier)
+@explain_weights_sklearn.register(ExtraTreesRegressor)
 @explain_weights_sklearn.register(GradientBoostingClassifier)
+@explain_weights_sklearn.register(GradientBoostingRegressor)
 @explain_weights_sklearn.register(AdaBoostClassifier)
+@explain_weights_sklearn.register(AdaBoostRegressor)
 def explain_rf_feature_importance(clf,
                                   vec=None,
                                   top=_TOP,
@@ -223,20 +235,7 @@ def explain_rf_feature_importance(clf,
                                   feature_names=None,
                                   feature_re=None):
     """
-    Return an explanation of a tree-based ensemble classifier in the
-    following format::
-
-        Explanation(
-            estimator="<classifier repr>",
-            method="<interpretation method>",
-            description="<human readable description>",
-            feature_importances=FeatureImportances(
-                [FeatureWeight(feature_name, importance, std_deviation),
-                ...
-                ],
-                remaining="<number of other non-zero features>",
-            )
-        )
+    Return an explanation of a tree-based ensemble estimator.
     """
     feature_names = get_feature_names(clf, vec, feature_names=feature_names)
     coef = clf.feature_importances_
@@ -262,6 +261,7 @@ def explain_rf_feature_importance(clf,
 
 
 @explain_weights_sklearn.register(DecisionTreeClassifier)
+# @explain_weights_sklearn.register(DecisionTreeRegressor)
 def explain_decision_tree(clf,
                           vec=None,
                           top=_TOP,
@@ -271,22 +271,7 @@ def explain_decision_tree(clf,
                           feature_re=None,
                           **export_graphviz_kwargs):
     """
-    Return an explanation of a decision tree classifier in the
-    following format (compatible with random forest explanations)::
-
-        Explanation(
-            estimator="<classifier repr>",
-            method="<interpretation method>",
-            description="<human readable description>",
-            decision_tree={...tree information},
-            feature_importances=FeatureImportances(
-                [FeatureWeight(feature_name, importance, std_deviation),
-                ...
-                ],
-                remaining="<number of other non-zero features>",
-            )
-        )
-
+    Return an explanation of a decision tree.
     """
     feature_names = get_feature_names(clf, vec, feature_names=feature_names)
     coef = clf.feature_importances_

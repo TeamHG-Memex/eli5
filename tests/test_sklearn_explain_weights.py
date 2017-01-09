@@ -41,11 +41,15 @@ from sklearn.linear_model import (
 from sklearn.svm import LinearSVC, LinearSVR
 from sklearn.ensemble import (
     RandomForestClassifier,
+    RandomForestRegressor,
     ExtraTreesClassifier,
+    ExtraTreesRegressor,
     GradientBoostingClassifier,
+    GradientBoostingRegressor,
     AdaBoostClassifier,
+    AdaBoostRegressor,
 )
-from sklearn.tree import DecisionTreeClassifier
+from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from sklearn.base import BaseEstimator
 from sklearn.multiclass import OneVsRestClassifier
 import pytest
@@ -294,7 +298,7 @@ def test_explain_linear_feature_re(newsgroups_train, vec):
     # FIXME:
     # [OneVsRestClassifier(DecisionTreeClassifier(max_depth=3, random_state=42))],
 ])
-def test_explain_random_forest(newsgroups_train, clf):
+def test_explain_tree_classifier(newsgroups_train, clf):
     docs, y, target_names = newsgroups_train
     vec = CountVectorizer()
     X = vec.fit_transform(docs)
@@ -318,6 +322,22 @@ def test_explain_random_forest(newsgroups_train, clf):
             assert '<svg' not in expl_html
 
     assert res == get_res()
+
+
+@pytest.mark.parametrize(['reg'], [
+    # [DecisionTreeRegressor()],
+    [ExtraTreesRegressor()],
+    [GradientBoostingRegressor(learning_rate=0.075)],
+    [RandomForestRegressor()],
+    [AdaBoostRegressor()],
+])
+def test_explain_tree_regressor(reg, boston_train):
+    X, y, feature_names = boston_train
+    reg.fit(X, y)
+    res = explain_weights(reg, feature_names=feature_names)
+    for expl in format_as_all(res, reg):
+        assert 'BIAS' not in expl
+        assert 'LSTAT' in expl
 
 
 @pytest.mark.parametrize(['clf'], [
