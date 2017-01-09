@@ -11,7 +11,10 @@ Changelog
   and DecisionTreeRegressor from scikit-learn.
   Explanation method is based on
   http://blog.datadive.net/interpreting-random-forests/ .
-* :ref:`TextExplainer <lime-tutorial>` allows to explain predictions
+* :func:`eli5.explain_weights` now supports tree-based regressors from
+  scikit-learn: DecisionTreeRegressor, AdaBoostRegressor,
+  GradientBoostingRegressor, RandomForestRegressor and ExtraTreesRegressor.
+* new :ref:`TextExplainer <lime-tutorial>` class allows to explain predictions
   of black-box text classification pipelines using LIME algorithm;
   many improvements in :ref:`eli5.lime <eli5-lime>`.
 * better ``sklearn.pipeline.FeatureUnion`` support in
@@ -25,6 +28,9 @@ Changelog
   LassoLars, LassoLarsCV, LassoLarsIC, OrthogonalMatchingPursuit,
   OrthogonalMatchingPursuitCV, PassiveAggressiveRegressor,
   RidgeClassifier, RidgeClassifierCV, TheilSenRegressor.
+* text-based formatting of decision trees is changed: for binary
+  classification trees only a probability of "true" class is printed,
+  not both probabilities as it was before.
 
 0.2 (2016-12-03)
 ----------------
