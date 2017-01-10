@@ -119,7 +119,7 @@ class FeatureNames(Sized):
 
     def handle_filter(self, feature_filter, feature_re, x=None):
         if feature_re is not None and feature_filter:
-            raise TypeError('pass either feature_filter or feature_re')
+            raise ValueError('pass either feature_filter or feature_re')
         if feature_re is not None:
             if x is not None:
                 feature_filter = lambda name, _: re.search(feature_re, name)

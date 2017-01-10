@@ -34,6 +34,25 @@ def test_feature_names_filtered():
     assert list(filtered) == ['two']
 
 
+def test_feature_names_handle_filter():
+    filtered, indices = (FeatureNames(['one', 'two', 'twenty-two'])
+                         .handle_filter(lambda name: 'two' in name, feature_re=None))
+    assert indices == [1, 2]
+    assert list(filtered) == ['two', 'twenty-two']
+
+    filtered, indices = (FeatureNames(['one', 'two', 'twenty-two'])
+                         .handle_filter(feature_filter=None, feature_re='two'))
+    assert indices == [1, 2]
+    assert list(filtered) == ['two', 'twenty-two']
+
+    filtered, indices = FeatureNames(['one', 'two']).handle_filter(None, None)
+    assert indices is None
+    assert list(filtered) == ['one', 'two']
+
+    with pytest.raises(ValueError):
+        FeatureNames(['one', 'two']).handle_filter(lambda name: True, '.*')
+
+
 def test_init():
     with pytest.raises(ValueError):
         FeatureNames()

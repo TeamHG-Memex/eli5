@@ -52,9 +52,10 @@ def test_explain_prediction_clf_binary(newsgroups_train_binary_big):
     clf = XGBClassifier(n_estimators=100, max_depth=2, missing=0)
     xs = vec.fit_transform(docs)
     clf.fit(xs, ys)
-    res = explain_prediction(
+    get_res = lambda **kwargs: explain_prediction(
         clf, 'computer graphics in space: a sign of atheism',
-        vec=vec, target_names=target_names)
+        vec=vec, target_names=target_names, **kwargs)
+    res = get_res()
     format_as_all(res, clf)
     check_targets_scores(res)
     weights = res.targets[0].feature_weights
@@ -63,6 +64,10 @@ def test_explain_prediction_clf_binary(newsgroups_train_binary_big):
     assert 'graphics' in pos_features
     assert 'computer' in pos_features
     assert 'atheism' in neg_features
+    flt_res = get_res(feature_re='gra')
+    flt_pos_features = get_all_features(flt_res.targets[0].feature_weights.pos)
+    assert 'graphics' in flt_pos_features
+    assert 'computer' not in flt_pos_features
 
 
 def test_explain_prediction_clf_multitarget(newsgroups_train):

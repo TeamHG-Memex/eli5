@@ -69,6 +69,8 @@ def explain_prediction_sklearn(estimator, doc,
                                target_names=None,
                                targets=None,
                                feature_names=None,
+                               feature_re=None,
+                               feature_filter=None,
                                vectorized=False):
     """ Return an explanation of a scikit-learn estimator """
     return Explanation(
