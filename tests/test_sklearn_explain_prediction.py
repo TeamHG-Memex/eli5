@@ -177,6 +177,36 @@ def assert_feature_values_present(expl, feature_names, x):
     assert any_features
 
 
+def assert_tree_explain_prediction_single_target(clf, X, feature_names):
+    get_res = lambda _x, **kwargs: explain_prediction(
+        clf, _x, feature_names=feature_names, **kwargs)
+    res = get_res(X[0])
+    for expl in format_as_all(res, clf):
+        assert_feature_values_present(expl, feature_names, X[0])
+
+    checked_flt = False
+    all_expls = []
+    for x in X[:5]:
+        res = get_res(x)
+        text_expl = format_as_text(res, show=fields.WEIGHTS)
+        print(text_expl)
+        assert '<BIAS>' in text_expl
+        check_targets_scores(res)
+        all_expls.append(text_expl)
+
+        get_all = lambda fw: get_all_features(fw.pos) | get_all_features(fw.neg)
+        all_features = get_all(res.targets[0].feature_weights)
+        if len(all_features) > 1:
+            f = list(all_features - {'<BIAS>'})[0]
+            flt_res = get_res(x, feature_filter=lambda name, _: name != f)
+            flt_features = get_all(flt_res.targets[0].feature_weights)
+            assert flt_features == (all_features - {f})
+            checked_flt = True
+
+    assert checked_flt
+    assert any(f in ''.join(all_expls) for f in feature_names)
+
+
 @pytest.mark.parametrize(['clf'], [
     [LogisticRegression(random_state=42)],
     [LogisticRegression(random_state=42, multi_class='multinomial', solver='lbfgs')],
@@ -261,7 +291,7 @@ def test_explain_tree_clf_multiclass(clf, iris_train):
 def test_explain_tree_clf_binary(clf, iris_train_binary):
     X, y, feature_names = iris_train_binary
     clf.fit(X, y)
-    _assert_tree_explain_prediction_single_target(clf, X, feature_names)
+    assert_tree_explain_prediction_single_target(clf, X, feature_names)
 
 
 @pytest.mark.parametrize(['reg'], [
@@ -291,7 +321,7 @@ def test_explain_tree_regressor_multitarget(reg):
 def test_explain_tree_regressor(reg, boston_train):
     X, y, feature_names = boston_train
     reg.fit(X, y)
-    _assert_tree_explain_prediction_single_target(reg, X, feature_names)
+    assert_tree_explain_prediction_single_target(reg, X, feature_names)
 
 
 @pytest.mark.parametrize(['clf'], [
@@ -307,33 +337,3 @@ def test_explain_tree_classifier_text(clf, newsgroups_train_big):
     res = explain_prediction(clf, docs[0], vec=vec, target_names=target_names)
     check_targets_scores(res)
     format_as_all(res, clf)
-
-
-def _assert_tree_explain_prediction_single_target(clf, X, feature_names):
-    get_res = lambda _x, **kwargs: explain_prediction(
-        clf, _x, feature_names=feature_names, **kwargs)
-    res = get_res(X[0])
-    for expl in format_as_all(res, clf):
-        assert_feature_values_present(expl, feature_names, X[0])
-
-    checked_flt = False
-    all_expls = []
-    for x in X[:5]:
-        res = get_res(x)
-        text_expl = format_as_text(res, show=fields.WEIGHTS)
-        print(text_expl)
-        assert '<BIAS>' in text_expl
-        check_targets_scores(res)
-        all_expls.append(text_expl)
-
-        get_all = lambda fw: get_all_features(fw.pos) | get_all_features(fw.neg)
-        all_features = get_all(res.targets[0].feature_weights)
-        if len(all_features) > 1:
-            f = list(all_features - {'<BIAS>'})[0]
-            flt_res = get_res(x, feature_filter=lambda name, _: name != f)
-            flt_features = get_all(flt_res.targets[0].feature_weights)
-            assert flt_features == (all_features - {f})
-            checked_flt = True
-
-    assert checked_flt
-    assert any(f in ''.join(all_expls) for f in feature_names)

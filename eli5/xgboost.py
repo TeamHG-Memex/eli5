@@ -99,10 +99,10 @@ def explain_prediction_xgboost(
         target_names=None,
         targets=None,
         feature_names=None,
-        vectorized=False,
         feature_re=None,
         feature_filter=None,
-    ):
+        vectorized=False,
+        ):
     """ Return an explanation of XGBoost prediction (via scikit-learn wrapper
     XGBClassifier or XGBRegressor) as feature weights.
 
