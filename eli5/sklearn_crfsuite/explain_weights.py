@@ -22,7 +22,7 @@ def explain_weights_sklearn_crfsuite(crf,
     """ Explain sklearn_crfsuite.CRF weights.
 
     See :func:`eli5.explain_weights` for description of
-    ``top``, ``feature_names``,
+    ``top``, ``target_names``, ``targets``,
     ``feature_re`` and ``feature_filter`` parameters.
     """
     feature_names = np.array(crf.attributes_)

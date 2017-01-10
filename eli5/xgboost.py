@@ -117,7 +117,7 @@ def explain_prediction_xgboost(
     ``feature_re`` and ``feature_filter`` parameters.
 
     ``vec`` is a vectorizer instance used to transform
-    raw features to the input of the classifier ``clf``
+    raw features to the input of the estimator ``xgb``
     (e.g. a fitted CountVectorizer instance); you can pass it
     instead of ``feature_names``.
 

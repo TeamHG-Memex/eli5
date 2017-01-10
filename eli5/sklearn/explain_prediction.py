@@ -408,7 +408,7 @@ def explain_prediction_tree_regressor(
     ``feature_re`` and ``feature_filter`` parameters.
 
     ``vec`` is a vectorizer instance used to transform
-    raw features to the input of the classifier ``clf``
+    raw features to the input of the regressor ``reg``
     (e.g. a fitted CountVectorizer instance); you can pass it
     instead of ``feature_names``.
 
