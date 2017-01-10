@@ -9,9 +9,10 @@ from scikit-learn_ library.
 Additional ``explain_weights`` and ``explain_prediction`` parameters
 --------------------------------------------------------------------
 
-For all scikit-learn classifiers and regressors :func:`eli5.explain_weights`
-and :func:`eli5.explain_prediction` support additional keyword arguments.
-Additional :func:`eli5.explain_weights` parameters:
+For all supported scikit-learn classifiers and regressors
+:func:`eli5.explain_weights` and :func:`eli5.explain_prediction` accept
+additional keyword arguments. Additional :func:`eli5.explain_weights`
+parameters:
 
 * ``vec`` is a vectorizer instance used to transform
   raw features to the input of the classifier or regressor
@@ -28,7 +29,8 @@ Additional :func:`eli5.explain_prediction` parameters:
 * ``vectorized`` is a flag which tells eli5 if ``doc`` should be
   passed through ``vec`` or not. By default it is False, meaning that
   if ``vec`` is not None, ``vec.transform([doc])`` is passed to the
-  estimator. Set it to False if you're using ``vec`` to get feature names,
+  estimator. Set it to False if you're passing ``vec`` (e.g. to get feature
+  names and/or enable :ref:`text highlighting <sklearn-text-highlighting>`),
   but ``doc`` is already vectorized.
 
 Linear estimators
@@ -187,16 +189,18 @@ automatically; to handle HashingVectorizer_ and FeatureHasher_ for
 
 .. _FeatureHasher: http://scikit-learn.org/stable/modules/generated/sklearn.feature_extraction.FeatureHasher.html#sklearn.feature_extraction.FeatureHasher
 
+.. _sklearn-text-highlighting:
 
 Text highlighting
 -----------------
 
 For text data :func:`eli5.explain_prediction` can show the input document
 highlight; it works if the document is vectorized using
-CountVectorizer_, TfIdfVectorizer_ or HashingVectorizer_; custom
-preprocessors are supported, but custom analyzers or tokenizers are not:
-it works only with 'word', 'char' or 'char_wb' analyzers and a default
-tokenizer.
+CountVectorizer_, TfIdfVectorizer_ or HashingVectorizer_ and a fitted
+vectorizer instance is passed to :func:`eli5.explain_prediction`
+in a ``vec`` argument. Custom preprocessors are supported, but custom
+analyzers or tokenizers are not: it works only with 'word', 'char' or
+'char_wb' analyzers and a default tokenizer.
 
 .. _CountVectorizer: http://scikit-learn.org/stable/modules/generated/sklearn.feature_extraction.text.CountVectorizer.html#sklearn.feature_extraction.text.CountVectorizer
 .. _TfIdfVectorizer: http://scikit-learn.org/stable/modules/generated/sklearn.feature_extraction.text.TfidfVectorizer.html#sklearn.feature_extraction.text.TfidfVectorizer
@@ -206,7 +210,7 @@ tokenizer.
 
 Text highlighting also works if a document is vectorized using FeatureUnion_
 with at least one of CountVectorizer_, TfIdfVectorizer_ or HashingVectorizer_
-in the transformer list; features of other transformed are displayed in
+in the transformer list; features of other transformers are displayed in
 a regular table.
 
 See also: :ref:`Debugging scikit-learn text classification pipeline <text-processing-tutorial>`
