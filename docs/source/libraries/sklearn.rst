@@ -136,10 +136,14 @@ eli5 supports the following tree-based estimators from ``sklearn.tree``:
 tree visualization; :func:`eli5.show_weights` may visualizes a tree
 either as text or as image (if graphviz is available).
 
-For DecisionTreeClassifier and DecisionTreeRegressor
+For DecisionTreeClassifier_ and DecisionTreeRegressor_
 additional :func:`eli5.explain_weights` keyword arguments
 are forwarded to `sklearn.tree.export_graphviz`_ function when graphviz
 is available; they can be used to customize tree image.
+
+.. note::
+    For decision trees top-level :func:`eli5.explain_weights` calls are
+    dispatched to :func:`eli5.sklearn.explain_weights.explain_decision_tree`.
 
 .. _sklearn.tree.export_graphviz: http://scikit-learn.org/stable/modules/generated/sklearn.tree.export_graphviz.html
 
@@ -157,6 +161,10 @@ The following tree ensembles from ``sklearn.ensemble`` are supported:
 For ensembles :func:`eli5.explain_weights` computes feature importances
 and their std deviation.
 
+.. note::
+    For ensembles top-level :func:`eli5.explain_weights` calls are
+    dispatched to :func:`eli5.sklearn.explain_weights.explain_rf_feature_importance`.
+
 :func:`eli5.explain_prediction` is less straightforward for ensembles and
 trees; eli5 uses an approach based on ideas from
 http://blog.datadive.net/interpreting-random-forests/ :
@@ -166,10 +174,15 @@ DecisionTreeRegressor). Each node of the tree has an output score, and
 contribution of a feature on the decision path is how much the score changes
 from parent to child.
 
+There is a separate package for this explaination method
+(https://github.com/andosa/treeinterpreter); eli5 implementation
+is independent.
+
 .. note::
-    There is a separate package for this explaination method
-    (https://github.com/andosa/treeinterpreter); eli5 implementation
-    is independent.
+    For decision trees and ensembles :func:`eli5.explain_prediction`
+    calls are dispatched to
+    :func:`eli5.sklearn.explain_prediction.explain_prediction_tree_classifier`
+    and :func:`eli5.sklearn.explain_prediction.explain_prediction_tree_regressor`.
 
 .. _DecisionTreeClassifier: http://scikit-learn.org/stable/modules/generated/sklearn.tree.DecisionTreeClassifier.html#sklearn.tree.DecisionTreeClassifier
 .. _DecisionTreeRegressor: http://scikit-learn.org/stable/modules/generated/sklearn.tree.DecisionTreeRegressor.html#sklearn.tree.DecisionTreeRegressor
