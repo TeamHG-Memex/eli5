@@ -31,6 +31,9 @@ Changelog
 * text-based formatting of decision trees is changed: for binary
   classification trees only a probability of "true" class is printed,
   not both probabilities as it was before.
+* :func:`eli5.explain_weights` supports ``feature_filter`` in addition
+  to ``feature_re`` for filtering features, and :func:`explain_prediction`
+  now also supports both of these arguments
 
 0.2 (2016-12-03)
 ----------------
