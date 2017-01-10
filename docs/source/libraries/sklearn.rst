@@ -183,9 +183,22 @@ eli5 allows to recover feature names for HashingVectorizer_ and FeatureHasher_
 by computing hashes for the provided example data.
 :func:`eli5.explain_prediction` handles HashingVectorizer as ``vec``
 automatically; to handle HashingVectorizer_ and FeatureHasher_ for
-:func:`eli5.explain_weights` use
+:func:`eli5.explain_weights`, use
 :class:`~.InvertableHashingVectorizer` or
-:class:`~.FeatureUnhasher`.
+:class:`~.FeatureUnhasher`::
+
+    # vec is a HashingVectorizer instance
+    # clf is a classifier which works on HashingVectorizer output
+    # X_sample is a representative sample of input documents
+
+    import eli5
+    from eli5.sklearn import InvertableHashingVectorizer
+    ivec = InvertableHashingVectorizer(vec)
+    ivec.fit(X_sample)
+
+    # now ``ivec.get_feature_names()`` returns meaningful feature names,
+    # and ``ivec`` can be used as a vectorizer for eli5.explain_weights:
+    eli5.explain_weights(clf, vec=ivec)
 
 .. _FeatureHasher: http://scikit-learn.org/stable/modules/generated/sklearn.feature_extraction.FeatureHasher.html#sklearn.feature_extraction.FeatureHasher
 
