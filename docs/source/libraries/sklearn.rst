@@ -195,18 +195,18 @@ Text highlighting
 -----------------
 
 For text data :func:`eli5.explain_prediction` can show the input document
-highlight; it works if the document is vectorized using
-CountVectorizer_, TfIdfVectorizer_ or HashingVectorizer_ and a fitted
-vectorizer instance is passed to :func:`eli5.explain_prediction`
-in a ``vec`` argument. Custom preprocessors are supported, but custom
-analyzers or tokenizers are not: it works only with 'word', 'char' or
-'char_wb' analyzers and a default tokenizer.
-
-.. _CountVectorizer: http://scikit-learn.org/stable/modules/generated/sklearn.feature_extraction.text.CountVectorizer.html#sklearn.feature_extraction.text.CountVectorizer
-.. _TfIdfVectorizer: http://scikit-learn.org/stable/modules/generated/sklearn.feature_extraction.text.TfidfVectorizer.html#sklearn.feature_extraction.text.TfidfVectorizer
-.. _HashingVectorizer: http://scikit-learn.org/stable/modules/generated/sklearn.feature_extraction.text.HashingVectorizer.html#sklearn.feature_extraction.text.HashingVectorizer
+with its parts (tokens, characters) highlighted according to their
+contribution to the prediction result.
 
 .. image:: ../static/char-ngrams.png
+
+It works if the document is vectorized using
+CountVectorizer_, TfIdfVectorizer_ or HashingVectorizer_, and a fitted
+vectorizer instance is passed to :func:`eli5.explain_prediction`
+in a ``vec`` argument. Custom preprocessors are supported, but custom
+analyzers or tokenizers are not: highligting works only with 'word', 'char'
+or 'char_wb' analyzers and a default tokenizer (non-default token_pattern
+is supported).
 
 Text highlighting also works if a document is vectorized using FeatureUnion_
 with at least one of CountVectorizer_, TfIdfVectorizer_ or HashingVectorizer_
@@ -216,6 +216,9 @@ a regular table.
 See also: :ref:`Debugging scikit-learn text classification pipeline <text-processing-tutorial>`
 tutorial.
 
+.. _CountVectorizer: http://scikit-learn.org/stable/modules/generated/sklearn.feature_extraction.text.CountVectorizer.html#sklearn.feature_extraction.text.CountVectorizer
+.. _TfIdfVectorizer: http://scikit-learn.org/stable/modules/generated/sklearn.feature_extraction.text.TfidfVectorizer.html#sklearn.feature_extraction.text.TfidfVectorizer
+.. _HashingVectorizer: http://scikit-learn.org/stable/modules/generated/sklearn.feature_extraction.text.HashingVectorizer.html#sklearn.feature_extraction.text.HashingVectorizer
 .. _FeatureUnion: http://scikit-learn.org/stable/modules/generated/sklearn.pipeline.FeatureUnion.html#sklearn.pipeline.FeatureUnion
 
 OneVsRestClassifier
