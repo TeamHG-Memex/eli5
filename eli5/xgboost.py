@@ -16,12 +16,12 @@ from xgboost import (  # type: ignore
 
 from eli5.base import (
     FeatureWeight, FeatureImportances, Explanation, TargetExplanation)
-from eli5.formatters.features import FormattedFeatureName
 from eli5.explain import explain_weights, explain_prediction
 from eli5.sklearn.text import add_weighted_spans
 from eli5.sklearn.utils import (
     add_intercept, get_feature_names, get_X, handle_vec, predict_proba)
-from eli5.utils import argsort_k_largest_positive, get_target_display_names
+from eli5.utils import (
+    argsort_k_largest_positive, get_target_display_names, mask)
 from eli5._decision_path import DECISION_PATHS_CAVEATS
 from eli5._feature_weights import get_top_features
 
@@ -59,18 +59,26 @@ def explain_weights_xgboost(xgb,
                             target_names=None,  # ignored
                             targets=None,  # ignored
                             feature_names=None,
-                            feature_re=None):
+                            feature_re=None,
+                            feature_filter=None):
     """
     Return an explanation of an XGBoost estimator (via scikit-learn wrapper
     XGBClassifier or XGBRegressor) as feature importances.
+
+    See :func:`eli5.explain_weights` for description of
+    ``top``, ``feature_names``,
+    ``feature_re`` and ``feature_filter`` parameters.
+
+    ``target_names`` and ``targets`` parameters are ignored.
     """
     coef = _xgb_feature_importances(xgb)
     num_features = coef.shape[-1]
     feature_names = get_feature_names(
         xgb, vec, feature_names=feature_names, num_features=num_features)
 
-    if feature_re is not None:
-        feature_names, flt_indices = feature_names.filtered_by_re(feature_re)
+    feature_names, flt_indices = feature_names.handle_filter(
+        feature_filter, feature_re)
+    if flt_indices is not None:
         coef = coef[flt_indices]
 
     indices = argsort_k_largest_positive(coef, top)
@@ -97,9 +105,27 @@ def explain_prediction_xgboost(
         target_names=None,
         targets=None,
         feature_names=None,
-        vectorized=False):
+        feature_re=None,
+        feature_filter=None,
+        vectorized=False,
+        ):
     """ Return an explanation of XGBoost prediction (via scikit-learn wrapper
     XGBClassifier or XGBRegressor) as feature weights.
+
+    See :func:`eli5.explain_prediction` for description of
+    ``top``, ``target_names``, ``targets``, ``feature_names``,
+    ``feature_re`` and ``feature_filter`` parameters.
+
+    ``vec`` is a vectorizer instance used to transform
+    raw features to the input of the estimator ``xgb``
+    (e.g. a fitted CountVectorizer instance); you can pass it
+    instead of ``feature_names``.
+
+    ``vectorized`` is a flag which tells eli5 if ``doc`` should be
+    passed through ``vec`` or not. By default it is False, meaning that
+    if ``vec`` is not None, ``vec.transform([doc])`` is passed to the
+    estimator. Set it to False if you're passing ``vec``,
+    but ``doc`` is already vectorized.
 
     Method for determining feature importances follows an idea from
     http://blog.datadive.net/interpreting-random-forests/.
@@ -124,15 +150,17 @@ def explain_prediction_xgboost(
         # Work around XGBoost issue:
         # https://github.com/dmlc/xgboost/issues/1238#issuecomment-243872543
         X = X.tocsc()
+    x, = add_intercept(X)
 
     proba = predict_proba(xgb, X)
     scores_weights = _prediction_feature_weights(xgb, X, feature_names)
+    feature_names, flt_indices = feature_names.handle_filter(
+        feature_filter, feature_re, x)
 
     is_multiclass = _xgb_n_targets(xgb) > 1
     is_regression = isinstance(xgb, XGBRegressor)
     names = xgb.classes_ if not is_regression else ['y']
     display_names = get_target_display_names(names, target_names, targets)
-    x, = add_intercept(X)
 
     res = Explanation(
         estimator=repr(xgb),
@@ -145,24 +173,32 @@ def explain_prediction_xgboost(
         is_regression=is_regression,
         targets=[],
     )
+
+    def get_score_feature_weights(_label_id):
+        _score, _feature_weights = scores_weights[_label_id]
+        _x = x
+        if flt_indices is not None:
+            _x = mask(_x, flt_indices)
+            _feature_weights = mask(_feature_weights, flt_indices)
+        return _score, get_top_features(
+            feature_names, _feature_weights, top, _x, xgb.missing)
+
     if is_multiclass:
         for label_id, label in display_names:
-            score, feature_weights = scores_weights[label_id]
+            score, feature_weights = get_score_feature_weights(label_id)
             target_expl = TargetExplanation(
                 target=label,
-                feature_weights=get_top_features(
-                    feature_names, feature_weights, top, x, xgb.missing),
+                feature_weights=feature_weights,
                 score=score,
                 proba=proba[label_id] if proba is not None else None,
             )
             add_weighted_spans(doc, vec, vectorized, target_expl)
             res.targets.append(target_expl)
     else:
-        (score, feature_weights), = scores_weights
+        score, feature_weights = get_score_feature_weights(0)
         target_expl = TargetExplanation(
             target=display_names[-1][1],
-            feature_weights=get_top_features(
-                feature_names, feature_weights, top, x, xgb.missing),
+            feature_weights=feature_weights,
             score=score,
             proba=proba[1] if proba is not None else None,
         )

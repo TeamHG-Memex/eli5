@@ -51,7 +51,12 @@ def explain_weights(estimator, **kwargs):
         This argument may be supported or not, depending on estimator type.
 
     feature_re : str, optional
-        Only feature names which match ``feature_re`` regex are returned.
+        Only feature names which match ``feature_re`` regex are returned
+        (more precisely, ``re.search(feature_re, x)`` is checked).
+
+    feature_filter : Callable[[str], bool], optional
+        Only feature names for which ``feature_filter`` function returns True
+        are returned.
 
     **kwargs: dict
         Keyword arguments. All keyword arguments are passed to
@@ -122,6 +127,14 @@ def explain_prediction(estimator, doc, **kwargs):
         names when they are not provided by an estimator object.
 
         This argument may be supported or not, depending on estimator type.
+
+    feature_re : str, optional
+        Only feature names which match ``feature_re`` regex are returned
+        (more precisely, ``re.search(feature_re, x)`` is checked).
+
+    feature_filter : Callable[[str, float], bool], optional
+        Only feature names for which ``feature_filter`` function returns True
+        are returned. It must accept feature name and it's value.
 
     **kwargs: dict
         Keyword arguments. All keyword arguments are passed to

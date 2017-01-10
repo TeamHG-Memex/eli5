@@ -16,17 +16,18 @@ from eli5.formatters import fields
 from .utils import format_as_all, get_all_features, check_targets_scores
 from .test_sklearn_explain_weights import (
     test_explain_tree_classifier as _check_rf_classifier,
-    test_explain_random_forest_and_tree_feature_re as _check_rf_feature_re,
+    test_explain_random_forest_and_tree_feature_filter as _check_rf_feature_filter,
     test_feature_importances_no_remaining as _check_rf_no_remaining,
 )
+from .test_sklearn_explain_prediction import assert_linear_regression_explained
 
 
 def test_explain_xgboost(newsgroups_train):
     _check_rf_classifier(newsgroups_train, XGBClassifier(n_estimators=10))
 
 
-def test_explain_xgboost_feature_re(newsgroups_train):
-    _check_rf_feature_re(newsgroups_train, XGBClassifier(n_estimators=10))
+def test_explain_xgboost_feature_filter(newsgroups_train):
+    _check_rf_feature_filter(newsgroups_train, XGBClassifier(n_estimators=10))
 
 
 def test_feature_importances_no_remaining():
@@ -51,10 +52,13 @@ def test_explain_prediction_clf_binary(newsgroups_train_binary_big):
     clf = XGBClassifier(n_estimators=100, max_depth=2, missing=0)
     xs = vec.fit_transform(docs)
     clf.fit(xs, ys)
-    res = explain_prediction(
+    get_res = lambda **kwargs: explain_prediction(
         clf, 'computer graphics in space: a sign of atheism',
-        vec=vec, target_names=target_names)
-    format_as_all(res, clf)
+        vec=vec, target_names=target_names, **kwargs)
+    res = get_res()
+    for expl in format_as_all(res, clf, show_feature_values=True):
+        assert 'graphics' in expl
+        assert 'Missing' in expl
     check_targets_scores(res)
     weights = res.targets[0].feature_weights
     pos_features = get_all_features(weights.pos)
@@ -62,6 +66,15 @@ def test_explain_prediction_clf_binary(newsgroups_train_binary_big):
     assert 'graphics' in pos_features
     assert 'computer' in pos_features
     assert 'atheism' in neg_features
+
+    flt_res = get_res(feature_re='gra')
+    flt_pos_features = get_all_features(flt_res.targets[0].feature_weights.pos)
+    assert 'graphics' in flt_pos_features
+    assert 'computer' not in flt_pos_features
+
+    flt_value_res = get_res(feature_filter=lambda _, v: v != 0)
+    for expl in format_as_all(flt_value_res, clf, show_feature_values=True):
+        assert 'Missing' not in expl
 
 
 def test_explain_prediction_clf_multitarget(newsgroups_train):
@@ -116,26 +129,17 @@ def test_explain_prediction_clf_interval():
 
 
 def test_explain_prediction_reg(boston_train):
-    xs, ys, feature_names = boston_train
-    reg = XGBRegressor()
-    reg.fit(xs, ys)
-    res = explain_prediction(reg, xs[0])
-    check_targets_scores(res)
-    for expl in  format_as_all(res, reg):
-        assert 'x12' in expl
-    res = explain_prediction(reg, xs[0], feature_names=feature_names)
-    check_targets_scores(res)
-    for expl in format_as_all(res, reg):
-        assert 'LSTAT' in expl
-    format_as_all(res, reg)
+    assert_linear_regression_explained(
+        boston_train, XGBRegressor(), explain_prediction,
+        reg_has_intercept=True)
 
 
 def test_explain_prediction_feature_union_dense():
     # Test FeatureUnion handling and missing features in dense matrix
-    tranformer = lambda key: FunctionTransformer(
+    transformer = lambda key: FunctionTransformer(
         lambda xs: np.array([[x.get(key, np.nan)] for x in xs]),
         validate=False)
-    vec = FeatureUnion([('x', tranformer('x')), ('y', tranformer('y'))])
+    vec = FeatureUnion([('x', transformer('x')), ('y', transformer('y'))])
     gauss = np.random.normal
     data = [(gauss(1), 2 + 10 * gauss(1)) for _ in range(200)]
     ys = [-3 * x + y for x, y in data]
