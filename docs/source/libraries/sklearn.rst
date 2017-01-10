@@ -196,9 +196,9 @@ Text highlighting
 
 For text data :func:`eli5.explain_prediction` can show the input document
 with its parts (tokens, characters) highlighted according to their
-contribution to the prediction result.
+contribution to the prediction result:
 
-.. image:: ../static/char-ngrams.png
+.. image:: ../static/word-highlight.png
 
 It works if the document is vectorized using
 CountVectorizer_, TfIdfVectorizer_ or HashingVectorizer_, and a fitted
