@@ -1,3 +1,5 @@
+.. _library-lightning:
+
 lightning
 =========
 

@@ -1,3 +1,5 @@
+.. _library-xgboost:
+
 XGBoost
 =======
 

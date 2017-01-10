@@ -1,3 +1,5 @@
+.. _library-scikit-learn:
+
 scikit-learn
 ============
 

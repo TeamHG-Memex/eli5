@@ -1,3 +1,5 @@
+.. _library-sklearn-crfsuite:
+
 sklearn-crfsuite
 ================
 

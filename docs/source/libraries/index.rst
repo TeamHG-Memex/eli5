@@ -1,3 +1,5 @@
+.. _supported-libraries:
+
 Supported Libraries
 ===================
 
