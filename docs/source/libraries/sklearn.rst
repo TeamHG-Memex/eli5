@@ -2,9 +2,11 @@ scikit-learn
 ============
 
 ELI5 supports many estimators, transformers and other components
-from scikit-learn_ library.
+from the scikit-learn_ library.
 
 .. _scikit-learn: https://github.com/scikit-learn/scikit-learn
+
+.. _sklearn-additional-kwargs:
 
 Additional ``explain_weights`` and ``explain_prediction`` parameters
 --------------------------------------------------------------------
@@ -32,6 +34,8 @@ Additional :func:`eli5.explain_prediction` parameters:
   estimator. Set it to False if you're passing ``vec`` (e.g. to get feature
   names and/or enable :ref:`text highlighting <sklearn-text-highlighting>`),
   but ``doc`` is already vectorized.
+
+.. _sklearn-linear-estimators:
 
 Linear estimators
 -----------------

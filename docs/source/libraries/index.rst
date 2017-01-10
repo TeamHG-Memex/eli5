@@ -5,4 +5,7 @@ Supported Libraries
    :maxdepth: 2
 
    sklearn
+   xgboost
+   lightning
+   sklearn_crfsuite
 
