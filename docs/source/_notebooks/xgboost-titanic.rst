@@ -1,0 +1,2468 @@
+
+Explaining XGBoost predictions on the Titanic dataset
+=====================================================
+
+This tutorial will show you how to analyze predictions of a tree
+ensemble classifier (XGBoost in this case, but it also works for tree
+ensembles from scikit-learn and for regression). We will use `Titanic
+dataset <https://www.kaggle.com/c/titanic/data>`__, which is small and
+has not too many features, but is still rich enough.
+
+1. Training data
+----------------
+
+Let's start by loading the data:
+
+.. code:: python
+
+    import csv
+    import numpy as np
+    
+    with open('titanic-train.csv', 'rt') as f:
+        data = list(csv.reader(f))
+
+Variable descriptions:
+
+-  **Survival:** Survival (0 = No; 1 = Yes)
+-  **Pclass:** Passenger Class (1 = 1st; 2 = 2nd; 3 = 3rd)
+-  **Name:** Name
+-  **Sex:** Sex
+-  **Age:** Age
+-  **Sibsp:** Number of Siblings/Spouses Aboard
+-  **Parch:** Number of Parents/Children Aboard
+-  **Ticket:** Ticket Number
+-  **Fare:** Passenger Fare
+-  **Cabin:** Cabin
+-  **Embarked:** Port of Embarkation (C = Cherbourg; Q = Queenstown; S =
+   Southampton)
+
+Next, shuffle data and separate features from what we are trying to
+predict: survival.
+
+.. code:: python
+
+    from pprint import pprint
+    from sklearn.utils import shuffle
+    from sklearn.model_selection import train_test_split
+    
+    feature_names = data[0][2:]
+    _all_xs = [dict(zip(feature_names, row[2:])) for row in data[1:]]
+    _all_ys = np.array([int(row[1]) for row in data[1:]])
+    
+    all_xs, all_ys = shuffle(_all_xs, _all_ys, random_state=0)
+    train_xs, valid_xs, train_ys, valid_ys = train_test_split(
+        all_xs, all_ys, test_size=0.25, random_state=0)
+    print('{} items total, {:.1%} true'.format(len(all_xs), np.mean(all_ys)))
+    pprint(valid_xs[:2])
+
+
+.. parsed-literal::
+
+    891 items total, 38.4% true
+    [{'Age': '19',
+      'Cabin': '',
+      'Embarked': 'S',
+      'Fare': '10.1708',
+      'Name': 'Dakic, Mr. Branko',
+      'Parch': '0',
+      'Pclass': '3',
+      'Sex': 'male',
+      'SibSp': '0',
+      'Ticket': '349228'},
+     {'Age': '19',
+      'Cabin': '',
+      'Embarked': 'Q',
+      'Fare': '7.8792',
+      'Name': 'Devaney, Miss. Margaret Delia',
+      'Parch': '0',
+      'Pclass': '3',
+      'Sex': 'female',
+      'SibSp': '0',
+      'Ticket': '330958'}]
+
+
+We do just minimal preprocessing: convert obviously contiuous ``Age``
+and ``Fare`` variables to floats, and ``SibSp``, ``Parch`` to integers.
+``Age`` can be missing, we default to 0 and will tell XGBoost to treat
+it as missing later.
+
+.. code:: python
+
+    for x in all_xs:
+        x['Age'] = float(x['Age'] or 0)
+        x['Fare'] = float(x['Fare'])
+        x['SibSp'] = int(x['SibSp'])
+        x['Parch'] = int(x['Parch'])
+
+2. Simple XGBoost classifier
+----------------------------
+
+Let's first build a very simple classifier with ``XGBClassifier`` and
+``sklearn.feature_extraction.DictVectorizer``, and check it's accuracy
+with cross-validation:
+
+.. code:: python
+
+    import warnings
+    warnings.filterwarnings('ignore', category=DeprecationWarning) 
+    from xgboost import XGBClassifier
+    from sklearn.feature_extraction import DictVectorizer
+    from sklearn.pipeline import make_pipeline
+    from sklearn.model_selection import cross_val_score
+    
+    clf = XGBClassifier(missing=0)
+    vec = DictVectorizer(sparse=False)  # https://github.com/dmlc/xgboost/issues/1238
+    pipeline = make_pipeline(vec, clf)
+    
+    def evaluate(_clf):
+        scores = cross_val_score(_clf, all_xs, all_ys, scoring='accuracy')
+        print('Accuracy: {:.3f} ± {:.3f}'.format(np.mean(scores), 2 * np.std(scores)))
+        _clf.fit(train_xs, train_ys)  # so that parts of the original pipeline are fitted
+         
+    evaluate(pipeline)
+
+
+.. parsed-literal::
+
+    Accuracy: 0.823 ± 0.008
+
+
+There are two tricky parts in above code. First is that we pass
+``missing=0`` to ``XGBClassifier``. This tells XGBoost to treat zeros as
+missing values, which is how most scikit-learn vectorizers work. It is
+important both for training and for correct feature visualization.
+
+Second tricky bit is that XGBClassifier has some
+`issues <https://github.com/dmlc/xgboost/issues/1238>`__ with sparse
+data. In this case we don't really need sparsity, so pass ``dense=True``
+to ``DictVectorizer``.
+
+Now let's check out feature importances:
+
+.. code:: python
+
+    from eli5 import show_weights
+    show_weights(clf, vec=vec)
+
+
+
+
+.. raw:: html
+
+    
+        <style>
+        table.eli5-weights tr:hover {
+            filter: brightness(85%);
+        }
+    </style>
+    
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+            <table class="eli5-weights eli5-feature-importances" style="border-collapse: collapse; border: none; margin-top: 0em;">
+                <thead>
+                <tr style="border: none;">
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
+                    <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                </tr>
+                </thead>
+                <tbody>
+                
+                    <tr style="background-color: hsl(120, 100.00%, 80.00%); border: none;">
+                        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                            0.3205
+                            
+                        </td>
+                        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                            Age
+                        </td>
+                    </tr>
+                
+                    <tr style="background-color: hsl(120, 100.00%, 81.05%); border: none;">
+                        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                            0.2967
+                            
+                        </td>
+                        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                            Fare
+                        </td>
+                    </tr>
+                
+                    <tr style="background-color: hsl(120, 100.00%, 91.10%); border: none;">
+                        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                            0.1007
+                            
+                        </td>
+                        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                            SibSp
+                        </td>
+                    </tr>
+                
+                    <tr style="background-color: hsl(120, 100.00%, 92.88%); border: none;">
+                        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                            0.0733
+                            
+                        </td>
+                        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                            Sex=female
+                        </td>
+                    </tr>
+                
+                    <tr style="background-color: hsl(120, 100.00%, 94.32%); border: none;">
+                        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                            0.0531
+                            
+                        </td>
+                        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                            Pclass=3
+                        </td>
+                    </tr>
+                
+                    <tr style="background-color: hsl(120, 100.00%, 95.62%); border: none;">
+                        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                            0.0366
+                            
+                        </td>
+                        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                            Ticket=1601
+                        </td>
+                    </tr>
+                
+                    <tr style="background-color: hsl(120, 100.00%, 96.09%); border: none;">
+                        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                            0.0311
+                            
+                        </td>
+                        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                            Parch
+                        </td>
+                    </tr>
+                
+                    <tr style="background-color: hsl(120, 100.00%, 96.42%); border: none;">
+                        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                            0.0275
+                            
+                        </td>
+                        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                            Pclass=1
+                        </td>
+                    </tr>
+                
+                    <tr style="background-color: hsl(120, 100.00%, 96.59%); border: none;">
+                        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                            0.0256
+                            
+                        </td>
+                        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                            Embarked=S
+                        </td>
+                    </tr>
+                
+                    <tr style="background-color: hsl(120, 100.00%, 97.30%); border: none;">
+                        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                            0.0183
+                            
+                        </td>
+                        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                            Cabin=
+                        </td>
+                    </tr>
+                
+                    <tr style="background-color: hsl(120, 100.00%, 97.69%); border: none;">
+                        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                            0.0147
+                            
+                        </td>
+                        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                            Embarked=C
+                        </td>
+                    </tr>
+                
+                    <tr style="background-color: hsl(120, 100.00%, 99.46%); border: none;">
+                        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                            0.0018
+                            
+                        </td>
+                        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                            Pclass=2
+                        </td>
+                    </tr>
+                
+                
+                </tbody>
+            </table>
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+    
+
+
+
+
+In order to calculate a prediction, XGBoost sums predictions of all it's
+trees (the number of trees is controlled by ``n_estimators`` argumnet
+and is 100 by default). Each tree is not a great predictor on it's own,
+but by summing across all trees, XGBoost is able to provide a robust
+estimate in many cases. Here is one of the trees:
+
+.. code:: python
+
+    booster = clf.booster()
+    booster.feature_names = vec.get_feature_names()
+    print(booster.get_dump()[0])
+
+
+.. parsed-literal::
+
+    0:[Sex=female<-9.53674e-07] yes=1,no=2,missing=1
+    	1:[Age<13] yes=3,no=4,missing=4
+    		3:[SibSp<2] yes=7,no=8,missing=7
+    			7:leaf=0.145455
+    			8:leaf=-0.125
+    		4:[Fare<26.2687] yes=9,no=10,missing=9
+    			9:leaf=-0.151515
+    			10:leaf=-0.0727273
+    	2:[Pclass=3<-9.53674e-07] yes=5,no=6,missing=5
+    		5:[Fare<12.175] yes=11,no=12,missing=12
+    			11:leaf=0.05
+    			12:leaf=0.175194
+    		6:[Fare<24.8083] yes=13,no=14,missing=14
+    			13:leaf=0.0365591
+    			14:leaf=-0.152
+    
+
+
+Feature importances are proportional to how many times a feature is used
+to split the data across all trees, and is also called "fscore", or
+"weight" importance. It's possible to calculate other kinds of feature
+importancs by calling xgboost directly (to get average coverage or
+average gain of each feature), but "fscore" is used by default by eli5.
+
+3. Explaining predictions
+-------------------------
+
+To get a better idea of how our classifier works, let's examine
+individual predictions:
+
+.. code:: python
+
+    from eli5 import show_prediction
+    show_prediction(clf, valid_xs[1], vec=vec, show_feature_values=True)
+
+
+
+
+.. raw:: html
+
+    
+        <style>
+        table.eli5-weights tr:hover {
+            filter: brightness(85%);
+        }
+    </style>
+    
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+            
+    
+        
+    
+            
+                
+                    
+                    
+        
+            <p style="margin-bottom: 0.5em; margin-top: 0em">
+                <b>
+        
+            y=1
+        
+    </b>
+    
+        
+        (probability <b>0.626</b>, score <b>0.515</b>)
+    
+    top features
+            </p>
+        
+        <table class="eli5-weights"
+               style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
+            <thead>
+            <tr style="border: none;">
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature contribution already accounts for the feature value (for linear models, contribution = weight * feature value), and the sum of feature contributions is equal to the score or, for some classifiers, to the probability. Feature values are shown if &quot;show_feature_values&quot; is True.">
+                        Contribution<sup>?</sup>
+                    </th>
+                
+                <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
+                    <th style="padding: 0 0.5em 0 1em; text-align: right; border: none;">Value</th>
+                
+            </tr>
+            </thead>
+            <tbody>
+            
+                <tr style="background-color: hsl(120, 100.00%, 80.00%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            +0.431
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            Sex=female
+        </td>
+        
+            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
+                1.000
+            </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(120, 100.00%, 80.27%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            +0.423
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            Embarked=S
+        </td>
+        
+            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
+                Missing
+            </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(120, 100.00%, 90.80%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            +0.142
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            Fare
+        </td>
+        
+            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
+                7.879
+            </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(120, 100.00%, 93.52%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            +0.086
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            SibSp
+        </td>
+        
+            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
+                Missing
+            </td>
+        
+    </tr>
+            
+            
+    
+            
+            
+                <tr style="background-color: hsl(0, 100.00%, 99.30%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            -0.004
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            Cabin=
+        </td>
+        
+            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
+                1.000
+            </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(0, 100.00%, 99.14%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            -0.005
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            Pclass=2
+        </td>
+        
+            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
+                Missing
+            </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(0, 100.00%, 98.66%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            -0.009
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            Embarked=C
+        </td>
+        
+            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
+                Missing
+            </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(0, 100.00%, 98.36%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            -0.012
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            Ticket=1601
+        </td>
+        
+            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
+                Missing
+            </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(0, 100.00%, 98.09%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            -0.015
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            Parch
+        </td>
+        
+            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
+                Missing
+            </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(0, 100.00%, 95.44%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            -0.052
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            Pclass=1
+        </td>
+        
+            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
+                Missing
+            </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(0, 100.00%, 94.81%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            -0.063
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            &lt;BIAS&gt;
+        </td>
+        
+            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
+                1.000
+            </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(0, 100.00%, 94.11%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            -0.075
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            Age
+        </td>
+        
+            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
+                19.000
+            </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(0, 100.00%, 83.30%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            -0.333
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            Pclass=3
+        </td>
+        
+            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
+                1.000
+            </td>
+        
+    </tr>
+            
+    
+            </tbody>
+        </table>
+    
+                
+            
+    
+            
+    
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+    
+
+
+
+
+Weight means how much each feature contributed to the final prediction
+across all trees. The idea for weight calculation is described in
+http://blog.datadive.net/interpreting-random-forests/; eli5 provides an
+independent implementation of this algorithm for XGBoost and most
+scikit-learn tree ensembles.
+
+Here we see that classifier thinks it's good to be a female, but bad to
+travel third class. Some features have "Missing" as value (we are
+passing ``show_feature_values=True`` to view the values): that means
+that the feature was missing, so in this case it's good to not have
+embarked in Southampton.
+
+It's possible to show contributions of only features that are present
+using ``feature_filter`` argument:
+
+.. code:: python
+
+    no_missing = lambda _, v: v != 0
+    show_prediction(clf, valid_xs[1], vec=vec, show_feature_values=True, feature_filter=no_missing)
+
+
+
+
+.. raw:: html
+
+    
+        <style>
+        table.eli5-weights tr:hover {
+            filter: brightness(85%);
+        }
+    </style>
+    
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+            
+    
+        
+    
+            
+                
+                    
+                    
+        
+            <p style="margin-bottom: 0.5em; margin-top: 0em">
+                <b>
+        
+            y=1
+        
+    </b>
+    
+        
+        (probability <b>0.626</b>, score <b>0.515</b>)
+    
+    top features
+            </p>
+        
+        <table class="eli5-weights"
+               style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
+            <thead>
+            <tr style="border: none;">
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature contribution already accounts for the feature value (for linear models, contribution = weight * feature value), and the sum of feature contributions is equal to the score or, for some classifiers, to the probability. Feature values are shown if &quot;show_feature_values&quot; is True.">
+                        Contribution<sup>?</sup>
+                    </th>
+                
+                <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
+                    <th style="padding: 0 0.5em 0 1em; text-align: right; border: none;">Value</th>
+                
+            </tr>
+            </thead>
+            <tbody>
+            
+                <tr style="background-color: hsl(120, 100.00%, 80.00%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            +0.431
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            Sex=female
+        </td>
+        
+            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
+                1.000
+            </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(120, 100.00%, 90.80%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            +0.142
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            Fare
+        </td>
+        
+            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
+                7.879
+            </td>
+        
+    </tr>
+            
+            
+    
+            
+            
+                <tr style="background-color: hsl(0, 100.00%, 99.30%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            -0.004
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            Cabin=
+        </td>
+        
+            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
+                1.000
+            </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(0, 100.00%, 94.81%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            -0.063
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            &lt;BIAS&gt;
+        </td>
+        
+            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
+                1.000
+            </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(0, 100.00%, 94.11%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            -0.075
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            Age
+        </td>
+        
+            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
+                19.000
+            </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(0, 100.00%, 83.30%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            -0.333
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            Pclass=3
+        </td>
+        
+            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
+                1.000
+            </td>
+        
+    </tr>
+            
+    
+            </tbody>
+        </table>
+    
+                
+            
+    
+            
+    
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+    
+
+
+
+
+4. Adding text features
+-----------------------
+
+Right now we treat ``Name`` field as categorical, like other text
+features. But it might contain some useful information. We don't want to
+guess how to best pre-process it and what features to extract, so let's
+use the most general character ngram vectorizer:
+
+.. code:: python
+
+    from sklearn.pipeline import FeatureUnion
+    from sklearn.feature_extraction.text import CountVectorizer
+    
+    class CSCTransformer:
+        def transform(self, xs):
+            # work around https://github.com/dmlc/xgboost/issues/1238#issuecomment-243872543
+            return xs.tocsc()
+        def fit(self, *args):
+            return self
+     
+    def make_vec(field, ngram_range, analyzer='char', max_features=100):
+        return CountVectorizer(
+            analyzer='char_wb',
+            ngram_range=ngram_range,
+            preprocessor=lambda x: x[field],
+            max_features=max_features,
+        )
+    vec2 = FeatureUnion([
+        ('Name', make_vec('Name', (3, 4))),
+        ('All', DictVectorizer()),
+    ])
+    clf2 = XGBClassifier(missing=0)
+    pipeline2 = make_pipeline(vec2, CSCTransformer(), clf2)
+    evaluate(pipeline2)
+
+
+.. parsed-literal::
+
+    Accuracy: 0.832 ± 0.011
+
+
+In this case the pipeline is more complex, we slightly improved our
+result, but the improvement is not significant. Let's look at the
+weights:
+
+.. code:: python
+
+    show_weights(clf2, vec=vec2)
+
+
+
+
+.. raw:: html
+
+    
+        <style>
+        table.eli5-weights tr:hover {
+            filter: brightness(85%);
+        }
+    </style>
+    
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+            <table class="eli5-weights eli5-feature-importances" style="border-collapse: collapse; border: none; margin-top: 0em;">
+                <thead>
+                <tr style="border: none;">
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
+                    <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                </tr>
+                </thead>
+                <tbody>
+                
+                    <tr style="background-color: hsl(120, 100.00%, 80.00%); border: none;">
+                        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                            0.1896
+                            
+                        </td>
+                        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                            All__Age
+                        </td>
+                    </tr>
+                
+                    <tr style="background-color: hsl(120, 100.00%, 80.88%); border: none;">
+                        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                            0.1779
+                            
+                        </td>
+                        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                            All__Fare
+                        </td>
+                    </tr>
+                
+                    <tr style="background-color: hsl(120, 100.00%, 90.33%); border: none;">
+                        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                            0.0671
+                            
+                        </td>
+                        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                            All__SibSp
+                        </td>
+                    </tr>
+                
+                    <tr style="background-color: hsl(120, 100.00%, 93.44%); border: none;">
+                        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                            0.0386
+                            
+                        </td>
+                        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                            All__Pclass=3
+                        </td>
+                    </tr>
+                
+                    <tr style="background-color: hsl(120, 100.00%, 93.64%); border: none;">
+                        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                            0.0369
+                            
+                        </td>
+                        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                            Name__<span style="background-color: hsl(120, 80%, 70%); margin: 0 0.1em 0 0.1em" title="A space symbol">&emsp;</span>Mr.
+                        </td>
+                    </tr>
+                
+                    <tr style="background-color: hsl(120, 100.00%, 94.26%); border: none;">
+                        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                            0.0319
+                            
+                        </td>
+                        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                            All__Sex=female
+                        </td>
+                    </tr>
+                
+                    <tr style="background-color: hsl(120, 100.00%, 94.47%); border: none;">
+                        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                            0.0302
+                            
+                        </td>
+                        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                            Name__ne<span style="background-color: hsl(120, 80%, 70%); margin: 0 0 0 0.1em" title="A space symbol">&emsp;</span>
+                        </td>
+                    </tr>
+                
+                    <tr style="background-color: hsl(120, 100.00%, 94.91%); border: none;">
+                        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                            0.0268
+                            
+                        </td>
+                        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                            Name__<span style="background-color: hsl(120, 80%, 70%); margin: 0 0.1em 0 0.1em" title="A space symbol">&emsp;</span>Mas
+                        </td>
+                    </tr>
+                
+                    <tr style="background-color: hsl(120, 100.00%, 94.91%); border: none;">
+                        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                            0.0268
+                            
+                        </td>
+                        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                            Name__<span style="background-color: hsl(120, 80%, 70%); margin: 0 0.1em 0 0.1em" title="A space symbol">&emsp;</span>Ma
+                        </td>
+                    </tr>
+                
+                    <tr style="background-color: hsl(120, 100.00%, 95.36%); border: none;">
+                        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                            0.0235
+                            
+                        </td>
+                        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                            All__Ticket=1601
+                        </td>
+                    </tr>
+                
+                    <tr style="background-color: hsl(120, 100.00%, 95.36%); border: none;">
+                        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                            0.0235
+                            
+                        </td>
+                        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                            All__Cabin=
+                        </td>
+                    </tr>
+                
+                    <tr style="background-color: hsl(120, 100.00%, 95.36%); border: none;">
+                        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                            0.0235
+                            
+                        </td>
+                        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                            Name__t,<span style="background-color: hsl(120, 80%, 70%); margin: 0 0 0 0.1em" title="A space symbol">&emsp;</span>
+                        </td>
+                    </tr>
+                
+                    <tr style="background-color: hsl(120, 100.00%, 95.60%); border: none;">
+                        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                            0.0218
+                            
+                        </td>
+                        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                            Name__lia
+                        </td>
+                    </tr>
+                
+                    <tr style="background-color: hsl(120, 100.00%, 96.08%); border: none;">
+                        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                            0.0185
+                            
+                        </td>
+                        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                            All__Embarked=C
+                        </td>
+                    </tr>
+                
+                    <tr style="background-color: hsl(120, 100.00%, 96.34%); border: none;">
+                        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                            0.0168
+                            
+                        </td>
+                        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                            Name__e,<span style="background-color: hsl(120, 80%, 70%); margin: 0 0 0 0.1em" title="A space symbol">&emsp;</span>
+                        </td>
+                    </tr>
+                
+                    <tr style="background-color: hsl(120, 100.00%, 96.34%); border: none;">
+                        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                            0.0168
+                            
+                        </td>
+                        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                            All__Parch
+                        </td>
+                    </tr>
+                
+                    <tr style="background-color: hsl(120, 100.00%, 96.60%); border: none;">
+                        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                            0.0151
+                            
+                        </td>
+                        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                            All__Embarked=S
+                        </td>
+                    </tr>
+                
+                    <tr style="background-color: hsl(120, 100.00%, 96.60%); border: none;">
+                        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                            0.0151
+                            
+                        </td>
+                        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                            Name__<span style="background-color: hsl(120, 80%, 70%); margin: 0 0.1em 0 0.1em" title="A space symbol">&emsp;</span>Mrs
+                        </td>
+                    </tr>
+                
+                    <tr style="background-color: hsl(120, 100.00%, 96.60%); border: none;">
+                        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                            0.0151
+                            
+                        </td>
+                        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                            All__Pclass=1
+                        </td>
+                    </tr>
+                
+                    <tr style="background-color: hsl(120, 100.00%, 96.87%); border: none;">
+                        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                            0.0134
+                            
+                        </td>
+                        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                            All__Pclass=2
+                        </td>
+                    </tr>
+                
+                
+                    
+                        <tr style="background-color: hsl(120, 100.00%, 96.87%); border: none;">
+                            <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
+                                <i>&hellip; 34 more &hellip;</i>
+                            </td>
+                        </tr>
+                    
+                
+                </tbody>
+            </table>
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+    
+
+
+
+
+We see that now there are a lot of features that come from ``Name``
+field (in fact, a classifier based on ``Name`` alone gives about 0.79
+accuracy). Name features listed in this way are not very informative,
+they make more sense when we check out predictions. We hide missing
+features here because there are a lot of missing features in text, but
+they are not very interesting:
+
+.. code:: python
+
+    from IPython.display import display
+    
+    for idx in [4, 5, 7, 37, 81]:
+        display(show_prediction(clf2, valid_xs[idx], vec=vec2,
+                                show_feature_values=True, feature_filter=no_missing))
+
+
+
+.. raw:: html
+
+    
+        <style>
+        table.eli5-weights tr:hover {
+            filter: brightness(85%);
+        }
+    </style>
+    
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+            
+    
+        
+    
+            
+    
+            
+        
+            
+            
+        
+            <p style="margin-bottom: 0.5em; margin-top: 0em">
+                <b>
+        
+            y=1
+        
+    </b>
+    
+        
+        (probability <b>0.771</b>, score <b>1.215</b>)
+    
+    top features
+            </p>
+        
+        <table class="eli5-weights"
+               style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
+            <thead>
+            <tr style="border: none;">
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature contribution already accounts for the feature value (for linear models, contribution = weight * feature value), and the sum of feature contributions is equal to the score or, for some classifiers, to the probability. Feature values are shown if &quot;show_feature_values&quot; is True.">
+                        Contribution<sup>?</sup>
+                    </th>
+                
+                <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
+                    <th style="padding: 0 0.5em 0 1em; text-align: right; border: none;">Value</th>
+                
+            </tr>
+            </thead>
+            <tbody>
+            
+                <tr style="background-color: hsl(120, 100.00%, 80.00%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            +0.499
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            Name: Highlighted in text (sum)
+        </td>
+        
+            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
+                
+            </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(120, 100.00%, 80.43%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            +0.484
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            All__Fare
+        </td>
+        
+            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
+                17.800
+            </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(120, 100.00%, 93.05%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            +0.110
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            All__Age
+        </td>
+        
+            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
+                18.000
+            </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(120, 100.00%, 95.35%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            +0.062
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            All__Sex=female
+        </td>
+        
+            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
+                1.000
+            </td>
+        
+    </tr>
+            
+            
+    
+            
+            
+                <tr style="background-color: hsl(0, 100.00%, 98.10%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            -0.017
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            All__Cabin=
+        </td>
+        
+            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
+                1.000
+            </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(0, 100.00%, 95.18%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            -0.065
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            &lt;BIAS&gt;
+        </td>
+        
+            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
+                1.000
+            </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(0, 100.00%, 94.01%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            -0.089
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            All__SibSp
+        </td>
+        
+            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
+                1.000
+            </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(0, 100.00%, 90.79%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            -0.165
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            All__Embarked=S
+        </td>
+        
+            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
+                1.000
+            </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(0, 100.00%, 86.67%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            -0.280
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            All__Pclass=3
+        </td>
+        
+            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
+                1.000
+            </td>
+        
+    </tr>
+            
+    
+            </tbody>
+        </table>
+    
+        
+    
+    
+    
+        <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
+            <b>Name:</b> <span style="opacity: 0.80">Arnold-Franchi,</span><span style="background-color: hsl(120, 100.00%, 86.65%); opacity: 0.84" title="0.027"> Mrs</span><span style="opacity: 0.80">. Josef (Josefi</span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.130">ne </span><span style="opacity: 0.80">Franchi)</span>
+        </p>
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+    
+
+
+
+
+.. raw:: html
+
+    
+        <style>
+        table.eli5-weights tr:hover {
+            filter: brightness(85%);
+        }
+    </style>
+    
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+            
+    
+        
+    
+            
+    
+            
+        
+            
+            
+        
+            <p style="margin-bottom: 0.5em; margin-top: 0em">
+                <b>
+        
+            y=1
+        
+    </b>
+    
+        
+        (probability <b>0.095</b>, score <b>-2.248</b>)
+    
+    top features
+            </p>
+        
+        <table class="eli5-weights"
+               style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
+            <thead>
+            <tr style="border: none;">
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature contribution already accounts for the feature value (for linear models, contribution = weight * feature value), and the sum of feature contributions is equal to the score or, for some classifiers, to the probability. Feature values are shown if &quot;show_feature_values&quot; is True.">
+                        Contribution<sup>?</sup>
+                    </th>
+                
+                <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
+                    <th style="padding: 0 0.5em 0 1em; text-align: right; border: none;">Value</th>
+                
+            </tr>
+            </thead>
+            <tbody>
+            
+                <tr style="background-color: hsl(120, 100.00%, 95.96%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            +0.038
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            All__Pclass=1
+        </td>
+        
+            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
+                1.000
+            </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(120, 100.00%, 96.83%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            +0.027
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            All__Fare
+        </td>
+        
+            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
+                26.550
+            </td>
+        
+    </tr>
+            
+            
+    
+            
+            
+                <tr style="background-color: hsl(0, 100.00%, 94.04%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            -0.065
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            &lt;BIAS&gt;
+        </td>
+        
+            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
+                1.000
+            </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(0, 100.00%, 84.33%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            -0.260
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            All__Age
+        </td>
+        
+            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
+                45.000
+            </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(0, 100.00%, 81.59%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            -0.327
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            All__Cabin=
+        </td>
+        
+            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
+                1.000
+            </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(0, 100.00%, 80.00%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            -0.368
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            Name: Highlighted in text (sum)
+        </td>
+        
+            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
+                
+            </td>
+        
+    </tr>
+            
+    
+            </tbody>
+        </table>
+    
+        
+    
+    
+    
+        <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
+            <b>Name:</b> <span style="opacity: 0.80">Romain</span><span style="background-color: hsl(0, 100.00%, 88.89%); opacity: 0.83" title="-0.014">e,</span><span style="background-color: hsl(0, 100.00%, 60.00%); opacity: 1.00" title="-0.089"> </span><span style="background-color: hsl(0, 100.00%, 64.61%); opacity: 0.97" title="-0.074">Mr</span><span style="background-color: hsl(0, 100.00%, 67.69%); opacity: 0.95" title="-0.065">.</span><span style="opacity: 0.80"> Ch</span><span style="background-color: hsl(120, 100.00%, 92.55%); opacity: 0.82" title="0.008">arl</span><span style="background-color: hsl(0, 100.00%, 85.73%); opacity: 0.85" title="-0.020">es </span><span style="opacity: 0.80">Hallace (&quot;Mr C Rolmane&quot;)</span>
+        </p>
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+    
+
+
+
+
+.. raw:: html
+
+    
+        <style>
+        table.eli5-weights tr:hover {
+            filter: brightness(85%);
+        }
+    </style>
+    
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+            
+    
+        
+    
+            
+    
+            
+        
+            
+            
+        
+            <p style="margin-bottom: 0.5em; margin-top: 0em">
+                <b>
+        
+            y=1
+        
+    </b>
+    
+        
+        (probability <b>0.070</b>, score <b>-2.588</b>)
+    
+    top features
+            </p>
+        
+        <table class="eli5-weights"
+               style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
+            <thead>
+            <tr style="border: none;">
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature contribution already accounts for the feature value (for linear models, contribution = weight * feature value), and the sum of feature contributions is equal to the score or, for some classifiers, to the probability. Feature values are shown if &quot;show_feature_values&quot; is True.">
+                        Contribution<sup>?</sup>
+                    </th>
+                
+                <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
+                    <th style="padding: 0 0.5em 0 1em; text-align: right; border: none;">Value</th>
+                
+            </tr>
+            </thead>
+            <tbody>
+            
+                <tr style="background-color: hsl(120, 100.00%, 95.06%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            +0.232
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            Name: Highlighted in text (sum)
+        </td>
+        
+            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
+                
+            </td>
+        
+    </tr>
+            
+            
+    
+            
+            
+                <tr style="background-color: hsl(0, 100.00%, 99.19%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            -0.017
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            All__Cabin=
+        </td>
+        
+            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
+                1.000
+            </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(0, 100.00%, 97.96%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            -0.065
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            &lt;BIAS&gt;
+        </td>
+        
+            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
+                1.000
+            </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(0, 100.00%, 97.72%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            -0.077
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            All__Embarked=S
+        </td>
+        
+            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
+                1.000
+            </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(0, 100.00%, 96.02%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            -0.170
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            All__Parch
+        </td>
+        
+            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
+                2.000
+            </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(0, 100.00%, 95.88%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            -0.179
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            All__Pclass=3
+        </td>
+        
+            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
+                1.000
+            </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(0, 100.00%, 86.15%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            -1.009
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            All__Fare
+        </td>
+        
+            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
+                69.550
+            </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(0, 100.00%, 80.00%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            -1.706
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            All__SibSp
+        </td>
+        
+            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
+                8.000
+            </td>
+        
+    </tr>
+            
+    
+            </tbody>
+        </table>
+    
+        
+    
+    
+    
+        <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
+            <b>Name:</b> <span style="opacity: 0.80">Sag</span><span style="background-color: hsl(0, 100.00%, 78.98%); opacity: 0.88" title="-0.036">e,</span><span style="background-color: hsl(120, 100.00%, 71.99%); opacity: 0.92" title="0.054"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.090">Ma</span><span style="background-color: hsl(120, 100.00%, 66.68%); opacity: 0.95" title="0.069">s</span><span style="opacity: 0.80">ter. Thomas Henry</span>
+        </p>
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+    
+
+
+
+
+.. raw:: html
+
+    
+        <style>
+        table.eli5-weights tr:hover {
+            filter: brightness(85%);
+        }
+    </style>
+    
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+            
+    
+        
+    
+            
+    
+            
+        
+            
+            
+        
+            <p style="margin-bottom: 0.5em; margin-top: 0em">
+                <b>
+        
+            y=1
+        
+    </b>
+    
+        
+        (probability <b>0.726</b>, score <b>0.975</b>)
+    
+    top features
+            </p>
+        
+        <table class="eli5-weights"
+               style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
+            <thead>
+            <tr style="border: none;">
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature contribution already accounts for the feature value (for linear models, contribution = weight * feature value), and the sum of feature contributions is equal to the score or, for some classifiers, to the probability. Feature values are shown if &quot;show_feature_values&quot; is True.">
+                        Contribution<sup>?</sup>
+                    </th>
+                
+                <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
+                    <th style="padding: 0 0.5em 0 1em; text-align: right; border: none;">Value</th>
+                
+            </tr>
+            </thead>
+            <tbody>
+            
+                <tr style="background-color: hsl(120, 100.00%, 82.98%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            +0.222
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            All__Fare
+        </td>
+        
+            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
+                7.879
+            </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(120, 100.00%, 93.02%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            +0.062
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            All__Sex=female
+        </td>
+        
+            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
+                1.000
+            </td>
+        
+    </tr>
+            
+            
+    
+            
+            
+                <tr style="background-color: hsl(0, 100.00%, 97.14%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            -0.017
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            All__Cabin=
+        </td>
+        
+            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
+                1.000
+            </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(0, 100.00%, 92.77%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            -0.065
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            &lt;BIAS&gt;
+        </td>
+        
+            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
+                1.000
+            </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(0, 100.00%, 92.15%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            -0.074
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            Name: Highlighted in text (sum)
+        </td>
+        
+            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
+                
+            </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(0, 100.00%, 80.00%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            -0.280
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            All__Pclass=3
+        </td>
+        
+            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
+                1.000
+            </td>
+        
+    </tr>
+            
+    
+            </tbody>
+        </table>
+    
+        
+    
+    
+    
+        <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
+            <b>Name:</b> <span style="opacity: 0.80">Mockl</span><span style="background-color: hsl(120, 100.00%, 88.36%); opacity: 0.83" title="0.009">e</span><span style="background-color: hsl(120, 100.00%, 74.88%); opacity: 0.90" title="0.026">r,</span><span style="background-color: hsl(120, 100.00%, 81.08%); opacity: 0.87" title="0.017"> </span><span style="opacity: 0.80">Miss. Helen</span><span style="background-color: hsl(0, 100.00%, 65.35%); opacity: 0.96" title="-0.041"> </span><span style="background-color: hsl(0, 100.00%, 60.00%); opacity: 1.00" title="-0.051">Ma</span><span style="background-color: hsl(0, 100.00%, 87.70%); opacity: 0.84" title="-0.009">r</span><span style="opacity: 0.80">y &quot;Ellie&quot;</span>
+        </p>
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+    
+
+
+
+
+.. raw:: html
+
+    
+        <style>
+        table.eli5-weights tr:hover {
+            filter: brightness(85%);
+        }
+    </style>
+    
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+            
+    
+        
+    
+            
+    
+            
+        
+            
+            
+        
+            <p style="margin-bottom: 0.5em; margin-top: 0em">
+                <b>
+        
+            y=1
+        
+    </b>
+    
+        
+        (probability <b>0.856</b>, score <b>1.782</b>)
+    
+    top features
+            </p>
+        
+        <table class="eli5-weights"
+               style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
+            <thead>
+            <tr style="border: none;">
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature contribution already accounts for the feature value (for linear models, contribution = weight * feature value), and the sum of feature contributions is equal to the score or, for some classifiers, to the probability. Feature values are shown if &quot;show_feature_values&quot; is True.">
+                        Contribution<sup>?</sup>
+                    </th>
+                
+                <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
+                    <th style="padding: 0 0.5em 0 1em; text-align: right; border: none;">Value</th>
+                
+            </tr>
+            </thead>
+            <tbody>
+            
+                <tr style="background-color: hsl(120, 100.00%, 85.18%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            +0.182
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            All__SibSp
+        </td>
+        
+            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
+                2.000
+            </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(120, 100.00%, 85.28%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            +0.180
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            All__Embarked=Q
+        </td>
+        
+            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
+                1.000
+            </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(120, 100.00%, 87.04%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            +0.151
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            All__Fare
+        </td>
+        
+            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
+                23.250
+            </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(120, 100.00%, 89.58%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            +0.110
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            Name: Highlighted in text (sum)
+        </td>
+        
+            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
+                
+            </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(120, 100.00%, 93.02%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            +0.062
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            All__Sex=female
+        </td>
+        
+            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
+                1.000
+            </td>
+        
+    </tr>
+            
+            
+    
+            
+            
+                <tr style="background-color: hsl(0, 100.00%, 97.14%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            -0.017
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            All__Cabin=
+        </td>
+        
+            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
+                1.000
+            </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(0, 100.00%, 92.77%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            -0.065
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            &lt;BIAS&gt;
+        </td>
+        
+            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
+                1.000
+            </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(0, 100.00%, 80.00%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            -0.280
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            All__Pclass=3
+        </td>
+        
+            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
+                1.000
+            </td>
+        
+    </tr>
+            
+    
+            </tbody>
+        </table>
+    
+        
+    
+    
+    
+        <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
+            <b>Name:</b> <span style="opacity: 0.80">McCo</span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.057">y, </span><span style="opacity: 0.80">Miss. Agn</span><span style="background-color: hsl(0, 100.00%, 80.59%); opacity: 0.87" title="-0.020">es</span>
+        </p>
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+    
+
+
+
+Looks like name classifier tried to infer both gender and status from
+the title: "Mr." is bad because women are saved first, and it's better
+to be "Mrs." (married) than "Miss.". Also name classifier is trying to
+pick some parts of names and surnames, especially endings, perhaps as a
+proxy for social status. It's especially bad to be "Mary" if you are
+from the third class.
