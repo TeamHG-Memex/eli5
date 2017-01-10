@@ -43,7 +43,7 @@ from sklearn.tree import (   # type: ignore
 )
 
 from eli5.base import Explanation, TargetExplanation
-from eli5.utils import get_target_display_names
+from eli5.utils import get_target_display_names, mask
 from eli5.sklearn.utils import (
     add_intercept,
     get_coef,
@@ -69,6 +69,8 @@ def explain_prediction_sklearn(estimator, doc,
                                target_names=None,
                                targets=None,
                                feature_names=None,
+                               feature_re=None,
+                               feature_filter=None,
                                vectorized=False):
     """ Return an explanation of a scikit-learn estimator """
     return Explanation(
@@ -107,14 +109,16 @@ def explain_prediction_linear_classifier(clf, doc,
                                          target_names=None,
                                          targets=None,
                                          feature_names=None,
-                                         vectorized=False
+                                         feature_re=None,
+                                         feature_filter=None,
+                                         vectorized=False,
                                          ):
     """
     Explain prediction of a linear classifier.
 
     See :func:`eli5.explain_prediction` for description of
-    ``top``, ``target_names``, ``targets``, ``feature_names`` and
-    ``feature_re`` parameters.
+    ``top``, ``target_names``, ``targets``, ``feature_names``,
+    ``feature_re`` and ``feature_filter`` parameters.
 
     ``vec`` is a vectorizer instance used to transform
     raw features to the input of the classifier ``clf``
@@ -137,17 +141,16 @@ def explain_prediction_linear_classifier(clf, doc,
         X = add_intercept(X)
     x, = X
 
+    feature_names, flt_indices = feature_names.handle_filter(
+        feature_filter, feature_re, x)
+
     res = Explanation(
         estimator=repr(clf),
         method='linear model',
         targets=[],
     )
 
-    def _weights(label_id):
-        coef = get_coef(clf, label_id)
-        scores = _multiply(x, coef)
-        return get_top_features(feature_names, scores, top, x)
-
+    _weights = _linear_weights(clf, x, top, feature_names, flt_indices)
     display_names = get_target_display_names(clf.classes_, target_names,
                                              targets)
 
@@ -194,13 +197,15 @@ def explain_prediction_linear_regressor(reg, doc,
                                         target_names=None,
                                         targets=None,
                                         feature_names=None,
+                                        feature_re=None,
+                                        feature_filter=None,
                                         vectorized=False):
     """
     Explain prediction of a linear regressor.
 
     See :func:`eli5.explain_prediction` for description of
-    ``top``, ``target_names``, ``targets``, ``feature_names`` and
-    ``feature_re`` parameters.
+    ``top``, ``target_names``, ``targets``, ``feature_names``,
+    ``feature_re`` and ``feature_filter`` parameters.
 
     ``vec`` is a vectorizer instance used to transform
     raw features to the input of the classifier ``clf``;
@@ -221,6 +226,9 @@ def explain_prediction_linear_regressor(reg, doc,
         X = add_intercept(X)
     x, = X
 
+    feature_names, flt_indices = feature_names.handle_filter(
+        feature_filter, feature_re, x)
+
     res = Explanation(
         estimator=repr(reg),
         method='linear model',
@@ -228,11 +236,7 @@ def explain_prediction_linear_regressor(reg, doc,
         is_regression=True,
     )
 
-    def _weights(label_id):
-        coef = get_coef(reg, label_id)
-        scores = _multiply(x, coef)
-        return get_top_features(feature_names, scores, top, x)
-
+    _weights = _linear_weights(reg, x, top, feature_names, flt_indices)
     names = get_default_target_names(reg)
     display_names = get_target_display_names(names, target_names, targets)
 
@@ -293,8 +297,25 @@ def explain_prediction_tree_classifier(
         target_names=None,
         targets=None,
         feature_names=None,
+        feature_re=None,
+        feature_filter=None,
         vectorized=False):
     """ Explain prediction of a tree classifier.
+
+    See :func:`eli5.explain_prediction` for description of
+    ``top``, ``target_names``, ``targets``, ``feature_names``,
+    ``feature_re`` and ``feature_filter`` parameters.
+
+    ``vec`` is a vectorizer instance used to transform
+    raw features to the input of the classifier ``clf``
+    (e.g. a fitted CountVectorizer instance); you can pass it
+    instead of ``feature_names``.
+
+    ``vectorized`` is a flag which tells eli5 if ``doc`` should be
+    passed through ``vec`` or not. By default it is False, meaning that
+    if ``vec`` is not None, ``vec.transform([doc])`` is passed to the
+    classifier. Set it to False if you're passing ``vec``,
+    but ``doc`` is already vectorized.
 
     Method for determining feature importances follows an idea from
     http://blog.datadive.net/interpreting-random-forests/.
@@ -321,10 +342,16 @@ def explain_prediction_tree_classifier(
     feature_weights = _trees_feature_weights(
         clf, X, feature_names, clf.n_classes_)
     x, = add_intercept(X)
+    feature_names, flt_indices = feature_names.handle_filter(
+        feature_filter, feature_re, x)
 
     def _weights(label_id):
         scores = feature_weights[:, label_id]
-        return get_top_features(feature_names, scores, top, x)
+        _x = x
+        if flt_indices is not None:
+            scores = scores[flt_indices]
+            _x = mask(_x, flt_indices)
+        return get_top_features(feature_names, scores, top, _x)
 
     res = Explanation(
         estimator=repr(clf),
@@ -371,8 +398,25 @@ def explain_prediction_tree_regressor(
         target_names=None,
         targets=None,
         feature_names=None,
+        feature_re=None,
+        feature_filter=None,
         vectorized=False):
     """ Explain prediction of a tree regressor.
+
+    See :func:`eli5.explain_prediction` for description of
+    ``top``, ``target_names``, ``targets``, ``feature_names``,
+    ``feature_re`` and ``feature_filter`` parameters.
+
+    ``vec`` is a vectorizer instance used to transform
+    raw features to the input of the regressor ``reg``
+    (e.g. a fitted CountVectorizer instance); you can pass it
+    instead of ``feature_names``.
+
+    ``vectorized`` is a flag which tells eli5 if ``doc`` should be
+    passed through ``vec`` or not. By default it is False, meaning that
+    if ``vec`` is not None, ``vec.transform([doc])`` is passed to the
+    regressor. Set it to False if you're passing ``vec``,
+    but ``doc`` is already vectorized.
 
     Method for determining feature importances follows an idea from
     http://blog.datadive.net/interpreting-random-forests/.
@@ -394,10 +438,16 @@ def explain_prediction_tree_regressor(
     is_multitarget = num_targets > 1
     feature_weights = _trees_feature_weights(reg, X, feature_names, num_targets)
     x, = add_intercept(X)
+    feature_names, flt_indices = feature_names.handle_filter(
+        feature_filter, feature_re, x)
 
     def _weights(label_id):
         scores = feature_weights[:, label_id]
-        return get_top_features(feature_names, scores, top, x)
+        _x = x
+        if flt_indices is not None:
+            scores = scores[flt_indices]
+            _x = mask(_x, flt_indices)
+        return get_top_features(feature_names, scores, top, _x)
 
     res = Explanation(
         estimator=repr(reg),
@@ -489,3 +539,17 @@ def _multiply(X, coef):
         return X.multiply(sp.csr_matrix(coef))
     else:
         return np.multiply(X, coef)
+
+
+def _linear_weights(clf, x, top, feature_names, flt_indices):
+    """ Return top weights getter for label_id.
+    """
+    def _weights(label_id):
+        coef = get_coef(clf, label_id)
+        _x = x
+        scores = _multiply(_x, coef)
+        if flt_indices is not None:
+            scores = scores[flt_indices]
+            _x = mask(_x, flt_indices)
+        return get_top_features(feature_names, scores, top, _x)
+    return _weights

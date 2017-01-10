@@ -63,17 +63,18 @@ def assert_multiclass_linear_classifier_explained(newsgroups_train, clf,
     X = vec.fit_transform(docs)
     clf.fit(X, y)
 
-    get_res = lambda: explain_prediction(
-        clf, docs[0], vec=vec, target_names=target_names, top=20)
+    get_res = lambda **kwargs: explain_prediction(
+        clf, docs[0], vec=vec, target_names=target_names, top=20, **kwargs)
     res = get_res()
     pprint(res)
     expl_text, expl_html = format_as_all(res, clf)
 
+    file_weight = None
     for e in res.targets:
-        if e.target != 'comp.graphics':
-            continue
-        pos = get_all_features(e.feature_weights.pos)
-        assert 'file' in pos
+        if e.target == 'comp.graphics':
+            pos = get_all_features(e.feature_weights.pos, with_weights=True)
+            assert 'file' in pos
+            file_weight = pos['file']
 
     for expl in [expl_text, expl_html]:
         for label in target_names:
@@ -82,9 +83,18 @@ def assert_multiclass_linear_classifier_explained(newsgroups_train, clf,
 
     assert res == get_res()
 
+    flt_res = get_res(feature_re='^file$')
+    format_as_all(flt_res, clf)
+    for e in flt_res.targets:
+        if e.target == 'comp.graphics':
+            pos = get_all_features(e.feature_weights.pos, with_weights=True)
+            assert 'file' in pos
+            assert pos['file'] == file_weight
+            assert len(pos) == 1
+
 
 def assert_linear_regression_explained(boston_train, reg, explain_prediction,
-                                       atol=1e-8):
+                                       atol=1e-8, reg_has_intercept=None):
     X, y, feature_names = boston_train
     reg.fit(X, y)
     res = explain_prediction(reg, X[0], feature_names=feature_names)
@@ -93,11 +103,15 @@ def assert_linear_regression_explained(boston_train, reg, explain_prediction,
     assert len(res.targets) == 1
     target = res.targets[0]
     assert target.target == 'y'
-    pos, neg = (get_all_features(target.feature_weights.pos),
-                get_all_features(target.feature_weights.neg))
+    get_pos_neg_features = lambda fw: (
+        get_all_features(fw.pos, with_weights=True),
+        get_all_features(fw.neg, with_weights=True))
+    pos, neg = get_pos_neg_features(target.feature_weights)
     assert 'LSTAT' in pos or 'LSTAT' in neg
 
-    if has_intercept(reg):
+    if reg_has_intercept is None:
+        reg_has_intercept = has_intercept(reg)
+    if reg_has_intercept:
         assert '<BIAS>' in pos or '<BIAS>' in neg
         assert '<BIAS>' in expl_text
         assert '&lt;BIAS&gt;' in expl_html
@@ -117,6 +131,17 @@ def assert_linear_regression_explained(boston_train, reg, explain_prediction,
 
     assert res == explain_prediction(reg, X[0], feature_names=feature_names)
     check_targets_scores(res, atol=atol)
+
+    flt_res = explain_prediction(reg, X[0], feature_names=feature_names,
+                                 feature_filter=lambda name, v: name != 'LSTAT')
+    format_as_all(flt_res, reg)
+    flt_target = flt_res.targets[0]
+    flt_pos, flt_neg = get_pos_neg_features(flt_target.feature_weights)
+    assert 'LSTAT' not in flt_pos and 'LSTAT' not in flt_neg
+    flt_all = dict(flt_pos, **flt_neg)
+    expected = dict(pos, **neg)
+    expected.pop('LSTAT')
+    assert flt_all == expected
 
 
 def assert_multitarget_linear_regression_explained(reg, explain_prediction):
@@ -150,6 +175,36 @@ def assert_feature_values_present(expl, feature_names, x):
             assert '{:+.3f}'.format(value) in expl
             any_features = True
     assert any_features
+
+
+def assert_tree_explain_prediction_single_target(clf, X, feature_names):
+    get_res = lambda _x, **kwargs: explain_prediction(
+        clf, _x, feature_names=feature_names, **kwargs)
+    res = get_res(X[0])
+    for expl in format_as_all(res, clf):
+        assert_feature_values_present(expl, feature_names, X[0])
+
+    checked_flt = False
+    all_expls = []
+    for x in X[:5]:
+        res = get_res(x)
+        text_expl = format_as_text(res, show=fields.WEIGHTS)
+        print(text_expl)
+        assert '<BIAS>' in text_expl
+        check_targets_scores(res)
+        all_expls.append(text_expl)
+
+        get_all = lambda fw: get_all_features(fw.pos) | get_all_features(fw.neg)
+        all_features = get_all(res.targets[0].feature_weights)
+        if len(all_features) > 1:
+            f = list(all_features - {'<BIAS>'})[0]
+            flt_res = get_res(x, feature_filter=lambda name, _: name != f)
+            flt_features = get_all(flt_res.targets[0].feature_weights)
+            assert flt_features == (all_features - {f})
+            checked_flt = True
+
+    assert checked_flt
+    assert any(f in ''.join(all_expls) for f in feature_names)
 
 
 @pytest.mark.parametrize(['clf'], [
@@ -236,17 +291,7 @@ def test_explain_tree_clf_multiclass(clf, iris_train):
 def test_explain_tree_clf_binary(clf, iris_train_binary):
     X, y, feature_names = iris_train_binary
     clf.fit(X, y)
-    res = explain_prediction(clf, X[0], feature_names=feature_names)
-    format_as_all(res, clf)
-    all_expls = []
-    for x in X[:5]:
-        res = explain_prediction(clf, x, feature_names=feature_names)
-        text_expl = format_as_text(res, show=fields.WEIGHTS)
-        print(text_expl)
-        assert '<BIAS>' in text_expl
-        check_targets_scores(res)
-        all_expls.append(text_expl)
-    assert any(f in ''.join(all_expls) for f in feature_names)
+    assert_tree_explain_prediction_single_target(clf, X, feature_names)
 
 
 @pytest.mark.parametrize(['reg'], [
@@ -276,18 +321,7 @@ def test_explain_tree_regressor_multitarget(reg):
 def test_explain_tree_regressor(reg, boston_train):
     X, y, feature_names = boston_train
     reg.fit(X, y)
-    res = explain_prediction(reg, X[0], feature_names=feature_names)
-    for expl in format_as_all(res, reg):
-        assert_feature_values_present(expl, feature_names, X[0])
-    all_expls = []
-    for i, x in enumerate(X[:5]):
-        res = explain_prediction(reg, x, feature_names=feature_names)
-        text_expl = format_as_text(res, show=fields.WEIGHTS)
-        print(text_expl)
-        assert '<BIAS>' in text_expl
-        check_targets_scores(res)
-        all_expls.append(text_expl)
-    assert any(f in ''.join(all_expls) for f in feature_names)
+    assert_tree_explain_prediction_single_target(reg, X, feature_names)
 
 
 @pytest.mark.parametrize(['clf'], [
