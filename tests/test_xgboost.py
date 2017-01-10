@@ -15,7 +15,7 @@ from eli5.formatters.text import format_as_text
 from eli5.formatters import fields
 from .utils import format_as_all, get_all_features, check_targets_scores
 from .test_sklearn_explain_weights import (
-    test_explain_random_forest as _check_rf,
+    test_explain_tree_classifier as _check_rf_classifier,
     test_explain_random_forest_and_tree_feature_filter as _check_rf_feature_filter,
     test_feature_importances_no_remaining as _check_rf_no_remaining,
 )
@@ -23,15 +23,15 @@ from .test_sklearn_explain_prediction import assert_linear_regression_explained
 
 
 def test_explain_xgboost(newsgroups_train):
-    _check_rf(newsgroups_train, XGBClassifier())
+    _check_rf_classifier(newsgroups_train, XGBClassifier(n_estimators=10))
 
 
 def test_explain_xgboost_feature_filter(newsgroups_train):
-    _check_rf_feature_filter(newsgroups_train, XGBClassifier())
+    _check_rf_feature_filter(newsgroups_train, XGBClassifier(n_estimators=10))
 
 
 def test_feature_importances_no_remaining():
-    _check_rf_no_remaining(XGBClassifier())
+    _check_rf_no_remaining(XGBClassifier(n_estimators=10))
 
 
 def test_explain_xgboost_regressor(boston_train):
@@ -39,7 +39,7 @@ def test_explain_xgboost_regressor(boston_train):
     reg = XGBRegressor()
     reg.fit(xs, ys)
     res = explain_weights(reg)
-    for expl in  format_as_all(res, reg):
+    for expl in format_as_all(res, reg):
         assert 'x12' in expl
     res = explain_weights(reg, feature_names=feature_names)
     for expl in format_as_all(res, reg):

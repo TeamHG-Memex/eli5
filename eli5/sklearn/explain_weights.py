@@ -33,11 +33,18 @@ from sklearn.svm import LinearSVC, LinearSVR  # type: ignore
 from sklearn.naive_bayes import BernoulliNB, MultinomialNB    # type: ignore
 from sklearn.ensemble import (  # type: ignore
     GradientBoostingClassifier,
+    GradientBoostingRegressor,
     AdaBoostClassifier,
+    AdaBoostRegressor,
     RandomForestClassifier,
-    ExtraTreesClassifier
+    RandomForestRegressor,
+    ExtraTreesClassifier,
+    ExtraTreesRegressor,
 )
-from sklearn.tree import DecisionTreeClassifier  # type: ignore
+from sklearn.tree import (  # type: ignore
+    DecisionTreeClassifier,
+    DecisionTreeRegressor,
+)
 
 from eli5.base import (
     Explanation, TargetExplanation, FeatureWeight, FeatureImportances)
@@ -213,37 +220,38 @@ def explain_linear_classifier_weights(clf,
 
 
 @explain_weights_sklearn.register(RandomForestClassifier)
+@explain_weights_sklearn.register(RandomForestRegressor)
 @explain_weights_sklearn.register(ExtraTreesClassifier)
+@explain_weights_sklearn.register(ExtraTreesRegressor)
 @explain_weights_sklearn.register(GradientBoostingClassifier)
+@explain_weights_sklearn.register(GradientBoostingRegressor)
 @explain_weights_sklearn.register(AdaBoostClassifier)
-def explain_rf_feature_importance(clf,
+@explain_weights_sklearn.register(AdaBoostRegressor)
+def explain_rf_feature_importance(estimator,
                                   vec=None,
                                   top=_TOP,
                                   target_names=None,  # ignored
-                                  targets=None,       # ignored
+                                  targets=None,  # ignored
                                   feature_names=None,
                                   feature_re=None,
                                   feature_filter=None,
                                   ):
     """
-    Return an explanation of a tree-based ensemble classifier in the
-    following format::
+    Return an explanation of a tree-based ensemble estimator.
 
-        Explanation(
-            estimator="<classifier repr>",
-            method="<interpretation method>",
-            description="<human readable description>",
-            feature_importances=FeatureImportances(
-                [FeatureWeight(feature_name, importance, std_deviation),
-                ...
-                ],
-                remaining="<number of other non-zero features>",
-            )
-        )
+    See :func:`eli5.explain_weights` for description of
+    ``top``, ``feature_names`` and ``feature_re`` parameters.
+
+    ``target_names`` and ``targets`` parameters are ignored.
+
+    ``vec`` is a vectorizer instance used to transform
+    raw features to the input of the estimator (e.g. a fitted
+    CountVectorizer instance); you can pass it instead of ``feature_names``.
     """
-    feature_names = get_feature_names(clf, vec, feature_names=feature_names)
-    coef = clf.feature_importances_
-    trees = np.array(clf.estimators_).ravel()
+    feature_names = get_feature_names(estimator, vec,
+                                      feature_names=feature_names)
+    coef = estimator.feature_importances_
+    trees = np.array(estimator.estimators_).ravel()
     coef_std = np.std([tree.feature_importances_ for tree in trees], axis=0)
 
     feature_names, flt_indices = feature_names.handle_filter(
@@ -260,13 +268,14 @@ def explain_rf_feature_importance(clf,
             remaining=np.count_nonzero(coef) - len(indices),
         ),
         description=DESCRIPTION_RANDOM_FOREST,
-        estimator=repr(clf),
+        estimator=repr(estimator),
         method='feature importances',
     )
 
 
 @explain_weights_sklearn.register(DecisionTreeClassifier)
-def explain_decision_tree(clf,
+@explain_weights_sklearn.register(DecisionTreeRegressor)
+def explain_decision_tree(estimator,
                           vec=None,
                           top=_TOP,
                           target_names=None,
@@ -276,25 +285,25 @@ def explain_decision_tree(clf,
                           feature_filter=None,
                           **export_graphviz_kwargs):
     """
-    Return an explanation of a decision tree classifier in the
-    following format (compatible with random forest explanations)::
+    Return an explanation of a decision tree.
 
-        Explanation(
-            estimator="<classifier repr>",
-            method="<interpretation method>",
-            description="<human readable description>",
-            decision_tree={...tree information},
-            feature_importances=FeatureImportances(
-                [FeatureWeight(feature_name, importance, std_deviation),
-                ...
-                ],
-                remaining="<number of other non-zero features>",
-            )
-        )
+    See :func:`eli5.explain_weights` for description of
+    ``top``, ``target_names``, ``feature_names`` and ``feature_re`` parameters.
 
+    ``targets`` parameter is ignored.
+
+    ``vec`` is a vectorizer instance used to transform
+    raw features to the input of the estimator (e.g. a fitted
+    CountVectorizer instance); you can pass it instead of ``feature_names``.
+
+    All other keyword arguments are passed to
+    `sklearn.tree.export_graphviz`_ function.
+
+    .. _sklearn.tree.export_graphviz: http://scikit-learn.org/stable/modules/generated/sklearn.tree.export_graphviz.html
     """
-    feature_names = get_feature_names(clf, vec, feature_names=feature_names)
-    coef = clf.feature_importances_
+    feature_names = get_feature_names(estimator, vec,
+                                      feature_names=feature_names)
+    coef = estimator.feature_importances_
     tree_feature_names = feature_names
     feature_names, flt_indices = feature_names.handle_filter(
         feature_filter, feature_re)
@@ -304,7 +313,7 @@ def explain_decision_tree(clf,
     names, values = feature_names[indices], coef[indices]
     export_graphviz_kwargs.setdefault("proportion", True)
     tree_info = get_tree_info(
-        clf,
+        estimator,
         feature_names=tree_feature_names,
         class_names=target_names,
         **export_graphviz_kwargs)
@@ -316,7 +325,7 @@ def explain_decision_tree(clf,
         ),
         decision_tree=tree_info,
         description=DESCRIPTION_DECISION_TREE,
-        estimator=repr(clf),
+        estimator=repr(estimator),
         method='decision tree',
     )
 

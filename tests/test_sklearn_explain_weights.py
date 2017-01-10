@@ -41,11 +41,15 @@ from sklearn.linear_model import (
 from sklearn.svm import LinearSVC, LinearSVR
 from sklearn.ensemble import (
     RandomForestClassifier,
+    RandomForestRegressor,
     ExtraTreesClassifier,
+    ExtraTreesRegressor,
     GradientBoostingClassifier,
+    GradientBoostingRegressor,
     AdaBoostClassifier,
+    AdaBoostRegressor,
 )
-from sklearn.tree import DecisionTreeClassifier
+from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from sklearn.base import BaseEstimator
 from sklearn.multiclass import OneVsRestClassifier
 import pytest
@@ -297,7 +301,7 @@ def test_explain_linear_feature_filter(newsgroups_train, vec):
     # FIXME:
     # [OneVsRestClassifier(DecisionTreeClassifier(max_depth=3, random_state=42))],
 ])
-def test_explain_random_forest(newsgroups_train, clf):
+def test_explain_tree_classifier(newsgroups_train, clf):
     docs, y, target_names = newsgroups_train
     vec = CountVectorizer()
     X = vec.fit_transform(docs)
@@ -321,6 +325,26 @@ def test_explain_random_forest(newsgroups_train, clf):
             assert '<svg' not in expl_html
 
     assert res == get_res()
+
+
+@pytest.mark.parametrize(['reg'], [
+    [DecisionTreeRegressor(random_state=42)],
+    [ExtraTreesRegressor(random_state=42)],
+    [GradientBoostingRegressor(learning_rate=0.075, random_state=42)],
+    [RandomForestRegressor(random_state=42)],
+    [AdaBoostRegressor(random_state=42)],
+])
+def test_explain_tree_regressor(reg, boston_train):
+    X, y, feature_names = boston_train
+    reg.fit(X, y)
+    res = explain_weights(reg, feature_names=feature_names)
+    expl_text, expl_html = format_as_all(res, reg)
+    for expl in [expl_text, expl_html]:
+        assert 'BIAS' not in expl
+        assert 'LSTAT' in expl
+
+    if isinstance(reg, DecisionTreeRegressor):
+        assert '---> 50' in expl_text
 
 
 @pytest.mark.parametrize(['clf'], [
@@ -423,6 +447,21 @@ def test_explain_linear_regression_multitarget(reg):
     pos, neg = top_pos_neg(res, 'y2')
     assert 'x9' in neg or 'x9' in pos
     assert '<BIAS>' in neg or '<BIAS>' in pos
+
+    assert res == explain_weights(reg)
+
+
+def test_explain_decision_tree_regressor_multitarget():
+    X, y = make_regression(n_samples=100, n_targets=3, n_features=10,
+                           random_state=42)
+    reg = DecisionTreeRegressor(random_state=42, max_depth=3)
+    reg.fit(X, y)
+    res = explain_weights(reg)
+    expl_text, expl_html = format_as_all(res, reg)
+
+    assert 'x9' in expl_text
+    assert '---> [' in expl_text
+    assert '---> [[' not in expl_text
 
     assert res == explain_weights(reg)
 

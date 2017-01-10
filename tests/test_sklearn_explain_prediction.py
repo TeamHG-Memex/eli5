@@ -234,10 +234,10 @@ def test_explain_linear_regression_multitarget(reg):
 
 
 @pytest.mark.parametrize(['clf'], [
-    [DecisionTreeClassifier()],
-    [ExtraTreesClassifier()],
-    [GradientBoostingClassifier(learning_rate=0.075)],
-    [RandomForestClassifier()],
+    [DecisionTreeClassifier(random_state=42)],
+    [ExtraTreesClassifier(random_state=42)],
+    [GradientBoostingClassifier(learning_rate=0.075, random_state=42)],
+    [RandomForestClassifier(random_state=42)],
 ])
 def test_explain_tree_clf_multiclass(clf, iris_train):
     X, y, feature_names, target_names = iris_train
@@ -254,10 +254,10 @@ def test_explain_tree_clf_multiclass(clf, iris_train):
 
 
 @pytest.mark.parametrize(['clf'], [
-    [DecisionTreeClassifier()],
-    [ExtraTreesClassifier()],
-    [GradientBoostingClassifier(learning_rate=0.075)],
-    [RandomForestClassifier()],
+    [DecisionTreeClassifier(random_state=42)],
+    [ExtraTreesClassifier(random_state=42)],
+    [GradientBoostingClassifier(learning_rate=0.075, random_state=42)],
+    [RandomForestClassifier(random_state=42)],
 ])
 def test_explain_tree_clf_binary(clf, iris_train_binary):
     X, y, feature_names = iris_train_binary
@@ -276,9 +276,9 @@ def test_explain_tree_clf_binary(clf, iris_train_binary):
 
 
 @pytest.mark.parametrize(['reg'], [
-    [DecisionTreeRegressor()],
-    [ExtraTreesRegressor()],
-    [RandomForestRegressor()],
+    [DecisionTreeRegressor(random_state=42)],
+    [ExtraTreesRegressor(random_state=42)],
+    [RandomForestRegressor(random_state=42)],
 ])
 def test_explain_tree_regressor_multitarget(reg):
     X, y = make_regression(n_samples=100, n_targets=3, n_features=10,
@@ -294,10 +294,10 @@ def test_explain_tree_regressor_multitarget(reg):
 
 
 @pytest.mark.parametrize(['reg'], [
-    [DecisionTreeRegressor()],
-    [ExtraTreesRegressor()],
-    [GradientBoostingRegressor(learning_rate=0.075)],
-    [RandomForestRegressor()],
+    [DecisionTreeRegressor(random_state=42)],
+    [ExtraTreesRegressor(random_state=42)],
+    [GradientBoostingRegressor(learning_rate=0.075, random_state=42)],
+    [RandomForestRegressor(random_state=42)],
 ])
 def test_explain_tree_regressor(reg, boston_train):
     X, y, feature_names = boston_train
@@ -317,9 +317,9 @@ def test_explain_tree_regressor(reg, boston_train):
 
 
 @pytest.mark.parametrize(['clf'], [
-    [DecisionTreeClassifier()],
-    [ExtraTreesClassifier()],
-    [RandomForestClassifier()],
+    [DecisionTreeClassifier(random_state=42)],
+    [ExtraTreesClassifier(random_state=42)],
+    [RandomForestClassifier(random_state=42)],
 ])
 def test_explain_tree_classifier_text(clf, newsgroups_train_big):
     docs, y, target_names = newsgroups_train_big
