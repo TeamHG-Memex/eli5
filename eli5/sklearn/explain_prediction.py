@@ -297,6 +297,8 @@ def explain_prediction_tree_classifier(
         target_names=None,
         targets=None,
         feature_names=None,
+        feature_re=None,
+        feature_filter=None,
         vectorized=False):
     """ Explain prediction of a tree classifier.
 
@@ -325,10 +327,16 @@ def explain_prediction_tree_classifier(
     feature_weights = _trees_feature_weights(
         clf, X, feature_names, clf.n_classes_)
     x, = add_intercept(X)
+    feature_names, flt_indices = feature_names.handle_filter(
+        feature_filter, feature_re, x)
 
     def _weights(label_id):
         scores = feature_weights[:, label_id]
-        return get_top_features(feature_names, scores, top, x)
+        _x = x
+        if flt_indices is not None:
+            scores = scores[flt_indices]
+            _x = mask(_x, flt_indices)
+        return get_top_features(feature_names, scores, top, _x)
 
     res = Explanation(
         estimator=repr(clf),
@@ -375,6 +383,8 @@ def explain_prediction_tree_regressor(
         target_names=None,
         targets=None,
         feature_names=None,
+        feature_re=None,
+        feature_filter=None,
         vectorized=False):
     """ Explain prediction of a tree regressor.
 
@@ -398,10 +408,16 @@ def explain_prediction_tree_regressor(
     is_multitarget = num_targets > 1
     feature_weights = _trees_feature_weights(reg, X, feature_names, num_targets)
     x, = add_intercept(X)
+    feature_names, flt_indices = feature_names.handle_filter(
+        feature_filter, feature_re, x)
 
     def _weights(label_id):
         scores = feature_weights[:, label_id]
-        return get_top_features(feature_names, scores, top, x)
+        _x = x
+        if flt_indices is not None:
+            scores = scores[flt_indices]
+            _x = mask(_x, flt_indices)
+        return get_top_features(feature_names, scores, top, _x)
 
     res = Explanation(
         estimator=repr(reg),
