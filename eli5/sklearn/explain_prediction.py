@@ -314,7 +314,7 @@ def explain_prediction_tree_classifier(
     ``vectorized`` is a flag which tells eli5 if ``doc`` should be
     passed through ``vec`` or not. By default it is False, meaning that
     if ``vec`` is not None, ``vec.transform([doc])`` is passed to the
-    classifier. Set it to False if you're using ``vec`` to get feature names,
+    classifier. Set it to False if you're passing ``vec``,
     but ``doc`` is already vectorized.
 
     Method for determining feature importances follows an idea from
@@ -415,7 +415,7 @@ def explain_prediction_tree_regressor(
     ``vectorized`` is a flag which tells eli5 if ``doc`` should be
     passed through ``vec`` or not. By default it is False, meaning that
     if ``vec`` is not None, ``vec.transform([doc])`` is passed to the
-    classifier. Set it to False if you're using ``vec`` to get feature names,
+    regressor. Set it to False if you're passing ``vec``,
     but ``doc`` is already vectorized.
 
     Method for determining feature importances follows an idea from

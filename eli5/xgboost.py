@@ -64,6 +64,12 @@ def explain_weights_xgboost(xgb,
     """
     Return an explanation of an XGBoost estimator (via scikit-learn wrapper
     XGBClassifier or XGBRegressor) as feature importances.
+
+    See :func:`eli5.explain_weights` for description of
+    ``top``, ``feature_names``,
+    ``feature_re`` and ``feature_filter`` parameters.
+
+    ``target_names`` and ``targets`` parameters are ignored.
     """
     coef = _xgb_feature_importances(xgb)
     num_features = coef.shape[-1]
@@ -105,6 +111,21 @@ def explain_prediction_xgboost(
         ):
     """ Return an explanation of XGBoost prediction (via scikit-learn wrapper
     XGBClassifier or XGBRegressor) as feature weights.
+
+    See :func:`eli5.explain_prediction` for description of
+    ``top``, ``target_names``, ``targets``, ``feature_names``,
+    ``feature_re`` and ``feature_filter`` parameters.
+
+    ``vec`` is a vectorizer instance used to transform
+    raw features to the input of the classifier ``clf``
+    (e.g. a fitted CountVectorizer instance); you can pass it
+    instead of ``feature_names``.
+
+    ``vectorized`` is a flag which tells eli5 if ``doc`` should be
+    passed through ``vec`` or not. By default it is False, meaning that
+    if ``vec`` is not None, ``vec.transform([doc])`` is passed to the
+    estimator. Set it to False if you're passing ``vec``,
+    but ``doc`` is already vectorized.
 
     Method for determining feature importances follows an idea from
     http://blog.datadive.net/interpreting-random-forests/.
