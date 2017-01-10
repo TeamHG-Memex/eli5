@@ -108,11 +108,14 @@ class FeatureNames(Sized):
                 indices.append(idx)
                 filtered_feature_names.append(name)
         if self.has_bias and flt(self.bias_name, self.bias_idx):
+            bias_name = self.bias_name
             indices.append(self.bias_idx)
+        else:
+            bias_name = None
         return (
             FeatureNames(
                 filtered_feature_names,
-                bias_name=self.bias_name,
+                bias_name=bias_name,
                 unkn_template=self.unkn_template,
             ),
             indices)

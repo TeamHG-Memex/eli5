@@ -18,9 +18,15 @@ def test_feature_names_filtered():
                      n_features=6, bias_name='foo')
         .filtered(lambda name: name.startswith('two')))
     assert indices == [1, 5]
-    assert filtered.bias_name == 'foo'
+    assert filtered.bias_name is None
     assert filtered.unkn_template == '%d'
-    assert list(filtered) == ['two', 'two-thirds', 'foo']
+    assert list(filtered) == ['two', 'two-thirds']
+
+    filtered, indices = (FeatureNames(['a', 'b'], bias_name='bias')
+                         .filtered(lambda name: 'b' in name))
+    assert indices == [1, 2]
+    assert filtered.bias_name == 'bias'
+    assert list(filtered) == ['b', 'bias']
 
     filtered, indices = (FeatureNames(unkn_template='x%d', n_features=6)
                          .filtered(lambda name: False))
