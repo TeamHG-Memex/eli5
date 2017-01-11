@@ -1,6 +1,6 @@
 <tr style="background-color: {{ fw.weight|weight_color(w_range) }}; {{ tr_styles }}">
     <td style="{{ td1_styles }}">
-        {{ "%+.3f"|format(fw.weight) }}
+        {{ fw.weight|format_weight }}
     </td>
     <td style="{{ td2_styles }}">
         {{ fw.feature|format_feature(fw.weight, hl_spaces) }}

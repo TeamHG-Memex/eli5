@@ -51,4 +51,5 @@ def test_tabulate():
 def test_format_value():
     assert format_value(None) == ''
     assert format_value(float('nan')) == 'Missing'
-    assert format_value(12.23333334) == '+12.233'
+    assert format_value(12.23333334) == '12.233'
+    assert format_value(-12.23333334) == '-12.233'

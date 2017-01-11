@@ -172,7 +172,7 @@ def assert_feature_values_present(expl, feature_names, x):
     any_features = False
     for feature, value in zip(feature_names, x):
         if feature in expl:
-            assert '{:+.3f}'.format(value) in expl
+            assert '{:.3f}'.format(value) in expl
             any_features = True
     assert any_features
 
