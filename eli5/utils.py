@@ -35,17 +35,22 @@ def mask(x, indices):
     """
     The same as x[indices], but return an empty array if indices are empty,
     instead of returning all x elements,
-    and handles sparse "vectors", returning dense arrays for them.
+    and handles sparse "vectors".
     """
     indices_shape = (
         [len(indices)] if isinstance(indices, list) else indices.shape)
     if not indices_shape[0]:
         return np.array([])
-    elif sp.issparse(x) and len(x.shape) == 2 and len(indices_shape) == 1:
-        assert x.shape[0] == 1
+    elif is_sparse_vector(x) and len(indices_shape) == 1:
         return x[0, indices].toarray()[0]
     else:
         return x[indices]
+
+
+def is_sparse_vector(x):
+    """ x is a 2D sparse matrix with it's first shape equal to 1.
+    """
+    return sp.issparse(x) and len(x.shape) == 2 and x.shape[0] == 1
 
 
 def indices_to_bool_mask(indices, size):

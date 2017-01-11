@@ -3,13 +3,15 @@ from __future__ import absolute_import
 
 import pytest
 import numpy as np
+import scipy.sparse as sp
 from sklearn.feature_extraction.text import CountVectorizer
 pytest.importorskip('xgboost')
 from xgboost import XGBClassifier, XGBRegressor
 from sklearn.pipeline import FeatureUnion
 from sklearn.preprocessing import FunctionTransformer
 
-from eli5.xgboost import _parse_tree_dump, _xgb_n_targets
+from eli5.xgboost import (
+    _parse_tree_dump, _xgb_n_targets, _missing_values_set_to_nan)
 from eli5.explain import explain_prediction, explain_weights
 from eli5.formatters.text import format_as_text
 from eli5.formatters import fields
@@ -46,10 +48,11 @@ def test_explain_xgboost_regressor(boston_train):
         assert 'LSTAT' in expl
 
 
-def test_explain_prediction_clf_binary(newsgroups_train_binary_big):
+@pytest.mark.parametrize(['missing'], [[np.nan], [0]])
+def test_explain_prediction_clf_binary(newsgroups_train_binary_big, missing):
     docs, ys, target_names = newsgroups_train_binary_big
     vec = CountVectorizer(stop_words='english')
-    clf = XGBClassifier(n_estimators=100, max_depth=2, missing=0)
+    clf = XGBClassifier(n_estimators=100, max_depth=2, missing=missing)
     xs = vec.fit_transform(docs)
     clf.fit(xs, ys)
     get_res = lambda **kwargs: explain_prediction(
@@ -72,7 +75,7 @@ def test_explain_prediction_clf_binary(newsgroups_train_binary_big):
     assert 'graphics' in flt_pos_features
     assert 'computer' not in flt_pos_features
 
-    flt_value_res = get_res(feature_filter=lambda _, v: v != 0)
+    flt_value_res = get_res(feature_filter=lambda _, v: not np.isnan(v))
     for expl in format_as_all(flt_value_res, clf, show_feature_values=True):
         assert 'Missing' not in expl
 
@@ -248,3 +251,39 @@ def test_xgb_n_targets():
 
     with pytest.raises(TypeError):
         _xgb_n_targets(object())
+
+
+@pytest.mark.parametrize(
+    ['matrix_type', 'value', 'sparse_missing'],
+    [(mt, v, sm)
+     for mt in [sp.csc_matrix, sp.csr_matrix]
+     for v in [0, np.nan, 12]
+     for sm in [False, True]
+     ])
+def test_set_missing_values_to_nan_sparse(matrix_type, value, sparse_missing):
+    ms = matrix_type((1, 100))
+    ms[0, 54] = 12
+    ms[0, 42] = 0
+    ms[0, 7] = -13
+    m = _missing_values_set_to_nan(ms, value, sparse_missing)
+    assert ms[0, 54] == 12
+    assert ms[0, 42] == 0
+    assert ms[0, 7] == -13
+    assert not sp.issparse(m)
+    assert m.shape == (100,)
+    if sparse_missing:
+        assert np.isnan(m[8])
+        if value == 0:
+            assert np.isnan(m[42])
+        else:
+            assert m[42] == 0
+    else:
+        if value == 0:
+            assert np.isnan(m[8])
+        else:
+            assert m[8] == 0
+    if value == 0:
+        assert np.isnan(m[42])
+    elif value == 12:
+        assert np.isnan(m[54])
+    assert m[7] == -13
