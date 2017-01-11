@@ -128,8 +128,8 @@ def explain_prediction_linear_classifier(clf, doc,
     ``vectorized`` is a flag which tells eli5 if ``doc`` should be
     passed through ``vec`` or not. By default it is False, meaning that
     if ``vec`` is not None, ``vec.transform([doc])`` is passed to the
-    classifier. Set it to False if you're using ``vec`` to get feature names,
-    but ``doc`` is already vectorized.
+    classifier. Set it to False if you're passing ``vec``, but ``doc``
+    is already vectorized.
     """
     vec, feature_names = handle_vec(clf, doc, vec, vectorized, feature_names)
     X = get_X(doc, vec=vec, vectorized=vectorized, to_dense=True)
@@ -214,8 +214,8 @@ def explain_prediction_linear_regressor(reg, doc,
     ``vectorized`` is a flag which tells eli5 if ``doc`` should be
     passed through ``vec`` or not. By default it is False, meaning that
     if ``vec`` is not None, ``vec.transform([doc])`` is passed to the
-    regressor ``reg``. Set it to False if you're using ``vec`` to get
-    feature names, but ``doc`` is already vectorized.
+    regressor ``reg``. Set it to False if you're passing ``vec``,
+    but ``doc`` is already vectorized.
     """
     vec, feature_names = handle_vec(reg, doc, vec, vectorized, feature_names)
     X = get_X(doc, vec=vec, vectorized=vectorized, to_dense=True)
