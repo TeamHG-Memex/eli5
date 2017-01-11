@@ -18,23 +18,23 @@ ELI5_ is a Python package which helps to debug machine learning
 classifiers and explain their predictions. It provides support for the
 following machine learning frameworks and packages:
 
-* scikit-learn_. Currently ELI5 allows to explain weights and predictions
-  of scikit-learn linear classifiers and regressors, print decision trees
-  as text or as SVG, show feature importances and explain predictions
-  of random forests.
+* :ref:`library-scikit-learn`. Currently ELI5 allows to explain weights
+  and predictions of scikit-learn linear classifiers and regressors,
+  print decision trees as text or as SVG, show feature importances
+  and explain predictions of decision trees and tree-based ensembles.
 
   ELI5 understands text processing utilities from scikit-learn and can
   highlight text data accordingly. It also allows to debug scikit-learn
   pipelines which contain HashingVectorizer, by undoing hashing.
 
-* xgboost_ - show feature importances and explain predictions of XGBClassifier
-  and XGBRegressor.
+* :ref:`library-xgboost` - show feature importances and explain predictions
+  of XGBClassifier and XGBRegressor.
 
-* lightning_ - explain weights and predictions of lightning classifiers and
-  regressors.
+* :ref:`library-lightning` - explain weights and predictions of lightning
+  classifiers and regressors.
 
-* sklearn-crfsuite_. ELI5 allows to check weights of sklearn_crfsuite.CRF
-  models.
+* :ref:`library-sklearn-crfsuite`. ELI5 allows to check weights of
+  sklearn_crfsuite.CRF models.
 
 ELI5 also provides :ref:`TextExplainer <lime-tutorial>` which allows to
 explain predictions of any text classifier using :ref:`LIME <eli5-lime>`
@@ -94,7 +94,8 @@ if you're using one of the scikit-learn_ vectorizers with char ngrams:
 
 To learn more, follow the :ref:`Tutorials`, check example IPython
 `notebooks <https://github.com/TeamHG-Memex/eli5/tree/master/notebooks>`_
-and read documentation sections specific to your framework.
+and read documentation specific to your framework in the
+:ref:`supported-libraries` section.
 
 Why?
 ----

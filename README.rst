@@ -30,10 +30,10 @@ It provides support for the following machine learning frameworks and packages:
 * scikit-learn_. Currently ELI5 allows to explain weights and predictions
   of scikit-learn linear classifiers and regressors, print decision trees
   as text or as SVG, show feature importances and explain predictions
-  of random forests. ELI5 understands text processing utilities from
-  scikit-learn and can highlight text data accordingly. It also allows
-  to debug scikit-learn pipelines which contain HashingVectorizer, by
-  undoing hashing.
+  of decision trees and tree-based ensembles. ELI5 understands text
+  processing utilities from scikit-learn and can highlight text data
+  accordingly. It also allows to debug scikit-learn pipelines which contain
+  HashingVectorizer, by undoing hashing.
 
 * xgboost_ - show feature importances and explain predictions of XGBClassifier
   and XGBRegressor.
