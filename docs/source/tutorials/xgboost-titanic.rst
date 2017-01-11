@@ -1,3 +1,5 @@
+.. _xgboost-titanic-tutorial:
+
 .. note::
 
     This tutorial is intended to be run in an IPython notebook.

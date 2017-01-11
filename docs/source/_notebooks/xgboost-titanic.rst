@@ -8,6 +8,11 @@ ensembles from scikit-learn and for regression). We will use `Titanic
 dataset <https://www.kaggle.com/c/titanic/data>`__, which is small and
 has not too many features, but is still rich enough.
 
+We are using `XGBoost <https://xgboost.readthedocs.io/en/latest/>`__
+0.6a2 and data downloaded from https://www.kaggle.com/c/titanic/data (it
+is also bundled in the eli5 repo:
+https://github.com/TeamHG-Memex/eli5/blob/master/notebooks/titanic-train.csv).
+
 1. Training data
 ----------------
 
@@ -19,66 +24,64 @@ Let's start by loading the data:
     import numpy as np
     
     with open('titanic-train.csv', 'rt') as f:
-        data = list(csv.reader(f))
+        data = list(csv.DictReader(f))
+    data[:1]
+
+
+
+
+.. parsed-literal::
+
+    [{'Age': '22',
+      'Cabin': '',
+      'Embarked': 'S',
+      'Fare': '7.25',
+      'Name': 'Braund, Mr. Owen Harris',
+      'Parch': '0',
+      'PassengerId': '1',
+      'Pclass': '3',
+      'Sex': 'male',
+      'SibSp': '1',
+      'Survived': '0',
+      'Ticket': 'A/5 21171'}]
+
+
 
 Variable descriptions:
 
--  **Survival:** Survival (0 = No; 1 = Yes)
--  **Pclass:** Passenger Class (1 = 1st; 2 = 2nd; 3 = 3rd)
--  **Name:** Name
--  **Sex:** Sex
 -  **Age:** Age
--  **Sibsp:** Number of Siblings/Spouses Aboard
--  **Parch:** Number of Parents/Children Aboard
--  **Ticket:** Ticket Number
--  **Fare:** Passenger Fare
 -  **Cabin:** Cabin
 -  **Embarked:** Port of Embarkation (C = Cherbourg; Q = Queenstown; S =
    Southampton)
+-  **Fare:** Passenger Fare
+-  **Name:** Name
+-  **Parch:** Number of Parents/Children Aboard
+-  **Pclass:** Passenger Class (1 = 1st; 2 = 2nd; 3 = 3rd)
+-  **Sex:** Sex
+-  **Sibsp:** Number of Siblings/Spouses Aboard
+-  **Survived:** Survival (0 = No; 1 = Yes)
+-  **Ticket:** Ticket Number
 
 Next, shuffle data and separate features from what we are trying to
 predict: survival.
 
 .. code:: python
 
-    from pprint import pprint
     from sklearn.utils import shuffle
     from sklearn.model_selection import train_test_split
     
-    feature_names = data[0][2:]
-    _all_xs = [dict(zip(feature_names, row[2:])) for row in data[1:]]
-    _all_ys = np.array([int(row[1]) for row in data[1:]])
+    _all_xs = [{k: v for k, v in row.items() if k != 'Survived'} for row in data]
+    _all_ys = np.array([int(row['Survived']) for row in data])
     
     all_xs, all_ys = shuffle(_all_xs, _all_ys, random_state=0)
     train_xs, valid_xs, train_ys, valid_ys = train_test_split(
         all_xs, all_ys, test_size=0.25, random_state=0)
     print('{} items total, {:.1%} true'.format(len(all_xs), np.mean(all_ys)))
-    pprint(valid_xs[:2])
 
 
 .. parsed-literal::
 
     891 items total, 38.4% true
-    [{'Age': '19',
-      'Cabin': '',
-      'Embarked': 'S',
-      'Fare': '10.1708',
-      'Name': 'Dakic, Mr. Branko',
-      'Parch': '0',
-      'Pclass': '3',
-      'Sex': 'male',
-      'SibSp': '0',
-      'Ticket': '349228'},
-     {'Age': '19',
-      'Cabin': '',
-      'Embarked': 'Q',
-      'Fare': '7.8792',
-      'Name': 'Devaney, Miss. Margaret Delia',
-      'Parch': '0',
-      'Pclass': '3',
-      'Sex': 'female',
-      'SibSp': '0',
-      'Ticket': '330958'}]
 
 
 We do just minimal preprocessing: convert obviously contiuous ``Age``
@@ -104,6 +107,7 @@ with cross-validation:
 .. code:: python
 
     import warnings
+    # xgboost <= 0.6a2 shows a warning when used with scikit-learn 0.18+
     warnings.filterwarnings('ignore', category=DeprecationWarning) 
     from xgboost import XGBClassifier
     from sklearn.feature_extraction import DictVectorizer
@@ -132,7 +136,7 @@ There are two tricky parts in above code. First is that we pass
 missing values, which is how most scikit-learn vectorizers work. It is
 important both for training and for correct feature visualization.
 
-Second tricky bit is that XGBClassifier has some
+Second tricky bit is that XGBClassifier in xgboost 0.6a2 has some
 `issues <https://github.com/dmlc/xgboost/issues/1238>`__ with sparse
 data. In this case we don't really need sparsity, so pass ``dense=True``
 to ``DictVectorizer``.
@@ -349,7 +353,7 @@ Now let's check out feature importances:
 
 
 In order to calculate a prediction, XGBoost sums predictions of all it's
-trees (the number of trees is controlled by ``n_estimators`` argumnet
+trees (the number of trees is controlled by ``n_estimators`` argument
 and is 100 by default). Each tree is not a great predictor on it's own,
 but by summing across all trees, XGBoost is able to provide a robust
 estimate in many cases. Here is one of the trees:
@@ -720,12 +724,12 @@ passing ``show_feature_values=True`` to view the values): that means
 that the feature was missing, so in this case it's good to not have
 embarked in Southampton.
 
-It's possible to show contributions of only features that are present
-using ``feature_filter`` argument:
+It's possible to show only features that are present using
+``feature_filter`` argument:
 
 .. code:: python
 
-    no_missing = lambda _, v: v != 0
+    no_missing = lambda feature_name, feature_value: feature_value != 0
     show_prediction(clf, valid_xs[1], vec=vec, show_feature_values=True, feature_filter=no_missing)
 
 
