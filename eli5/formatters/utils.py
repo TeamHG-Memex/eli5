@@ -138,4 +138,4 @@ def format_value(value):
     elif np.isnan(value):
         return 'Missing'
     else:
-        return '{:+.3f}'.format(value)
+        return '{:.3f}'.format(value)
