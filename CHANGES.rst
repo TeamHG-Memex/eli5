@@ -34,6 +34,10 @@ Changelog
 * :func:`eli5.explain_weights` supports ``feature_filter`` in addition
   to ``feature_re`` for filtering features, and :func:`explain_prediction`
   now also supports both of these arguments
+* 'Weight' column is renamed to 'Contribution' in the output of
+  :func:`eli5.explain_prediction`;
+* new ``show_feature_values=True`` formatter argument allows to display
+  input feature values.
 
 0.2 (2016-12-03)
 ----------------
