@@ -1,19 +1,30 @@
 language: python
-python: 3.5
 sudo: true
 branches:
     only:
         - master
         - /^\d\.\d+$/
 
-env:
-    - TOXENV=py27
-    - TOXENV=py35
-    - TOXENV=py35-nodeps
-    - TOXENV=py27-extra
-    - TOXENV=py35-extra
-    - TOXENV=mypy
-    - TOXENV=docs
+matrix:
+  include:
+    - python: 2.7
+      env: TOXENV=py27
+    - python: 2.7
+      env: TOXENV=py27-extra
+    - python: 3.5
+      env: TOXENV=py35
+    - python: 3.5
+      env: TOXENV=py35-extra
+    - python: 3.5
+      env: TOXENV=py35-nodeps
+    - python: 3.6
+      env: TOXENV=py36
+    - python: 3.6
+      env: TOXENV=py36-extra
+    - python: 3.5
+      env: TOXENV=mypy
+    - python: 3.5
+      env: TOXENV=docs
 
 addons:
     apt:
