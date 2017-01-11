@@ -23,7 +23,7 @@ Changelog
 * a number of remaining feature importances is shown when the feature
   importance table is truncated;
 * styling of feature importances tables is fixed;
-* :func:`eli5.explain_weights` and :func:`explain_prediction` support
+* :func:`eli5.explain_weights` and :func:`eli5.explain_prediction` support
   more linear estimators from scikit-learn: HuberRegressor, LarsCV, LassoCV,
   LassoLars, LassoLarsCV, LassoLarsIC, OrthogonalMatchingPursuit,
   OrthogonalMatchingPursuitCV, PassiveAggressiveRegressor,
@@ -32,8 +32,8 @@ Changelog
   classification trees only a probability of "true" class is printed,
   not both probabilities as it was before.
 * :func:`eli5.explain_weights` supports ``feature_filter`` in addition
-  to ``feature_re`` for filtering features, and :func:`explain_prediction`
-  now also supports both of these arguments
+  to ``feature_re`` for filtering features, and :func:`eli5.explain_prediction`
+  now also supports both of these arguments;
 * 'Weight' column is renamed to 'Contribution' in the output of
   :func:`eli5.explain_prediction`;
 * new ``show_feature_values=True`` formatter argument allows to display
