@@ -7,8 +7,8 @@ from typing import List
 from . import fields
 from .features import FormattedFeatureName
 from .utils import (
-    format_signed, format_value, has_any_values_for_weights, replace_spaces,
-    should_highlight_spaces, tabulate)
+    format_signed, format_value, format_weight, has_any_values_for_weights,
+    replace_spaces, should_highlight_spaces, tabulate)
 from .trees import tree2text
 
 
@@ -143,13 +143,14 @@ def _targets_lines(explanation, hl_spaces, show_feature_values,
         if show_feature_values:
             table_header.append('Value')
             table_line = lambda fw: [
-                format_value(fw.weight),
+                format_weight(fw.weight),
                 _format_feature(fw.feature, hl_spaces),
                 format_value(fw.value)]
             col_align = 'rlr'
         else:
             table_line = lambda fw: [
-                format_value(fw.weight), _format_feature(fw.feature, hl_spaces)]
+                format_weight(fw.weight),
+                _format_feature(fw.feature, hl_spaces)]
             col_align = 'rl'
 
         w = target.feature_weights

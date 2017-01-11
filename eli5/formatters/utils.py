@@ -128,10 +128,14 @@ def tabulate(data,  # type: List[List[Any]]
     return [line_tpl.format(*row) for row in data]
 
 
+def format_weight(value):
+    return '{:+.3f}'.format(value)
+
+
 def format_value(value):
     if value is None:
         return ''
     elif np.isnan(value):
         return 'Missing'
     else:
-        return '{:+.3f}'.format(value)
+        return '{:.3f}'.format(value)

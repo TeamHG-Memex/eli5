@@ -11,8 +11,8 @@ from eli5 import _graphviz
 from eli5.base import TargetExplanation
 from eli5.utils import max_or_0
 from .utils import (
-    format_signed, format_value, has_any_values_for_weights, replace_spaces,
-    should_highlight_spaces)
+    format_signed, format_value, format_weight, has_any_values_for_weights,
+    replace_spaces, should_highlight_spaces)
 from . import fields
 from .features import FormattedFeatureName
 from .trees import tree2text
@@ -29,6 +29,7 @@ template_env.filters.update(dict(
         format_hsl(remaining_weight_color_hsl(ws, w_range, pos_neg)),
     format_feature=lambda f, w, hl: _format_feature(f, w, hl_spaces=hl),
     format_value=format_value,
+    format_weight=format_weight,
     format_decision_tree=lambda tree: _format_decision_tree(tree),
 ))
 
