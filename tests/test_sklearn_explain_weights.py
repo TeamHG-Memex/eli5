@@ -270,8 +270,7 @@ def test_explain_linear_feature_filter(newsgroups_train, vec):
         vec = InvertableHashingVectorizer(vec)
         vec.fit(docs)
 
-    res = explain_weights(
-        clf, vec=vec, feature_re='^ath')
+    res = explain_weights(clf, vec=vec, feature_re='^ath')
     text_expl, _ = expls = format_as_all(res, clf)
     for expl in expls:
         assert 'atheists' in expl

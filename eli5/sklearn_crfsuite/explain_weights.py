@@ -19,7 +19,12 @@ def explain_weights_sklearn_crfsuite(crf,
                                      targets=None,
                                      feature_re=None,
                                      feature_filter=None):
-    """ Explain sklearn_crfsuite.CRF weights """
+    """ Explain sklearn_crfsuite.CRF weights.
+
+    See :func:`eli5.explain_weights` for description of
+    ``top``, ``target_names``, ``targets``,
+    ``feature_re`` and ``feature_filter`` parameters.
+    """
     feature_names = np.array(crf.attributes_)
     state_coef = crf_state_coef(crf).todense().A
     transition_coef = crf_transition_coef(crf)

@@ -117,8 +117,8 @@ def explain_prediction_linear_classifier(clf, doc,
     Explain prediction of a linear classifier.
 
     See :func:`eli5.explain_prediction` for description of
-    ``top``, ``target_names``, ``targets``, ``feature_names`` and
-    ``feature_re`` parameters.
+    ``top``, ``target_names``, ``targets``, ``feature_names``,
+    ``feature_re`` and ``feature_filter`` parameters.
 
     ``vec`` is a vectorizer instance used to transform
     raw features to the input of the classifier ``clf``
@@ -204,8 +204,8 @@ def explain_prediction_linear_regressor(reg, doc,
     Explain prediction of a linear regressor.
 
     See :func:`eli5.explain_prediction` for description of
-    ``top``, ``target_names``, ``targets``, ``feature_names`` and
-    ``feature_re`` parameters.
+    ``top``, ``target_names``, ``targets``, ``feature_names``,
+    ``feature_re`` and ``feature_filter`` parameters.
 
     ``vec`` is a vectorizer instance used to transform
     raw features to the input of the classifier ``clf``;
@@ -302,6 +302,21 @@ def explain_prediction_tree_classifier(
         vectorized=False):
     """ Explain prediction of a tree classifier.
 
+    See :func:`eli5.explain_prediction` for description of
+    ``top``, ``target_names``, ``targets``, ``feature_names``,
+    ``feature_re`` and ``feature_filter`` parameters.
+
+    ``vec`` is a vectorizer instance used to transform
+    raw features to the input of the classifier ``clf``
+    (e.g. a fitted CountVectorizer instance); you can pass it
+    instead of ``feature_names``.
+
+    ``vectorized`` is a flag which tells eli5 if ``doc`` should be
+    passed through ``vec`` or not. By default it is False, meaning that
+    if ``vec`` is not None, ``vec.transform([doc])`` is passed to the
+    classifier. Set it to False if you're passing ``vec``,
+    but ``doc`` is already vectorized.
+
     Method for determining feature importances follows an idea from
     http://blog.datadive.net/interpreting-random-forests/.
     Feature weights are calculated by following decision paths in trees
@@ -387,6 +402,21 @@ def explain_prediction_tree_regressor(
         feature_filter=None,
         vectorized=False):
     """ Explain prediction of a tree regressor.
+
+    See :func:`eli5.explain_prediction` for description of
+    ``top``, ``target_names``, ``targets``, ``feature_names``,
+    ``feature_re`` and ``feature_filter`` parameters.
+
+    ``vec`` is a vectorizer instance used to transform
+    raw features to the input of the regressor ``reg``
+    (e.g. a fitted CountVectorizer instance); you can pass it
+    instead of ``feature_names``.
+
+    ``vectorized`` is a flag which tells eli5 if ``doc`` should be
+    passed through ``vec`` or not. By default it is False, meaning that
+    if ``vec`` is not None, ``vec.transform([doc])`` is passed to the
+    regressor. Set it to False if you're passing ``vec``,
+    but ``doc`` is already vectorized.
 
     Method for determining feature importances follows an idea from
     http://blog.datadive.net/interpreting-random-forests/.

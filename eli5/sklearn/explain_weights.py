@@ -162,8 +162,8 @@ def explain_linear_classifier_weights(clf,
     Return an explanation of a linear classifier weights.
 
     See :func:`eli5.explain_weights` for description of
-    ``top``, ``target_names``, ``targets``, ``feature_names`` and
-    ``feature_re`` parameters.
+    ``top``, ``target_names``, ``targets``, ``feature_names``,
+    ``feature_re`` and ``feature_filter`` parameters.
 
     ``vec`` is a vectorizer instance used to transform
     raw features to the input of the classifier ``clf``
@@ -240,7 +240,8 @@ def explain_rf_feature_importance(estimator,
     Return an explanation of a tree-based ensemble estimator.
 
     See :func:`eli5.explain_weights` for description of
-    ``top``, ``feature_names`` and ``feature_re`` parameters.
+    ``top``, ``feature_names``, ``feature_re`` and ``feature_filter``
+    parameters.
 
     ``target_names`` and ``targets`` parameters are ignored.
 
@@ -288,7 +289,8 @@ def explain_decision_tree(estimator,
     Return an explanation of a decision tree.
 
     See :func:`eli5.explain_weights` for description of
-    ``top``, ``target_names``, ``feature_names`` and ``feature_re`` parameters.
+    ``top``, ``target_names``, ``feature_names``,
+    ``feature_re`` and ``feature_filter`` parameters.
 
     ``targets`` parameter is ignored.
 
@@ -356,9 +358,10 @@ def explain_linear_regressor_weights(reg,
                                      ):
     """
     Return an explanation of a linear regressor weights.
+
     See :func:`eli5.explain_weights` for description of
-    ``top``, ``target_names``, ``targets``, ``feature_names`` and
-    ``feature_re`` parameters.
+    ``top``, ``target_names``, ``targets``, ``feature_names``,
+    ``feature_re`` and ``feature_filter`` parameters.
 
     ``vec`` is a vectorizer instance used to transform
     raw features to the input of the regressor ``reg``; you can
