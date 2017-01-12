@@ -8,5 +8,5 @@ Tutorials
 
    ./sklearn-text
    ./black-box-text-classifiers
-   ./sklearn_crfsuite
    ./xgboost-titanic
+   ./sklearn_crfsuite
