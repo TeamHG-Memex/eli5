@@ -186,8 +186,13 @@ function:
                style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
             <thead>
             <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature weights. Note that weights do not account for feature value scales, so if feature values have different scales, features with highest weights might not be the most important.">
+                        Weight<sup>?</sup>
+                    </th>
+                
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
             </tr>
             </thead>
             <tbody>
@@ -199,6 +204,7 @@ function:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x21167
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 93.88%); border: none;">
@@ -208,6 +214,7 @@ function:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x19218
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 94.08%); border: none;">
@@ -217,6 +224,7 @@ function:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x5714
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 94.13%); border: none;">
@@ -226,6 +234,7 @@ function:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x23677
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 94.40%); border: none;">
@@ -235,6 +244,7 @@ function:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x15511
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 94.40%); border: none;">
@@ -244,6 +254,7 @@ function:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x26415
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 94.58%); border: none;">
@@ -253,6 +264,7 @@ function:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x6440
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 94.64%); border: none;">
@@ -262,6 +274,7 @@ function:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x26412
         </td>
+        
     </tr>
             
             
@@ -287,6 +300,7 @@ function:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x28473
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 80.00%); border: none;">
@@ -296,6 +310,7 @@ function:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             &lt;BIAS&gt;
         </td>
+        
     </tr>
             
     
@@ -316,8 +331,13 @@ function:
                style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
             <thead>
             <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature weights. Note that weights do not account for feature value scales, so if feature values have different scales, features with highest weights might not be the most important.">
+                        Weight<sup>?</sup>
+                    </th>
+                
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
             </tr>
             </thead>
             <tbody>
@@ -329,6 +349,7 @@ function:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x15699
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.62%); border: none;">
@@ -338,6 +359,7 @@ function:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x17366
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.70%); border: none;">
@@ -347,6 +369,7 @@ function:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x14281
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.73%); border: none;">
@@ -356,6 +379,7 @@ function:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x30117
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.75%); border: none;">
@@ -365,6 +389,7 @@ function:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x14277
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.77%); border: none;">
@@ -374,6 +399,7 @@ function:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x17356
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.90%); border: none;">
@@ -383,6 +409,7 @@ function:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x24267
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.91%); border: none;">
@@ -392,6 +419,7 @@ function:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x7874
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.98%); border: none;">
@@ -401,6 +429,7 @@ function:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x2148
         </td>
+        
     </tr>
             
             
@@ -426,6 +455,7 @@ function:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             &lt;BIAS&gt;
         </td>
+        
     </tr>
             
     
@@ -446,8 +476,13 @@ function:
                style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
             <thead>
             <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature weights. Note that weights do not account for feature value scales, so if feature values have different scales, features with highest weights might not be the most important.">
+                        Weight<sup>?</sup>
+                    </th>
+                
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
             </tr>
             </thead>
             <tbody>
@@ -459,6 +494,7 @@ function:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x25234
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 93.82%); border: none;">
@@ -468,6 +504,7 @@ function:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x12026
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 94.26%); border: none;">
@@ -477,6 +514,7 @@ function:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x17854
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 94.40%); border: none;">
@@ -486,6 +524,7 @@ function:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x11729
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 94.50%); border: none;">
@@ -495,6 +534,7 @@ function:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x32847
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 94.81%); border: none;">
@@ -504,6 +544,7 @@ function:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x22379
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 94.82%); border: none;">
@@ -513,6 +554,7 @@ function:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x16328
         </td>
+        
     </tr>
             
             
@@ -538,6 +580,7 @@ function:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x15521
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 93.34%); border: none;">
@@ -547,6 +590,7 @@ function:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x15699
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 88.04%); border: none;">
@@ -556,6 +600,7 @@ function:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             &lt;BIAS&gt;
         </td>
+        
     </tr>
             
     
@@ -576,8 +621,13 @@ function:
                style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
             <thead>
             <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature weights. Note that weights do not account for feature value scales, so if feature values have different scales, features with highest weights might not be the most important.">
+                        Weight<sup>?</sup>
+                    </th>
+                
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
             </tr>
             </thead>
             <tbody>
@@ -589,6 +639,7 @@ function:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x28473
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.05%); border: none;">
@@ -598,6 +649,7 @@ function:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x8609
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.07%); border: none;">
@@ -607,6 +659,7 @@ function:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x8559
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.28%); border: none;">
@@ -616,6 +669,7 @@ function:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x8798
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.41%); border: none;">
@@ -625,6 +679,7 @@ function:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x8544
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.70%); border: none;">
@@ -634,6 +689,7 @@ function:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x8553
         </td>
+        
     </tr>
             
             
@@ -659,6 +715,7 @@ function:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x15699
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 96.42%); border: none;">
@@ -668,6 +725,7 @@ function:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x25663
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 95.65%); border: none;">
@@ -677,6 +735,7 @@ function:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x23122
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 95.50%); border: none;">
@@ -686,6 +745,7 @@ function:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x16881
         </td>
+        
     </tr>
             
     
@@ -870,8 +930,13 @@ and let eli5 figure out the details automatically:
                style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
             <thead>
             <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature weights. Note that weights do not account for feature value scales, so if feature values have different scales, features with highest weights might not be the most important.">
+                        Weight<sup>?</sup>
+                    </th>
+                
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
             </tr>
             </thead>
             <tbody>
@@ -883,6 +948,7 @@ and let eli5 figure out the details automatically:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             mathew
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 93.88%); border: none;">
@@ -892,6 +958,7 @@ and let eli5 figure out the details automatically:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             keith
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 94.08%); border: none;">
@@ -901,6 +968,7 @@ and let eli5 figure out the details automatically:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             atheism
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 94.13%); border: none;">
@@ -910,6 +978,7 @@ and let eli5 figure out the details automatically:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             okcforum
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 94.40%); border: none;">
@@ -919,6 +988,7 @@ and let eli5 figure out the details automatically:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             go
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 94.40%); border: none;">
@@ -928,6 +998,7 @@ and let eli5 figure out the details automatically:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             psuvm
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 94.58%); border: none;">
@@ -937,6 +1008,7 @@ and let eli5 figure out the details automatically:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             believing
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 94.64%); border: none;">
@@ -946,6 +1018,7 @@ and let eli5 figure out the details automatically:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             psu
         </td>
+        
     </tr>
             
             
@@ -971,6 +1044,7 @@ and let eli5 figure out the details automatically:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             rutgers
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 80.00%); border: none;">
@@ -980,6 +1054,7 @@ and let eli5 figure out the details automatically:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             &lt;BIAS&gt;
         </td>
+        
     </tr>
             
     
@@ -1000,8 +1075,13 @@ and let eli5 figure out the details automatically:
                style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
             <thead>
             <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature weights. Note that weights do not account for feature value scales, so if feature values have different scales, features with highest weights might not be the most important.">
+                        Weight<sup>?</sup>
+                    </th>
+                
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
             </tr>
             </thead>
             <tbody>
@@ -1013,6 +1093,7 @@ and let eli5 figure out the details automatically:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             graphics
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.62%); border: none;">
@@ -1022,6 +1103,7 @@ and let eli5 figure out the details automatically:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             images
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.70%); border: none;">
@@ -1031,6 +1113,7 @@ and let eli5 figure out the details automatically:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             files
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.73%); border: none;">
@@ -1040,6 +1123,7 @@ and let eli5 figure out the details automatically:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             software
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.75%); border: none;">
@@ -1049,6 +1133,7 @@ and let eli5 figure out the details automatically:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             file
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.77%); border: none;">
@@ -1058,6 +1143,7 @@ and let eli5 figure out the details automatically:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             image
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.90%); border: none;">
@@ -1067,6 +1153,7 @@ and let eli5 figure out the details automatically:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             package
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.91%); border: none;">
@@ -1076,6 +1163,7 @@ and let eli5 figure out the details automatically:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             card
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.98%); border: none;">
@@ -1085,6 +1173,7 @@ and let eli5 figure out the details automatically:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             3d
         </td>
+        
     </tr>
             
             
@@ -1110,6 +1199,7 @@ and let eli5 figure out the details automatically:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             &lt;BIAS&gt;
         </td>
+        
     </tr>
             
     
@@ -1130,8 +1220,13 @@ and let eli5 figure out the details automatically:
                style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
             <thead>
             <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature weights. Note that weights do not account for feature value scales, so if feature values have different scales, features with highest weights might not be the most important.">
+                        Weight<sup>?</sup>
+                    </th>
+                
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
             </tr>
             </thead>
             <tbody>
@@ -1143,6 +1238,7 @@ and let eli5 figure out the details automatically:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             pitt
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 93.82%); border: none;">
@@ -1152,6 +1248,7 @@ and let eli5 figure out the details automatically:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             doctor
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 94.26%); border: none;">
@@ -1161,6 +1258,7 @@ and let eli5 figure out the details automatically:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             information
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 94.40%); border: none;">
@@ -1170,6 +1268,7 @@ and let eli5 figure out the details automatically:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             disease
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 94.50%); border: none;">
@@ -1179,6 +1278,7 @@ and let eli5 figure out the details automatically:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             treatment
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 94.81%); border: none;">
@@ -1188,6 +1288,7 @@ and let eli5 figure out the details automatically:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             msg
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 94.82%); border: none;">
@@ -1197,6 +1298,7 @@ and let eli5 figure out the details automatically:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             health
         </td>
+        
     </tr>
             
             
@@ -1222,6 +1324,7 @@ and let eli5 figure out the details automatically:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             god
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 93.34%); border: none;">
@@ -1231,6 +1334,7 @@ and let eli5 figure out the details automatically:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             graphics
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 88.04%); border: none;">
@@ -1240,6 +1344,7 @@ and let eli5 figure out the details automatically:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             &lt;BIAS&gt;
         </td>
+        
     </tr>
             
     
@@ -1260,8 +1365,13 @@ and let eli5 figure out the details automatically:
                style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
             <thead>
             <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature weights. Note that weights do not account for feature value scales, so if feature values have different scales, features with highest weights might not be the most important.">
+                        Weight<sup>?</sup>
+                    </th>
+                
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
             </tr>
             </thead>
             <tbody>
@@ -1273,6 +1383,7 @@ and let eli5 figure out the details automatically:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             rutgers
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.05%); border: none;">
@@ -1282,6 +1393,7 @@ and let eli5 figure out the details automatically:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             church
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.07%); border: none;">
@@ -1291,6 +1403,7 @@ and let eli5 figure out the details automatically:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             christians
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.28%); border: none;">
@@ -1300,6 +1413,7 @@ and let eli5 figure out the details automatically:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             clh
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.41%); border: none;">
@@ -1309,6 +1423,7 @@ and let eli5 figure out the details automatically:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             christ
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.70%); border: none;">
@@ -1318,6 +1433,7 @@ and let eli5 figure out the details automatically:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             christian
         </td>
+        
     </tr>
             
             
@@ -1343,6 +1459,7 @@ and let eli5 figure out the details automatically:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             graphics
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 96.42%); border: none;">
@@ -1352,6 +1469,7 @@ and let eli5 figure out the details automatically:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             posting
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 95.65%); border: none;">
@@ -1361,6 +1479,7 @@ and let eli5 figure out the details automatically:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             nntp
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 95.50%); border: none;">
@@ -1370,6 +1489,7 @@ and let eli5 figure out the details automatically:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             host
         </td>
+        
     </tr>
             
     
@@ -1521,8 +1641,13 @@ example:
                style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
             <thead>
             <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature contribution already accounts for the feature value (for linear models, contribution = weight * feature value), and the sum of feature contributions is equal to the score or, for some classifiers, to the probability. Feature values are shown if &quot;show_feature_values&quot; is True.">
+                        Contribution<sup>?</sup>
+                    </th>
+                
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
             </tr>
             </thead>
             <tbody>
@@ -1534,6 +1659,7 @@ example:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             Highlighted in text (sum)
         </td>
+        
     </tr>
             
             
@@ -1547,6 +1673,7 @@ example:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             &lt;BIAS&gt;
         </td>
+        
     </tr>
             
     
@@ -1602,8 +1729,13 @@ example:
                style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
             <thead>
             <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature contribution already accounts for the feature value (for linear models, contribution = weight * feature value), and the sum of feature contributions is equal to the score or, for some classifiers, to the probability. Feature values are shown if &quot;show_feature_values&quot; is True.">
+                        Contribution<sup>?</sup>
+                    </th>
+                
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
             </tr>
             </thead>
             <tbody>
@@ -1619,6 +1751,7 @@ example:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             &lt;BIAS&gt;
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 91.24%); border: none;">
@@ -1628,6 +1761,7 @@ example:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             Highlighted in text (sum)
         </td>
+        
     </tr>
             
     
@@ -1683,8 +1817,13 @@ example:
                style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
             <thead>
             <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature contribution already accounts for the feature value (for linear models, contribution = weight * feature value), and the sum of feature contributions is equal to the score or, for some classifiers, to the probability. Feature values are shown if &quot;show_feature_values&quot; is True.">
+                        Contribution<sup>?</sup>
+                    </th>
+                
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
             </tr>
             </thead>
             <tbody>
@@ -1696,6 +1835,7 @@ example:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             Highlighted in text (sum)
         </td>
+        
     </tr>
             
             
@@ -1709,6 +1849,7 @@ example:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             &lt;BIAS&gt;
         </td>
+        
     </tr>
             
     
@@ -1764,8 +1905,13 @@ example:
                style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
             <thead>
             <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature contribution already accounts for the feature value (for linear models, contribution = weight * feature value), and the sum of feature contributions is equal to the score or, for some classifiers, to the probability. Feature values are shown if &quot;show_feature_values&quot; is True.">
+                        Contribution<sup>?</sup>
+                    </th>
+                
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
             </tr>
             </thead>
             <tbody>
@@ -1781,6 +1927,7 @@ example:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             &lt;BIAS&gt;
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 85.05%); border: none;">
@@ -1790,6 +1937,7 @@ example:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             Highlighted in text (sum)
         </td>
+        
     </tr>
             
     
@@ -2010,8 +2158,13 @@ because only a subset of classes is shown - see "targets" argument):
                style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
             <thead>
             <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature contribution already accounts for the feature value (for linear models, contribution = weight * feature value), and the sum of feature contributions is equal to the score or, for some classifiers, to the probability. Feature values are shown if &quot;show_feature_values&quot; is True.">
+                        Contribution<sup>?</sup>
+                    </th>
+                
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
             </tr>
             </thead>
             <tbody>
@@ -2023,6 +2176,7 @@ because only a subset of classes is shown - see "targets" argument):
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             Highlighted in text (sum)
         </td>
+        
     </tr>
             
             
@@ -2036,6 +2190,7 @@ because only a subset of classes is shown - see "targets" argument):
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             &lt;BIAS&gt;
         </td>
+        
     </tr>
             
     
@@ -2201,8 +2356,13 @@ To help classifier we may filter out stop words:
                style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
             <thead>
             <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature contribution already accounts for the feature value (for linear models, contribution = weight * feature value), and the sum of feature contributions is equal to the score or, for some classifiers, to the probability. Feature values are shown if &quot;show_feature_values&quot; is True.">
+                        Contribution<sup>?</sup>
+                    </th>
+                
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
             </tr>
             </thead>
             <tbody>
@@ -2214,6 +2374,7 @@ To help classifier we may filter out stop words:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             Highlighted in text (sum)
         </td>
+        
     </tr>
             
             
@@ -2227,6 +2388,7 @@ To help classifier we may filter out stop words:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             &lt;BIAS&gt;
         </td>
+        
     </tr>
             
     
@@ -2395,8 +2557,13 @@ the chosen C value could have worked better for one kind of data.
                style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
             <thead>
             <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature contribution already accounts for the feature value (for linear models, contribution = weight * feature value), and the sum of feature contributions is equal to the score or, for some classifiers, to the probability. Feature values are shown if &quot;show_feature_values&quot; is True.">
+                        Contribution<sup>?</sup>
+                    </th>
+                
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
             </tr>
             </thead>
             <tbody>
@@ -2408,6 +2575,7 @@ the chosen C value could have worked better for one kind of data.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             Highlighted in text (sum)
         </td>
+        
     </tr>
             
             
@@ -2421,6 +2589,7 @@ the chosen C value could have worked better for one kind of data.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             &lt;BIAS&gt;
         </td>
+        
     </tr>
             
     
@@ -2577,8 +2746,13 @@ It helped, but didn't have quite the same effect. Why not do both?
                style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
             <thead>
             <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature contribution already accounts for the feature value (for linear models, contribution = weight * feature value), and the sum of feature contributions is equal to the score or, for some classifiers, to the probability. Feature values are shown if &quot;show_feature_values&quot; is True.">
+                        Contribution<sup>?</sup>
+                    </th>
+                
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
             </tr>
             </thead>
             <tbody>
@@ -2590,6 +2764,7 @@ It helped, but didn't have quite the same effect. Why not do both?
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             Highlighted in text (sum)
         </td>
+        
     </tr>
             
             
@@ -2603,6 +2778,7 @@ It helped, but didn't have quite the same effect. Why not do both?
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             &lt;BIAS&gt;
         </td>
+        
     </tr>
             
     
@@ -2765,8 +2941,13 @@ classifier, but let's skip it for now. Let's try other analysers instead
                style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
             <thead>
             <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature contribution already accounts for the feature value (for linear models, contribution = weight * feature value), and the sum of feature contributions is equal to the score or, for some classifiers, to the probability. Feature values are shown if &quot;show_feature_values&quot; is True.">
+                        Contribution<sup>?</sup>
+                    </th>
+                
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
             </tr>
             </thead>
             <tbody>
@@ -2782,6 +2963,7 @@ classifier, but let's skip it for now. Let's try other analysers instead
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             Highlighted in text (sum)
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 80.00%); border: none;">
@@ -2791,6 +2973,7 @@ classifier, but let's skip it for now. Let's try other analysers instead
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             &lt;BIAS&gt;
         </td>
+        
     </tr>
             
     
@@ -2831,8 +3014,13 @@ classifier, but let's skip it for now. Let's try other analysers instead
                style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
             <thead>
             <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature contribution already accounts for the feature value (for linear models, contribution = weight * feature value), and the sum of feature contributions is equal to the score or, for some classifiers, to the probability. Feature values are shown if &quot;show_feature_values&quot; is True.">
+                        Contribution<sup>?</sup>
+                    </th>
+                
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
             </tr>
             </thead>
             <tbody>
@@ -2844,6 +3032,7 @@ classifier, but let's skip it for now. Let's try other analysers instead
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             &lt;BIAS&gt;
         </td>
+        
     </tr>
             
             
@@ -2857,6 +3046,7 @@ classifier, but let's skip it for now. Let's try other analysers instead
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             Highlighted in text (sum)
         </td>
+        
     </tr>
             
     
@@ -2897,8 +3087,13 @@ classifier, but let's skip it for now. Let's try other analysers instead
                style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
             <thead>
             <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature contribution already accounts for the feature value (for linear models, contribution = weight * feature value), and the sum of feature contributions is equal to the score or, for some classifiers, to the probability. Feature values are shown if &quot;show_feature_values&quot; is True.">
+                        Contribution<sup>?</sup>
+                    </th>
+                
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
             </tr>
             </thead>
             <tbody>
@@ -2910,6 +3105,7 @@ classifier, but let's skip it for now. Let's try other analysers instead
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             Highlighted in text (sum)
         </td>
+        
     </tr>
             
             
@@ -2923,6 +3119,7 @@ classifier, but let's skip it for now. Let's try other analysers instead
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             &lt;BIAS&gt;
         </td>
+        
     </tr>
             
     
@@ -2963,8 +3160,13 @@ classifier, but let's skip it for now. Let's try other analysers instead
                style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
             <thead>
             <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature contribution already accounts for the feature value (for linear models, contribution = weight * feature value), and the sum of feature contributions is equal to the score or, for some classifiers, to the probability. Feature values are shown if &quot;show_feature_values&quot; is True.">
+                        Contribution<sup>?</sup>
+                    </th>
+                
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
             </tr>
             </thead>
             <tbody>
@@ -2976,6 +3178,7 @@ classifier, but let's skip it for now. Let's try other analysers instead
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             Highlighted in text (sum)
         </td>
+        
     </tr>
             
             
@@ -2989,6 +3192,7 @@ classifier, but let's skip it for now. Let's try other analysers instead
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             &lt;BIAS&gt;
         </td>
+        
     </tr>
             
     
@@ -3145,8 +3349,13 @@ looks like:
                style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
             <thead>
             <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature contribution already accounts for the feature value (for linear models, contribution = weight * feature value), and the sum of feature contributions is equal to the score or, for some classifiers, to the probability. Feature values are shown if &quot;show_feature_values&quot; is True.">
+                        Contribution<sup>?</sup>
+                    </th>
+                
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
             </tr>
             </thead>
             <tbody>
@@ -3162,6 +3371,7 @@ looks like:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             Highlighted in text (sum)
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 81.35%); border: none;">
@@ -3171,6 +3381,7 @@ looks like:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             &lt;BIAS&gt;
         </td>
+        
     </tr>
             
     
@@ -3182,7 +3393,7 @@ looks like:
     
     
         <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
-            <span style="background-color: hsl(120, 100.00%, 99.42%); opacity: 0.80" title="0.001">as</span><span style="background-color: hsl(0, 100.00%, 91.91%); opacity: 0.82" title="-0.027"> </span><span style="background-color: hsl(0, 100.00%, 91.78%); opacity: 0.82" title="-0.027">i</span><span style="background-color: hsl(0, 100.00%, 88.72%); opacity: 0.83" title="-0.043"> </span><span style="background-color: hsl(0, 100.00%, 89.87%); opacity: 0.83" title="-0.037">r</span><span style="background-color: hsl(0, 100.00%, 88.78%); opacity: 0.83" title="-0.042">e</span><span style="background-color: hsl(0, 100.00%, 90.13%); opacity: 0.83" title="-0.035">c</span><span style="background-color: hsl(120, 100.00%, 95.41%); opacity: 0.81" title="0.012">a</span><span style="background-color: hsl(120, 100.00%, 90.90%); opacity: 0.82" title="0.031">l</span><span style="background-color: hsl(120, 100.00%, 89.79%); opacity: 0.83" title="0.037">l</span><span style="background-color: hsl(120, 100.00%, 91.35%); opacity: 0.82" title="0.029"> </span><span style="background-color: hsl(120, 100.00%, 95.92%); opacity: 0.81" title="0.010">f</span><span style="background-color: hsl(120, 100.00%, 95.47%); opacity: 0.81" title="0.012">r</span><span style="background-color: hsl(120, 100.00%, 95.90%); opacity: 0.81" title="0.010">o</span><span style="background-color: hsl(120, 100.00%, 97.32%); opacity: 0.80" title="0.005">m</span><span style="background-color: hsl(0, 100.00%, 89.97%); opacity: 0.83" title="-0.036"> </span><span style="background-color: hsl(0, 100.00%, 86.72%); opacity: 0.84" title="-0.054">my</span><span style="background-color: hsl(0, 100.00%, 90.51%); opacity: 0.83" title="-0.033"> </span><span style="background-color: hsl(0, 100.00%, 90.37%); opacity: 0.83" title="-0.034">b</span><span style="background-color: hsl(0, 100.00%, 89.70%); opacity: 0.83" title="-0.037">o</span><span style="background-color: hsl(0, 100.00%, 87.17%); opacity: 0.84" title="-0.051">u</span><span style="background-color: hsl(0, 100.00%, 90.11%); opacity: 0.83" title="-0.035">t</span><span style="background-color: hsl(0, 100.00%, 87.40%); opacity: 0.84" title="-0.050"> </span><span style="background-color: hsl(0, 100.00%, 83.97%); opacity: 0.85" title="-0.070">w</span><span style="background-color: hsl(0, 100.00%, 81.11%); opacity: 0.87" title="-0.089">i</span><span style="background-color: hsl(0, 100.00%, 80.26%); opacity: 0.87" title="-0.095">t</span><span style="background-color: hsl(0, 100.00%, 84.67%); opacity: 0.85" title="-0.066">h</span><span style="background-color: hsl(0, 100.00%, 92.94%); opacity: 0.82" title="-0.022"> </span><span style="background-color: hsl(120, 100.00%, 91.92%); opacity: 0.82" title="0.026">k</span><span style="background-color: hsl(120, 100.00%, 92.71%); opacity: 0.82" title="0.023">i</span><span style="background-color: hsl(0, 100.00%, 94.92%); opacity: 0.81" title="-0.014">d</span><span style="background-color: hsl(0, 100.00%, 89.08%); opacity: 0.83" title="-0.041">n</span><span style="background-color: hsl(0, 100.00%, 89.04%); opacity: 0.83" title="-0.041">e</span><span style="background-color: hsl(0, 100.00%, 93.98%); opacity: 0.81" title="-0.017">y</span><span style="background-color: hsl(0, 100.00%, 99.85%); opacity: 0.80" title="-0.000"> </span><span style="background-color: hsl(0, 100.00%, 93.64%); opacity: 0.81" title="-0.019">s</span><span style="background-color: hsl(0, 100.00%, 88.82%); opacity: 0.83" title="-0.042">t</span><span style="background-color: hsl(0, 100.00%, 90.18%); opacity: 0.83" title="-0.035">o</span><span style="background-color: hsl(0, 100.00%, 85.97%); opacity: 0.84" title="-0.058">n</span><span style="background-color: hsl(0, 100.00%, 92.52%); opacity: 0.82" title="-0.024">e</span><span style="background-color: hsl(0, 100.00%, 97.69%); opacity: 0.80" title="-0.004">s</span><span style="background-color: hsl(0, 100.00%, 95.35%); opacity: 0.81" title="-0.012">,</span><span style="background-color: hsl(120, 100.00%, 98.73%); opacity: 0.80" title="0.002"> </span><span style="background-color: hsl(120, 100.00%, 93.64%); opacity: 0.81" title="0.019">t</span><span style="background-color: hsl(120, 100.00%, 92.48%); opacity: 0.82" title="0.024">h</span><span style="background-color: hsl(120, 100.00%, 89.68%); opacity: 0.83" title="0.038">e</span><span style="background-color: hsl(120, 100.00%, 93.35%); opacity: 0.82" title="0.020">r</span><span style="background-color: hsl(120, 100.00%, 91.80%); opacity: 0.82" title="0.027">e</span><span style="background-color: hsl(120, 100.00%, 89.04%); opacity: 0.83" title="0.041"> </span><span style="background-color: hsl(120, 100.00%, 84.29%); opacity: 0.85" title="0.068">i</span><span style="background-color: hsl(120, 100.00%, 77.57%); opacity: 0.89" title="0.114">s</span><span style="background-color: hsl(120, 100.00%, 73.41%); opacity: 0.91" title="0.145">n</span><span style="background-color: hsl(120, 100.00%, 73.65%); opacity: 0.91" title="0.143">'</span><span style="background-color: hsl(120, 100.00%, 79.15%); opacity: 0.88" title="0.103">t</span><span style="background-color: hsl(120, 100.00%, 91.47%); opacity: 0.82" title="0.029"> </span><span style="background-color: hsl(0, 100.00%, 89.43%); opacity: 0.83" title="-0.039">a</span><span style="background-color: hsl(0, 100.00%, 87.85%); opacity: 0.84" title="-0.047">n</span><span style="background-color: hsl(0, 100.00%, 90.05%); opacity: 0.83" title="-0.036">y</span><span style="background-color: hsl(0, 100.00%, 86.05%); opacity: 0.84" title="-0.058">
+            <span style="background-color: hsl(0, 100.00%, 97.06%); opacity: 0.80" title="-0.006">as</span><span style="background-color: hsl(0, 100.00%, 90.68%); opacity: 0.82" title="-0.032"> </span><span style="background-color: hsl(0, 100.00%, 91.78%); opacity: 0.82" title="-0.027">i</span><span style="background-color: hsl(0, 100.00%, 88.72%); opacity: 0.83" title="-0.043"> </span><span style="background-color: hsl(0, 100.00%, 89.87%); opacity: 0.83" title="-0.037">r</span><span style="background-color: hsl(0, 100.00%, 88.78%); opacity: 0.83" title="-0.042">e</span><span style="background-color: hsl(0, 100.00%, 90.13%); opacity: 0.83" title="-0.035">c</span><span style="background-color: hsl(120, 100.00%, 95.41%); opacity: 0.81" title="0.012">a</span><span style="background-color: hsl(120, 100.00%, 90.90%); opacity: 0.82" title="0.031">l</span><span style="background-color: hsl(120, 100.00%, 89.79%); opacity: 0.83" title="0.037">l</span><span style="background-color: hsl(120, 100.00%, 91.35%); opacity: 0.82" title="0.029"> </span><span style="background-color: hsl(120, 100.00%, 95.92%); opacity: 0.81" title="0.010">f</span><span style="background-color: hsl(120, 100.00%, 95.47%); opacity: 0.81" title="0.012">r</span><span style="background-color: hsl(120, 100.00%, 95.90%); opacity: 0.81" title="0.010">o</span><span style="background-color: hsl(120, 100.00%, 97.32%); opacity: 0.80" title="0.005">m</span><span style="background-color: hsl(0, 100.00%, 89.97%); opacity: 0.83" title="-0.036"> </span><span style="background-color: hsl(0, 100.00%, 86.72%); opacity: 0.84" title="-0.054">my</span><span style="background-color: hsl(0, 100.00%, 90.51%); opacity: 0.83" title="-0.033"> </span><span style="background-color: hsl(0, 100.00%, 90.37%); opacity: 0.83" title="-0.034">b</span><span style="background-color: hsl(0, 100.00%, 89.70%); opacity: 0.83" title="-0.037">o</span><span style="background-color: hsl(0, 100.00%, 87.17%); opacity: 0.84" title="-0.051">u</span><span style="background-color: hsl(0, 100.00%, 90.11%); opacity: 0.83" title="-0.035">t</span><span style="background-color: hsl(0, 100.00%, 87.40%); opacity: 0.84" title="-0.050"> </span><span style="background-color: hsl(0, 100.00%, 83.97%); opacity: 0.85" title="-0.070">w</span><span style="background-color: hsl(0, 100.00%, 81.11%); opacity: 0.87" title="-0.089">i</span><span style="background-color: hsl(0, 100.00%, 80.26%); opacity: 0.87" title="-0.095">t</span><span style="background-color: hsl(0, 100.00%, 84.67%); opacity: 0.85" title="-0.066">h</span><span style="background-color: hsl(0, 100.00%, 92.94%); opacity: 0.82" title="-0.022"> </span><span style="background-color: hsl(120, 100.00%, 91.92%); opacity: 0.82" title="0.026">k</span><span style="background-color: hsl(120, 100.00%, 92.71%); opacity: 0.82" title="0.023">i</span><span style="background-color: hsl(0, 100.00%, 94.92%); opacity: 0.81" title="-0.014">d</span><span style="background-color: hsl(0, 100.00%, 89.08%); opacity: 0.83" title="-0.041">n</span><span style="background-color: hsl(0, 100.00%, 89.04%); opacity: 0.83" title="-0.041">e</span><span style="background-color: hsl(0, 100.00%, 93.98%); opacity: 0.81" title="-0.017">y</span><span style="background-color: hsl(0, 100.00%, 99.85%); opacity: 0.80" title="-0.000"> </span><span style="background-color: hsl(0, 100.00%, 93.64%); opacity: 0.81" title="-0.019">s</span><span style="background-color: hsl(0, 100.00%, 88.82%); opacity: 0.83" title="-0.042">t</span><span style="background-color: hsl(0, 100.00%, 90.18%); opacity: 0.83" title="-0.035">o</span><span style="background-color: hsl(0, 100.00%, 85.97%); opacity: 0.84" title="-0.058">n</span><span style="background-color: hsl(0, 100.00%, 92.52%); opacity: 0.82" title="-0.024">e</span><span style="background-color: hsl(0, 100.00%, 97.69%); opacity: 0.80" title="-0.004">s</span><span style="background-color: hsl(0, 100.00%, 95.35%); opacity: 0.81" title="-0.012">,</span><span style="background-color: hsl(120, 100.00%, 98.73%); opacity: 0.80" title="0.002"> </span><span style="background-color: hsl(120, 100.00%, 93.64%); opacity: 0.81" title="0.019">t</span><span style="background-color: hsl(120, 100.00%, 92.48%); opacity: 0.82" title="0.024">h</span><span style="background-color: hsl(120, 100.00%, 89.68%); opacity: 0.83" title="0.038">e</span><span style="background-color: hsl(120, 100.00%, 93.35%); opacity: 0.82" title="0.020">r</span><span style="background-color: hsl(120, 100.00%, 91.80%); opacity: 0.82" title="0.027">e</span><span style="background-color: hsl(120, 100.00%, 89.04%); opacity: 0.83" title="0.041"> </span><span style="background-color: hsl(120, 100.00%, 84.29%); opacity: 0.85" title="0.068">i</span><span style="background-color: hsl(120, 100.00%, 77.57%); opacity: 0.89" title="0.114">s</span><span style="background-color: hsl(120, 100.00%, 73.41%); opacity: 0.91" title="0.145">n</span><span style="background-color: hsl(120, 100.00%, 73.65%); opacity: 0.91" title="0.143">'</span><span style="background-color: hsl(120, 100.00%, 79.15%); opacity: 0.88" title="0.103">t</span><span style="background-color: hsl(120, 100.00%, 91.47%); opacity: 0.82" title="0.029"> </span><span style="background-color: hsl(0, 100.00%, 89.43%); opacity: 0.83" title="-0.039">a</span><span style="background-color: hsl(0, 100.00%, 87.85%); opacity: 0.84" title="-0.047">n</span><span style="background-color: hsl(0, 100.00%, 90.05%); opacity: 0.83" title="-0.036">y</span><span style="background-color: hsl(0, 100.00%, 86.05%); opacity: 0.84" title="-0.058">
     </span><span style="background-color: hsl(0, 100.00%, 81.40%); opacity: 0.87" title="-0.087">m</span><span style="background-color: hsl(0, 100.00%, 74.51%); opacity: 0.91" title="-0.137">e</span><span style="background-color: hsl(0, 100.00%, 75.60%); opacity: 0.90" title="-0.128">d</span><span style="background-color: hsl(0, 100.00%, 79.20%); opacity: 0.88" title="-0.102">i</span><span style="background-color: hsl(0, 100.00%, 82.65%); opacity: 0.86" title="-0.079">c</span><span style="background-color: hsl(0, 100.00%, 81.16%); opacity: 0.87" title="-0.089">a</span><span style="background-color: hsl(0, 100.00%, 82.81%); opacity: 0.86" title="-0.078">t</span><span style="background-color: hsl(0, 100.00%, 87.43%); opacity: 0.84" title="-0.050">i</span><span style="background-color: hsl(0, 100.00%, 92.47%); opacity: 0.82" title="-0.024">o</span><span style="background-color: hsl(0, 100.00%, 96.48%); opacity: 0.81" title="-0.008">n</span><span style="background-color: hsl(0, 100.00%, 99.65%); opacity: 0.80" title="-0.000"> </span><span style="background-color: hsl(120, 100.00%, 98.35%); opacity: 0.80" title="0.003">t</span><span style="background-color: hsl(120, 100.00%, 95.04%); opacity: 0.81" title="0.013">h</span><span style="background-color: hsl(120, 100.00%, 95.71%); opacity: 0.81" title="0.011">a</span><span style="background-color: hsl(120, 100.00%, 95.30%); opacity: 0.81" title="0.012">t</span><span style="background-color: hsl(0, 100.00%, 87.53%); opacity: 0.84" title="-0.049"> </span><span style="background-color: hsl(0, 100.00%, 82.13%); opacity: 0.86" title="-0.082">c</span><span style="background-color: hsl(0, 100.00%, 82.40%); opacity: 0.86" title="-0.081">a</span><span style="background-color: hsl(0, 100.00%, 85.80%); opacity: 0.85" title="-0.059">n</span><span style="background-color: hsl(0, 100.00%, 91.70%); opacity: 0.82" title="-0.028"> </span><span style="background-color: hsl(0, 100.00%, 98.46%); opacity: 0.80" title="-0.002">do</span><span style="background-color: hsl(0, 100.00%, 94.61%); opacity: 0.81" title="-0.015"> </span><span style="background-color: hsl(0, 100.00%, 90.73%); opacity: 0.82" title="-0.032">a</span><span style="background-color: hsl(0, 100.00%, 89.59%); opacity: 0.83" title="-0.038">n</span><span style="background-color: hsl(0, 100.00%, 90.01%); opacity: 0.83" title="-0.036">y</span><span style="background-color: hsl(0, 100.00%, 99.54%); opacity: 0.80" title="-0.000">t</span><span style="background-color: hsl(120, 100.00%, 93.60%); opacity: 0.81" title="0.019">h</span><span style="background-color: hsl(120, 100.00%, 92.23%); opacity: 0.82" title="0.025">i</span><span style="background-color: hsl(120, 100.00%, 91.33%); opacity: 0.82" title="0.029">n</span><span style="background-color: hsl(120, 100.00%, 93.92%); opacity: 0.81" title="0.018">g</span><span style="background-color: hsl(0, 100.00%, 92.94%); opacity: 0.82" title="-0.022"> </span><span style="background-color: hsl(0, 100.00%, 86.76%); opacity: 0.84" title="-0.054">a</span><span style="background-color: hsl(0, 100.00%, 81.43%); opacity: 0.87" title="-0.087">b</span><span style="background-color: hsl(0, 100.00%, 82.47%); opacity: 0.86" title="-0.080">o</span><span style="background-color: hsl(0, 100.00%, 84.22%); opacity: 0.85" title="-0.069">u</span><span style="background-color: hsl(0, 100.00%, 89.92%); opacity: 0.83" title="-0.036">t</span><span style="background-color: hsl(0, 100.00%, 95.73%); opacity: 0.81" title="-0.011"> </span><span style="background-color: hsl(120, 100.00%, 90.31%); opacity: 0.83" title="0.034">t</span><span style="background-color: hsl(120, 100.00%, 87.38%); opacity: 0.84" title="0.050">h</span><span style="background-color: hsl(120, 100.00%, 86.21%); opacity: 0.84" title="0.057">e</span><span style="background-color: hsl(120, 100.00%, 88.74%); opacity: 0.83" title="0.043">m</span><span style="background-color: hsl(120, 100.00%, 90.75%); opacity: 0.82" title="0.032"> </span><span style="background-color: hsl(120, 100.00%, 90.92%); opacity: 0.82" title="0.031">e</span><span style="background-color: hsl(120, 100.00%, 87.68%); opacity: 0.84" title="0.048">x</span><span style="background-color: hsl(120, 100.00%, 83.12%); opacity: 0.86" title="0.076">c</span><span style="background-color: hsl(120, 100.00%, 86.46%); opacity: 0.84" title="0.055">e</span><span style="background-color: hsl(120, 100.00%, 87.07%); opacity: 0.84" title="0.052">p</span><span style="background-color: hsl(120, 100.00%, 91.41%); opacity: 0.82" title="0.029">t</span><span style="background-color: hsl(120, 100.00%, 87.28%); opacity: 0.84" title="0.051"> </span><span style="background-color: hsl(120, 100.00%, 81.42%); opacity: 0.87" title="0.087">r</span><span style="background-color: hsl(120, 100.00%, 77.44%); opacity: 0.89" title="0.115">e</span><span style="background-color: hsl(120, 100.00%, 75.08%); opacity: 0.90" title="0.132">l</span><span style="background-color: hsl(120, 100.00%, 81.83%); opacity: 0.86" title="0.084">i</span><span style="background-color: hsl(0, 100.00%, 97.15%); opacity: 0.80" title="-0.006">e</span><span style="background-color: hsl(0, 100.00%, 94.95%); opacity: 0.81" title="-0.014">v</span><span style="background-color: hsl(0, 100.00%, 93.30%); opacity: 0.82" title="-0.020">e</span><span style="background-color: hsl(0, 100.00%, 98.30%); opacity: 0.80" title="-0.003"> </span><span style="background-color: hsl(120, 100.00%, 94.84%); opacity: 0.81" title="0.014">t</span><span style="background-color: hsl(120, 100.00%, 94.73%); opacity: 0.81" title="0.014">h</span><span style="background-color: hsl(120, 100.00%, 95.66%); opacity: 0.81" title="0.011">e</span><span style="background-color: hsl(0, 100.00%, 90.07%); opacity: 0.83" title="-0.036"> </span><span style="background-color: hsl(0, 100.00%, 88.91%); opacity: 0.83" title="-0.042">p</span><span style="background-color: hsl(0, 100.00%, 91.51%); opacity: 0.82" title="-0.028">a</span><span style="background-color: hsl(0, 100.00%, 93.36%); opacity: 0.82" title="-0.020">i</span><span style="background-color: hsl(0, 100.00%, 92.83%); opacity: 0.82" title="-0.022">n</span><span style="background-color: hsl(0, 100.00%, 93.03%); opacity: 0.82" title="-0.021">.</span><span style="background-color: hsl(0, 100.00%, 98.40%); opacity: 0.80" title="-0.003"> </span><span style="background-color: hsl(120, 100.00%, 86.03%); opacity: 0.84" title="0.058">e</span><span style="background-color: hsl(120, 100.00%, 87.96%); opacity: 0.84" title="0.047">i</span><span style="background-color: hsl(120, 100.00%, 88.45%); opacity: 0.83" title="0.044">t</span><span style="background-color: hsl(0, 100.00%, 99.33%); opacity: 0.80" title="-0.001">h</span><span style="background-color: hsl(0, 100.00%, 90.45%); opacity: 0.83" title="-0.034">e</span><span style="background-color: hsl(0, 100.00%, 88.05%); opacity: 0.84" title="-0.046">r</span><span style="background-color: hsl(0, 100.00%, 89.08%); opacity: 0.83" title="-0.041"> </span><span style="background-color: hsl(0, 100.00%, 99.51%); opacity: 0.80" title="-0.000">t</span><span style="background-color: hsl(0, 100.00%, 95.00%); opacity: 0.81" title="-0.013">h</span><span style="background-color: hsl(0, 100.00%, 93.40%); opacity: 0.82" title="-0.020">e</span><span style="background-color: hsl(0, 100.00%, 90.35%); opacity: 0.83" title="-0.034">y</span><span style="background-color: hsl(0, 100.00%, 89.06%); opacity: 0.83" title="-0.041"> </span><span style="background-color: hsl(0, 100.00%, 91.72%); opacity: 0.82" title="-0.027">p</span><span style="background-color: hsl(0, 100.00%, 90.84%); opacity: 0.82" title="-0.032">a</span><span style="background-color: hsl(0, 100.00%, 92.91%); opacity: 0.82" title="-0.022">s</span><span style="background-color: hsl(0, 100.00%, 94.20%); opacity: 0.81" title="-0.016">s</span><span style="background-color: hsl(0, 100.00%, 93.85%); opacity: 0.81" title="-0.018">,</span><span style="background-color: hsl(120, 100.00%, 94.56%); opacity: 0.81" title="0.015"> </span><span style="background-color: hsl(120, 100.00%, 92.25%); opacity: 0.82" title="0.025">or</span><span style="background-color: hsl(120, 100.00%, 96.75%); opacity: 0.81" title="0.007"> </span><span style="background-color: hsl(0, 100.00%, 99.51%); opacity: 0.80" title="-0.000">t</span><span style="background-color: hsl(0, 100.00%, 95.00%); opacity: 0.81" title="-0.013">h</span><span style="background-color: hsl(0, 100.00%, 93.40%); opacity: 0.82" title="-0.020">e</span><span style="background-color: hsl(0, 100.00%, 90.35%); opacity: 0.83" title="-0.034">y</span><span style="background-color: hsl(0, 100.00%, 97.50%); opacity: 0.80" title="-0.005"> </span><span style="background-color: hsl(120, 100.00%, 94.48%); opacity: 0.81" title="0.015">h</span><span style="background-color: hsl(120, 100.00%, 95.52%); opacity: 0.81" title="0.011">a</span><span style="background-color: hsl(120, 100.00%, 95.99%); opacity: 0.81" title="0.010">v</span><span style="background-color: hsl(120, 100.00%, 97.33%); opacity: 0.80" title="0.005">e</span><span style="background-color: hsl(0, 100.00%, 94.32%); opacity: 0.81" title="-0.016"> </span><span style="background-color: hsl(0, 100.00%, 89.91%); opacity: 0.83" title="-0.036">to</span><span style="background-color: hsl(0, 100.00%, 92.54%); opacity: 0.82" title="-0.024"> </span><span style="background-color: hsl(0, 100.00%, 97.13%); opacity: 0.80" title="-0.006">be</span><span style="background-color: hsl(0, 100.00%, 89.85%); opacity: 0.83" title="-0.037"> </span><span style="background-color: hsl(0, 100.00%, 88.95%); opacity: 0.83" title="-0.041">b</span><span style="background-color: hsl(0, 100.00%, 86.44%); opacity: 0.84" title="-0.055">r</span><span style="background-color: hsl(0, 100.00%, 89.00%); opacity: 0.83" title="-0.041">o</span><span style="background-color: hsl(120, 100.00%, 90.31%); opacity: 0.83" title="0.034">k</span><span style="background-color: hsl(120, 100.00%, 87.06%); opacity: 0.84" title="0.052">e</span><span style="background-color: hsl(120, 100.00%, 85.68%); opacity: 0.85" title="0.060">n</span><span style="background-color: hsl(120, 100.00%, 85.88%); opacity: 0.85" title="0.059"> </span><span style="background-color: hsl(120, 100.00%, 89.03%); opacity: 0.83" title="0.041">up</span><span style="background-color: hsl(0, 100.00%, 94.13%); opacity: 0.81" title="-0.017"> </span><span style="background-color: hsl(0, 100.00%, 83.97%); opacity: 0.85" title="-0.070">w</span><span style="background-color: hsl(0, 100.00%, 81.11%); opacity: 0.87" title="-0.089">i</span><span style="background-color: hsl(0, 100.00%, 80.26%); opacity: 0.87" title="-0.095">t</span><span style="background-color: hsl(0, 100.00%, 84.67%); opacity: 0.85" title="-0.066">h</span><span style="background-color: hsl(0, 100.00%, 86.77%); opacity: 0.84" title="-0.054"> </span><span style="background-color: hsl(0, 100.00%, 86.28%); opacity: 0.84" title="-0.056">s</span><span style="background-color: hsl(0, 100.00%, 86.80%); opacity: 0.84" title="-0.053">o</span><span style="background-color: hsl(0, 100.00%, 86.66%); opacity: 0.84" title="-0.054">u</span><span style="background-color: hsl(120, 100.00%, 98.33%); opacity: 0.80" title="0.003">n</span><span style="background-color: hsl(120, 100.00%, 93.93%); opacity: 0.81" title="0.018">d</span><span style="background-color: hsl(120, 100.00%, 90.84%); opacity: 0.82" title="0.032">,</span><span style="background-color: hsl(120, 100.00%, 90.66%); opacity: 0.83" title="0.033"> </span><span style="background-color: hsl(120, 100.00%, 92.25%); opacity: 0.82" title="0.025">or</span><span style="background-color: hsl(120, 100.00%, 96.75%); opacity: 0.81" title="0.007"> </span><span style="background-color: hsl(0, 100.00%, 99.51%); opacity: 0.80" title="-0.000">t</span><span style="background-color: hsl(0, 100.00%, 95.00%); opacity: 0.81" title="-0.013">h</span><span style="background-color: hsl(0, 100.00%, 93.40%); opacity: 0.82" title="-0.020">e</span><span style="background-color: hsl(0, 100.00%, 90.35%); opacity: 0.83" title="-0.034">y</span><span style="background-color: hsl(0, 100.00%, 97.50%); opacity: 0.80" title="-0.005"> </span><span style="background-color: hsl(120, 100.00%, 94.48%); opacity: 0.81" title="0.015">h</span><span style="background-color: hsl(120, 100.00%, 95.52%); opacity: 0.81" title="0.011">a</span><span style="background-color: hsl(120, 100.00%, 95.99%); opacity: 0.81" title="0.010">v</span><span style="background-color: hsl(120, 100.00%, 97.33%); opacity: 0.80" title="0.005">e</span><span style="background-color: hsl(0, 100.00%, 94.32%); opacity: 0.81" title="-0.016">
     </span><span style="background-color: hsl(0, 100.00%, 89.91%); opacity: 0.83" title="-0.036">to</span><span style="background-color: hsl(0, 100.00%, 92.54%); opacity: 0.82" title="-0.024"> </span><span style="background-color: hsl(0, 100.00%, 97.13%); opacity: 0.80" title="-0.006">be</span><span style="background-color: hsl(0, 100.00%, 94.07%); opacity: 0.81" title="-0.017"> </span><span style="background-color: hsl(120, 100.00%, 96.07%); opacity: 0.81" title="0.009">e</span><span style="background-color: hsl(120, 100.00%, 98.53%); opacity: 0.80" title="0.002">x</span><span style="background-color: hsl(120, 100.00%, 92.22%); opacity: 0.82" title="0.025">t</span><span style="background-color: hsl(0, 100.00%, 96.34%); opacity: 0.81" title="-0.009">r</span><span style="background-color: hsl(0, 100.00%, 95.17%); opacity: 0.81" title="-0.013">a</span><span style="background-color: hsl(0, 100.00%, 85.76%); opacity: 0.85" title="-0.059">c</span><span style="background-color: hsl(0, 100.00%, 90.52%); opacity: 0.83" title="-0.033">t</span><span style="background-color: hsl(0, 100.00%, 86.08%); opacity: 0.84" title="-0.058">e</span><span style="background-color: hsl(0, 100.00%, 91.95%); opacity: 0.82" title="-0.026">d</span><span style="background-color: hsl(0, 100.00%, 91.29%); opacity: 0.82" title="-0.029"> </span><span style="background-color: hsl(0, 100.00%, 86.63%); opacity: 0.84" title="-0.054">s</span><span style="background-color: hsl(0, 100.00%, 80.95%); opacity: 0.87" title="-0.090">u</span><span style="background-color: hsl(0, 100.00%, 77.28%); opacity: 0.89" title="-0.116">r</span><span style="background-color: hsl(0, 100.00%, 87.98%); opacity: 0.84" title="-0.047">g</span><span style="background-color: hsl(0, 100.00%, 97.68%); opacity: 0.80" title="-0.004">i</span><span style="background-color: hsl(120, 100.00%, 91.73%); opacity: 0.82" title="0.027">c</span><span style="background-color: hsl(120, 100.00%, 89.05%); opacity: 0.83" title="0.041">a</span><span style="background-color: hsl(120, 100.00%, 89.57%); opacity: 0.83" title="0.038">l</span><span style="background-color: hsl(120, 100.00%, 90.84%); opacity: 0.82" title="0.032">l</span><span style="background-color: hsl(120, 100.00%, 92.28%); opacity: 0.82" title="0.025">y</span><span style="background-color: hsl(120, 100.00%, 92.14%); opacity: 0.82" title="0.025">.</span><span style="background-color: hsl(0, 100.00%, 96.39%); opacity: 0.81" title="-0.008"> </span><span style="background-color: hsl(0, 100.00%, 89.17%); opacity: 0.83" title="-0.040">w</span><span style="background-color: hsl(0, 100.00%, 87.00%); opacity: 0.84" title="-0.052">h</span><span style="background-color: hsl(0, 100.00%, 88.90%); opacity: 0.83" title="-0.042">e</span><span style="background-color: hsl(0, 100.00%, 92.74%); opacity: 0.82" title="-0.023">n</span><span style="background-color: hsl(0, 100.00%, 91.73%); opacity: 0.82" title="-0.027"> </span><span style="background-color: hsl(0, 100.00%, 91.78%); opacity: 0.82" title="-0.027">i</span><span style="background-color: hsl(0, 100.00%, 89.66%); opacity: 0.83" title="-0.038"> </span><span style="background-color: hsl(0, 100.00%, 94.98%); opacity: 0.81" title="-0.013">w</span><span style="background-color: hsl(0, 100.00%, 95.15%); opacity: 0.81" title="-0.013">a</span><span style="background-color: hsl(0, 100.00%, 97.94%); opacity: 0.80" title="-0.004">s</span><span style="background-color: hsl(0, 100.00%, 97.67%); opacity: 0.80" title="-0.004"> </span><span style="background-color: hsl(0, 100.00%, 92.44%); opacity: 0.82" title="-0.024">i</span><span style="background-color: hsl(0, 100.00%, 95.71%); opacity: 0.81" title="-0.011">n</span><span style="background-color: hsl(0, 100.00%, 95.96%); opacity: 0.81" title="-0.010">,</span><span style="background-color: hsl(120, 100.00%, 97.58%); opacity: 0.80" title="0.005"> </span><span style="background-color: hsl(120, 100.00%, 94.84%); opacity: 0.81" title="0.014">t</span><span style="background-color: hsl(120, 100.00%, 94.73%); opacity: 0.81" title="0.014">h</span><span style="background-color: hsl(120, 100.00%, 95.66%); opacity: 0.81" title="0.011">e</span><span style="background-color: hsl(0, 100.00%, 95.99%); opacity: 0.81" title="-0.010"> </span><span style="background-color: hsl(0, 100.00%, 94.74%); opacity: 0.81" title="-0.014">x</span><span style="background-color: hsl(0, 100.00%, 92.41%); opacity: 0.82" title="-0.024">-</span><span style="background-color: hsl(0, 100.00%, 87.18%); opacity: 0.84" title="-0.051">r</span><span style="background-color: hsl(0, 100.00%, 89.07%); opacity: 0.83" title="-0.041">a</span><span style="background-color: hsl(0, 100.00%, 91.04%); opacity: 0.82" title="-0.031">y</span><span style="background-color: hsl(0, 100.00%, 93.65%); opacity: 0.81" title="-0.019"> </span><span style="background-color: hsl(0, 100.00%, 93.39%); opacity: 0.82" title="-0.020">t</span><span style="background-color: hsl(0, 100.00%, 92.89%); opacity: 0.82" title="-0.022">e</span><span style="background-color: hsl(0, 100.00%, 92.64%); opacity: 0.82" title="-0.023">c</span><span style="background-color: hsl(0, 100.00%, 94.13%); opacity: 0.81" title="-0.017">h</span><span style="background-color: hsl(0, 100.00%, 98.49%); opacity: 0.80" title="-0.002"> </span><span style="background-color: hsl(120, 100.00%, 97.25%); opacity: 0.80" title="0.006">h</span><span style="background-color: hsl(120, 100.00%, 98.97%); opacity: 0.80" title="0.001">a</span><span style="background-color: hsl(0, 100.00%, 93.82%); opacity: 0.81" title="-0.018">p</span><span style="background-color: hsl(0, 100.00%, 98.20%); opacity: 0.80" title="-0.003">p</span><span style="background-color: hsl(120, 100.00%, 98.33%); opacity: 0.80" title="0.003">e</span><span style="background-color: hsl(120, 100.00%, 92.85%); opacity: 0.82" title="0.022">n</span><span style="background-color: hsl(120, 100.00%, 93.16%); opacity: 0.82" title="0.021">e</span><span style="background-color: hsl(120, 100.00%, 93.58%); opacity: 0.81" title="0.019">d</span><span style="background-color: hsl(0, 100.00%, 91.47%); opacity: 0.82" title="-0.029"> </span><span style="background-color: hsl(0, 100.00%, 89.91%); opacity: 0.83" title="-0.036">to</span><span style="background-color: hsl(0, 100.00%, 96.21%); opacity: 0.81" title="-0.009"> </span><span style="background-color: hsl(120, 100.00%, 89.20%); opacity: 0.83" title="0.040">m</span><span style="background-color: hsl(120, 100.00%, 83.87%); opacity: 0.85" title="0.071">e</span><span style="background-color: hsl(120, 100.00%, 76.28%); opacity: 0.89" title="0.123">n</span><span style="background-color: hsl(120, 100.00%, 79.44%); opacity: 0.88" title="0.101">t</span><span style="background-color: hsl(120, 100.00%, 84.04%); opacity: 0.85" title="0.070">i</span><span style="background-color: hsl(120, 100.00%, 88.78%); opacity: 0.83" title="0.042">o</span><span style="background-color: hsl(120, 100.00%, 95.55%); opacity: 0.81" title="0.011">n</span><span style="background-color: hsl(0, 100.00%, 99.65%); opacity: 0.80" title="-0.000"> </span><span style="background-color: hsl(120, 100.00%, 98.35%); opacity: 0.80" title="0.003">t</span><span style="background-color: hsl(120, 100.00%, 95.04%); opacity: 0.81" title="0.013">h</span><span style="background-color: hsl(120, 100.00%, 95.71%); opacity: 0.81" title="0.011">a</span><span style="background-color: hsl(120, 100.00%, 95.30%); opacity: 0.81" title="0.012">t</span><span style="background-color: hsl(120, 100.00%, 92.99%); opacity: 0.82" title="0.022"> </span><span style="background-color: hsl(120, 100.00%, 87.74%); opacity: 0.84" title="0.048">s</span><span style="background-color: hsl(120, 100.00%, 84.93%); opacity: 0.85" title="0.065">h</span><span style="background-color: hsl(120, 100.00%, 84.65%); opacity: 0.85" title="0.066">e</span><span style="background-color: hsl(120, 100.00%, 87.78%); opacity: 0.84" title="0.048">'</span><span style="background-color: hsl(0, 100.00%, 95.22%); opacity: 0.81" title="-0.013">d</span><span style="background-color: hsl(0, 100.00%, 97.49%); opacity: 0.80" title="-0.005"> </span><span style="background-color: hsl(0, 100.00%, 94.67%); opacity: 0.81" title="-0.015">h</span><span style="background-color: hsl(120, 100.00%, 97.86%); opacity: 0.80" title="0.004">a</span><span style="background-color: hsl(0, 100.00%, 98.41%); opacity: 0.80" title="-0.003">d</span><span style="background-color: hsl(120, 100.00%, 92.92%); opacity: 0.82" title="0.022"> </span><span style="background-color: hsl(120, 100.00%, 91.92%); opacity: 0.82" title="0.026">k</span><span style="background-color: hsl(120, 100.00%, 92.71%); opacity: 0.82" title="0.023">i</span><span style="background-color: hsl(0, 100.00%, 94.92%); opacity: 0.81" title="-0.014">d</span><span style="background-color: hsl(0, 100.00%, 89.08%); opacity: 0.83" title="-0.041">n</span><span style="background-color: hsl(0, 100.00%, 89.04%); opacity: 0.83" title="-0.041">e</span><span style="background-color: hsl(0, 100.00%, 93.98%); opacity: 0.81" title="-0.017">y</span><span style="background-color: hsl(0, 100.00%, 99.85%); opacity: 0.80" title="-0.000">
     </span><span style="background-color: hsl(0, 100.00%, 93.64%); opacity: 0.81" title="-0.019">s</span><span style="background-color: hsl(0, 100.00%, 88.82%); opacity: 0.83" title="-0.042">t</span><span style="background-color: hsl(0, 100.00%, 92.40%); opacity: 0.82" title="-0.024">o</span><span style="background-color: hsl(0, 100.00%, 92.43%); opacity: 0.82" title="-0.024">n</span><span style="background-color: hsl(120, 100.00%, 96.67%); opacity: 0.81" title="0.007">e</span><span style="background-color: hsl(120, 100.00%, 92.34%); opacity: 0.82" title="0.025">s</span><span style="background-color: hsl(0, 100.00%, 97.07%); opacity: 0.80" title="-0.006"> </span><span style="background-color: hsl(0, 100.00%, 91.03%); opacity: 0.82" title="-0.031">a</span><span style="background-color: hsl(0, 100.00%, 89.06%); opacity: 0.83" title="-0.041">n</span><span style="background-color: hsl(0, 100.00%, 91.37%); opacity: 0.82" title="-0.029">d</span><span style="background-color: hsl(0, 100.00%, 96.06%); opacity: 0.81" title="-0.009"> </span><span style="background-color: hsl(120, 100.00%, 94.40%); opacity: 0.81" title="0.016">c</span><span style="background-color: hsl(120, 100.00%, 90.71%); opacity: 0.82" title="0.032">h</span><span style="background-color: hsl(120, 100.00%, 87.87%); opacity: 0.84" title="0.047">i</span><span style="background-color: hsl(120, 100.00%, 88.64%); opacity: 0.83" title="0.043">l</span><span style="background-color: hsl(0, 100.00%, 98.73%); opacity: 0.80" title="-0.002">d</span><span style="background-color: hsl(0, 100.00%, 92.25%); opacity: 0.82" title="-0.025">r</span><span style="background-color: hsl(0, 100.00%, 94.42%); opacity: 0.81" title="-0.016">e</span><span style="background-color: hsl(120, 100.00%, 96.29%); opacity: 0.81" title="0.009">n</span><span style="background-color: hsl(120, 100.00%, 96.42%); opacity: 0.81" title="0.008">,</span><span style="background-color: hsl(0, 100.00%, 95.33%); opacity: 0.81" title="-0.012"> </span><span style="background-color: hsl(0, 100.00%, 91.03%); opacity: 0.82" title="-0.031">a</span><span style="background-color: hsl(0, 100.00%, 89.06%); opacity: 0.83" title="-0.041">n</span><span style="background-color: hsl(0, 100.00%, 91.37%); opacity: 0.82" title="-0.029">d</span><span style="background-color: hsl(0, 100.00%, 94.06%); opacity: 0.81" title="-0.017"> </span><span style="background-color: hsl(120, 100.00%, 94.84%); opacity: 0.81" title="0.014">t</span><span style="background-color: hsl(120, 100.00%, 94.73%); opacity: 0.81" title="0.014">h</span><span style="background-color: hsl(120, 100.00%, 95.66%); opacity: 0.81" title="0.011">e</span><span style="background-color: hsl(120, 100.00%, 97.26%); opacity: 0.80" title="0.006"> </span><span style="background-color: hsl(120, 100.00%, 94.40%); opacity: 0.81" title="0.016">c</span><span style="background-color: hsl(120, 100.00%, 91.10%); opacity: 0.82" title="0.030">h</span><span style="background-color: hsl(120, 100.00%, 89.02%); opacity: 0.83" title="0.041">i</span><span style="background-color: hsl(120, 100.00%, 90.06%); opacity: 0.83" title="0.036">l</span><span style="background-color: hsl(120, 100.00%, 98.01%); opacity: 0.80" title="0.004">d</span><span style="background-color: hsl(0, 100.00%, 97.49%); opacity: 0.80" title="-0.005">b</span><span style="background-color: hsl(0, 100.00%, 97.39%); opacity: 0.80" title="-0.005">i</span><span style="background-color: hsl(0, 100.00%, 97.49%); opacity: 0.80" title="-0.005">r</span><span style="background-color: hsl(0, 100.00%, 92.65%); opacity: 0.82" title="-0.023">t</span><span style="background-color: hsl(0, 100.00%, 92.84%); opacity: 0.82" title="-0.022">h</span><span style="background-color: hsl(0, 100.00%, 91.23%); opacity: 0.82" title="-0.030"> </span><span style="background-color: hsl(0, 100.00%, 89.04%); opacity: 0.83" title="-0.041">h</span><span style="background-color: hsl(0, 100.00%, 92.22%); opacity: 0.82" title="-0.025">u</span><span style="background-color: hsl(0, 100.00%, 88.14%); opacity: 0.84" title="-0.046">r</span><span style="background-color: hsl(0, 100.00%, 95.30%); opacity: 0.81" title="-0.012">t</span><span style="background-color: hsl(0, 100.00%, 94.31%); opacity: 0.81" title="-0.016"> </span><span style="background-color: hsl(120, 100.00%, 99.59%); opacity: 0.80" title="0.000">l</span><span style="background-color: hsl(0, 100.00%, 90.65%); opacity: 0.83" title="-0.033">e</span><span style="background-color: hsl(0, 100.00%, 88.48%); opacity: 0.83" title="-0.044">s</span><span style="background-color: hsl(0, 100.00%, 87.84%); opacity: 0.84" title="-0.047">s</span><span style="background-color: hsl(0, 100.00%, 92.58%); opacity: 0.82" title="-0.023">.</span>
@@ -3211,8 +3422,13 @@ looks like:
                style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
             <thead>
             <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature contribution already accounts for the feature value (for linear models, contribution = weight * feature value), and the sum of feature contributions is equal to the score or, for some classifiers, to the probability. Feature values are shown if &quot;show_feature_values&quot; is True.">
+                        Contribution<sup>?</sup>
+                    </th>
+                
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
             </tr>
             </thead>
             <tbody>
@@ -3224,6 +3440,7 @@ looks like:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             &lt;BIAS&gt;
         </td>
+        
     </tr>
             
             
@@ -3237,6 +3454,7 @@ looks like:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             Highlighted in text (sum)
         </td>
+        
     </tr>
             
     
@@ -3248,7 +3466,7 @@ looks like:
     
     
         <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
-            <span style="background-color: hsl(0, 100.00%, 99.06%); opacity: 0.80" title="-0.001">as</span><span style="background-color: hsl(120, 100.00%, 99.92%); opacity: 0.80" title="0.000"> </span><span style="background-color: hsl(120, 100.00%, 99.04%); opacity: 0.80" title="0.001">i</span><span style="background-color: hsl(0, 100.00%, 95.00%); opacity: 0.81" title="-0.013"> </span><span style="background-color: hsl(0, 100.00%, 94.81%); opacity: 0.81" title="-0.014">r</span><span style="background-color: hsl(0, 100.00%, 94.05%); opacity: 0.81" title="-0.017">e</span><span style="background-color: hsl(0, 100.00%, 93.66%); opacity: 0.81" title="-0.019">c</span><span style="background-color: hsl(0, 100.00%, 94.32%); opacity: 0.81" title="-0.016">a</span><span style="background-color: hsl(0, 100.00%, 94.63%); opacity: 0.81" title="-0.015">l</span><span style="background-color: hsl(0, 100.00%, 96.63%); opacity: 0.81" title="-0.008">l</span><span style="background-color: hsl(120, 100.00%, 95.60%); opacity: 0.81" title="0.011"> </span><span style="background-color: hsl(120, 100.00%, 92.98%); opacity: 0.82" title="0.022">f</span><span style="background-color: hsl(120, 100.00%, 92.69%); opacity: 0.82" title="0.023">r</span><span style="background-color: hsl(120, 100.00%, 94.46%); opacity: 0.81" title="0.015">o</span><span style="background-color: hsl(120, 100.00%, 97.10%); opacity: 0.80" title="0.006">m</span><span style="background-color: hsl(0, 100.00%, 91.52%); opacity: 0.82" title="-0.028"> </span><span style="background-color: hsl(0, 100.00%, 88.75%); opacity: 0.83" title="-0.042">my</span><span style="background-color: hsl(0, 100.00%, 96.73%); opacity: 0.81" title="-0.007"> </span><span style="background-color: hsl(120, 100.00%, 92.41%); opacity: 0.82" title="0.024">b</span><span style="background-color: hsl(120, 100.00%, 91.20%); opacity: 0.82" title="0.030">o</span><span style="background-color: hsl(120, 100.00%, 91.53%); opacity: 0.82" title="0.028">u</span><span style="background-color: hsl(120, 100.00%, 94.58%); opacity: 0.81" title="0.015">t</span><span style="background-color: hsl(120, 100.00%, 97.64%); opacity: 0.80" title="0.005"> </span><span style="background-color: hsl(120, 100.00%, 98.67%); opacity: 0.80" title="0.002">w</span><span style="background-color: hsl(120, 100.00%, 98.43%); opacity: 0.80" title="0.003">i</span><span style="background-color: hsl(120, 100.00%, 98.08%); opacity: 0.80" title="0.003">t</span><span style="background-color: hsl(120, 100.00%, 98.07%); opacity: 0.80" title="0.003">h</span><span style="background-color: hsl(0, 100.00%, 96.71%); opacity: 0.81" title="-0.007"> </span><span style="background-color: hsl(0, 100.00%, 93.62%); opacity: 0.81" title="-0.019">k</span><span style="background-color: hsl(0, 100.00%, 92.69%); opacity: 0.82" title="-0.023">i</span><span style="background-color: hsl(0, 100.00%, 92.66%); opacity: 0.82" title="-0.023">d</span><span style="background-color: hsl(0, 100.00%, 96.25%); opacity: 0.81" title="-0.009">n</span><span style="background-color: hsl(0, 100.00%, 94.60%); opacity: 0.81" title="-0.015">e</span><span style="background-color: hsl(0, 100.00%, 97.68%); opacity: 0.80" title="-0.004">y</span><span style="background-color: hsl(0, 100.00%, 92.74%); opacity: 0.82" title="-0.023"> </span><span style="background-color: hsl(0, 100.00%, 95.25%); opacity: 0.81" title="-0.012">s</span><span style="background-color: hsl(0, 100.00%, 90.42%); opacity: 0.83" title="-0.034">t</span><span style="background-color: hsl(0, 100.00%, 92.04%); opacity: 0.82" title="-0.026">o</span><span style="background-color: hsl(0, 100.00%, 92.15%); opacity: 0.82" title="-0.025">n</span><span style="background-color: hsl(0, 100.00%, 97.72%); opacity: 0.80" title="-0.004">e</span><span style="background-color: hsl(0, 100.00%, 97.60%); opacity: 0.80" title="-0.005">s</span><span style="background-color: hsl(120, 100.00%, 96.42%); opacity: 0.81" title="0.008">,</span><span style="background-color: hsl(0, 100.00%, 95.42%); opacity: 0.81" title="-0.012"> </span><span style="background-color: hsl(0, 100.00%, 91.62%); opacity: 0.82" title="-0.028">t</span><span style="background-color: hsl(0, 100.00%, 92.90%); opacity: 0.82" title="-0.022">h</span><span style="background-color: hsl(0, 100.00%, 97.39%); opacity: 0.80" title="-0.005">e</span><span style="background-color: hsl(120, 100.00%, 96.12%); opacity: 0.81" title="0.009">r</span><span style="background-color: hsl(120, 100.00%, 95.81%); opacity: 0.81" title="0.010">e</span><span style="background-color: hsl(0, 100.00%, 96.87%); opacity: 0.81" title="-0.007"> </span><span style="background-color: hsl(0, 100.00%, 94.99%); opacity: 0.81" title="-0.013">i</span><span style="background-color: hsl(0, 100.00%, 92.29%); opacity: 0.82" title="-0.025">s</span><span style="background-color: hsl(0, 100.00%, 93.66%); opacity: 0.81" title="-0.019">n</span><span style="background-color: hsl(0, 100.00%, 94.21%); opacity: 0.81" title="-0.016">'</span><span style="background-color: hsl(0, 100.00%, 96.63%); opacity: 0.81" title="-0.008">t</span><span style="background-color: hsl(0, 100.00%, 99.77%); opacity: 0.80" title="-0.000"> </span><span style="background-color: hsl(120, 100.00%, 97.99%); opacity: 0.80" title="0.004">a</span><span style="background-color: hsl(120, 100.00%, 98.62%); opacity: 0.80" title="0.002">n</span><span style="background-color: hsl(120, 100.00%, 97.88%); opacity: 0.80" title="0.004">y</span><span style="background-color: hsl(0, 100.00%, 90.29%); opacity: 0.83" title="-0.034">
+            <span style="background-color: hsl(0, 100.00%, 93.91%); opacity: 0.81" title="-0.018">as</span><span style="background-color: hsl(0, 100.00%, 97.59%); opacity: 0.80" title="-0.005"> </span><span style="background-color: hsl(120, 100.00%, 99.04%); opacity: 0.80" title="0.001">i</span><span style="background-color: hsl(0, 100.00%, 95.00%); opacity: 0.81" title="-0.013"> </span><span style="background-color: hsl(0, 100.00%, 94.81%); opacity: 0.81" title="-0.014">r</span><span style="background-color: hsl(0, 100.00%, 94.05%); opacity: 0.81" title="-0.017">e</span><span style="background-color: hsl(0, 100.00%, 93.66%); opacity: 0.81" title="-0.019">c</span><span style="background-color: hsl(0, 100.00%, 94.32%); opacity: 0.81" title="-0.016">a</span><span style="background-color: hsl(0, 100.00%, 94.63%); opacity: 0.81" title="-0.015">l</span><span style="background-color: hsl(0, 100.00%, 96.63%); opacity: 0.81" title="-0.008">l</span><span style="background-color: hsl(120, 100.00%, 95.60%); opacity: 0.81" title="0.011"> </span><span style="background-color: hsl(120, 100.00%, 92.98%); opacity: 0.82" title="0.022">f</span><span style="background-color: hsl(120, 100.00%, 92.69%); opacity: 0.82" title="0.023">r</span><span style="background-color: hsl(120, 100.00%, 94.46%); opacity: 0.81" title="0.015">o</span><span style="background-color: hsl(120, 100.00%, 97.10%); opacity: 0.80" title="0.006">m</span><span style="background-color: hsl(0, 100.00%, 91.52%); opacity: 0.82" title="-0.028"> </span><span style="background-color: hsl(0, 100.00%, 88.75%); opacity: 0.83" title="-0.042">my</span><span style="background-color: hsl(0, 100.00%, 96.73%); opacity: 0.81" title="-0.007"> </span><span style="background-color: hsl(120, 100.00%, 92.41%); opacity: 0.82" title="0.024">b</span><span style="background-color: hsl(120, 100.00%, 91.20%); opacity: 0.82" title="0.030">o</span><span style="background-color: hsl(120, 100.00%, 91.53%); opacity: 0.82" title="0.028">u</span><span style="background-color: hsl(120, 100.00%, 94.58%); opacity: 0.81" title="0.015">t</span><span style="background-color: hsl(120, 100.00%, 97.64%); opacity: 0.80" title="0.005"> </span><span style="background-color: hsl(120, 100.00%, 98.67%); opacity: 0.80" title="0.002">w</span><span style="background-color: hsl(120, 100.00%, 98.43%); opacity: 0.80" title="0.003">i</span><span style="background-color: hsl(120, 100.00%, 98.08%); opacity: 0.80" title="0.003">t</span><span style="background-color: hsl(120, 100.00%, 98.07%); opacity: 0.80" title="0.003">h</span><span style="background-color: hsl(0, 100.00%, 96.71%); opacity: 0.81" title="-0.007"> </span><span style="background-color: hsl(0, 100.00%, 93.62%); opacity: 0.81" title="-0.019">k</span><span style="background-color: hsl(0, 100.00%, 92.69%); opacity: 0.82" title="-0.023">i</span><span style="background-color: hsl(0, 100.00%, 92.66%); opacity: 0.82" title="-0.023">d</span><span style="background-color: hsl(0, 100.00%, 96.25%); opacity: 0.81" title="-0.009">n</span><span style="background-color: hsl(0, 100.00%, 94.60%); opacity: 0.81" title="-0.015">e</span><span style="background-color: hsl(0, 100.00%, 97.68%); opacity: 0.80" title="-0.004">y</span><span style="background-color: hsl(0, 100.00%, 92.74%); opacity: 0.82" title="-0.023"> </span><span style="background-color: hsl(0, 100.00%, 95.25%); opacity: 0.81" title="-0.012">s</span><span style="background-color: hsl(0, 100.00%, 90.42%); opacity: 0.83" title="-0.034">t</span><span style="background-color: hsl(0, 100.00%, 92.04%); opacity: 0.82" title="-0.026">o</span><span style="background-color: hsl(0, 100.00%, 92.15%); opacity: 0.82" title="-0.025">n</span><span style="background-color: hsl(0, 100.00%, 97.72%); opacity: 0.80" title="-0.004">e</span><span style="background-color: hsl(0, 100.00%, 97.60%); opacity: 0.80" title="-0.005">s</span><span style="background-color: hsl(120, 100.00%, 96.42%); opacity: 0.81" title="0.008">,</span><span style="background-color: hsl(0, 100.00%, 95.42%); opacity: 0.81" title="-0.012"> </span><span style="background-color: hsl(0, 100.00%, 91.62%); opacity: 0.82" title="-0.028">t</span><span style="background-color: hsl(0, 100.00%, 92.90%); opacity: 0.82" title="-0.022">h</span><span style="background-color: hsl(0, 100.00%, 97.39%); opacity: 0.80" title="-0.005">e</span><span style="background-color: hsl(120, 100.00%, 96.12%); opacity: 0.81" title="0.009">r</span><span style="background-color: hsl(120, 100.00%, 95.81%); opacity: 0.81" title="0.010">e</span><span style="background-color: hsl(0, 100.00%, 96.87%); opacity: 0.81" title="-0.007"> </span><span style="background-color: hsl(0, 100.00%, 94.99%); opacity: 0.81" title="-0.013">i</span><span style="background-color: hsl(0, 100.00%, 92.29%); opacity: 0.82" title="-0.025">s</span><span style="background-color: hsl(0, 100.00%, 93.66%); opacity: 0.81" title="-0.019">n</span><span style="background-color: hsl(0, 100.00%, 94.21%); opacity: 0.81" title="-0.016">'</span><span style="background-color: hsl(0, 100.00%, 96.63%); opacity: 0.81" title="-0.008">t</span><span style="background-color: hsl(0, 100.00%, 99.77%); opacity: 0.80" title="-0.000"> </span><span style="background-color: hsl(120, 100.00%, 97.99%); opacity: 0.80" title="0.004">a</span><span style="background-color: hsl(120, 100.00%, 98.62%); opacity: 0.80" title="0.002">n</span><span style="background-color: hsl(120, 100.00%, 97.88%); opacity: 0.80" title="0.004">y</span><span style="background-color: hsl(0, 100.00%, 90.29%); opacity: 0.83" title="-0.034">
     </span><span style="background-color: hsl(0, 100.00%, 84.97%); opacity: 0.85" title="-0.064">m</span><span style="background-color: hsl(0, 100.00%, 79.51%); opacity: 0.88" title="-0.100">e</span><span style="background-color: hsl(0, 100.00%, 76.36%); opacity: 0.89" title="-0.123">d</span><span style="background-color: hsl(0, 100.00%, 79.06%); opacity: 0.88" title="-0.103">i</span><span style="background-color: hsl(0, 100.00%, 83.45%); opacity: 0.86" title="-0.074">c</span><span style="background-color: hsl(0, 100.00%, 92.69%); opacity: 0.82" title="-0.023">a</span><span style="background-color: hsl(0, 100.00%, 99.16%); opacity: 0.80" title="-0.001">t</span><span style="background-color: hsl(120, 100.00%, 95.85%); opacity: 0.81" title="0.010">i</span><span style="background-color: hsl(120, 100.00%, 97.18%); opacity: 0.80" title="0.006">o</span><span style="background-color: hsl(120, 100.00%, 98.44%); opacity: 0.80" title="0.003">n</span><span style="background-color: hsl(0, 100.00%, 93.79%); opacity: 0.81" title="-0.018"> </span><span style="background-color: hsl(0, 100.00%, 90.25%); opacity: 0.83" title="-0.035">t</span><span style="background-color: hsl(0, 100.00%, 87.26%); opacity: 0.84" title="-0.051">h</span><span style="background-color: hsl(0, 100.00%, 87.99%); opacity: 0.84" title="-0.047">a</span><span style="background-color: hsl(0, 100.00%, 89.88%); opacity: 0.83" title="-0.037">t</span><span style="background-color: hsl(0, 100.00%, 92.97%); opacity: 0.82" title="-0.022"> </span><span style="background-color: hsl(0, 100.00%, 97.39%); opacity: 0.80" title="-0.005">c</span><span style="background-color: hsl(0, 100.00%, 95.00%); opacity: 0.81" title="-0.013">a</span><span style="background-color: hsl(0, 100.00%, 96.05%); opacity: 0.81" title="-0.010">n</span><span style="background-color: hsl(0, 100.00%, 93.52%); opacity: 0.81" title="-0.019"> </span><span style="background-color: hsl(0, 100.00%, 94.49%); opacity: 0.81" title="-0.015">do</span><span style="background-color: hsl(0, 100.00%, 96.27%); opacity: 0.81" title="-0.009"> </span><span style="background-color: hsl(0, 100.00%, 99.43%); opacity: 0.80" title="-0.001">a</span><span style="background-color: hsl(0, 100.00%, 97.18%); opacity: 0.80" title="-0.006">n</span><span style="background-color: hsl(0, 100.00%, 98.10%); opacity: 0.80" title="-0.003">y</span><span style="background-color: hsl(0, 100.00%, 93.45%); opacity: 0.82" title="-0.020">t</span><span style="background-color: hsl(0, 100.00%, 92.39%); opacity: 0.82" title="-0.024">h</span><span style="background-color: hsl(0, 100.00%, 92.40%); opacity: 0.82" title="-0.024">i</span><span style="background-color: hsl(0, 100.00%, 92.84%); opacity: 0.82" title="-0.022">n</span><span style="background-color: hsl(0, 100.00%, 95.00%); opacity: 0.81" title="-0.013">g</span><span style="background-color: hsl(0, 100.00%, 97.17%); opacity: 0.80" title="-0.006"> </span><span style="background-color: hsl(0, 100.00%, 99.72%); opacity: 0.80" title="-0.000">a</span><span style="background-color: hsl(120, 100.00%, 97.61%); opacity: 0.80" title="0.005">b</span><span style="background-color: hsl(120, 100.00%, 95.91%); opacity: 0.81" title="0.010">o</span><span style="background-color: hsl(120, 100.00%, 94.58%); opacity: 0.81" title="0.015">u</span><span style="background-color: hsl(120, 100.00%, 95.74%); opacity: 0.81" title="0.011">t</span><span style="background-color: hsl(0, 100.00%, 95.50%); opacity: 0.81" title="-0.011"> </span><span style="background-color: hsl(0, 100.00%, 91.76%); opacity: 0.82" title="-0.027">t</span><span style="background-color: hsl(0, 100.00%, 91.28%); opacity: 0.82" title="-0.030">h</span><span style="background-color: hsl(0, 100.00%, 95.91%); opacity: 0.81" title="-0.010">e</span><span style="background-color: hsl(120, 100.00%, 96.82%); opacity: 0.81" title="0.007">m</span><span style="background-color: hsl(0, 100.00%, 99.14%); opacity: 0.80" title="-0.001"> </span><span style="background-color: hsl(0, 100.00%, 92.99%); opacity: 0.82" title="-0.022">e</span><span style="background-color: hsl(0, 100.00%, 90.41%); opacity: 0.83" title="-0.034">x</span><span style="background-color: hsl(0, 100.00%, 88.58%); opacity: 0.83" title="-0.043">c</span><span style="background-color: hsl(0, 100.00%, 86.00%); opacity: 0.84" title="-0.058">e</span><span style="background-color: hsl(0, 100.00%, 86.64%); opacity: 0.84" title="-0.054">p</span><span style="background-color: hsl(0, 100.00%, 89.00%); opacity: 0.83" title="-0.041">t</span><span style="background-color: hsl(0, 100.00%, 88.11%); opacity: 0.84" title="-0.046"> </span><span style="background-color: hsl(0, 100.00%, 86.40%); opacity: 0.84" title="-0.056">r</span><span style="background-color: hsl(0, 100.00%, 79.93%); opacity: 0.87" title="-0.097">e</span><span style="background-color: hsl(0, 100.00%, 77.66%); opacity: 0.89" title="-0.113">l</span><span style="background-color: hsl(0, 100.00%, 77.94%); opacity: 0.89" title="-0.111">i</span><span style="background-color: hsl(0, 100.00%, 83.61%); opacity: 0.86" title="-0.073">e</span><span style="background-color: hsl(0, 100.00%, 87.50%); opacity: 0.84" title="-0.049">v</span><span style="background-color: hsl(0, 100.00%, 91.93%); opacity: 0.82" title="-0.026">e</span><span style="background-color: hsl(0, 100.00%, 91.08%); opacity: 0.82" title="-0.030"> </span><span style="background-color: hsl(0, 100.00%, 90.18%); opacity: 0.83" title="-0.035">t</span><span style="background-color: hsl(0, 100.00%, 88.13%); opacity: 0.84" title="-0.046">h</span><span style="background-color: hsl(0, 100.00%, 90.48%); opacity: 0.83" title="-0.033">e</span><span style="background-color: hsl(0, 100.00%, 92.38%); opacity: 0.82" title="-0.024"> </span><span style="background-color: hsl(0, 100.00%, 91.06%); opacity: 0.82" title="-0.031">p</span><span style="background-color: hsl(0, 100.00%, 88.23%); opacity: 0.83" title="-0.045">a</span><span style="background-color: hsl(0, 100.00%, 85.63%); opacity: 0.85" title="-0.060">i</span><span style="background-color: hsl(0, 100.00%, 86.90%); opacity: 0.84" title="-0.053">n</span><span style="background-color: hsl(0, 100.00%, 90.02%); opacity: 0.83" title="-0.036">.</span><span style="background-color: hsl(0, 100.00%, 93.97%); opacity: 0.81" title="-0.017"> </span><span style="background-color: hsl(0, 100.00%, 96.28%); opacity: 0.81" title="-0.009">e</span><span style="background-color: hsl(0, 100.00%, 96.42%); opacity: 0.81" title="-0.008">i</span><span style="background-color: hsl(0, 100.00%, 92.61%); opacity: 0.82" title="-0.023">t</span><span style="background-color: hsl(0, 100.00%, 93.14%); opacity: 0.82" title="-0.021">h</span><span style="background-color: hsl(0, 100.00%, 93.95%); opacity: 0.81" title="-0.018">e</span><span style="background-color: hsl(0, 100.00%, 97.48%); opacity: 0.80" title="-0.005">r</span><span style="background-color: hsl(0, 100.00%, 92.23%); opacity: 0.82" title="-0.025"> </span><span style="background-color: hsl(0, 100.00%, 87.92%); opacity: 0.84" title="-0.047">t</span><span style="background-color: hsl(0, 100.00%, 85.03%); opacity: 0.85" title="-0.064">h</span><span style="background-color: hsl(0, 100.00%, 85.49%); opacity: 0.85" title="-0.061">e</span><span style="background-color: hsl(0, 100.00%, 88.45%); opacity: 0.83" title="-0.044">y</span><span style="background-color: hsl(0, 100.00%, 91.63%); opacity: 0.82" title="-0.028"> </span><span style="background-color: hsl(0, 100.00%, 94.42%); opacity: 0.81" title="-0.016">p</span><span style="background-color: hsl(0, 100.00%, 93.83%); opacity: 0.81" title="-0.018">a</span><span style="background-color: hsl(0, 100.00%, 93.86%); opacity: 0.81" title="-0.018">s</span><span style="background-color: hsl(0, 100.00%, 96.79%); opacity: 0.81" title="-0.007">s</span><span style="background-color: hsl(120, 100.00%, 96.76%); opacity: 0.81" title="0.007">,</span><span style="background-color: hsl(120, 100.00%, 95.47%); opacity: 0.81" title="0.012"> </span><span style="background-color: hsl(120, 100.00%, 94.85%); opacity: 0.81" title="0.014">or</span><span style="background-color: hsl(0, 100.00%, 95.38%); opacity: 0.81" title="-0.012"> </span><span style="background-color: hsl(0, 100.00%, 87.92%); opacity: 0.84" title="-0.047">t</span><span style="background-color: hsl(0, 100.00%, 85.03%); opacity: 0.85" title="-0.064">h</span><span style="background-color: hsl(0, 100.00%, 85.49%); opacity: 0.85" title="-0.061">e</span><span style="background-color: hsl(0, 100.00%, 88.45%); opacity: 0.83" title="-0.044">y</span><span style="background-color: hsl(0, 100.00%, 92.81%); opacity: 0.82" title="-0.022"> </span><span style="background-color: hsl(0, 100.00%, 98.51%); opacity: 0.80" title="-0.002">h</span><span style="background-color: hsl(0, 100.00%, 97.32%); opacity: 0.80" title="-0.005">a</span><span style="background-color: hsl(0, 100.00%, 96.09%); opacity: 0.81" title="-0.009">v</span><span style="background-color: hsl(0, 100.00%, 96.42%); opacity: 0.81" title="-0.008">e</span><span style="background-color: hsl(0, 100.00%, 92.66%); opacity: 0.82" title="-0.023"> </span><span style="background-color: hsl(0, 100.00%, 92.32%); opacity: 0.82" title="-0.025">to</span><span style="background-color: hsl(0, 100.00%, 92.23%); opacity: 0.82" title="-0.025"> </span><span style="background-color: hsl(0, 100.00%, 94.42%); opacity: 0.81" title="-0.016">be</span><span style="background-color: hsl(0, 100.00%, 91.11%); opacity: 0.82" title="-0.030"> </span><span style="background-color: hsl(0, 100.00%, 89.17%); opacity: 0.83" title="-0.040">b</span><span style="background-color: hsl(0, 100.00%, 88.97%); opacity: 0.83" title="-0.041">r</span><span style="background-color: hsl(0, 100.00%, 90.74%); opacity: 0.82" title="-0.032">o</span><span style="background-color: hsl(0, 100.00%, 93.66%); opacity: 0.81" title="-0.019">k</span><span style="background-color: hsl(0, 100.00%, 93.57%); opacity: 0.81" title="-0.019">e</span><span style="background-color: hsl(0, 100.00%, 94.07%); opacity: 0.81" title="-0.017">n</span><span style="background-color: hsl(0, 100.00%, 97.86%); opacity: 0.80" title="-0.004"> </span><span style="background-color: hsl(120, 100.00%, 99.10%); opacity: 0.80" title="0.001">up</span><span style="background-color: hsl(0, 100.00%, 99.84%); opacity: 0.80" title="-0.000"> </span><span style="background-color: hsl(120, 100.00%, 98.67%); opacity: 0.80" title="0.002">w</span><span style="background-color: hsl(120, 100.00%, 98.43%); opacity: 0.80" title="0.003">i</span><span style="background-color: hsl(120, 100.00%, 98.08%); opacity: 0.80" title="0.003">t</span><span style="background-color: hsl(120, 100.00%, 98.07%); opacity: 0.80" title="0.003">h</span><span style="background-color: hsl(120, 100.00%, 96.53%); opacity: 0.81" title="0.008"> </span><span style="background-color: hsl(120, 100.00%, 99.21%); opacity: 0.80" title="0.001">s</span><span style="background-color: hsl(0, 100.00%, 98.59%); opacity: 0.80" title="-0.002">o</span><span style="background-color: hsl(120, 100.00%, 99.75%); opacity: 0.80" title="0.000">u</span><span style="background-color: hsl(0, 100.00%, 95.38%); opacity: 0.81" title="-0.012">n</span><span style="background-color: hsl(0, 100.00%, 96.81%); opacity: 0.81" title="-0.007">d</span><span style="background-color: hsl(0, 100.00%, 98.06%); opacity: 0.80" title="-0.003">,</span><span style="background-color: hsl(120, 100.00%, 98.26%); opacity: 0.80" title="0.003"> </span><span style="background-color: hsl(120, 100.00%, 94.85%); opacity: 0.81" title="0.014">or</span><span style="background-color: hsl(0, 100.00%, 95.38%); opacity: 0.81" title="-0.012"> </span><span style="background-color: hsl(0, 100.00%, 87.92%); opacity: 0.84" title="-0.047">t</span><span style="background-color: hsl(0, 100.00%, 85.03%); opacity: 0.85" title="-0.064">h</span><span style="background-color: hsl(0, 100.00%, 85.49%); opacity: 0.85" title="-0.061">e</span><span style="background-color: hsl(0, 100.00%, 88.45%); opacity: 0.83" title="-0.044">y</span><span style="background-color: hsl(0, 100.00%, 92.81%); opacity: 0.82" title="-0.022"> </span><span style="background-color: hsl(0, 100.00%, 98.51%); opacity: 0.80" title="-0.002">h</span><span style="background-color: hsl(0, 100.00%, 97.32%); opacity: 0.80" title="-0.005">a</span><span style="background-color: hsl(0, 100.00%, 96.09%); opacity: 0.81" title="-0.009">v</span><span style="background-color: hsl(0, 100.00%, 96.42%); opacity: 0.81" title="-0.008">e</span><span style="background-color: hsl(0, 100.00%, 92.66%); opacity: 0.82" title="-0.023">
     </span><span style="background-color: hsl(0, 100.00%, 92.32%); opacity: 0.82" title="-0.025">to</span><span style="background-color: hsl(0, 100.00%, 92.23%); opacity: 0.82" title="-0.025"> </span><span style="background-color: hsl(0, 100.00%, 94.42%); opacity: 0.81" title="-0.016">be</span><span style="background-color: hsl(0, 100.00%, 96.50%); opacity: 0.81" title="-0.008"> </span><span style="background-color: hsl(0, 100.00%, 96.61%); opacity: 0.81" title="-0.008">e</span><span style="background-color: hsl(0, 100.00%, 94.73%); opacity: 0.81" title="-0.014">x</span><span style="background-color: hsl(120, 100.00%, 99.53%); opacity: 0.80" title="0.000">t</span><span style="background-color: hsl(120, 100.00%, 93.81%); opacity: 0.81" title="0.018">r</span><span style="background-color: hsl(120, 100.00%, 93.10%); opacity: 0.82" title="0.021">a</span><span style="background-color: hsl(120, 100.00%, 93.85%); opacity: 0.81" title="0.018">c</span><span style="background-color: hsl(0, 100.00%, 96.00%); opacity: 0.81" title="-0.010">t</span><span style="background-color: hsl(0, 100.00%, 95.36%); opacity: 0.81" title="-0.012">e</span><span style="background-color: hsl(0, 100.00%, 94.94%); opacity: 0.81" title="-0.014">d</span><span style="background-color: hsl(0, 100.00%, 93.20%); opacity: 0.82" title="-0.021"> </span><span style="background-color: hsl(0, 100.00%, 90.88%); opacity: 0.82" title="-0.031">s</span><span style="background-color: hsl(0, 100.00%, 87.50%); opacity: 0.84" title="-0.049">u</span><span style="background-color: hsl(0, 100.00%, 87.08%); opacity: 0.84" title="-0.052">r</span><span style="background-color: hsl(0, 100.00%, 87.28%); opacity: 0.84" title="-0.051">g</span><span style="background-color: hsl(0, 100.00%, 89.05%); opacity: 0.83" title="-0.041">i</span><span style="background-color: hsl(0, 100.00%, 87.77%); opacity: 0.84" title="-0.048">c</span><span style="background-color: hsl(0, 100.00%, 88.05%); opacity: 0.84" title="-0.046">a</span><span style="background-color: hsl(0, 100.00%, 89.43%); opacity: 0.83" title="-0.039">l</span><span style="background-color: hsl(0, 100.00%, 92.97%); opacity: 0.82" title="-0.022">l</span><span style="background-color: hsl(0, 100.00%, 93.88%); opacity: 0.81" title="-0.018">y</span><span style="background-color: hsl(0, 100.00%, 96.33%); opacity: 0.81" title="-0.009">.</span><span style="background-color: hsl(0, 100.00%, 94.83%); opacity: 0.81" title="-0.014"> </span><span style="background-color: hsl(0, 100.00%, 95.32%); opacity: 0.81" title="-0.012">w</span><span style="background-color: hsl(0, 100.00%, 94.00%); opacity: 0.81" title="-0.017">h</span><span style="background-color: hsl(0, 100.00%, 95.01%); opacity: 0.81" title="-0.013">e</span><span style="background-color: hsl(0, 100.00%, 93.87%); opacity: 0.81" title="-0.018">n</span><span style="background-color: hsl(0, 100.00%, 96.87%); opacity: 0.81" title="-0.007"> </span><span style="background-color: hsl(120, 100.00%, 99.04%); opacity: 0.80" title="0.001">i</span><span style="background-color: hsl(0, 100.00%, 97.06%); opacity: 0.80" title="-0.006"> </span><span style="background-color: hsl(0, 100.00%, 96.15%); opacity: 0.81" title="-0.009">w</span><span style="background-color: hsl(0, 100.00%, 95.80%); opacity: 0.81" title="-0.010">a</span><span style="background-color: hsl(0, 100.00%, 97.53%); opacity: 0.80" title="-0.005">s</span><span style="background-color: hsl(0, 100.00%, 94.44%); opacity: 0.81" title="-0.016"> </span><span style="background-color: hsl(0, 100.00%, 94.38%); opacity: 0.81" title="-0.016">i</span><span style="background-color: hsl(0, 100.00%, 93.93%); opacity: 0.81" title="-0.018">n</span><span style="background-color: hsl(0, 100.00%, 98.25%); opacity: 0.80" title="-0.003">,</span><span style="background-color: hsl(0, 100.00%, 92.96%); opacity: 0.82" title="-0.022"> </span><span style="background-color: hsl(0, 100.00%, 90.18%); opacity: 0.83" title="-0.035">t</span><span style="background-color: hsl(0, 100.00%, 88.13%); opacity: 0.84" title="-0.046">h</span><span style="background-color: hsl(0, 100.00%, 90.48%); opacity: 0.83" title="-0.033">e</span><span style="background-color: hsl(0, 100.00%, 94.71%); opacity: 0.81" title="-0.014"> </span><span style="background-color: hsl(120, 100.00%, 98.41%); opacity: 0.80" title="0.003">x</span><span style="background-color: hsl(120, 100.00%, 97.93%); opacity: 0.80" title="0.004">-</span><span style="background-color: hsl(120, 100.00%, 88.19%); opacity: 0.83" title="0.046">r</span><span style="background-color: hsl(120, 100.00%, 88.97%); opacity: 0.83" title="0.041">a</span><span style="background-color: hsl(120, 100.00%, 88.95%); opacity: 0.83" title="0.041">y</span><span style="background-color: hsl(120, 100.00%, 89.08%); opacity: 0.83" title="0.041"> </span><span style="background-color: hsl(120, 100.00%, 89.14%); opacity: 0.83" title="0.040">t</span><span style="background-color: hsl(120, 100.00%, 88.87%); opacity: 0.83" title="0.042">e</span><span style="background-color: hsl(120, 100.00%, 90.77%); opacity: 0.82" title="0.032">c</span><span style="background-color: hsl(120, 100.00%, 95.52%); opacity: 0.81" title="0.011">h</span><span style="background-color: hsl(0, 100.00%, 95.86%); opacity: 0.81" title="-0.010"> </span><span style="background-color: hsl(0, 100.00%, 91.28%); opacity: 0.82" title="-0.030">h</span><span style="background-color: hsl(0, 100.00%, 87.61%); opacity: 0.84" title="-0.049">a</span><span style="background-color: hsl(0, 100.00%, 84.69%); opacity: 0.85" title="-0.066">p</span><span style="background-color: hsl(0, 100.00%, 86.70%); opacity: 0.84" title="-0.054">p</span><span style="background-color: hsl(0, 100.00%, 88.45%); opacity: 0.83" title="-0.044">e</span><span style="background-color: hsl(0, 100.00%, 92.19%); opacity: 0.82" title="-0.025">n</span><span style="background-color: hsl(0, 100.00%, 94.97%); opacity: 0.81" title="-0.013">e</span><span style="background-color: hsl(0, 100.00%, 98.17%); opacity: 0.80" title="-0.003">d</span><span style="background-color: hsl(0, 100.00%, 93.75%); opacity: 0.81" title="-0.018"> </span><span style="background-color: hsl(0, 100.00%, 92.32%); opacity: 0.82" title="-0.025">to</span><span style="background-color: hsl(0, 100.00%, 92.23%); opacity: 0.82" title="-0.025"> </span><span style="background-color: hsl(0, 100.00%, 92.15%); opacity: 0.82" title="-0.025">m</span><span style="background-color: hsl(0, 100.00%, 87.78%); opacity: 0.84" title="-0.048">e</span><span style="background-color: hsl(0, 100.00%, 85.17%); opacity: 0.85" title="-0.063">n</span><span style="background-color: hsl(0, 100.00%, 86.27%); opacity: 0.84" title="-0.056">t</span><span style="background-color: hsl(0, 100.00%, 89.77%); opacity: 0.83" title="-0.037">i</span><span style="background-color: hsl(0, 100.00%, 94.32%); opacity: 0.81" title="-0.016">o</span><span style="background-color: hsl(0, 100.00%, 97.68%); opacity: 0.80" title="-0.004">n</span><span style="background-color: hsl(0, 100.00%, 93.79%); opacity: 0.81" title="-0.018"> </span><span style="background-color: hsl(0, 100.00%, 90.25%); opacity: 0.83" title="-0.035">t</span><span style="background-color: hsl(0, 100.00%, 87.26%); opacity: 0.84" title="-0.051">h</span><span style="background-color: hsl(0, 100.00%, 87.99%); opacity: 0.84" title="-0.047">a</span><span style="background-color: hsl(0, 100.00%, 89.88%); opacity: 0.83" title="-0.037">t</span><span style="background-color: hsl(0, 100.00%, 88.51%); opacity: 0.83" title="-0.044"> </span><span style="background-color: hsl(0, 100.00%, 88.98%); opacity: 0.83" title="-0.041">s</span><span style="background-color: hsl(0, 100.00%, 88.54%); opacity: 0.83" title="-0.044">h</span><span style="background-color: hsl(0, 100.00%, 92.50%); opacity: 0.82" title="-0.024">e</span><span style="background-color: hsl(120, 100.00%, 97.39%); opacity: 0.80" title="0.005">'</span><span style="background-color: hsl(120, 100.00%, 96.30%); opacity: 0.81" title="0.009">d</span><span style="background-color: hsl(120, 100.00%, 99.11%); opacity: 0.80" title="0.001"> </span><span style="background-color: hsl(120, 100.00%, 98.81%); opacity: 0.80" title="0.002">h</span><span style="background-color: hsl(0, 100.00%, 97.17%); opacity: 0.80" title="-0.006">a</span><span style="background-color: hsl(0, 100.00%, 97.34%); opacity: 0.80" title="-0.005">d</span><span style="background-color: hsl(0, 100.00%, 93.45%); opacity: 0.82" title="-0.020"> </span><span style="background-color: hsl(0, 100.00%, 93.62%); opacity: 0.81" title="-0.019">k</span><span style="background-color: hsl(0, 100.00%, 92.69%); opacity: 0.82" title="-0.023">i</span><span style="background-color: hsl(0, 100.00%, 92.66%); opacity: 0.82" title="-0.023">d</span><span style="background-color: hsl(0, 100.00%, 96.25%); opacity: 0.81" title="-0.009">n</span><span style="background-color: hsl(0, 100.00%, 94.60%); opacity: 0.81" title="-0.015">e</span><span style="background-color: hsl(0, 100.00%, 97.68%); opacity: 0.80" title="-0.004">y</span><span style="background-color: hsl(0, 100.00%, 92.74%); opacity: 0.82" title="-0.023">
     </span><span style="background-color: hsl(0, 100.00%, 95.25%); opacity: 0.81" title="-0.012">s</span><span style="background-color: hsl(0, 100.00%, 90.42%); opacity: 0.83" title="-0.034">t</span><span style="background-color: hsl(0, 100.00%, 91.39%); opacity: 0.82" title="-0.029">o</span><span style="background-color: hsl(0, 100.00%, 91.62%); opacity: 0.82" title="-0.028">n</span><span style="background-color: hsl(0, 100.00%, 96.85%); opacity: 0.81" title="-0.007">e</span><span style="background-color: hsl(0, 100.00%, 96.24%); opacity: 0.81" title="-0.009">s</span><span style="background-color: hsl(0, 100.00%, 98.25%); opacity: 0.80" title="-0.003"> </span><span style="background-color: hsl(0, 100.00%, 94.42%); opacity: 0.81" title="-0.016">a</span><span style="background-color: hsl(0, 100.00%, 93.27%); opacity: 0.82" title="-0.020">n</span><span style="background-color: hsl(0, 100.00%, 93.69%); opacity: 0.81" title="-0.019">d</span><span style="background-color: hsl(0, 100.00%, 87.42%); opacity: 0.84" title="-0.050"> </span><span style="background-color: hsl(0, 100.00%, 86.26%); opacity: 0.84" title="-0.057">c</span><span style="background-color: hsl(0, 100.00%, 82.65%); opacity: 0.86" title="-0.079">h</span><span style="background-color: hsl(0, 100.00%, 82.95%); opacity: 0.86" title="-0.077">i</span><span style="background-color: hsl(0, 100.00%, 81.86%); opacity: 0.86" title="-0.084">l</span><span style="background-color: hsl(0, 100.00%, 83.05%); opacity: 0.86" title="-0.076">d</span><span style="background-color: hsl(0, 100.00%, 87.17%); opacity: 0.84" title="-0.051">r</span><span style="background-color: hsl(0, 100.00%, 88.83%); opacity: 0.83" title="-0.042">e</span><span style="background-color: hsl(0, 100.00%, 92.58%); opacity: 0.82" title="-0.023">n</span><span style="background-color: hsl(0, 100.00%, 96.65%); opacity: 0.81" title="-0.008">,</span><span style="background-color: hsl(0, 100.00%, 95.60%); opacity: 0.81" title="-0.011"> </span><span style="background-color: hsl(0, 100.00%, 94.42%); opacity: 0.81" title="-0.016">a</span><span style="background-color: hsl(0, 100.00%, 93.27%); opacity: 0.82" title="-0.020">n</span><span style="background-color: hsl(0, 100.00%, 93.69%); opacity: 0.81" title="-0.019">d</span><span style="background-color: hsl(0, 100.00%, 90.89%); opacity: 0.82" title="-0.031"> </span><span style="background-color: hsl(0, 100.00%, 90.18%); opacity: 0.83" title="-0.035">t</span><span style="background-color: hsl(0, 100.00%, 88.13%); opacity: 0.84" title="-0.046">h</span><span style="background-color: hsl(0, 100.00%, 90.48%); opacity: 0.83" title="-0.033">e</span><span style="background-color: hsl(0, 100.00%, 86.65%); opacity: 0.84" title="-0.054"> </span><span style="background-color: hsl(0, 100.00%, 86.26%); opacity: 0.84" title="-0.057">c</span><span style="background-color: hsl(0, 100.00%, 83.24%); opacity: 0.86" title="-0.075">h</span><span style="background-color: hsl(0, 100.00%, 84.92%); opacity: 0.85" title="-0.065">i</span><span style="background-color: hsl(0, 100.00%, 86.18%); opacity: 0.84" title="-0.057">l</span><span style="background-color: hsl(0, 100.00%, 90.68%); opacity: 0.82" title="-0.032">d</span><span style="background-color: hsl(0, 100.00%, 95.21%); opacity: 0.81" title="-0.013">b</span><span style="background-color: hsl(0, 100.00%, 99.29%); opacity: 0.80" title="-0.001">i</span><span style="background-color: hsl(0, 100.00%, 98.27%); opacity: 0.80" title="-0.003">r</span><span style="background-color: hsl(120, 100.00%, 98.95%); opacity: 0.80" title="0.001">t</span><span style="background-color: hsl(0, 100.00%, 95.90%); opacity: 0.81" title="-0.010">h</span><span style="background-color: hsl(0, 100.00%, 94.51%); opacity: 0.81" title="-0.015"> </span><span style="background-color: hsl(0, 100.00%, 91.03%); opacity: 0.82" title="-0.031">h</span><span style="background-color: hsl(0, 100.00%, 90.46%); opacity: 0.83" title="-0.034">u</span><span style="background-color: hsl(0, 100.00%, 93.14%); opacity: 0.82" title="-0.021">r</span><span style="background-color: hsl(0, 100.00%, 98.37%); opacity: 0.80" title="-0.003">t</span><span style="background-color: hsl(0, 100.00%, 94.94%); opacity: 0.81" title="-0.014"> </span><span style="background-color: hsl(0, 100.00%, 95.82%); opacity: 0.81" title="-0.010">l</span><span style="background-color: hsl(0, 100.00%, 94.88%); opacity: 0.81" title="-0.014">e</span><span style="background-color: hsl(0, 100.00%, 95.86%); opacity: 0.81" title="-0.010">s</span><span style="background-color: hsl(0, 100.00%, 94.15%); opacity: 0.81" title="-0.017">s</span><span style="background-color: hsl(0, 100.00%, 97.35%); opacity: 0.80" title="-0.005">.</span>
@@ -3277,8 +3495,13 @@ looks like:
                style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
             <thead>
             <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature contribution already accounts for the feature value (for linear models, contribution = weight * feature value), and the sum of feature contributions is equal to the score or, for some classifiers, to the probability. Feature values are shown if &quot;show_feature_values&quot; is True.">
+                        Contribution<sup>?</sup>
+                    </th>
+                
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
             </tr>
             </thead>
             <tbody>
@@ -3290,6 +3513,7 @@ looks like:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             Highlighted in text (sum)
         </td>
+        
     </tr>
             
             
@@ -3303,6 +3527,7 @@ looks like:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             &lt;BIAS&gt;
         </td>
+        
     </tr>
             
     
@@ -3314,7 +3539,7 @@ looks like:
     
     
         <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
-            <span style="background-color: hsl(0, 100.00%, 98.33%); opacity: 0.80" title="-0.003">as</span><span style="background-color: hsl(0, 100.00%, 97.84%); opacity: 0.80" title="-0.004"> </span><span style="background-color: hsl(0, 100.00%, 99.04%); opacity: 0.80" title="-0.001">i</span><span style="background-color: hsl(120, 100.00%, 92.41%); opacity: 0.82" title="0.024"> </span><span style="background-color: hsl(120, 100.00%, 86.87%); opacity: 0.84" title="0.053">r</span><span style="background-color: hsl(120, 100.00%, 83.39%); opacity: 0.86" title="0.074">e</span><span style="background-color: hsl(120, 100.00%, 81.51%); opacity: 0.87" title="0.086">c</span><span style="background-color: hsl(120, 100.00%, 84.88%); opacity: 0.85" title="0.065">a</span><span style="background-color: hsl(120, 100.00%, 88.92%); opacity: 0.83" title="0.042">l</span><span style="background-color: hsl(120, 100.00%, 95.90%); opacity: 0.81" title="0.010">l</span><span style="background-color: hsl(0, 100.00%, 95.25%); opacity: 0.81" title="-0.012"> </span><span style="background-color: hsl(0, 100.00%, 94.73%); opacity: 0.81" title="-0.014">f</span><span style="background-color: hsl(0, 100.00%, 94.46%); opacity: 0.81" title="-0.015">r</span><span style="background-color: hsl(0, 100.00%, 96.35%); opacity: 0.81" title="-0.009">o</span><span style="background-color: hsl(0, 100.00%, 97.65%); opacity: 0.80" title="-0.005">m</span><span style="background-color: hsl(120, 100.00%, 90.30%); opacity: 0.83" title="0.034"> </span><span style="background-color: hsl(120, 100.00%, 86.82%); opacity: 0.84" title="0.053">my</span><span style="background-color: hsl(120, 100.00%, 93.67%); opacity: 0.81" title="0.019"> </span><span style="background-color: hsl(0, 100.00%, 95.95%); opacity: 0.81" title="-0.010">b</span><span style="background-color: hsl(0, 100.00%, 96.17%); opacity: 0.81" title="-0.009">o</span><span style="background-color: hsl(0, 100.00%, 99.26%); opacity: 0.80" title="-0.001">u</span><span style="background-color: hsl(120, 100.00%, 97.86%); opacity: 0.80" title="0.004">t</span><span style="background-color: hsl(0, 100.00%, 97.52%); opacity: 0.80" title="-0.005"> </span><span style="background-color: hsl(0, 100.00%, 96.72%); opacity: 0.81" title="-0.007">w</span><span style="background-color: hsl(0, 100.00%, 94.17%); opacity: 0.81" title="-0.017">i</span><span style="background-color: hsl(0, 100.00%, 94.46%); opacity: 0.81" title="-0.015">t</span><span style="background-color: hsl(0, 100.00%, 94.85%); opacity: 0.81" title="-0.014">h</span><span style="background-color: hsl(0, 100.00%, 98.93%); opacity: 0.80" title="-0.001"> </span><span style="background-color: hsl(120, 100.00%, 91.85%); opacity: 0.82" title="0.027">k</span><span style="background-color: hsl(120, 100.00%, 89.22%); opacity: 0.83" title="0.040">i</span><span style="background-color: hsl(120, 100.00%, 84.09%); opacity: 0.85" title="0.070">d</span><span style="background-color: hsl(120, 100.00%, 84.13%); opacity: 0.85" title="0.069">n</span><span style="background-color: hsl(120, 100.00%, 85.54%); opacity: 0.85" title="0.061">e</span><span style="background-color: hsl(120, 100.00%, 92.19%); opacity: 0.82" title="0.025">y</span><span style="background-color: hsl(120, 100.00%, 98.31%); opacity: 0.80" title="0.003"> </span><span style="background-color: hsl(0, 100.00%, 95.72%); opacity: 0.81" title="-0.011">s</span><span style="background-color: hsl(0, 100.00%, 94.43%); opacity: 0.81" title="-0.016">t</span><span style="background-color: hsl(0, 100.00%, 94.01%); opacity: 0.81" title="-0.017">o</span><span style="background-color: hsl(120, 100.00%, 98.52%); opacity: 0.80" title="0.002">n</span><span style="background-color: hsl(0, 100.00%, 99.17%); opacity: 0.80" title="-0.001">e</span><span style="background-color: hsl(120, 100.00%, 95.57%); opacity: 0.81" title="0.011">s</span><span style="background-color: hsl(0, 100.00%, 97.03%); opacity: 0.80" title="-0.006">,</span><span style="background-color: hsl(0, 100.00%, 95.57%); opacity: 0.81" title="-0.011"> </span><span style="background-color: hsl(0, 100.00%, 92.17%); opacity: 0.82" title="-0.025">t</span><span style="background-color: hsl(0, 100.00%, 89.50%); opacity: 0.83" title="-0.039">h</span><span style="background-color: hsl(0, 100.00%, 89.28%); opacity: 0.83" title="-0.040">e</span><span style="background-color: hsl(0, 100.00%, 91.61%); opacity: 0.82" title="-0.028">r</span><span style="background-color: hsl(0, 100.00%, 94.04%); opacity: 0.81" title="-0.017">e</span><span style="background-color: hsl(0, 100.00%, 95.47%); opacity: 0.81" title="-0.012"> </span><span style="background-color: hsl(0, 100.00%, 94.27%); opacity: 0.81" title="-0.016">i</span><span style="background-color: hsl(0, 100.00%, 93.06%); opacity: 0.82" title="-0.021">s</span><span style="background-color: hsl(0, 100.00%, 92.25%); opacity: 0.82" title="-0.025">n</span><span style="background-color: hsl(0, 100.00%, 93.95%); opacity: 0.81" title="-0.018">'</span><span style="background-color: hsl(0, 100.00%, 95.97%); opacity: 0.81" title="-0.010">t</span><span style="background-color: hsl(0, 100.00%, 97.41%); opacity: 0.80" title="-0.005"> </span><span style="background-color: hsl(0, 100.00%, 98.29%); opacity: 0.80" title="-0.003">a</span><span style="background-color: hsl(0, 100.00%, 99.37%); opacity: 0.80" title="-0.001">n</span><span style="background-color: hsl(0, 100.00%, 99.27%); opacity: 0.80" title="-0.001">y</span><span style="background-color: hsl(120, 100.00%, 83.42%); opacity: 0.86" title="0.074">
+            <span style="background-color: hsl(0, 100.00%, 95.99%); opacity: 0.81" title="-0.010">as</span><span style="background-color: hsl(0, 100.00%, 96.77%); opacity: 0.81" title="-0.007"> </span><span style="background-color: hsl(0, 100.00%, 99.04%); opacity: 0.80" title="-0.001">i</span><span style="background-color: hsl(120, 100.00%, 92.41%); opacity: 0.82" title="0.024"> </span><span style="background-color: hsl(120, 100.00%, 86.87%); opacity: 0.84" title="0.053">r</span><span style="background-color: hsl(120, 100.00%, 83.39%); opacity: 0.86" title="0.074">e</span><span style="background-color: hsl(120, 100.00%, 81.51%); opacity: 0.87" title="0.086">c</span><span style="background-color: hsl(120, 100.00%, 84.88%); opacity: 0.85" title="0.065">a</span><span style="background-color: hsl(120, 100.00%, 88.92%); opacity: 0.83" title="0.042">l</span><span style="background-color: hsl(120, 100.00%, 95.90%); opacity: 0.81" title="0.010">l</span><span style="background-color: hsl(0, 100.00%, 95.25%); opacity: 0.81" title="-0.012"> </span><span style="background-color: hsl(0, 100.00%, 94.73%); opacity: 0.81" title="-0.014">f</span><span style="background-color: hsl(0, 100.00%, 94.46%); opacity: 0.81" title="-0.015">r</span><span style="background-color: hsl(0, 100.00%, 96.35%); opacity: 0.81" title="-0.009">o</span><span style="background-color: hsl(0, 100.00%, 97.65%); opacity: 0.80" title="-0.005">m</span><span style="background-color: hsl(120, 100.00%, 90.30%); opacity: 0.83" title="0.034"> </span><span style="background-color: hsl(120, 100.00%, 86.82%); opacity: 0.84" title="0.053">my</span><span style="background-color: hsl(120, 100.00%, 93.67%); opacity: 0.81" title="0.019"> </span><span style="background-color: hsl(0, 100.00%, 95.95%); opacity: 0.81" title="-0.010">b</span><span style="background-color: hsl(0, 100.00%, 96.17%); opacity: 0.81" title="-0.009">o</span><span style="background-color: hsl(0, 100.00%, 99.26%); opacity: 0.80" title="-0.001">u</span><span style="background-color: hsl(120, 100.00%, 97.86%); opacity: 0.80" title="0.004">t</span><span style="background-color: hsl(0, 100.00%, 97.52%); opacity: 0.80" title="-0.005"> </span><span style="background-color: hsl(0, 100.00%, 96.72%); opacity: 0.81" title="-0.007">w</span><span style="background-color: hsl(0, 100.00%, 94.17%); opacity: 0.81" title="-0.017">i</span><span style="background-color: hsl(0, 100.00%, 94.46%); opacity: 0.81" title="-0.015">t</span><span style="background-color: hsl(0, 100.00%, 94.85%); opacity: 0.81" title="-0.014">h</span><span style="background-color: hsl(0, 100.00%, 98.93%); opacity: 0.80" title="-0.001"> </span><span style="background-color: hsl(120, 100.00%, 91.85%); opacity: 0.82" title="0.027">k</span><span style="background-color: hsl(120, 100.00%, 89.22%); opacity: 0.83" title="0.040">i</span><span style="background-color: hsl(120, 100.00%, 84.09%); opacity: 0.85" title="0.070">d</span><span style="background-color: hsl(120, 100.00%, 84.13%); opacity: 0.85" title="0.069">n</span><span style="background-color: hsl(120, 100.00%, 85.54%); opacity: 0.85" title="0.061">e</span><span style="background-color: hsl(120, 100.00%, 92.19%); opacity: 0.82" title="0.025">y</span><span style="background-color: hsl(120, 100.00%, 98.31%); opacity: 0.80" title="0.003"> </span><span style="background-color: hsl(0, 100.00%, 95.72%); opacity: 0.81" title="-0.011">s</span><span style="background-color: hsl(0, 100.00%, 94.43%); opacity: 0.81" title="-0.016">t</span><span style="background-color: hsl(0, 100.00%, 94.01%); opacity: 0.81" title="-0.017">o</span><span style="background-color: hsl(120, 100.00%, 98.52%); opacity: 0.80" title="0.002">n</span><span style="background-color: hsl(0, 100.00%, 99.17%); opacity: 0.80" title="-0.001">e</span><span style="background-color: hsl(120, 100.00%, 95.57%); opacity: 0.81" title="0.011">s</span><span style="background-color: hsl(0, 100.00%, 97.03%); opacity: 0.80" title="-0.006">,</span><span style="background-color: hsl(0, 100.00%, 95.57%); opacity: 0.81" title="-0.011"> </span><span style="background-color: hsl(0, 100.00%, 92.17%); opacity: 0.82" title="-0.025">t</span><span style="background-color: hsl(0, 100.00%, 89.50%); opacity: 0.83" title="-0.039">h</span><span style="background-color: hsl(0, 100.00%, 89.28%); opacity: 0.83" title="-0.040">e</span><span style="background-color: hsl(0, 100.00%, 91.61%); opacity: 0.82" title="-0.028">r</span><span style="background-color: hsl(0, 100.00%, 94.04%); opacity: 0.81" title="-0.017">e</span><span style="background-color: hsl(0, 100.00%, 95.47%); opacity: 0.81" title="-0.012"> </span><span style="background-color: hsl(0, 100.00%, 94.27%); opacity: 0.81" title="-0.016">i</span><span style="background-color: hsl(0, 100.00%, 93.06%); opacity: 0.82" title="-0.021">s</span><span style="background-color: hsl(0, 100.00%, 92.25%); opacity: 0.82" title="-0.025">n</span><span style="background-color: hsl(0, 100.00%, 93.95%); opacity: 0.81" title="-0.018">'</span><span style="background-color: hsl(0, 100.00%, 95.97%); opacity: 0.81" title="-0.010">t</span><span style="background-color: hsl(0, 100.00%, 97.41%); opacity: 0.80" title="-0.005"> </span><span style="background-color: hsl(0, 100.00%, 98.29%); opacity: 0.80" title="-0.003">a</span><span style="background-color: hsl(0, 100.00%, 99.37%); opacity: 0.80" title="-0.001">n</span><span style="background-color: hsl(0, 100.00%, 99.27%); opacity: 0.80" title="-0.001">y</span><span style="background-color: hsl(120, 100.00%, 83.42%); opacity: 0.86" title="0.074">
     </span><span style="background-color: hsl(120, 100.00%, 73.01%); opacity: 0.91" title="0.148">m</span><span style="background-color: hsl(120, 100.00%, 64.18%); opacity: 0.97" title="0.222">e</span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.260">d</span><span style="background-color: hsl(120, 100.00%, 65.31%); opacity: 0.96" title="0.212">i</span><span style="background-color: hsl(120, 100.00%, 73.51%); opacity: 0.91" title="0.144">c</span><span style="background-color: hsl(120, 100.00%, 85.01%); opacity: 0.85" title="0.064">a</span><span style="background-color: hsl(120, 100.00%, 94.89%); opacity: 0.81" title="0.014">t</span><span style="background-color: hsl(0, 100.00%, 96.37%); opacity: 0.81" title="-0.008">i</span><span style="background-color: hsl(0, 100.00%, 94.70%); opacity: 0.81" title="-0.014">o</span><span style="background-color: hsl(0, 100.00%, 95.22%); opacity: 0.81" title="-0.013">n</span><span style="background-color: hsl(0, 100.00%, 94.03%); opacity: 0.81" title="-0.017"> </span><span style="background-color: hsl(0, 100.00%, 93.24%); opacity: 0.82" title="-0.021">t</span><span style="background-color: hsl(0, 100.00%, 92.06%); opacity: 0.82" title="-0.026">h</span><span style="background-color: hsl(0, 100.00%, 93.52%); opacity: 0.81" title="-0.019">a</span><span style="background-color: hsl(0, 100.00%, 95.04%); opacity: 0.81" title="-0.013">t</span><span style="background-color: hsl(120, 100.00%, 97.35%); opacity: 0.80" title="0.005"> </span><span style="background-color: hsl(120, 100.00%, 94.24%); opacity: 0.81" title="0.016">c</span><span style="background-color: hsl(120, 100.00%, 95.75%); opacity: 0.81" title="0.011">a</span><span style="background-color: hsl(120, 100.00%, 99.58%); opacity: 0.80" title="0.000">n</span><span style="background-color: hsl(0, 100.00%, 96.08%); opacity: 0.81" title="-0.009"> </span><span style="background-color: hsl(0, 100.00%, 96.01%); opacity: 0.81" title="-0.010">do</span><span style="background-color: hsl(0, 100.00%, 93.66%); opacity: 0.81" title="-0.019"> </span><span style="background-color: hsl(0, 100.00%, 92.70%); opacity: 0.82" title="-0.023">a</span><span style="background-color: hsl(0, 100.00%, 88.73%); opacity: 0.83" title="-0.043">n</span><span style="background-color: hsl(0, 100.00%, 85.34%); opacity: 0.85" title="-0.062">y</span><span style="background-color: hsl(0, 100.00%, 86.84%); opacity: 0.84" title="-0.053">t</span><span style="background-color: hsl(0, 100.00%, 91.09%); opacity: 0.82" title="-0.030">h</span><span style="background-color: hsl(0, 100.00%, 94.02%); opacity: 0.81" title="-0.017">i</span><span style="background-color: hsl(0, 100.00%, 96.06%); opacity: 0.81" title="-0.009">n</span><span style="background-color: hsl(0, 100.00%, 95.54%); opacity: 0.81" title="-0.011">g</span><span style="background-color: hsl(0, 100.00%, 99.24%); opacity: 0.80" title="-0.001"> </span><span style="background-color: hsl(120, 100.00%, 95.76%); opacity: 0.81" title="0.011">a</span><span style="background-color: hsl(120, 100.00%, 94.22%); opacity: 0.81" title="0.016">b</span><span style="background-color: hsl(120, 100.00%, 94.20%); opacity: 0.81" title="0.016">o</span><span style="background-color: hsl(120, 100.00%, 95.35%); opacity: 0.81" title="0.012">u</span><span style="background-color: hsl(120, 100.00%, 97.14%); opacity: 0.80" title="0.006">t</span><span style="background-color: hsl(0, 100.00%, 95.87%); opacity: 0.81" title="-0.010"> </span><span style="background-color: hsl(0, 100.00%, 91.56%); opacity: 0.82" title="-0.028">t</span><span style="background-color: hsl(0, 100.00%, 91.67%); opacity: 0.82" title="-0.028">h</span><span style="background-color: hsl(0, 100.00%, 91.89%); opacity: 0.82" title="-0.027">e</span><span style="background-color: hsl(0, 100.00%, 94.97%); opacity: 0.81" title="-0.013">m</span><span style="background-color: hsl(0, 100.00%, 93.81%); opacity: 0.81" title="-0.018"> </span><span style="background-color: hsl(0, 100.00%, 97.34%); opacity: 0.80" title="-0.005">e</span><span style="background-color: hsl(0, 100.00%, 99.23%); opacity: 0.80" title="-0.001">x</span><span style="background-color: hsl(0, 100.00%, 97.64%); opacity: 0.80" title="-0.005">c</span><span style="background-color: hsl(120, 100.00%, 94.24%); opacity: 0.81" title="0.016">e</span><span style="background-color: hsl(120, 100.00%, 95.33%); opacity: 0.81" title="0.012">p</span><span style="background-color: hsl(120, 100.00%, 94.97%); opacity: 0.81" title="0.013">t</span><span style="background-color: hsl(0, 100.00%, 95.97%); opacity: 0.81" title="-0.010"> </span><span style="background-color: hsl(0, 100.00%, 91.81%); opacity: 0.82" title="-0.027">r</span><span style="background-color: hsl(0, 100.00%, 88.63%); opacity: 0.83" title="-0.043">e</span><span style="background-color: hsl(0, 100.00%, 87.38%); opacity: 0.84" title="-0.050">l</span><span style="background-color: hsl(0, 100.00%, 89.71%); opacity: 0.83" title="-0.037">i</span><span style="background-color: hsl(0, 100.00%, 97.03%); opacity: 0.80" title="-0.006">e</span><span style="background-color: hsl(0, 100.00%, 95.04%); opacity: 0.81" title="-0.013">v</span><span style="background-color: hsl(0, 100.00%, 97.71%); opacity: 0.80" title="-0.004">e</span><span style="background-color: hsl(0, 100.00%, 94.29%); opacity: 0.81" title="-0.016"> </span><span style="background-color: hsl(0, 100.00%, 91.94%); opacity: 0.82" title="-0.026">t</span><span style="background-color: hsl(0, 100.00%, 91.10%); opacity: 0.82" title="-0.030">h</span><span style="background-color: hsl(0, 100.00%, 92.59%); opacity: 0.82" title="-0.023">e</span><span style="background-color: hsl(120, 100.00%, 93.69%); opacity: 0.81" title="0.019"> </span><span style="background-color: hsl(120, 100.00%, 83.51%); opacity: 0.86" title="0.073">p</span><span style="background-color: hsl(120, 100.00%, 80.41%); opacity: 0.87" title="0.094">a</span><span style="background-color: hsl(120, 100.00%, 77.90%); opacity: 0.89" title="0.111">i</span><span style="background-color: hsl(120, 100.00%, 83.19%); opacity: 0.86" title="0.075">n</span><span style="background-color: hsl(120, 100.00%, 90.24%); opacity: 0.83" title="0.035">.</span><span style="background-color: hsl(120, 100.00%, 97.40%); opacity: 0.80" title="0.005"> </span><span style="background-color: hsl(0, 100.00%, 92.05%); opacity: 0.82" title="-0.026">e</span><span style="background-color: hsl(0, 100.00%, 89.59%); opacity: 0.83" title="-0.038">i</span><span style="background-color: hsl(0, 100.00%, 87.56%); opacity: 0.84" title="-0.049">t</span><span style="background-color: hsl(0, 100.00%, 87.92%); opacity: 0.84" title="-0.047">h</span><span style="background-color: hsl(0, 100.00%, 91.32%); opacity: 0.82" title="-0.029">e</span><span style="background-color: hsl(0, 100.00%, 94.80%); opacity: 0.81" title="-0.014">r</span><span style="background-color: hsl(0, 100.00%, 96.17%); opacity: 0.81" title="-0.009"> </span><span style="background-color: hsl(0, 100.00%, 94.17%); opacity: 0.81" title="-0.017">t</span><span style="background-color: hsl(0, 100.00%, 95.00%); opacity: 0.81" title="-0.013">h</span><span style="background-color: hsl(0, 100.00%, 97.72%); opacity: 0.80" title="-0.004">e</span><span style="background-color: hsl(120, 100.00%, 96.25%); opacity: 0.81" title="0.009">y</span><span style="background-color: hsl(0, 100.00%, 97.54%); opacity: 0.80" title="-0.005"> </span><span style="background-color: hsl(0, 100.00%, 91.82%); opacity: 0.82" title="-0.027">p</span><span style="background-color: hsl(0, 100.00%, 89.46%); opacity: 0.83" title="-0.039">a</span><span style="background-color: hsl(0, 100.00%, 88.71%); opacity: 0.83" title="-0.043">s</span><span style="background-color: hsl(0, 100.00%, 91.70%); opacity: 0.82" title="-0.027">s</span><span style="background-color: hsl(0, 100.00%, 95.82%); opacity: 0.81" title="-0.010">,</span><span style="background-color: hsl(0, 100.00%, 96.09%); opacity: 0.81" title="-0.009"> </span><span style="background-color: hsl(0, 100.00%, 96.22%); opacity: 0.81" title="-0.009">or</span><span style="background-color: hsl(0, 100.00%, 94.56%); opacity: 0.81" title="-0.015"> </span><span style="background-color: hsl(0, 100.00%, 94.17%); opacity: 0.81" title="-0.017">t</span><span style="background-color: hsl(0, 100.00%, 95.00%); opacity: 0.81" title="-0.013">h</span><span style="background-color: hsl(0, 100.00%, 97.72%); opacity: 0.80" title="-0.004">e</span><span style="background-color: hsl(120, 100.00%, 96.25%); opacity: 0.81" title="0.009">y</span><span style="background-color: hsl(0, 100.00%, 97.85%); opacity: 0.80" title="-0.004"> </span><span style="background-color: hsl(0, 100.00%, 93.95%); opacity: 0.81" title="-0.018">h</span><span style="background-color: hsl(0, 100.00%, 91.90%); opacity: 0.82" title="-0.027">a</span><span style="background-color: hsl(0, 100.00%, 91.83%); opacity: 0.82" title="-0.027">v</span><span style="background-color: hsl(0, 100.00%, 93.16%); opacity: 0.82" title="-0.021">e</span><span style="background-color: hsl(0, 100.00%, 99.73%); opacity: 0.80" title="-0.000"> </span><span style="background-color: hsl(120, 100.00%, 95.77%); opacity: 0.81" title="0.010">to</span><span style="background-color: hsl(0, 100.00%, 96.58%); opacity: 0.81" title="-0.008"> </span><span style="background-color: hsl(0, 100.00%, 94.60%); opacity: 0.81" title="-0.015">be</span><span style="background-color: hsl(120, 100.00%, 97.91%); opacity: 0.80" title="0.004"> </span><span style="background-color: hsl(120, 100.00%, 94.93%); opacity: 0.81" title="0.014">b</span><span style="background-color: hsl(120, 100.00%, 94.91%); opacity: 0.81" title="0.014">r</span><span style="background-color: hsl(120, 100.00%, 96.06%); opacity: 0.81" title="0.009">o</span><span style="background-color: hsl(120, 100.00%, 98.79%); opacity: 0.80" title="0.002">k</span><span style="background-color: hsl(120, 100.00%, 99.51%); opacity: 0.80" title="0.000">e</span><span style="background-color: hsl(0, 100.00%, 96.68%); opacity: 0.81" title="-0.007">n</span><span style="background-color: hsl(0, 100.00%, 99.97%); opacity: 0.80" title="-0.000"> </span><span style="background-color: hsl(120, 100.00%, 98.65%); opacity: 0.80" title="0.002">up</span><span style="background-color: hsl(0, 100.00%, 99.11%); opacity: 0.80" title="-0.001"> </span><span style="background-color: hsl(0, 100.00%, 96.72%); opacity: 0.81" title="-0.007">w</span><span style="background-color: hsl(0, 100.00%, 94.17%); opacity: 0.81" title="-0.017">i</span><span style="background-color: hsl(0, 100.00%, 94.46%); opacity: 0.81" title="-0.015">t</span><span style="background-color: hsl(0, 100.00%, 94.85%); opacity: 0.81" title="-0.014">h</span><span style="background-color: hsl(0, 100.00%, 97.75%); opacity: 0.80" title="-0.004"> </span><span style="background-color: hsl(120, 100.00%, 90.69%); opacity: 0.82" title="0.032">s</span><span style="background-color: hsl(120, 100.00%, 89.38%); opacity: 0.83" title="0.039">o</span><span style="background-color: hsl(120, 100.00%, 91.14%); opacity: 0.82" title="0.030">u</span><span style="background-color: hsl(120, 100.00%, 96.32%); opacity: 0.81" title="0.009">n</span><span style="background-color: hsl(0, 100.00%, 93.33%); opacity: 0.82" title="-0.020">d</span><span style="background-color: hsl(0, 100.00%, 91.30%); opacity: 0.82" title="-0.029">,</span><span style="background-color: hsl(0, 100.00%, 94.05%); opacity: 0.81" title="-0.017"> </span><span style="background-color: hsl(0, 100.00%, 96.22%); opacity: 0.81" title="-0.009">or</span><span style="background-color: hsl(0, 100.00%, 94.56%); opacity: 0.81" title="-0.015"> </span><span style="background-color: hsl(0, 100.00%, 94.17%); opacity: 0.81" title="-0.017">t</span><span style="background-color: hsl(0, 100.00%, 95.00%); opacity: 0.81" title="-0.013">h</span><span style="background-color: hsl(0, 100.00%, 97.72%); opacity: 0.80" title="-0.004">e</span><span style="background-color: hsl(120, 100.00%, 96.25%); opacity: 0.81" title="0.009">y</span><span style="background-color: hsl(0, 100.00%, 97.85%); opacity: 0.80" title="-0.004"> </span><span style="background-color: hsl(0, 100.00%, 93.95%); opacity: 0.81" title="-0.018">h</span><span style="background-color: hsl(0, 100.00%, 91.90%); opacity: 0.82" title="-0.027">a</span><span style="background-color: hsl(0, 100.00%, 91.83%); opacity: 0.82" title="-0.027">v</span><span style="background-color: hsl(0, 100.00%, 93.16%); opacity: 0.82" title="-0.021">e</span><span style="background-color: hsl(0, 100.00%, 99.73%); opacity: 0.80" title="-0.000">
     </span><span style="background-color: hsl(120, 100.00%, 95.77%); opacity: 0.81" title="0.010">to</span><span style="background-color: hsl(0, 100.00%, 96.58%); opacity: 0.81" title="-0.008"> </span><span style="background-color: hsl(0, 100.00%, 94.60%); opacity: 0.81" title="-0.015">be</span><span style="background-color: hsl(0, 100.00%, 96.21%); opacity: 0.81" title="-0.009"> </span><span style="background-color: hsl(120, 100.00%, 96.40%); opacity: 0.81" title="0.008">e</span><span style="background-color: hsl(120, 100.00%, 91.82%); opacity: 0.82" title="0.027">x</span><span style="background-color: hsl(120, 100.00%, 90.11%); opacity: 0.83" title="0.035">t</span><span style="background-color: hsl(120, 100.00%, 89.08%); opacity: 0.83" title="0.041">r</span><span style="background-color: hsl(120, 100.00%, 89.62%); opacity: 0.83" title="0.038">a</span><span style="background-color: hsl(120, 100.00%, 91.08%); opacity: 0.82" title="0.031">c</span><span style="background-color: hsl(120, 100.00%, 88.98%); opacity: 0.83" title="0.041">t</span><span style="background-color: hsl(120, 100.00%, 89.87%); opacity: 0.83" title="0.037">e</span><span style="background-color: hsl(120, 100.00%, 92.26%); opacity: 0.82" title="0.025">d</span><span style="background-color: hsl(120, 100.00%, 86.29%); opacity: 0.84" title="0.056"> </span><span style="background-color: hsl(120, 100.00%, 79.89%); opacity: 0.87" title="0.097">s</span><span style="background-color: hsl(120, 100.00%, 74.78%); opacity: 0.90" title="0.135">u</span><span style="background-color: hsl(120, 100.00%, 73.87%); opacity: 0.91" title="0.142">r</span><span style="background-color: hsl(120, 100.00%, 79.24%); opacity: 0.88" title="0.102">g</span><span style="background-color: hsl(120, 100.00%, 86.49%); opacity: 0.84" title="0.055">i</span><span style="background-color: hsl(120, 100.00%, 86.61%); opacity: 0.84" title="0.054">c</span><span style="background-color: hsl(120, 100.00%, 88.50%); opacity: 0.83" title="0.044">a</span><span style="background-color: hsl(120, 100.00%, 89.82%); opacity: 0.83" title="0.037">l</span><span style="background-color: hsl(120, 100.00%, 92.97%); opacity: 0.82" title="0.022">l</span><span style="background-color: hsl(120, 100.00%, 94.38%); opacity: 0.81" title="0.016">y</span><span style="background-color: hsl(120, 100.00%, 97.50%); opacity: 0.80" title="0.005">.</span><span style="background-color: hsl(120, 100.00%, 96.88%); opacity: 0.81" title="0.007"> </span><span style="background-color: hsl(120, 100.00%, 94.61%); opacity: 0.81" title="0.015">w</span><span style="background-color: hsl(120, 100.00%, 93.53%); opacity: 0.81" title="0.019">h</span><span style="background-color: hsl(120, 100.00%, 93.06%); opacity: 0.82" title="0.021">e</span><span style="background-color: hsl(120, 100.00%, 94.06%); opacity: 0.81" title="0.017">n</span><span style="background-color: hsl(120, 100.00%, 97.48%); opacity: 0.80" title="0.005"> </span><span style="background-color: hsl(0, 100.00%, 99.04%); opacity: 0.80" title="-0.001">i</span><span style="background-color: hsl(0, 100.00%, 98.47%); opacity: 0.80" title="-0.002"> </span><span style="background-color: hsl(0, 100.00%, 97.28%); opacity: 0.80" title="-0.006">w</span><span style="background-color: hsl(0, 100.00%, 96.39%); opacity: 0.81" title="-0.008">a</span><span style="background-color: hsl(0, 100.00%, 95.98%); opacity: 0.81" title="-0.010">s</span><span style="background-color: hsl(120, 100.00%, 96.14%); opacity: 0.81" title="0.009"> </span><span style="background-color: hsl(120, 100.00%, 95.44%); opacity: 0.81" title="0.012">i</span><span style="background-color: hsl(120, 100.00%, 97.84%); opacity: 0.80" title="0.004">n</span><span style="background-color: hsl(0, 100.00%, 96.65%); opacity: 0.81" title="-0.008">,</span><span style="background-color: hsl(0, 100.00%, 93.42%); opacity: 0.82" title="-0.020"> </span><span style="background-color: hsl(0, 100.00%, 91.94%); opacity: 0.82" title="-0.026">t</span><span style="background-color: hsl(0, 100.00%, 91.10%); opacity: 0.82" title="-0.030">h</span><span style="background-color: hsl(0, 100.00%, 92.59%); opacity: 0.82" title="-0.023">e</span><span style="background-color: hsl(0, 100.00%, 99.19%); opacity: 0.80" title="-0.001"> </span><span style="background-color: hsl(120, 100.00%, 93.75%); opacity: 0.81" title="0.018">x</span><span style="background-color: hsl(120, 100.00%, 90.25%); opacity: 0.83" title="0.035">-</span><span style="background-color: hsl(0, 100.00%, 96.53%); opacity: 0.81" title="-0.008">r</span><span style="background-color: hsl(0, 100.00%, 93.27%); opacity: 0.82" title="-0.020">a</span><span style="background-color: hsl(0, 100.00%, 89.70%); opacity: 0.83" title="-0.037">y</span><span style="background-color: hsl(0, 100.00%, 91.83%); opacity: 0.82" title="-0.027"> </span><span style="background-color: hsl(0, 100.00%, 97.43%); opacity: 0.80" title="-0.005">t</span><span style="background-color: hsl(120, 100.00%, 96.99%); opacity: 0.80" title="0.006">e</span><span style="background-color: hsl(120, 100.00%, 95.83%); opacity: 0.81" title="0.010">c</span><span style="background-color: hsl(120, 100.00%, 95.80%); opacity: 0.81" title="0.010">h</span><span style="background-color: hsl(120, 100.00%, 98.74%); opacity: 0.80" title="0.002"> </span><span style="background-color: hsl(120, 100.00%, 95.97%); opacity: 0.81" title="0.010">h</span><span style="background-color: hsl(120, 100.00%, 92.28%); opacity: 0.82" title="0.025">a</span><span style="background-color: hsl(120, 100.00%, 89.32%); opacity: 0.83" title="0.039">p</span><span style="background-color: hsl(120, 100.00%, 91.66%); opacity: 0.82" title="0.028">p</span><span style="background-color: hsl(120, 100.00%, 95.31%); opacity: 0.81" title="0.012">e</span><span style="background-color: hsl(0, 100.00%, 94.84%); opacity: 0.81" title="-0.014">n</span><span style="background-color: hsl(0, 100.00%, 92.87%); opacity: 0.82" title="-0.022">e</span><span style="background-color: hsl(0, 100.00%, 94.18%); opacity: 0.81" title="-0.017">d</span><span style="background-color: hsl(120, 100.00%, 97.06%); opacity: 0.80" title="0.006"> </span><span style="background-color: hsl(120, 100.00%, 95.77%); opacity: 0.81" title="0.010">to</span><span style="background-color: hsl(120, 100.00%, 93.46%); opacity: 0.82" title="0.020"> </span><span style="background-color: hsl(120, 100.00%, 93.95%); opacity: 0.81" title="0.018">m</span><span style="background-color: hsl(120, 100.00%, 89.80%); opacity: 0.83" title="0.037">e</span><span style="background-color: hsl(120, 100.00%, 89.19%); opacity: 0.83" title="0.040">n</span><span style="background-color: hsl(120, 100.00%, 89.88%); opacity: 0.83" title="0.037">t</span><span style="background-color: hsl(120, 100.00%, 93.19%); opacity: 0.82" title="0.021">i</span><span style="background-color: hsl(0, 100.00%, 96.88%); opacity: 0.81" title="-0.007">o</span><span style="background-color: hsl(0, 100.00%, 96.41%); opacity: 0.81" title="-0.008">n</span><span style="background-color: hsl(0, 100.00%, 94.03%); opacity: 0.81" title="-0.017"> </span><span style="background-color: hsl(0, 100.00%, 93.24%); opacity: 0.82" title="-0.021">t</span><span style="background-color: hsl(0, 100.00%, 92.06%); opacity: 0.82" title="-0.026">h</span><span style="background-color: hsl(0, 100.00%, 93.52%); opacity: 0.81" title="-0.019">a</span><span style="background-color: hsl(0, 100.00%, 95.04%); opacity: 0.81" title="-0.013">t</span><span style="background-color: hsl(120, 100.00%, 91.68%); opacity: 0.82" title="0.028"> </span><span style="background-color: hsl(120, 100.00%, 88.34%); opacity: 0.83" title="0.045">s</span><span style="background-color: hsl(120, 100.00%, 87.07%); opacity: 0.84" title="0.052">h</span><span style="background-color: hsl(120, 100.00%, 91.36%); opacity: 0.82" title="0.029">e</span><span style="background-color: hsl(120, 100.00%, 98.51%); opacity: 0.80" title="0.002">'</span><span style="background-color: hsl(0, 100.00%, 96.93%); opacity: 0.81" title="-0.007">d</span><span style="background-color: hsl(120, 100.00%, 99.53%); opacity: 0.80" title="0.000"> </span><span style="background-color: hsl(120, 100.00%, 95.97%); opacity: 0.81" title="0.010">h</span><span style="background-color: hsl(120, 100.00%, 95.42%); opacity: 0.81" title="0.012">a</span><span style="background-color: hsl(120, 100.00%, 94.59%); opacity: 0.81" title="0.015">d</span><span style="background-color: hsl(120, 100.00%, 93.98%); opacity: 0.81" title="0.017"> </span><span style="background-color: hsl(120, 100.00%, 91.85%); opacity: 0.82" title="0.027">k</span><span style="background-color: hsl(120, 100.00%, 89.22%); opacity: 0.83" title="0.040">i</span><span style="background-color: hsl(120, 100.00%, 84.09%); opacity: 0.85" title="0.070">d</span><span style="background-color: hsl(120, 100.00%, 84.13%); opacity: 0.85" title="0.069">n</span><span style="background-color: hsl(120, 100.00%, 85.54%); opacity: 0.85" title="0.061">e</span><span style="background-color: hsl(120, 100.00%, 92.19%); opacity: 0.82" title="0.025">y</span><span style="background-color: hsl(120, 100.00%, 98.31%); opacity: 0.80" title="0.003">
     </span><span style="background-color: hsl(0, 100.00%, 95.72%); opacity: 0.81" title="-0.011">s</span><span style="background-color: hsl(0, 100.00%, 94.43%); opacity: 0.81" title="-0.016">t</span><span style="background-color: hsl(0, 100.00%, 95.24%); opacity: 0.81" title="-0.012">o</span><span style="background-color: hsl(120, 100.00%, 94.50%); opacity: 0.81" title="0.015">n</span><span style="background-color: hsl(120, 100.00%, 93.35%); opacity: 0.82" title="0.020">e</span><span style="background-color: hsl(120, 100.00%, 90.63%); opacity: 0.83" title="0.033">s</span><span style="background-color: hsl(120, 100.00%, 93.82%); opacity: 0.81" title="0.018"> </span><span style="background-color: hsl(120, 100.00%, 97.13%); opacity: 0.80" title="0.006">a</span><span style="background-color: hsl(120, 100.00%, 95.75%); opacity: 0.81" title="0.011">n</span><span style="background-color: hsl(120, 100.00%, 95.80%); opacity: 0.81" title="0.010">d</span><span style="background-color: hsl(120, 100.00%, 96.70%); opacity: 0.81" title="0.007"> </span><span style="background-color: hsl(0, 100.00%, 97.38%); opacity: 0.80" title="-0.005">c</span><span style="background-color: hsl(0, 100.00%, 96.67%); opacity: 0.81" title="-0.007">h</span><span style="background-color: hsl(0, 100.00%, 96.49%); opacity: 0.81" title="-0.008">i</span><span style="background-color: hsl(0, 100.00%, 91.55%); opacity: 0.82" title="-0.028">l</span><span style="background-color: hsl(0, 100.00%, 93.60%); opacity: 0.81" title="-0.019">d</span><span style="background-color: hsl(0, 100.00%, 95.95%); opacity: 0.81" title="-0.010">r</span><span style="background-color: hsl(0, 100.00%, 94.33%); opacity: 0.81" title="-0.016">e</span><span style="background-color: hsl(0, 100.00%, 92.75%); opacity: 0.82" title="-0.023">n</span><span style="background-color: hsl(0, 100.00%, 92.01%); opacity: 0.82" title="-0.026">,</span><span style="background-color: hsl(0, 100.00%, 95.30%); opacity: 0.81" title="-0.012"> </span><span style="background-color: hsl(120, 100.00%, 97.13%); opacity: 0.80" title="0.006">a</span><span style="background-color: hsl(120, 100.00%, 95.75%); opacity: 0.81" title="0.011">n</span><span style="background-color: hsl(120, 100.00%, 95.80%); opacity: 0.81" title="0.010">d</span><span style="background-color: hsl(0, 100.00%, 98.54%); opacity: 0.80" title="-0.002"> </span><span style="background-color: hsl(0, 100.00%, 91.94%); opacity: 0.82" title="-0.026">t</span><span style="background-color: hsl(0, 100.00%, 91.10%); opacity: 0.82" title="-0.030">h</span><span style="background-color: hsl(0, 100.00%, 92.59%); opacity: 0.82" title="-0.023">e</span><span style="background-color: hsl(0, 100.00%, 95.18%); opacity: 0.81" title="-0.013"> </span><span style="background-color: hsl(0, 100.00%, 97.38%); opacity: 0.80" title="-0.005">c</span><span style="background-color: hsl(0, 100.00%, 98.06%); opacity: 0.80" title="-0.003">h</span><span style="background-color: hsl(120, 100.00%, 97.42%); opacity: 0.80" title="0.005">i</span><span style="background-color: hsl(0, 100.00%, 99.82%); opacity: 0.80" title="-0.000">l</span><span style="background-color: hsl(120, 100.00%, 94.57%); opacity: 0.81" title="0.015">d</span><span style="background-color: hsl(120, 100.00%, 89.24%); opacity: 0.83" title="0.040">b</span><span style="background-color: hsl(120, 100.00%, 87.79%); opacity: 0.84" title="0.048">i</span><span style="background-color: hsl(120, 100.00%, 90.73%); opacity: 0.82" title="0.032">r</span><span style="background-color: hsl(120, 100.00%, 94.23%); opacity: 0.81" title="0.016">t</span><span style="background-color: hsl(120, 100.00%, 96.87%); opacity: 0.81" title="0.007">h</span><span style="background-color: hsl(0, 100.00%, 99.55%); opacity: 0.80" title="-0.000"> </span><span style="background-color: hsl(0, 100.00%, 92.86%); opacity: 0.82" title="-0.022">h</span><span style="background-color: hsl(0, 100.00%, 91.80%); opacity: 0.82" title="-0.027">u</span><span style="background-color: hsl(0, 100.00%, 91.76%); opacity: 0.82" title="-0.027">r</span><span style="background-color: hsl(0, 100.00%, 97.44%); opacity: 0.80" title="-0.005">t</span><span style="background-color: hsl(120, 100.00%, 95.35%); opacity: 0.81" title="0.012"> </span><span style="background-color: hsl(120, 100.00%, 94.31%); opacity: 0.81" title="0.016">l</span><span style="background-color: hsl(120, 100.00%, 92.36%); opacity: 0.82" title="0.024">e</span><span style="background-color: hsl(120, 100.00%, 93.57%); opacity: 0.81" title="0.019">s</span><span style="background-color: hsl(120, 100.00%, 93.84%); opacity: 0.81" title="0.018">s</span><span style="background-color: hsl(120, 100.00%, 96.78%); opacity: 0.81" title="0.007">.</span>
@@ -3343,8 +3568,13 @@ looks like:
                style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
             <thead>
             <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature contribution already accounts for the feature value (for linear models, contribution = weight * feature value), and the sum of feature contributions is equal to the score or, for some classifiers, to the probability. Feature values are shown if &quot;show_feature_values&quot; is True.">
+                        Contribution<sup>?</sup>
+                    </th>
+                
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
             </tr>
             </thead>
             <tbody>
@@ -3356,6 +3586,7 @@ looks like:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             Highlighted in text (sum)
         </td>
+        
     </tr>
             
             
@@ -3369,6 +3600,7 @@ looks like:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             &lt;BIAS&gt;
         </td>
+        
     </tr>
             
     
@@ -3380,7 +3612,7 @@ looks like:
     
     
         <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
-            <span style="background-color: hsl(0, 100.00%, 98.67%); opacity: 0.80" title="-0.002">as</span><span style="background-color: hsl(120, 100.00%, 91.28%); opacity: 0.82" title="0.030"> </span><span style="background-color: hsl(120, 100.00%, 90.87%); opacity: 0.82" title="0.032">i</span><span style="background-color: hsl(120, 100.00%, 91.15%); opacity: 0.82" title="0.030"> </span><span style="background-color: hsl(0, 100.00%, 92.11%); opacity: 0.82" title="-0.026">r</span><span style="background-color: hsl(0, 100.00%, 87.58%); opacity: 0.84" title="-0.049">e</span><span style="background-color: hsl(0, 100.00%, 83.40%); opacity: 0.86" title="-0.074">c</span><span style="background-color: hsl(0, 100.00%, 80.88%); opacity: 0.87" title="-0.091">a</span><span style="background-color: hsl(0, 100.00%, 83.37%); opacity: 0.86" title="-0.074">l</span><span style="background-color: hsl(0, 100.00%, 89.78%); opacity: 0.83" title="-0.037">l</span><span style="background-color: hsl(0, 100.00%, 93.05%); opacity: 0.82" title="-0.021"> </span><span style="background-color: hsl(0, 100.00%, 94.68%); opacity: 0.81" title="-0.015">f</span><span style="background-color: hsl(0, 100.00%, 94.19%); opacity: 0.81" title="-0.017">r</span><span style="background-color: hsl(0, 100.00%, 95.12%); opacity: 0.81" title="-0.013">o</span><span style="background-color: hsl(0, 100.00%, 98.50%); opacity: 0.80" title="-0.002">m</span><span style="background-color: hsl(120, 100.00%, 94.15%); opacity: 0.81" title="0.017"> </span><span style="background-color: hsl(120, 100.00%, 96.27%); opacity: 0.81" title="0.009">my</span><span style="background-color: hsl(0, 100.00%, 95.53%); opacity: 0.81" title="-0.011"> </span><span style="background-color: hsl(0, 100.00%, 96.98%); opacity: 0.80" title="-0.006">b</span><span style="background-color: hsl(0, 100.00%, 93.15%); opacity: 0.82" title="-0.021">o</span><span style="background-color: hsl(0, 100.00%, 92.79%); opacity: 0.82" title="-0.022">u</span><span style="background-color: hsl(0, 100.00%, 95.33%); opacity: 0.81" title="-0.012">t</span><span style="background-color: hsl(120, 100.00%, 93.00%); opacity: 0.82" title="0.022"> </span><span style="background-color: hsl(120, 100.00%, 90.89%); opacity: 0.82" title="0.031">w</span><span style="background-color: hsl(120, 100.00%, 89.23%); opacity: 0.83" title="0.040">i</span><span style="background-color: hsl(120, 100.00%, 90.12%); opacity: 0.83" title="0.035">t</span><span style="background-color: hsl(120, 100.00%, 92.82%); opacity: 0.82" title="0.022">h</span><span style="background-color: hsl(120, 100.00%, 96.30%); opacity: 0.81" title="0.009"> </span><span style="background-color: hsl(0, 100.00%, 88.58%); opacity: 0.83" title="-0.043">k</span><span style="background-color: hsl(0, 100.00%, 85.27%); opacity: 0.85" title="-0.062">i</span><span style="background-color: hsl(0, 100.00%, 80.72%); opacity: 0.87" title="-0.092">d</span><span style="background-color: hsl(0, 100.00%, 82.98%); opacity: 0.86" title="-0.077">n</span><span style="background-color: hsl(0, 100.00%, 89.57%); opacity: 0.83" title="-0.038">e</span><span style="background-color: hsl(0, 100.00%, 96.97%); opacity: 0.81" title="-0.007">y</span><span style="background-color: hsl(120, 100.00%, 86.47%); opacity: 0.84" title="0.055"> </span><span style="background-color: hsl(120, 100.00%, 84.11%); opacity: 0.85" title="0.070">s</span><span style="background-color: hsl(120, 100.00%, 69.82%); opacity: 0.93" title="0.174">t</span><span style="background-color: hsl(120, 100.00%, 73.48%); opacity: 0.91" title="0.145">o</span><span style="background-color: hsl(120, 100.00%, 75.41%); opacity: 0.90" title="0.130">n</span><span style="background-color: hsl(120, 100.00%, 89.55%); opacity: 0.83" title="0.038">e</span><span style="background-color: hsl(0, 100.00%, 92.85%); opacity: 0.82" title="-0.022">s</span><span style="background-color: hsl(0, 100.00%, 96.25%); opacity: 0.81" title="-0.009">,</span><span style="background-color: hsl(120, 100.00%, 99.34%); opacity: 0.80" title="0.001"> </span><span style="background-color: hsl(120, 100.00%, 91.45%); opacity: 0.82" title="0.029">t</span><span style="background-color: hsl(120, 100.00%, 92.12%); opacity: 0.82" title="0.026">h</span><span style="background-color: hsl(120, 100.00%, 99.11%); opacity: 0.80" title="0.001">e</span><span style="background-color: hsl(0, 100.00%, 94.83%); opacity: 0.81" title="-0.014">r</span><span style="background-color: hsl(0, 100.00%, 91.15%); opacity: 0.82" title="-0.030">e</span><span style="background-color: hsl(0, 100.00%, 88.94%); opacity: 0.83" title="-0.041"> </span><span style="background-color: hsl(0, 100.00%, 86.48%); opacity: 0.84" title="-0.055">i</span><span style="background-color: hsl(0, 100.00%, 82.35%); opacity: 0.86" title="-0.081">s</span><span style="background-color: hsl(0, 100.00%, 78.46%); opacity: 0.88" title="-0.107">n</span><span style="background-color: hsl(0, 100.00%, 77.06%); opacity: 0.89" title="-0.118">'</span><span style="background-color: hsl(0, 100.00%, 80.31%); opacity: 0.87" title="-0.095">t</span><span style="background-color: hsl(0, 100.00%, 86.56%); opacity: 0.84" title="-0.055"> </span><span style="background-color: hsl(0, 100.00%, 97.59%); opacity: 0.80" title="-0.005">a</span><span style="background-color: hsl(0, 100.00%, 96.00%); opacity: 0.81" title="-0.010">n</span><span style="background-color: hsl(0, 100.00%, 96.15%); opacity: 0.81" title="-0.009">y</span><span style="background-color: hsl(0, 100.00%, 84.79%); opacity: 0.85" title="-0.065">
+            <span style="background-color: hsl(120, 100.00%, 89.09%); opacity: 0.83" title="0.041">as</span><span style="background-color: hsl(120, 100.00%, 87.95%); opacity: 0.84" title="0.047"> </span><span style="background-color: hsl(120, 100.00%, 90.87%); opacity: 0.82" title="0.032">i</span><span style="background-color: hsl(120, 100.00%, 91.15%); opacity: 0.82" title="0.030"> </span><span style="background-color: hsl(0, 100.00%, 92.11%); opacity: 0.82" title="-0.026">r</span><span style="background-color: hsl(0, 100.00%, 87.58%); opacity: 0.84" title="-0.049">e</span><span style="background-color: hsl(0, 100.00%, 83.40%); opacity: 0.86" title="-0.074">c</span><span style="background-color: hsl(0, 100.00%, 80.88%); opacity: 0.87" title="-0.091">a</span><span style="background-color: hsl(0, 100.00%, 83.37%); opacity: 0.86" title="-0.074">l</span><span style="background-color: hsl(0, 100.00%, 89.78%); opacity: 0.83" title="-0.037">l</span><span style="background-color: hsl(0, 100.00%, 93.05%); opacity: 0.82" title="-0.021"> </span><span style="background-color: hsl(0, 100.00%, 94.68%); opacity: 0.81" title="-0.015">f</span><span style="background-color: hsl(0, 100.00%, 94.19%); opacity: 0.81" title="-0.017">r</span><span style="background-color: hsl(0, 100.00%, 95.12%); opacity: 0.81" title="-0.013">o</span><span style="background-color: hsl(0, 100.00%, 98.50%); opacity: 0.80" title="-0.002">m</span><span style="background-color: hsl(120, 100.00%, 94.15%); opacity: 0.81" title="0.017"> </span><span style="background-color: hsl(120, 100.00%, 96.27%); opacity: 0.81" title="0.009">my</span><span style="background-color: hsl(0, 100.00%, 95.53%); opacity: 0.81" title="-0.011"> </span><span style="background-color: hsl(0, 100.00%, 96.98%); opacity: 0.80" title="-0.006">b</span><span style="background-color: hsl(0, 100.00%, 93.15%); opacity: 0.82" title="-0.021">o</span><span style="background-color: hsl(0, 100.00%, 92.79%); opacity: 0.82" title="-0.022">u</span><span style="background-color: hsl(0, 100.00%, 95.33%); opacity: 0.81" title="-0.012">t</span><span style="background-color: hsl(120, 100.00%, 93.00%); opacity: 0.82" title="0.022"> </span><span style="background-color: hsl(120, 100.00%, 90.89%); opacity: 0.82" title="0.031">w</span><span style="background-color: hsl(120, 100.00%, 89.23%); opacity: 0.83" title="0.040">i</span><span style="background-color: hsl(120, 100.00%, 90.12%); opacity: 0.83" title="0.035">t</span><span style="background-color: hsl(120, 100.00%, 92.82%); opacity: 0.82" title="0.022">h</span><span style="background-color: hsl(120, 100.00%, 96.30%); opacity: 0.81" title="0.009"> </span><span style="background-color: hsl(0, 100.00%, 88.58%); opacity: 0.83" title="-0.043">k</span><span style="background-color: hsl(0, 100.00%, 85.27%); opacity: 0.85" title="-0.062">i</span><span style="background-color: hsl(0, 100.00%, 80.72%); opacity: 0.87" title="-0.092">d</span><span style="background-color: hsl(0, 100.00%, 82.98%); opacity: 0.86" title="-0.077">n</span><span style="background-color: hsl(0, 100.00%, 89.57%); opacity: 0.83" title="-0.038">e</span><span style="background-color: hsl(0, 100.00%, 96.97%); opacity: 0.81" title="-0.007">y</span><span style="background-color: hsl(120, 100.00%, 86.47%); opacity: 0.84" title="0.055"> </span><span style="background-color: hsl(120, 100.00%, 84.11%); opacity: 0.85" title="0.070">s</span><span style="background-color: hsl(120, 100.00%, 69.82%); opacity: 0.93" title="0.174">t</span><span style="background-color: hsl(120, 100.00%, 73.48%); opacity: 0.91" title="0.145">o</span><span style="background-color: hsl(120, 100.00%, 75.41%); opacity: 0.90" title="0.130">n</span><span style="background-color: hsl(120, 100.00%, 89.55%); opacity: 0.83" title="0.038">e</span><span style="background-color: hsl(0, 100.00%, 92.85%); opacity: 0.82" title="-0.022">s</span><span style="background-color: hsl(0, 100.00%, 96.25%); opacity: 0.81" title="-0.009">,</span><span style="background-color: hsl(120, 100.00%, 99.34%); opacity: 0.80" title="0.001"> </span><span style="background-color: hsl(120, 100.00%, 91.45%); opacity: 0.82" title="0.029">t</span><span style="background-color: hsl(120, 100.00%, 92.12%); opacity: 0.82" title="0.026">h</span><span style="background-color: hsl(120, 100.00%, 99.11%); opacity: 0.80" title="0.001">e</span><span style="background-color: hsl(0, 100.00%, 94.83%); opacity: 0.81" title="-0.014">r</span><span style="background-color: hsl(0, 100.00%, 91.15%); opacity: 0.82" title="-0.030">e</span><span style="background-color: hsl(0, 100.00%, 88.94%); opacity: 0.83" title="-0.041"> </span><span style="background-color: hsl(0, 100.00%, 86.48%); opacity: 0.84" title="-0.055">i</span><span style="background-color: hsl(0, 100.00%, 82.35%); opacity: 0.86" title="-0.081">s</span><span style="background-color: hsl(0, 100.00%, 78.46%); opacity: 0.88" title="-0.107">n</span><span style="background-color: hsl(0, 100.00%, 77.06%); opacity: 0.89" title="-0.118">'</span><span style="background-color: hsl(0, 100.00%, 80.31%); opacity: 0.87" title="-0.095">t</span><span style="background-color: hsl(0, 100.00%, 86.56%); opacity: 0.84" title="-0.055"> </span><span style="background-color: hsl(0, 100.00%, 97.59%); opacity: 0.80" title="-0.005">a</span><span style="background-color: hsl(0, 100.00%, 96.00%); opacity: 0.81" title="-0.010">n</span><span style="background-color: hsl(0, 100.00%, 96.15%); opacity: 0.81" title="-0.009">y</span><span style="background-color: hsl(0, 100.00%, 84.79%); opacity: 0.85" title="-0.065">
     </span><span style="background-color: hsl(0, 100.00%, 76.45%); opacity: 0.89" title="-0.122">m</span><span style="background-color: hsl(0, 100.00%, 69.82%); opacity: 0.93" title="-0.174">e</span><span style="background-color: hsl(0, 100.00%, 65.81%); opacity: 0.96" title="-0.208">d</span><span style="background-color: hsl(0, 100.00%, 72.28%); opacity: 0.92" title="-0.154">i</span><span style="background-color: hsl(0, 100.00%, 82.81%); opacity: 0.86" title="-0.078">c</span><span style="background-color: hsl(0, 100.00%, 98.28%); opacity: 0.80" title="-0.003">a</span><span style="background-color: hsl(120, 100.00%, 90.75%); opacity: 0.82" title="0.032">t</span><span style="background-color: hsl(120, 100.00%, 98.60%); opacity: 0.80" title="0.002">i</span><span style="background-color: hsl(0, 100.00%, 96.62%); opacity: 0.81" title="-0.008">o</span><span style="background-color: hsl(0, 100.00%, 96.12%); opacity: 0.81" title="-0.009">n</span><span style="background-color: hsl(120, 100.00%, 94.70%); opacity: 0.81" title="0.014"> </span><span style="background-color: hsl(120, 100.00%, 90.32%); opacity: 0.83" title="0.034">t</span><span style="background-color: hsl(120, 100.00%, 88.64%); opacity: 0.83" title="0.043">h</span><span style="background-color: hsl(120, 100.00%, 90.36%); opacity: 0.83" title="0.034">a</span><span style="background-color: hsl(120, 100.00%, 92.12%); opacity: 0.82" title="0.026">t</span><span style="background-color: hsl(120, 100.00%, 90.14%); opacity: 0.83" title="0.035"> </span><span style="background-color: hsl(120, 100.00%, 90.20%); opacity: 0.83" title="0.035">c</span><span style="background-color: hsl(120, 100.00%, 87.48%); opacity: 0.84" title="0.050">a</span><span style="background-color: hsl(120, 100.00%, 87.48%); opacity: 0.84" title="0.049">n</span><span style="background-color: hsl(120, 100.00%, 90.06%); opacity: 0.83" title="0.036"> </span><span style="background-color: hsl(120, 100.00%, 97.71%); opacity: 0.80" title="0.004">do</span><span style="background-color: hsl(120, 100.00%, 92.77%); opacity: 0.82" title="0.023"> </span><span style="background-color: hsl(120, 100.00%, 86.21%); opacity: 0.84" title="0.057">a</span><span style="background-color: hsl(120, 100.00%, 76.25%); opacity: 0.89" title="0.124">n</span><span style="background-color: hsl(120, 100.00%, 71.86%); opacity: 0.92" title="0.157">y</span><span style="background-color: hsl(120, 100.00%, 72.01%); opacity: 0.92" title="0.156">t</span><span style="background-color: hsl(120, 100.00%, 81.95%); opacity: 0.86" title="0.083">h</span><span style="background-color: hsl(120, 100.00%, 88.07%); opacity: 0.84" title="0.046">i</span><span style="background-color: hsl(120, 100.00%, 94.51%); opacity: 0.81" title="0.015">n</span><span style="background-color: hsl(120, 100.00%, 94.57%); opacity: 0.81" title="0.015">g</span><span style="background-color: hsl(120, 100.00%, 94.77%); opacity: 0.81" title="0.014"> </span><span style="background-color: hsl(120, 100.00%, 93.87%); opacity: 0.81" title="0.018">a</span><span style="background-color: hsl(120, 100.00%, 92.61%); opacity: 0.82" title="0.023">b</span><span style="background-color: hsl(120, 100.00%, 97.04%); opacity: 0.80" title="0.006">o</span><span style="background-color: hsl(0, 100.00%, 98.38%); opacity: 0.80" title="-0.003">u</span><span style="background-color: hsl(0, 100.00%, 96.60%); opacity: 0.81" title="-0.008">t</span><span style="background-color: hsl(120, 100.00%, 93.53%); opacity: 0.81" title="0.019"> </span><span style="background-color: hsl(120, 100.00%, 90.77%); opacity: 0.82" title="0.032">t</span><span style="background-color: hsl(120, 100.00%, 93.91%); opacity: 0.81" title="0.018">h</span><span style="background-color: hsl(0, 100.00%, 98.21%); opacity: 0.80" title="-0.003">e</span><span style="background-color: hsl(0, 100.00%, 92.69%); opacity: 0.82" title="-0.023">m</span><span style="background-color: hsl(120, 100.00%, 98.31%); opacity: 0.80" title="0.003"> </span><span style="background-color: hsl(0, 100.00%, 99.00%); opacity: 0.80" title="-0.001">e</span><span style="background-color: hsl(0, 100.00%, 96.97%); opacity: 0.81" title="-0.007">x</span><span style="background-color: hsl(0, 100.00%, 97.01%); opacity: 0.80" title="-0.006">c</span><span style="background-color: hsl(0, 100.00%, 98.18%); opacity: 0.80" title="-0.003">e</span><span style="background-color: hsl(0, 100.00%, 97.57%); opacity: 0.80" title="-0.005">p</span><span style="background-color: hsl(0, 100.00%, 97.42%); opacity: 0.80" title="-0.005">t</span><span style="background-color: hsl(0, 100.00%, 97.07%); opacity: 0.80" title="-0.006"> </span><span style="background-color: hsl(0, 100.00%, 95.32%); opacity: 0.81" title="-0.012">r</span><span style="background-color: hsl(0, 100.00%, 97.61%); opacity: 0.80" title="-0.005">e</span><span style="background-color: hsl(0, 100.00%, 94.17%); opacity: 0.81" title="-0.017">l</span><span style="background-color: hsl(0, 100.00%, 95.20%); opacity: 0.81" title="-0.013">i</span><span style="background-color: hsl(120, 100.00%, 94.79%); opacity: 0.81" title="0.014">e</span><span style="background-color: hsl(120, 100.00%, 94.25%); opacity: 0.81" title="0.016">v</span><span style="background-color: hsl(120, 100.00%, 93.66%); opacity: 0.81" title="0.019">e</span><span style="background-color: hsl(120, 100.00%, 89.30%); opacity: 0.83" title="0.040"> </span><span style="background-color: hsl(120, 100.00%, 87.28%); opacity: 0.84" title="0.051">t</span><span style="background-color: hsl(120, 100.00%, 84.61%); opacity: 0.85" title="0.066">h</span><span style="background-color: hsl(120, 100.00%, 87.33%); opacity: 0.84" title="0.050">e</span><span style="background-color: hsl(120, 100.00%, 97.76%); opacity: 0.80" title="0.004"> </span><span style="background-color: hsl(0, 100.00%, 82.45%); opacity: 0.86" title="-0.080">p</span><span style="background-color: hsl(0, 100.00%, 75.89%); opacity: 0.90" title="-0.126">a</span><span style="background-color: hsl(0, 100.00%, 72.94%); opacity: 0.91" title="-0.149">i</span><span style="background-color: hsl(0, 100.00%, 81.60%); opacity: 0.87" title="-0.086">n</span><span style="background-color: hsl(0, 100.00%, 94.85%); opacity: 0.81" title="-0.014">.</span><span style="background-color: hsl(120, 100.00%, 95.11%); opacity: 0.81" title="0.013"> </span><span style="background-color: hsl(120, 100.00%, 95.69%); opacity: 0.81" title="0.011">e</span><span style="background-color: hsl(120, 100.00%, 89.90%); opacity: 0.83" title="0.036">i</span><span style="background-color: hsl(120, 100.00%, 85.24%); opacity: 0.85" title="0.063">t</span><span style="background-color: hsl(120, 100.00%, 80.72%); opacity: 0.87" title="0.092">h</span><span style="background-color: hsl(120, 100.00%, 80.39%); opacity: 0.87" title="0.094">e</span><span style="background-color: hsl(120, 100.00%, 85.32%); opacity: 0.85" title="0.062">r</span><span style="background-color: hsl(120, 100.00%, 84.12%); opacity: 0.85" title="0.070"> </span><span style="background-color: hsl(120, 100.00%, 80.27%); opacity: 0.87" title="0.095">t</span><span style="background-color: hsl(120, 100.00%, 73.58%); opacity: 0.91" title="0.144">h</span><span style="background-color: hsl(120, 100.00%, 72.57%); opacity: 0.92" title="0.152">e</span><span style="background-color: hsl(120, 100.00%, 75.14%); opacity: 0.90" title="0.132">y</span><span style="background-color: hsl(120, 100.00%, 76.80%); opacity: 0.89" title="0.119"> </span><span style="background-color: hsl(120, 100.00%, 77.83%); opacity: 0.89" title="0.112">p</span><span style="background-color: hsl(120, 100.00%, 75.20%); opacity: 0.90" title="0.131">a</span><span style="background-color: hsl(120, 100.00%, 76.35%); opacity: 0.89" title="0.123">s</span><span style="background-color: hsl(120, 100.00%, 86.91%); opacity: 0.84" title="0.053">s</span><span style="background-color: hsl(0, 100.00%, 98.39%); opacity: 0.80" title="-0.003">,</span><span style="background-color: hsl(0, 100.00%, 88.66%); opacity: 0.83" title="-0.043"> </span><span style="background-color: hsl(0, 100.00%, 87.14%); opacity: 0.84" title="-0.051">or</span><span style="background-color: hsl(120, 100.00%, 95.89%); opacity: 0.81" title="0.010"> </span><span style="background-color: hsl(120, 100.00%, 80.27%); opacity: 0.87" title="0.095">t</span><span style="background-color: hsl(120, 100.00%, 73.58%); opacity: 0.91" title="0.144">h</span><span style="background-color: hsl(120, 100.00%, 72.57%); opacity: 0.92" title="0.152">e</span><span style="background-color: hsl(120, 100.00%, 75.14%); opacity: 0.90" title="0.132">y</span><span style="background-color: hsl(120, 100.00%, 83.22%); opacity: 0.86" title="0.075"> </span><span style="background-color: hsl(120, 100.00%, 92.96%); opacity: 0.82" title="0.022">h</span><span style="background-color: hsl(120, 100.00%, 89.25%); opacity: 0.83" title="0.040">a</span><span style="background-color: hsl(120, 100.00%, 89.95%); opacity: 0.83" title="0.036">v</span><span style="background-color: hsl(120, 100.00%, 90.71%); opacity: 0.82" title="0.032">e</span><span style="background-color: hsl(120, 100.00%, 91.52%); opacity: 0.82" title="0.028"> </span><span style="background-color: hsl(120, 100.00%, 92.19%); opacity: 0.82" title="0.025">to</span><span style="background-color: hsl(120, 100.00%, 88.77%); opacity: 0.83" title="0.042"> </span><span style="background-color: hsl(120, 100.00%, 88.17%); opacity: 0.84" title="0.046">be</span><span style="background-color: hsl(120, 100.00%, 83.45%); opacity: 0.86" title="0.074"> </span><span style="background-color: hsl(120, 100.00%, 85.62%); opacity: 0.85" title="0.060">b</span><span style="background-color: hsl(120, 100.00%, 85.92%); opacity: 0.84" title="0.059">r</span><span style="background-color: hsl(120, 100.00%, 96.40%); opacity: 0.81" title="0.008">o</span><span style="background-color: hsl(0, 100.00%, 84.43%); opacity: 0.85" title="-0.068">k</span><span style="background-color: hsl(0, 100.00%, 84.61%); opacity: 0.85" title="-0.066">e</span><span style="background-color: hsl(0, 100.00%, 88.10%); opacity: 0.84" title="-0.046">n</span><span style="background-color: hsl(0, 100.00%, 86.01%); opacity: 0.84" title="-0.058"> </span><span style="background-color: hsl(0, 100.00%, 89.84%); opacity: 0.83" title="-0.037">up</span><span style="background-color: hsl(120, 100.00%, 97.89%); opacity: 0.80" title="0.004"> </span><span style="background-color: hsl(120, 100.00%, 90.89%); opacity: 0.82" title="0.031">w</span><span style="background-color: hsl(120, 100.00%, 89.23%); opacity: 0.83" title="0.040">i</span><span style="background-color: hsl(120, 100.00%, 90.12%); opacity: 0.83" title="0.035">t</span><span style="background-color: hsl(120, 100.00%, 92.82%); opacity: 0.82" title="0.022">h</span><span style="background-color: hsl(0, 100.00%, 98.30%); opacity: 0.80" title="-0.003"> </span><span style="background-color: hsl(0, 100.00%, 90.70%); opacity: 0.82" title="-0.032">s</span><span style="background-color: hsl(0, 100.00%, 89.30%); opacity: 0.83" title="-0.040">o</span><span style="background-color: hsl(0, 100.00%, 95.28%); opacity: 0.81" title="-0.012">u</span><span style="background-color: hsl(120, 100.00%, 94.47%); opacity: 0.81" title="0.015">n</span><span style="background-color: hsl(120, 100.00%, 88.84%); opacity: 0.83" title="0.042">d</span><span style="background-color: hsl(120, 100.00%, 87.16%); opacity: 0.84" title="0.051">,</span><span style="background-color: hsl(0, 100.00%, 94.80%); opacity: 0.81" title="-0.014"> </span><span style="background-color: hsl(0, 100.00%, 87.14%); opacity: 0.84" title="-0.051">or</span><span style="background-color: hsl(120, 100.00%, 95.89%); opacity: 0.81" title="0.010"> </span><span style="background-color: hsl(120, 100.00%, 80.27%); opacity: 0.87" title="0.095">t</span><span style="background-color: hsl(120, 100.00%, 73.58%); opacity: 0.91" title="0.144">h</span><span style="background-color: hsl(120, 100.00%, 72.57%); opacity: 0.92" title="0.152">e</span><span style="background-color: hsl(120, 100.00%, 75.14%); opacity: 0.90" title="0.132">y</span><span style="background-color: hsl(120, 100.00%, 83.22%); opacity: 0.86" title="0.075"> </span><span style="background-color: hsl(120, 100.00%, 92.96%); opacity: 0.82" title="0.022">h</span><span style="background-color: hsl(120, 100.00%, 89.25%); opacity: 0.83" title="0.040">a</span><span style="background-color: hsl(120, 100.00%, 89.95%); opacity: 0.83" title="0.036">v</span><span style="background-color: hsl(120, 100.00%, 90.71%); opacity: 0.82" title="0.032">e</span><span style="background-color: hsl(120, 100.00%, 91.52%); opacity: 0.82" title="0.028">
     </span><span style="background-color: hsl(120, 100.00%, 92.19%); opacity: 0.82" title="0.025">to</span><span style="background-color: hsl(120, 100.00%, 88.77%); opacity: 0.83" title="0.042"> </span><span style="background-color: hsl(120, 100.00%, 88.17%); opacity: 0.84" title="0.046">be</span><span style="background-color: hsl(120, 100.00%, 90.70%); opacity: 0.82" title="0.032"> </span><span style="background-color: hsl(0, 100.00%, 88.83%); opacity: 0.83" title="-0.042">e</span><span style="background-color: hsl(0, 100.00%, 84.30%); opacity: 0.85" title="-0.068">x</span><span style="background-color: hsl(0, 100.00%, 75.24%); opacity: 0.90" title="-0.131">t</span><span style="background-color: hsl(0, 100.00%, 74.15%); opacity: 0.91" title="-0.139">r</span><span style="background-color: hsl(0, 100.00%, 73.44%); opacity: 0.91" title="-0.145">a</span><span style="background-color: hsl(0, 100.00%, 82.32%); opacity: 0.86" title="-0.081">c</span><span style="background-color: hsl(0, 100.00%, 87.34%); opacity: 0.84" title="-0.050">t</span><span style="background-color: hsl(0, 100.00%, 92.81%); opacity: 0.82" title="-0.022">e</span><span style="background-color: hsl(0, 100.00%, 96.14%); opacity: 0.81" title="-0.009">d</span><span style="background-color: hsl(0, 100.00%, 85.85%); opacity: 0.85" title="-0.059"> </span><span style="background-color: hsl(0, 100.00%, 79.82%); opacity: 0.88" title="-0.098">s</span><span style="background-color: hsl(0, 100.00%, 78.63%); opacity: 0.88" title="-0.106">u</span><span style="background-color: hsl(0, 100.00%, 79.50%); opacity: 0.88" title="-0.100">r</span><span style="background-color: hsl(0, 100.00%, 81.24%); opacity: 0.87" title="-0.088">g</span><span style="background-color: hsl(0, 100.00%, 88.30%); opacity: 0.83" title="-0.045">i</span><span style="background-color: hsl(0, 100.00%, 87.32%); opacity: 0.84" title="-0.050">c</span><span style="background-color: hsl(0, 100.00%, 89.37%); opacity: 0.83" title="-0.039">a</span><span style="background-color: hsl(0, 100.00%, 90.83%); opacity: 0.82" title="-0.032">l</span><span style="background-color: hsl(0, 100.00%, 91.86%); opacity: 0.82" title="-0.027">l</span><span style="background-color: hsl(0, 100.00%, 91.57%); opacity: 0.82" title="-0.028">y</span><span style="background-color: hsl(0, 100.00%, 90.33%); opacity: 0.83" title="-0.034">.</span><span style="background-color: hsl(0, 100.00%, 94.25%); opacity: 0.81" title="-0.016"> </span><span style="background-color: hsl(0, 100.00%, 96.37%); opacity: 0.81" title="-0.008">w</span><span style="background-color: hsl(120, 100.00%, 99.36%); opacity: 0.80" title="0.001">h</span><span style="background-color: hsl(0, 100.00%, 95.95%); opacity: 0.81" title="-0.010">e</span><span style="background-color: hsl(120, 100.00%, 98.65%); opacity: 0.80" title="0.002">n</span><span style="background-color: hsl(120, 100.00%, 91.67%); opacity: 0.82" title="0.028"> </span><span style="background-color: hsl(120, 100.00%, 90.87%); opacity: 0.82" title="0.032">i</span><span style="background-color: hsl(120, 100.00%, 93.10%); opacity: 0.82" title="0.021"> </span><span style="background-color: hsl(0, 100.00%, 91.59%); opacity: 0.82" title="-0.028">w</span><span style="background-color: hsl(0, 100.00%, 91.18%); opacity: 0.82" title="-0.030">a</span><span style="background-color: hsl(0, 100.00%, 90.31%); opacity: 0.83" title="-0.034">s</span><span style="background-color: hsl(0, 100.00%, 90.57%); opacity: 0.83" title="-0.033"> </span><span style="background-color: hsl(120, 100.00%, 96.78%); opacity: 0.81" title="0.007">i</span><span style="background-color: hsl(120, 100.00%, 95.57%); opacity: 0.81" title="0.011">n</span><span style="background-color: hsl(120, 100.00%, 95.53%); opacity: 0.81" title="0.011">,</span><span style="background-color: hsl(120, 100.00%, 90.17%); opacity: 0.83" title="0.035"> </span><span style="background-color: hsl(120, 100.00%, 87.28%); opacity: 0.84" title="0.051">t</span><span style="background-color: hsl(120, 100.00%, 84.61%); opacity: 0.85" title="0.066">h</span><span style="background-color: hsl(120, 100.00%, 87.33%); opacity: 0.84" title="0.050">e</span><span style="background-color: hsl(120, 100.00%, 96.68%); opacity: 0.81" title="0.007"> </span><span style="background-color: hsl(0, 100.00%, 88.71%); opacity: 0.83" title="-0.043">x</span><span style="background-color: hsl(0, 100.00%, 84.22%); opacity: 0.85" title="-0.069">-</span><span style="background-color: hsl(0, 100.00%, 88.28%); opacity: 0.83" title="-0.045">r</span><span style="background-color: hsl(0, 100.00%, 92.89%); opacity: 0.82" title="-0.022">a</span><span style="background-color: hsl(0, 100.00%, 99.81%); opacity: 0.80" title="-0.000">y</span><span style="background-color: hsl(0, 100.00%, 96.01%); opacity: 0.81" title="-0.010"> </span><span style="background-color: hsl(0, 100.00%, 86.33%); opacity: 0.84" title="-0.056">t</span><span style="background-color: hsl(0, 100.00%, 81.94%); opacity: 0.86" title="-0.084">e</span><span style="background-color: hsl(0, 100.00%, 82.15%); opacity: 0.86" title="-0.082">c</span><span style="background-color: hsl(0, 100.00%, 88.86%); opacity: 0.83" title="-0.042">h</span><span style="background-color: hsl(120, 100.00%, 91.16%); opacity: 0.82" title="0.030"> </span><span style="background-color: hsl(120, 100.00%, 85.43%); opacity: 0.85" title="0.061">h</span><span style="background-color: hsl(120, 100.00%, 82.55%); opacity: 0.86" title="0.080">a</span><span style="background-color: hsl(120, 100.00%, 80.14%); opacity: 0.87" title="0.096">p</span><span style="background-color: hsl(120, 100.00%, 83.20%); opacity: 0.86" title="0.075">p</span><span style="background-color: hsl(120, 100.00%, 84.48%); opacity: 0.85" title="0.067">e</span><span style="background-color: hsl(120, 100.00%, 87.59%); opacity: 0.84" title="0.049">n</span><span style="background-color: hsl(120, 100.00%, 89.97%); opacity: 0.83" title="0.036">e</span><span style="background-color: hsl(0, 100.00%, 99.94%); opacity: 0.80" title="-0.000">d</span><span style="background-color: hsl(120, 100.00%, 94.17%); opacity: 0.81" title="0.017"> </span><span style="background-color: hsl(120, 100.00%, 92.19%); opacity: 0.82" title="0.025">to</span><span style="background-color: hsl(0, 100.00%, 93.04%); opacity: 0.82" title="-0.021"> </span><span style="background-color: hsl(0, 100.00%, 84.38%); opacity: 0.85" title="-0.068">m</span><span style="background-color: hsl(0, 100.00%, 78.66%); opacity: 0.88" title="-0.106">e</span><span style="background-color: hsl(0, 100.00%, 74.84%); opacity: 0.90" title="-0.134">n</span><span style="background-color: hsl(0, 100.00%, 78.12%); opacity: 0.88" title="-0.110">t</span><span style="background-color: hsl(0, 100.00%, 81.35%); opacity: 0.87" title="-0.087">i</span><span style="background-color: hsl(0, 100.00%, 89.32%); opacity: 0.83" title="-0.039">o</span><span style="background-color: hsl(0, 100.00%, 93.90%); opacity: 0.81" title="-0.018">n</span><span style="background-color: hsl(120, 100.00%, 94.70%); opacity: 0.81" title="0.014"> </span><span style="background-color: hsl(120, 100.00%, 90.32%); opacity: 0.83" title="0.034">t</span><span style="background-color: hsl(120, 100.00%, 88.64%); opacity: 0.83" title="0.043">h</span><span style="background-color: hsl(120, 100.00%, 90.36%); opacity: 0.83" title="0.034">a</span><span style="background-color: hsl(120, 100.00%, 92.12%); opacity: 0.82" title="0.026">t</span><span style="background-color: hsl(0, 100.00%, 91.05%); opacity: 0.82" title="-0.031"> </span><span style="background-color: hsl(0, 100.00%, 83.71%); opacity: 0.86" title="-0.072">s</span><span style="background-color: hsl(0, 100.00%, 79.07%); opacity: 0.88" title="-0.103">h</span><span style="background-color: hsl(0, 100.00%, 79.59%); opacity: 0.88" title="-0.099">e</span><span style="background-color: hsl(0, 100.00%, 81.84%); opacity: 0.86" title="-0.084">'</span><span style="background-color: hsl(0, 100.00%, 95.43%); opacity: 0.81" title="-0.012">d</span><span style="background-color: hsl(120, 100.00%, 96.18%); opacity: 0.81" title="0.009"> </span><span style="background-color: hsl(120, 100.00%, 93.19%); opacity: 0.82" title="0.021">h</span><span style="background-color: hsl(120, 100.00%, 94.05%); opacity: 0.81" title="0.017">a</span><span style="background-color: hsl(120, 100.00%, 96.30%); opacity: 0.81" title="0.009">d</span><span style="background-color: hsl(0, 100.00%, 99.89%); opacity: 0.80" title="-0.000"> </span><span style="background-color: hsl(0, 100.00%, 88.58%); opacity: 0.83" title="-0.043">k</span><span style="background-color: hsl(0, 100.00%, 85.27%); opacity: 0.85" title="-0.062">i</span><span style="background-color: hsl(0, 100.00%, 80.72%); opacity: 0.87" title="-0.092">d</span><span style="background-color: hsl(0, 100.00%, 82.98%); opacity: 0.86" title="-0.077">n</span><span style="background-color: hsl(0, 100.00%, 89.57%); opacity: 0.83" title="-0.038">e</span><span style="background-color: hsl(0, 100.00%, 96.97%); opacity: 0.81" title="-0.007">y</span><span style="background-color: hsl(120, 100.00%, 86.47%); opacity: 0.84" title="0.055">
     </span><span style="background-color: hsl(120, 100.00%, 84.11%); opacity: 0.85" title="0.070">s</span><span style="background-color: hsl(120, 100.00%, 69.82%); opacity: 0.93" title="0.174">t</span><span style="background-color: hsl(120, 100.00%, 74.97%); opacity: 0.90" title="0.133">o</span><span style="background-color: hsl(120, 100.00%, 79.87%); opacity: 0.88" title="0.098">n</span><span style="background-color: hsl(0, 100.00%, 95.66%); opacity: 0.81" title="-0.011">e</span><span style="background-color: hsl(0, 100.00%, 85.70%); opacity: 0.85" title="-0.060">s</span><span style="background-color: hsl(0, 100.00%, 88.53%); opacity: 0.83" title="-0.044"> </span><span style="background-color: hsl(120, 100.00%, 98.02%); opacity: 0.80" title="0.004">a</span><span style="background-color: hsl(120, 100.00%, 97.49%); opacity: 0.80" title="0.005">n</span><span style="background-color: hsl(120, 100.00%, 97.31%); opacity: 0.80" title="0.006">d</span><span style="background-color: hsl(120, 100.00%, 85.94%); opacity: 0.84" title="0.058"> </span><span style="background-color: hsl(120, 100.00%, 79.68%); opacity: 0.88" title="0.099">c</span><span style="background-color: hsl(120, 100.00%, 72.89%); opacity: 0.91" title="0.149">h</span><span style="background-color: hsl(120, 100.00%, 71.60%); opacity: 0.92" title="0.160">i</span><span style="background-color: hsl(120, 100.00%, 65.68%); opacity: 0.96" title="0.209">l</span><span style="background-color: hsl(120, 100.00%, 69.49%); opacity: 0.94" title="0.177">d</span><span style="background-color: hsl(120, 100.00%, 80.17%); opacity: 0.87" title="0.095">r</span><span style="background-color: hsl(120, 100.00%, 82.28%); opacity: 0.86" title="0.081">e</span><span style="background-color: hsl(120, 100.00%, 88.03%); opacity: 0.84" title="0.046">n</span><span style="background-color: hsl(120, 100.00%, 90.15%); opacity: 0.83" title="0.035">,</span><span style="background-color: hsl(120, 100.00%, 93.34%); opacity: 0.82" title="0.020"> </span><span style="background-color: hsl(120, 100.00%, 98.02%); opacity: 0.80" title="0.004">a</span><span style="background-color: hsl(120, 100.00%, 97.49%); opacity: 0.80" title="0.005">n</span><span style="background-color: hsl(120, 100.00%, 97.31%); opacity: 0.80" title="0.006">d</span><span style="background-color: hsl(120, 100.00%, 91.07%); opacity: 0.82" title="0.031"> </span><span style="background-color: hsl(120, 100.00%, 87.28%); opacity: 0.84" title="0.051">t</span><span style="background-color: hsl(120, 100.00%, 84.61%); opacity: 0.85" title="0.066">h</span><span style="background-color: hsl(120, 100.00%, 87.33%); opacity: 0.84" title="0.050">e</span><span style="background-color: hsl(120, 100.00%, 81.53%); opacity: 0.87" title="0.086"> </span><span style="background-color: hsl(120, 100.00%, 79.68%); opacity: 0.88" title="0.099">c</span><span style="background-color: hsl(120, 100.00%, 74.38%); opacity: 0.91" title="0.138">h</span><span style="background-color: hsl(120, 100.00%, 76.47%); opacity: 0.89" title="0.122">i</span><span style="background-color: hsl(120, 100.00%, 76.09%); opacity: 0.90" title="0.125">l</span><span style="background-color: hsl(120, 100.00%, 87.89%); opacity: 0.84" title="0.047">d</span><span style="background-color: hsl(0, 100.00%, 85.85%); opacity: 0.85" title="-0.059">b</span><span style="background-color: hsl(0, 100.00%, 77.80%); opacity: 0.89" title="-0.112">i</span><span style="background-color: hsl(0, 100.00%, 83.71%); opacity: 0.86" title="-0.072">r</span><span style="background-color: hsl(0, 100.00%, 88.20%); opacity: 0.83" title="-0.045">t</span><span style="background-color: hsl(120, 100.00%, 96.73%); opacity: 0.81" title="0.007">h</span><span style="background-color: hsl(120, 100.00%, 91.32%); opacity: 0.82" title="0.029"> </span><span style="background-color: hsl(120, 100.00%, 78.02%); opacity: 0.89" title="0.111">h</span><span style="background-color: hsl(120, 100.00%, 78.40%); opacity: 0.88" title="0.108">u</span><span style="background-color: hsl(120, 100.00%, 78.98%); opacity: 0.88" title="0.104">r</span><span style="background-color: hsl(120, 100.00%, 95.59%); opacity: 0.81" title="0.011">t</span><span style="background-color: hsl(120, 100.00%, 91.62%); opacity: 0.82" title="0.028"> </span><span style="background-color: hsl(120, 100.00%, 97.78%); opacity: 0.80" title="0.004">l</span><span style="background-color: hsl(120, 100.00%, 93.55%); opacity: 0.81" title="0.019">e</span><span style="background-color: hsl(120, 100.00%, 92.69%); opacity: 0.82" title="0.023">s</span><span style="background-color: hsl(120, 100.00%, 90.31%); opacity: 0.83" title="0.034">s</span><span style="background-color: hsl(120, 100.00%, 94.83%); opacity: 0.81" title="0.014">.</span>
@@ -3536,8 +3768,13 @@ cross-validation though. Let's check what model learned:
                style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
             <thead>
             <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature contribution already accounts for the feature value (for linear models, contribution = weight * feature value), and the sum of feature contributions is equal to the score or, for some classifiers, to the probability. Feature values are shown if &quot;show_feature_values&quot; is True.">
+                        Contribution<sup>?</sup>
+                    </th>
+                
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
             </tr>
             </thead>
             <tbody>
@@ -3549,6 +3786,7 @@ cross-validation though. Let's check what model learned:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             Highlighted in text (sum)
         </td>
+        
     </tr>
             
             
@@ -3562,6 +3800,7 @@ cross-validation though. Let's check what model learned:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             &lt;BIAS&gt;
         </td>
+        
     </tr>
             
     
@@ -3726,8 +3965,13 @@ don't even have a vocabulary! Why does it work?
                style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
             <thead>
             <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature weights. Note that weights do not account for feature value scales, so if feature values have different scales, features with highest weights might not be the most important.">
+                        Weight<sup>?</sup>
+                    </th>
+                
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
             </tr>
             </thead>
             <tbody>
@@ -3739,6 +3983,7 @@ don't even have a vocabulary! Why does it work?
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x199378
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 85.43%); border: none;">
@@ -3748,6 +3993,7 @@ don't even have a vocabulary! Why does it work?
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x938889
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 88.12%); border: none;">
@@ -3757,6 +4003,7 @@ don't even have a vocabulary! Why does it work?
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x718537
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 88.83%); border: none;">
@@ -3766,6 +4013,7 @@ don't even have a vocabulary! Why does it work?
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x349126
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 89.18%); border: none;">
@@ -3775,6 +4023,7 @@ don't even have a vocabulary! Why does it work?
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x242643
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 89.40%); border: none;">
@@ -3784,6 +4033,7 @@ don't even have a vocabulary! Why does it work?
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x71928
         </td>
+        
     </tr>
             
             
@@ -3809,6 +4059,7 @@ don't even have a vocabulary! Why does it work?
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x683213
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 88.03%); border: none;">
@@ -3818,6 +4069,7 @@ don't even have a vocabulary! Why does it work?
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x741207
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 87.67%); border: none;">
@@ -3827,6 +4079,7 @@ don't even have a vocabulary! Why does it work?
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x199709
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 86.50%); border: none;">
@@ -3836,6 +4089,7 @@ don't even have a vocabulary! Why does it work?
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x641063
         </td>
+        
     </tr>
             
     
@@ -3856,8 +4110,13 @@ don't even have a vocabulary! Why does it work?
                style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
             <thead>
             <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature weights. Note that weights do not account for feature value scales, so if feature values have different scales, features with highest weights might not be the most important.">
+                        Weight<sup>?</sup>
+                    </th>
+                
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
             </tr>
             </thead>
             <tbody>
@@ -3869,6 +4128,7 @@ don't even have a vocabulary! Why does it work?
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x580586
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 86.84%); border: none;">
@@ -3878,6 +4138,7 @@ don't even have a vocabulary! Why does it work?
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x342790
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 87.29%); border: none;">
@@ -3887,6 +4148,7 @@ don't even have a vocabulary! Why does it work?
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x771885
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 88.07%); border: none;">
@@ -3896,6 +4158,7 @@ don't even have a vocabulary! Why does it work?
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x363686
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 88.40%); border: none;">
@@ -3905,6 +4168,7 @@ don't even have a vocabulary! Why does it work?
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x111283
         </td>
+        
     </tr>
             
             
@@ -3930,6 +4194,7 @@ don't even have a vocabulary! Why does it work?
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x857427
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 88.10%); border: none;">
@@ -3939,6 +4204,7 @@ don't even have a vocabulary! Why does it work?
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x85557
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 87.95%); border: none;">
@@ -3948,6 +4214,7 @@ don't even have a vocabulary! Why does it work?
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x693269
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 87.00%); border: none;">
@@ -3957,6 +4224,7 @@ don't even have a vocabulary! Why does it work?
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x120354
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 85.13%); border: none;">
@@ -3966,6 +4234,7 @@ don't even have a vocabulary! Why does it work?
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x814572
         </td>
+        
     </tr>
             
     
@@ -3986,8 +4255,13 @@ don't even have a vocabulary! Why does it work?
                style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
             <thead>
             <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature weights. Note that weights do not account for feature value scales, so if feature values have different scales, features with highest weights might not be the most important.">
+                        Weight<sup>?</sup>
+                    </th>
+                
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
             </tr>
             </thead>
             <tbody>
@@ -3999,6 +4273,7 @@ don't even have a vocabulary! Why does it work?
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x988761
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 86.23%); border: none;">
@@ -4008,6 +4283,7 @@ don't even have a vocabulary! Why does it work?
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x337555
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 86.37%); border: none;">
@@ -4017,6 +4293,7 @@ don't even have a vocabulary! Why does it work?
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x154565
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 87.92%); border: none;">
@@ -4026,6 +4303,7 @@ don't even have a vocabulary! Why does it work?
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x806262
         </td>
+        
     </tr>
             
             
@@ -4051,6 +4329,7 @@ don't even have a vocabulary! Why does it work?
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x790864
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 88.24%); border: none;">
@@ -4060,6 +4339,7 @@ don't even have a vocabulary! Why does it work?
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x580586
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 87.77%); border: none;">
@@ -4069,6 +4349,7 @@ don't even have a vocabulary! Why does it work?
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x34701
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 86.71%); border: none;">
@@ -4078,6 +4359,7 @@ don't even have a vocabulary! Why does it work?
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x85557
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 86.43%); border: none;">
@@ -4087,6 +4369,7 @@ don't even have a vocabulary! Why does it work?
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x365313
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 86.42%); border: none;">
@@ -4096,6 +4379,7 @@ don't even have a vocabulary! Why does it work?
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x494508
         </td>
+        
     </tr>
             
     
@@ -4116,8 +4400,13 @@ don't even have a vocabulary! Why does it work?
                style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
             <thead>
             <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature weights. Note that weights do not account for feature value scales, so if feature values have different scales, features with highest weights might not be the most important.">
+                        Weight<sup>?</sup>
+                    </th>
+                
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
             </tr>
             </thead>
             <tbody>
@@ -4129,6 +4418,7 @@ don't even have a vocabulary! Why does it work?
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x641063
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 82.79%); border: none;">
@@ -4138,6 +4428,7 @@ don't even have a vocabulary! Why does it work?
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x199709
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 82.94%); border: none;">
@@ -4147,6 +4438,7 @@ don't even have a vocabulary! Why does it work?
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x741207
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 86.68%); border: none;">
@@ -4156,6 +4448,7 @@ don't even have a vocabulary! Why does it work?
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x396081
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 87.54%); border: none;">
@@ -4165,6 +4458,7 @@ don't even have a vocabulary! Why does it work?
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x274863
         </td>
+        
     </tr>
             
             
@@ -4190,6 +4484,7 @@ don't even have a vocabulary! Why does it work?
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x672777
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 86.66%); border: none;">
@@ -4199,6 +4494,7 @@ don't even have a vocabulary! Why does it work?
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x199378
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 86.45%); border: none;">
@@ -4208,6 +4504,7 @@ don't even have a vocabulary! Why does it work?
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x443433
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 83.00%); border: none;">
@@ -4217,6 +4514,7 @@ don't even have a vocabulary! Why does it work?
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x718537
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 81.88%); border: none;">
@@ -4226,6 +4524,7 @@ don't even have a vocabulary! Why does it work?
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             x970058
         </td>
+        
     </tr>
             
     
@@ -4416,8 +4715,13 @@ subset of data to fit it.
                style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
             <thead>
             <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature weights. Note that weights do not account for feature value scales, so if feature values have different scales, features with highest weights might not be the most important.">
+                        Weight<sup>?</sup>
+                    </th>
+                
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
             </tr>
             </thead>
             <tbody>
@@ -4429,6 +4733,7 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             atheism
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 85.43%); border: none;">
@@ -4438,6 +4743,7 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             writes
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 88.79%); border: none;">
@@ -4447,6 +4753,7 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             morality
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 88.83%); border: none;">
@@ -4456,6 +4763,7 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             motto
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 89.18%); border: none;">
@@ -4465,6 +4773,7 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             religion
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 89.40%); border: none;">
@@ -4474,6 +4783,7 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             islam
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 89.50%); border: none;">
@@ -4483,6 +4793,7 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             keith
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 89.56%); border: none;">
@@ -4492,6 +4803,7 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             religious
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 89.75%); border: none;">
@@ -4499,8 +4811,9 @@ subset of data to fit it.
             +1.439
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            objective
+            objective <span title="witnesses longer">&hellip;</span>
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 89.87%); border: none;">
@@ -4510,6 +4823,7 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             wrote
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 89.92%); border: none;">
@@ -4519,6 +4833,7 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             said
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 90.14%); border: none;">
@@ -4528,6 +4843,7 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             punishment
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 90.27%); border: none;">
@@ -4537,6 +4853,7 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             livesey
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 90.29%); border: none;">
@@ -4546,6 +4863,7 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             mathew
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 90.33%); border: none;">
@@ -4555,6 +4873,7 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             atheist
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 90.35%); border: none;">
@@ -4564,12 +4883,13 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             agree
         </td>
+        
     </tr>
             
             
                 <tr style="background-color: hsl(120, 100.00%, 90.35%); border: none;">
                     <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
-                        <i>&hellip; 47438 more positive &hellip;</i>
+                        <i>&hellip; 47045 more positive &hellip;</i>
                     </td>
                 </tr>
             
@@ -4577,7 +4897,7 @@ subset of data to fit it.
             
                 <tr style="background-color: hsl(0, 100.00%, 88.12%); border: none;">
                     <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
-                        <i>&hellip; 53460 more negative &hellip;</i>
+                        <i>&hellip; 53853 more negative &hellip;</i>
                     </td>
                 </tr>
             
@@ -4589,6 +4909,7 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             rutgers edu
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 88.03%); border: none;">
@@ -4598,6 +4919,7 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             rutgers
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 87.67%); border: none;">
@@ -4607,6 +4929,7 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             christ
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 86.50%); border: none;">
@@ -4616,6 +4939,7 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             christians
         </td>
+        
     </tr>
             
     
@@ -4636,8 +4960,13 @@ subset of data to fit it.
                style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
             <thead>
             <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature weights. Note that weights do not account for feature value scales, so if feature values have different scales, features with highest weights might not be the most important.">
+                        Weight<sup>?</sup>
+                    </th>
+                
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
             </tr>
             </thead>
             <tbody>
@@ -4649,6 +4978,7 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             graphics
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 85.13%); border: none;">
@@ -4658,6 +4988,7 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             image
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 86.84%); border: none;">
@@ -4667,6 +4998,7 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             code
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 87.00%); border: none;">
@@ -4676,6 +5008,7 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             files
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 87.29%); border: none;">
@@ -4685,6 +5018,7 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             images
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 87.95%); border: none;">
@@ -4694,6 +5028,7 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             3d
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 88.07%); border: none;">
@@ -4703,6 +5038,7 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             software
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 88.40%); border: none;">
@@ -4712,6 +5048,7 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             file
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 88.47%); border: none;">
@@ -4721,6 +5058,7 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             ftp
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 89.02%); border: none;">
@@ -4730,6 +5068,7 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             video
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 89.09%); border: none;">
@@ -4739,6 +5078,7 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             FEATURE[335136]
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 89.09%); border: none;">
@@ -4748,6 +5088,7 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             card
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 89.40%); border: none;">
@@ -4757,6 +5098,7 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             points
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 89.44%); border: none;">
@@ -4766,6 +5108,7 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             line
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 89.47%); border: none;">
@@ -4775,6 +5118,7 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             need
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 89.53%); border: none;">
@@ -4784,6 +5128,7 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             computer
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 89.59%); border: none;">
@@ -4793,12 +5138,13 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             hi
         </td>
+        
     </tr>
             
             
                 <tr style="background-color: hsl(120, 100.00%, 89.59%); border: none;">
                     <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
-                        <i>&hellip; 30294 more positive &hellip;</i>
+                        <i>&hellip; 29925 more positive &hellip;</i>
                     </td>
                 </tr>
             
@@ -4806,7 +5152,7 @@ subset of data to fit it.
             
                 <tr style="background-color: hsl(0, 100.00%, 88.70%); border: none;">
                     <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
-                        <i>&hellip; 33487 more negative &hellip;</i>
+                        <i>&hellip; 33856 more negative &hellip;</i>
                     </td>
                 </tr>
             
@@ -4816,8 +5162,9 @@ subset of data to fit it.
             -1.654
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            people
+            people <span title="hasn stopped">&hellip;</span>
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 88.20%); border: none;">
@@ -4825,8 +5172,9 @@ subset of data to fit it.
             -1.760
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            keyboard
+            FEATURE[857427]
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 88.10%); border: none;">
@@ -4836,6 +5184,7 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             god
         </td>
+        
     </tr>
             
     
@@ -4856,8 +5205,13 @@ subset of data to fit it.
                style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
             <thead>
             <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature weights. Note that weights do not account for feature value scales, so if feature values have different scales, features with highest weights might not be the most important.">
+                        Weight<sup>?</sup>
+                    </th>
+                
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
             </tr>
             </thead>
             <tbody>
@@ -4869,6 +5223,7 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             health
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 86.23%); border: none;">
@@ -4878,6 +5233,7 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             msg
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 86.37%); border: none;">
@@ -4887,6 +5243,7 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             doctor
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 86.42%); border: none;">
@@ -4896,6 +5253,7 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             disease
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 86.43%); border: none;">
@@ -4905,6 +5263,7 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             treatment
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 87.77%); border: none;">
@@ -4914,6 +5273,7 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             medical
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 87.92%); border: none;">
@@ -4923,6 +5283,7 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             com
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 88.46%); border: none;">
@@ -4932,15 +5293,7 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             pain
         </td>
-    </tr>
-            
-                <tr style="background-color: hsl(120, 100.00%, 88.49%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +1.697
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            melittin
-        </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 88.65%); border: none;">
@@ -4950,6 +5303,7 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             effects
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 88.88%); border: none;">
@@ -4959,6 +5313,7 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             cancer
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 89.38%); border: none;">
@@ -4968,6 +5323,7 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             case
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 89.68%); border: none;">
@@ -4977,6 +5333,7 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             diet
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 89.70%); border: none;">
@@ -4986,6 +5343,7 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             blood
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 89.75%); border: none;">
@@ -4995,6 +5353,7 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             information
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 89.76%); border: none;">
@@ -5002,8 +5361,9 @@ subset of data to fit it.
             +1.435
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            keyboard
+            FEATURE[857427]
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 89.91%); border: none;">
@@ -5013,12 +5373,13 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             pitt
         </td>
+        
     </tr>
             
             
                 <tr style="background-color: hsl(120, 100.00%, 89.91%); border: none;">
                     <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
-                        <i>&hellip; 42646 more positive &hellip;</i>
+                        <i>&hellip; 43624 more positive &hellip;</i>
                     </td>
                 </tr>
             
@@ -5026,7 +5387,7 @@ subset of data to fit it.
             
                 <tr style="background-color: hsl(0, 100.00%, 89.63%); border: none;">
                     <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
-                        <i>&hellip; 45360 more negative &hellip;</i>
+                        <i>&hellip; 44382 more negative &hellip;</i>
                     </td>
                 </tr>
             
@@ -5038,6 +5399,17 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             church
         </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(0, 100.00%, 88.49%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            -1.697
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            FEATURE[354651]
+        </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 88.24%); border: none;">
@@ -5047,6 +5419,7 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             graphics
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 86.71%); border: none;">
@@ -5056,6 +5429,7 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             god
         </td>
+        
     </tr>
             
     
@@ -5076,8 +5450,13 @@ subset of data to fit it.
                style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
             <thead>
             <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature weights. Note that weights do not account for feature value scales, so if feature values have different scales, features with highest weights might not be the most important.">
+                        Weight<sup>?</sup>
+                    </th>
+                
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
             </tr>
             </thead>
             <tbody>
@@ -5089,6 +5468,7 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             church
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 82.71%); border: none;">
@@ -5098,6 +5478,7 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             christians
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 82.79%); border: none;">
@@ -5107,6 +5488,7 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             christ
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 82.94%); border: none;">
@@ -5116,6 +5498,7 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             rutgers
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 83.00%); border: none;">
@@ -5125,6 +5508,7 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             rutgers edu
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 86.45%); border: none;">
@@ -5134,6 +5518,7 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             christian
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 86.68%); border: none;">
@@ -5143,6 +5528,7 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             heaven
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 87.26%); border: none;">
@@ -5152,6 +5538,7 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             love
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 87.54%); border: none;">
@@ -5161,6 +5548,7 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             athos rutgers
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 87.54%); border: none;">
@@ -5170,6 +5558,7 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             athos
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 88.28%); border: none;">
@@ -5179,6 +5568,7 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             satan
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 88.41%); border: none;">
@@ -5188,6 +5578,7 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             authority
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 88.70%); border: none;">
@@ -5197,6 +5588,7 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             faith
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 88.74%); border: none;">
@@ -5206,6 +5598,7 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             1993
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 88.75%); border: none;">
@@ -5213,8 +5606,9 @@ subset of data to fit it.
             +1.643
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            article apr
+            article apr <span title="(-)risen kiddie">&hellip;</span>
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 88.80%); border: none;">
@@ -5224,6 +5618,7 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             understanding
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 89.24%); border: none;">
@@ -5233,6 +5628,7 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             sin
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 89.40%); border: none;">
@@ -5242,12 +5638,13 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             god
         </td>
+        
     </tr>
             
             
                 <tr style="background-color: hsl(120, 100.00%, 89.40%); border: none;">
                     <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
-                        <i>&hellip; 49912 more positive &hellip;</i>
+                        <i>&hellip; 50065 more positive &hellip;</i>
                     </td>
                 </tr>
             
@@ -5255,7 +5652,7 @@ subset of data to fit it.
             
                 <tr style="background-color: hsl(0, 100.00%, 89.32%); border: none;">
                     <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
-                        <i>&hellip; 53270 more negative &hellip;</i>
+                        <i>&hellip; 53117 more negative &hellip;</i>
                     </td>
                 </tr>
             
@@ -5267,6 +5664,7 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             graphics
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 86.66%); border: none;">
@@ -5276,6 +5674,7 @@ subset of data to fit it.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             atheism
         </td>
+        
     </tr>
             
     
@@ -5443,8 +5842,13 @@ something useful.
                style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
             <thead>
             <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature contribution already accounts for the feature value (for linear models, contribution = weight * feature value), and the sum of feature contributions is equal to the score or, for some classifiers, to the probability. Feature values are shown if &quot;show_feature_values&quot; is True.">
+                        Contribution<sup>?</sup>
+                    </th>
+                
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
             </tr>
             </thead>
             <tbody>
@@ -5456,6 +5860,7 @@ something useful.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             Highlighted in text (sum)
         </td>
+        
     </tr>
             
             
@@ -5469,6 +5874,7 @@ something useful.
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             &lt;BIAS&gt;
         </td>
+        
     </tr>
             
     

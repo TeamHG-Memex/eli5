@@ -726,8 +726,13 @@ eli5.explain\_weights:
                style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
             <thead>
             <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature weights. Note that weights do not account for feature value scales, so if feature values have different scales, features with highest weights might not be the most important.">
+                        Weight<sup>?</sup>
+                    </th>
+                
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
             </tr>
             </thead>
             <tbody>
@@ -739,6 +744,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             postag[:2]:Fp
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 87.60%); border: none;">
@@ -748,6 +754,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             BOS
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 89.66%); border: none;">
@@ -757,6 +764,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             bias
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 89.98%); border: none;">
@@ -766,6 +774,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             postag[:2]:Fc
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 89.98%); border: none;">
@@ -775,15 +784,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.lower():,
         </td>
-    </tr>
-            
-                <tr style="background-color: hsl(120, 100.00%, 89.98%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +2.297
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            word[-3:]:,
-        </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 89.98%); border: none;">
@@ -793,15 +794,17 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             postag:Fc
         </td>
+        
     </tr>
             
-                <tr style="background-color: hsl(120, 100.00%, 90.51%); border: none;">
+                <tr style="background-color: hsl(120, 100.00%, 89.98%); border: none;">
         <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +2.124
+            +2.297
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag[:2]:CC
+            word[-3:]:,
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 90.51%); border: none;">
@@ -811,6 +814,17 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             postag:CC
         </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(120, 100.00%, 90.51%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            +2.124
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            postag[:2]:CC
+        </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 90.96%); border: none;">
@@ -820,6 +834,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             EOS
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 91.36%); border: none;">
@@ -829,6 +844,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.lower():y
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 91.94%); border: none;">
@@ -838,6 +854,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             postag[:2]:RG
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 91.94%); border: none;">
@@ -847,33 +864,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             postag:RG
         </td>
-    </tr>
-            
-                <tr style="background-color: hsl(120, 100.00%, 92.19%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +1.610
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            word[-3:]:-
-        </td>
-    </tr>
-            
-                <tr style="background-color: hsl(120, 100.00%, 92.19%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +1.610
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag[:2]:Fg
-        </td>
-    </tr>
-            
-                <tr style="background-color: hsl(120, 100.00%, 92.19%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +1.610
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag:Fg
-        </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 92.19%); border: none;">
@@ -883,6 +874,37 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.lower():-
         </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(120, 100.00%, 92.19%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            +1.610
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            postag[:2]:Fg
+        </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(120, 100.00%, 92.19%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            +1.610
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            postag:Fg
+        </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(120, 100.00%, 92.19%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            +1.610
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            word[-3:]:-
+        </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 92.28%); border: none;">
@@ -892,15 +914,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.lower():.
         </td>
-    </tr>
-            
-                <tr style="background-color: hsl(120, 100.00%, 92.28%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +1.582
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag:Fp
-        </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 92.28%); border: none;">
@@ -910,6 +924,17 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word[-3:]:.
         </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(120, 100.00%, 92.28%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            +1.582
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            postag:Fp
+        </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 93.01%); border: none;">
@@ -919,15 +944,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word[-3:]:y
         </td>
-    </tr>
-            
-                <tr style="background-color: hsl(120, 100.00%, 93.69%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +1.187
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag:CS
-        </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 93.69%); border: none;">
@@ -937,15 +954,17 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             postag[:2]:CS
         </td>
+        
     </tr>
             
-                <tr style="background-color: hsl(120, 100.00%, 93.83%); border: none;">
+                <tr style="background-color: hsl(120, 100.00%, 93.69%); border: none;">
         <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +1.150
+            +1.187
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            word[-3:]:(
+            postag:CS
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 93.83%); border: none;">
@@ -955,6 +974,17 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             postag:Fpa
         </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(120, 100.00%, 93.83%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            +1.150
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            word[-3:]:(
+        </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 93.83%); border: none;">
@@ -964,6 +994,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.lower():(
         </td>
+        
     </tr>
             
             
@@ -987,8 +1018,9 @@ eli5.explain\_weights:
             -2.106
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag[:2]:NP
+            postag:NP
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 90.57%); border: none;">
@@ -996,8 +1028,9 @@ eli5.explain\_weights:
             -2.106
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag:NP
+            postag[:2]:NP
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 85.95%); border: none;">
@@ -1007,6 +1040,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.isupper()
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 80.00%); border: none;">
@@ -1016,6 +1050,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.istitle()
         </td>
+        
     </tr>
             
     
@@ -1036,8 +1071,13 @@ eli5.explain\_weights:
                style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
             <thead>
             <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature weights. Note that weights do not account for feature value scales, so if feature values have different scales, features with highest weights might not be the most important.">
+                        Weight<sup>?</sup>
+                    </th>
+                
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
             </tr>
             </thead>
             <tbody>
@@ -1049,6 +1089,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.istitle()
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 90.21%); border: none;">
@@ -1058,6 +1099,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.lower():en
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 94.78%); border: none;">
@@ -1067,6 +1109,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word[-3:]:rid
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 94.78%); border: none;">
@@ -1076,6 +1119,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.lower():madrid
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 95.88%); border: none;">
@@ -1085,6 +1129,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.lower():españa
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 95.91%); border: none;">
@@ -1094,6 +1139,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word[-3:]:ona
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.11%); border: none;">
@@ -1103,6 +1149,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word[-3:]:aña
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.11%); border: none;">
@@ -1112,6 +1159,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             +1:postag[:2]:Fp
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.48%); border: none;">
@@ -1121,6 +1169,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.lower():parís
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.49%); border: none;">
@@ -1130,6 +1179,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word[-3:]:rís
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.93%); border: none;">
@@ -1139,6 +1189,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.lower():barcelona
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.95%); border: none;">
@@ -1148,6 +1199,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:postag[:2]:Fg
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.95%); border: none;">
@@ -1157,6 +1209,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:postag:Fg
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.95%); border: none;">
@@ -1166,6 +1219,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.lower():-
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.99%); border: none;">
@@ -1175,6 +1229,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.isupper()
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 97.10%); border: none;">
@@ -1184,6 +1239,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:postag[:2]:Fp
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 97.11%); border: none;">
@@ -1193,6 +1249,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.lower():(
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 97.11%); border: none;">
@@ -1202,6 +1259,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:postag:Fpa
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 97.11%); border: none;">
@@ -1211,6 +1269,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.lower():san
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 97.13%); border: none;">
@@ -1220,6 +1279,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             postag:NC
         </td>
+        
     </tr>
             
             
@@ -1245,6 +1305,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:postag[:2]:Fe
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 97.11%); border: none;">
@@ -1254,6 +1315,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.lower():&quot;
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 97.11%); border: none;">
@@ -1263,6 +1325,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:postag:Fe
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 97.02%); border: none;">
@@ -1272,6 +1335,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:postag[:2]:VM
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 95.88%); border: none;">
@@ -1281,6 +1345,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word[-3:]:ión
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 95.38%); border: none;">
@@ -1290,6 +1355,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.lower():del
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 95.14%); border: none;">
@@ -1299,15 +1365,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             bias
         </td>
-    </tr>
-            
-                <tr style="background-color: hsl(0, 100.00%, 94.46%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            -0.986
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag:SP
-        </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 94.46%); border: none;">
@@ -1317,6 +1375,17 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             postag[:2]:SP
         </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(0, 100.00%, 94.46%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            -0.986
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            postag:SP
+        </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 93.08%); border: none;">
@@ -1326,6 +1395,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.istitle()
         </td>
+        
     </tr>
             
     
@@ -1346,8 +1416,13 @@ eli5.explain\_weights:
                style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
             <thead>
             <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature weights. Note that weights do not account for feature value scales, so if feature values have different scales, features with highest weights might not be the most important.">
+                        Weight<sup>?</sup>
+                    </th>
+                
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
             </tr>
             </thead>
             <tbody>
@@ -1359,6 +1434,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.istitle()
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 95.80%); border: none;">
@@ -1368,6 +1444,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.lower():de
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.17%); border: none;">
@@ -1377,6 +1454,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word[-3:]:de
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.19%); border: none;">
@@ -1386,6 +1464,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.lower():de
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.41%); border: none;">
@@ -1395,6 +1474,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.lower():san
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.83%); border: none;">
@@ -1404,6 +1484,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             +1:word.istitle()
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.85%); border: none;">
@@ -1413,6 +1494,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.istitle()
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 97.39%); border: none;">
@@ -1422,6 +1504,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.lower():la
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 97.81%); border: none;">
@@ -1431,6 +1514,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             postag[:2]:SP
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 97.81%); border: none;">
@@ -1440,6 +1524,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             postag:SP
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 97.97%); border: none;">
@@ -1449,6 +1534,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word[-3:]:la
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 98.01%); border: none;">
@@ -1458,6 +1544,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word[-3:]:iro
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 98.03%); border: none;">
@@ -1467,6 +1554,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word[-3:]:oja
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 98.07%); border: none;">
@@ -1476,6 +1564,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word[-3:]:del
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 98.09%); border: none;">
@@ -1485,6 +1574,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.lower():del
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 98.10%); border: none;">
@@ -1494,6 +1584,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:postag:NC
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 98.10%); border: none;">
@@ -1503,6 +1594,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:postag[:2]:NC
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 98.15%); border: none;">
@@ -1512,6 +1604,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.lower():nueva
         </td>
+        
     </tr>
             
             
@@ -1535,8 +1628,9 @@ eli5.explain\_weights:
             -0.206
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag:Z
+            -1:postag[:2]:Z
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 98.15%); border: none;">
@@ -1544,8 +1638,9 @@ eli5.explain\_weights:
             -0.206
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag[:2]:Z
+            -1:postag:Z
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 98.10%); border: none;">
@@ -1555,6 +1650,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:postag:CC
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 98.10%); border: none;">
@@ -1564,6 +1660,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:postag[:2]:CC
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 98.07%); border: none;">
@@ -1573,6 +1670,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.lower():en
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 98.05%); border: none;">
@@ -1582,6 +1680,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             +1:word.isupper()
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 97.97%); border: none;">
@@ -1591,6 +1690,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             +1:postag:VMI
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 97.36%); border: none;">
@@ -1600,6 +1700,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.isupper()
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 97.23%); border: none;">
@@ -1609,6 +1710,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             +1:postag:AQ
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 97.23%); border: none;">
@@ -1618,6 +1720,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             +1:postag[:2]:AQ
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 97.09%); border: none;">
@@ -1627,6 +1730,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             +1:postag[:2]:VM
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 91.92%); border: none;">
@@ -1636,6 +1740,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             BOS
         </td>
+        
     </tr>
             
     
@@ -1656,8 +1761,13 @@ eli5.explain\_weights:
                style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
             <thead>
             <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature weights. Note that weights do not account for feature value scales, so if feature values have different scales, features with highest weights might not be the most important.">
+                        Weight<sup>?</sup>
+                    </th>
+                
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
             </tr>
             </thead>
             <tbody>
@@ -1669,6 +1779,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.isupper()
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 95.67%); border: none;">
@@ -1678,6 +1789,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.istitle()
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.06%); border: none;">
@@ -1687,6 +1799,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             postag:Fe
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.06%); border: none;">
@@ -1696,6 +1809,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word[-3:]:&quot;
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.06%); border: none;">
@@ -1705,6 +1819,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.lower():&quot;
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.06%); border: none;">
@@ -1714,6 +1829,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             postag[:2]:Fe
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.37%); border: none;">
@@ -1723,6 +1839,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             +1:word.istitle()
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.52%); border: none;">
@@ -1732,15 +1849,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.lower():&quot;
         </td>
-    </tr>
-            
-                <tr style="background-color: hsl(120, 100.00%, 96.52%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +0.508
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag:Fe
-        </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.52%); border: none;">
@@ -1750,6 +1859,17 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:postag[:2]:Fe
         </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(120, 100.00%, 96.52%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            +0.508
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            -1:postag:Fe
+        </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.63%); border: none;">
@@ -1759,6 +1879,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:postag[:2]:DA
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.63%); border: none;">
@@ -1768,6 +1889,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:postag:DA
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.66%); border: none;">
@@ -1777,15 +1899,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             +1:word.isupper()
         </td>
-    </tr>
-            
-                <tr style="background-color: hsl(120, 100.00%, 96.76%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +0.457
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag:NC
-        </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.76%); border: none;">
@@ -1795,6 +1909,17 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             postag[:2]:NC
         </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(120, 100.00%, 96.76%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            +0.457
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            postag:NC
+        </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 97.05%); border: none;">
@@ -1804,6 +1929,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.lower():liga
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 97.06%); border: none;">
@@ -1813,6 +1939,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word[-3:]:iga
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 97.22%); border: none;">
@@ -1822,15 +1949,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.lower():la
         </td>
-    </tr>
-            
-                <tr style="background-color: hsl(120, 100.00%, 97.29%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +0.354
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag[:2]:Z
-        </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 97.29%); border: none;">
@@ -1840,6 +1959,17 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             postag:Z
         </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(120, 100.00%, 97.29%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            +0.354
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            postag[:2]:Z
+        </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 97.41%); border: none;">
@@ -1849,6 +1979,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.lower():del
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 97.67%); border: none;">
@@ -1858,6 +1989,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             +1:postag[:2]:Z
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 97.67%); border: none;">
@@ -1867,15 +1999,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             +1:postag:Z
         </td>
-    </tr>
-            
-                <tr style="background-color: hsl(120, 100.00%, 97.68%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +0.284
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            +1:postag[:2]:NC
-        </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 97.68%); border: none;">
@@ -1885,6 +2009,17 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             +1:postag:NC
         </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(120, 100.00%, 97.68%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            +0.284
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            +1:postag[:2]:NC
+        </td>
+        
     </tr>
             
             
@@ -1910,6 +2045,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             BOS
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 97.17%); border: none;">
@@ -1919,6 +2055,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:postag[:2]:VM
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 94.77%); border: none;">
@@ -1928,6 +2065,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             postag:SP
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 94.77%); border: none;">
@@ -1937,6 +2075,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             postag[:2]:SP
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 94.04%); border: none;">
@@ -1946,6 +2085,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.istitle()
         </td>
+        
     </tr>
             
     
@@ -1966,8 +2106,13 @@ eli5.explain\_weights:
                style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
             <thead>
             <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature weights. Note that weights do not account for feature value scales, so if feature values have different scales, features with highest weights might not be the most important.">
+                        Weight<sup>?</sup>
+                    </th>
+                
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
             </tr>
             </thead>
             <tbody>
@@ -1979,6 +2124,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.istitle()
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 95.75%); border: none;">
@@ -1988,6 +2134,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.lower():de
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.10%); border: none;">
@@ -1997,6 +2144,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             +1:postag[:2]:Fe
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.10%); border: none;">
@@ -2006,6 +2154,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             +1:word.lower():&quot;
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.10%); border: none;">
@@ -2015,6 +2164,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             +1:postag:Fe
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 97.21%); border: none;">
@@ -2024,6 +2174,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:postag[:2]:NC
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 97.21%); border: none;">
@@ -2033,6 +2184,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:postag:NC
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 97.46%); border: none;">
@@ -2042,6 +2194,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.lower():liga
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 97.49%); border: none;">
@@ -2051,6 +2204,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word[-3:]:de
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 97.57%); border: none;">
@@ -2060,6 +2214,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.lower():de
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 97.57%); border: none;">
@@ -2069,6 +2224,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.isdigit()
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 97.81%); border: none;">
@@ -2078,6 +2234,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:postag:SP
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 97.81%); border: none;">
@@ -2087,6 +2244,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:postag[:2]:SP
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 97.83%); border: none;">
@@ -2096,6 +2254,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.lower():copa
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 97.94%); border: none;">
@@ -2105,6 +2264,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.lower():campeones
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 97.97%); border: none;">
@@ -2114,6 +2274,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word[-3:]:000
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 97.98%); border: none;">
@@ -2123,6 +2284,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             +1:postag[:2]:Z
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 97.98%); border: none;">
@@ -2132,6 +2294,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             +1:postag:Z
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 98.01%); border: none;">
@@ -2141,6 +2304,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.lower():2000
         </td>
+        
     </tr>
             
             
@@ -2166,6 +2330,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             EOS
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 97.79%); border: none;">
@@ -2175,6 +2340,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.lower():y
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 97.79%); border: none;">
@@ -2184,6 +2350,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.lower():y
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 97.79%); border: none;">
@@ -2193,6 +2360,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             +1:postag:VMI
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 97.74%); border: none;">
@@ -2202,15 +2370,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             postag[:2]:VM
         </td>
-    </tr>
-            
-                <tr style="background-color: hsl(0, 100.00%, 97.56%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            -0.306
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag:CC
-        </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 97.56%); border: none;">
@@ -2220,15 +2380,17 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:postag[:2]:CC
         </td>
+        
     </tr>
             
-                <tr style="background-color: hsl(0, 100.00%, 97.48%); border: none;">
+                <tr style="background-color: hsl(0, 100.00%, 97.56%); border: none;">
         <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            -0.320
+            -0.306
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag[:2]:CC
+            -1:postag:CC
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 97.48%); border: none;">
@@ -2238,6 +2400,17 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             postag:CC
         </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(0, 100.00%, 97.48%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            -0.320
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            postag[:2]:CC
+        </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 97.21%); border: none;">
@@ -2247,6 +2420,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             +1:postag[:2]:VM
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 95.90%); border: none;">
@@ -2256,6 +2430,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             bias
         </td>
+        
     </tr>
             
     
@@ -2276,8 +2451,13 @@ eli5.explain\_weights:
                style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
             <thead>
             <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature weights. Note that weights do not account for feature value scales, so if feature values have different scales, features with highest weights might not be the most important.">
+                        Weight<sup>?</sup>
+                    </th>
+                
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
             </tr>
             </thead>
             <tbody>
@@ -2289,6 +2469,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.lower():efe
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 89.31%); border: none;">
@@ -2298,6 +2479,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.isupper()
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 90.64%); border: none;">
@@ -2307,6 +2489,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word[-3:]:EFE
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 93.74%); border: none;">
@@ -2316,6 +2499,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.lower():gobierno
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 93.86%); border: none;">
@@ -2325,6 +2509,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.istitle()
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 94.33%); border: none;">
@@ -2334,6 +2519,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.lower():del
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 94.57%); border: none;">
@@ -2343,15 +2529,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word[-3:]:rno
         </td>
-    </tr>
-            
-                <tr style="background-color: hsl(120, 100.00%, 95.77%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +0.671
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            word[-3:]:PP
-        </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 95.77%); border: none;">
@@ -2361,6 +2539,17 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.lower():pp
         </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(120, 100.00%, 95.77%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            +0.671
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            word[-3:]:PP
+        </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 95.78%); border: none;">
@@ -2370,6 +2559,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.lower():al
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.30%); border: none;">
@@ -2379,6 +2569,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.lower():el
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.56%); border: none;">
@@ -2388,6 +2579,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word[-3:]:eal
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.99%); border: none;">
@@ -2397,6 +2589,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.lower():real
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 97.09%); border: none;">
@@ -2406,6 +2599,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.lower():ayuntamiento
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 97.10%); border: none;">
@@ -2415,6 +2609,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             postag[:2]:AQ
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 97.10%); border: none;">
@@ -2424,6 +2619,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             postag:AQ
         </td>
+        
     </tr>
             
             
@@ -2447,8 +2643,9 @@ eli5.explain\_weights:
             -0.430
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag[:2]:AQ
+            -1:postag:AQ
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 96.90%); border: none;">
@@ -2456,8 +2653,9 @@ eli5.explain\_weights:
             -0.430
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag:AQ
+            -1:postag[:2]:AQ
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 96.80%); border: none;">
@@ -2467,6 +2665,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             +1:word.lower():de
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 96.78%); border: none;">
@@ -2476,6 +2675,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             postag[:2]:Z
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 96.78%); border: none;">
@@ -2485,6 +2685,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             postag:Z
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 96.55%); border: none;">
@@ -2494,6 +2695,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.istitle()
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 95.89%); border: none;">
@@ -2503,6 +2705,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.lower():los
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 95.80%); border: none;">
@@ -2512,6 +2715,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.lower():de
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 95.61%); border: none;">
@@ -2521,6 +2725,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.isupper()
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 95.44%); border: none;">
@@ -2530,6 +2735,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.lower():en
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 95.44%); border: none;">
@@ -2539,6 +2745,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:postag[:2]:VM
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 94.02%); border: none;">
@@ -2548,15 +2755,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             bias
         </td>
-    </tr>
-            
-                <tr style="background-color: hsl(0, 100.00%, 93.31%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            -1.289
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag[:2]:SP
-        </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 93.31%); border: none;">
@@ -2566,6 +2765,17 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             postag:SP
         </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(0, 100.00%, 93.31%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            -1.289
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            postag[:2]:SP
+        </td>
+        
     </tr>
             
     
@@ -2586,8 +2796,13 @@ eli5.explain\_weights:
                style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
             <thead>
             <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature weights. Note that weights do not account for feature value scales, so if feature values have different scales, features with highest weights might not be the most important.">
+                        Weight<sup>?</sup>
+                    </th>
+                
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
             </tr>
             </thead>
             <tbody>
@@ -2599,6 +2814,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.istitle()
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 93.64%); border: none;">
@@ -2608,6 +2824,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.lower():de
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.37%); border: none;">
@@ -2617,6 +2834,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.lower():real
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.50%); border: none;">
@@ -2626,6 +2844,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word[-3:]:rid
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.82%); border: none;">
@@ -2635,6 +2854,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word[-3:]:de
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.89%); border: none;">
@@ -2644,6 +2864,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.lower():de
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.91%); border: none;">
@@ -2653,6 +2874,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:postag[:2]:SP
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.91%); border: none;">
@@ -2662,6 +2884,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:postag:SP
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 97.06%); border: none;">
@@ -2671,6 +2894,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.lower():madrid
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 97.22%); border: none;">
@@ -2680,6 +2904,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word[-3:]:la
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 97.23%); border: none;">
@@ -2689,6 +2914,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.lower():consejo
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 97.25%); border: none;">
@@ -2698,6 +2924,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.istitle()
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 97.31%); border: none;">
@@ -2707,15 +2934,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.lower():comisión
         </td>
-    </tr>
-            
-                <tr style="background-color: hsl(120, 100.00%, 97.39%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +0.336
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag[:2]:AQ
-        </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 97.39%); border: none;">
@@ -2725,6 +2944,17 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             postag:AQ
         </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(120, 100.00%, 97.39%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            +0.336
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            postag[:2]:AQ
+        </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 97.41%); border: none;">
@@ -2734,6 +2964,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             +1:word.lower():(
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 97.41%); border: none;">
@@ -2743,6 +2974,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             +1:postag:Fpa
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 97.53%); border: none;">
@@ -2752,6 +2984,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.lower():estados
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 97.56%); border: none;">
@@ -2761,6 +2994,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.lower():unidos
         </td>
+        
     </tr>
             
             
@@ -2784,8 +3018,9 @@ eli5.explain\_weights:
             -0.304
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag[:2]:NP
+            postag:NP
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 97.57%); border: none;">
@@ -2793,8 +3028,9 @@ eli5.explain\_weights:
             -0.304
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag:NP
+            postag[:2]:NP
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 97.56%); border: none;">
@@ -2804,6 +3040,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.lower():a
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 97.13%); border: none;">
@@ -2813,6 +3050,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             +1:postag[:2]:NC
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 97.13%); border: none;">
@@ -2822,6 +3060,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             +1:postag:NC
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 97.10%); border: none;">
@@ -2831,15 +3070,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.isupper()
         </td>
-    </tr>
-            
-                <tr style="background-color: hsl(0, 100.00%, 96.52%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            -0.507
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            +1:postag[:2]:AQ
-        </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 96.52%); border: none;">
@@ -2849,6 +3080,17 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             +1:postag:AQ
         </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(0, 100.00%, 96.52%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            -0.507
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            +1:postag[:2]:AQ
+        </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 96.39%); border: none;">
@@ -2858,6 +3100,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             postag[:2]:VM
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 96.36%); border: none;">
@@ -2867,6 +3110,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             postag:VMI
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 93.66%); border: none;">
@@ -2876,6 +3120,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             bias
         </td>
+        
     </tr>
             
     
@@ -2896,8 +3141,13 @@ eli5.explain\_weights:
                style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
             <thead>
             <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature weights. Note that weights do not account for feature value scales, so if feature values have different scales, features with highest weights might not be the most important.">
+                        Weight<sup>?</sup>
+                    </th>
+                
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
             </tr>
             </thead>
             <tbody>
@@ -2909,6 +3159,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.istitle()
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 95.71%); border: none;">
@@ -2918,6 +3169,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:postag:VMI
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.08%); border: none;">
@@ -2927,6 +3179,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             +1:postag[:2]:VM
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.13%); border: none;">
@@ -2936,6 +3189,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             postag:NP
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.13%); border: none;">
@@ -2945,6 +3199,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             postag[:2]:NP
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.14%); border: none;">
@@ -2954,6 +3209,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             +1:postag:VMI
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.24%); border: none;">
@@ -2963,6 +3219,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.lower():a
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.46%); border: none;">
@@ -2972,6 +3229,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word[-3:]:osé
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.54%); border: none;">
@@ -2981,6 +3239,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.lower():josé
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.67%); border: none;">
@@ -2990,15 +3249,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:postag[:2]:VM
         </td>
-    </tr>
-            
-                <tr style="background-color: hsl(120, 100.00%, 96.69%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +0.472
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag:NC
-        </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.69%); border: none;">
@@ -3008,6 +3259,17 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             postag[:2]:NC
         </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(120, 100.00%, 96.69%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            +0.472
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            postag:NC
+        </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.79%); border: none;">
@@ -3017,6 +3279,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:postag:Fc
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.79%); border: none;">
@@ -3026,6 +3289,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:postag[:2]:Fc
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.79%); border: none;">
@@ -3035,6 +3299,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.lower():,
         </td>
+        
     </tr>
             
             
@@ -3060,24 +3325,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.lower():en
         </td>
-    </tr>
-            
-                <tr style="background-color: hsl(0, 100.00%, 96.68%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            -0.475
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:word.lower():&quot;
-        </td>
-    </tr>
-            
-                <tr style="background-color: hsl(0, 100.00%, 96.68%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            -0.475
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag:Fe
-        </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 96.68%); border: none;">
@@ -3087,6 +3335,27 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:postag[:2]:Fe
         </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(0, 100.00%, 96.68%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            -0.475
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            -1:postag:Fe
+        </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(0, 100.00%, 96.68%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            -0.475
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            -1:word.lower():&quot;
+        </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 96.35%); border: none;">
@@ -3096,6 +3365,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.lower():la
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 96.21%); border: none;">
@@ -3105,6 +3375,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.lower():de
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 95.67%); border: none;">
@@ -3114,6 +3385,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.istitle()
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 95.59%); border: none;">
@@ -3123,6 +3395,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             postag[:2]:SP
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 95.59%); border: none;">
@@ -3132,6 +3405,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             postag:SP
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 95.30%); border: none;">
@@ -3141,6 +3415,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.lower():del
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 95.14%); border: none;">
@@ -3150,6 +3425,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:postag[:2]:DA
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 95.14%); border: none;">
@@ -3159,6 +3435,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:postag:DA
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 94.71%); border: none;">
@@ -3168,6 +3445,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.lower():la
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 93.21%); border: none;">
@@ -3177,6 +3455,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             postag[:2]:DA
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 93.21%); border: none;">
@@ -3186,6 +3465,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             postag:DA
         </td>
+        
     </tr>
             
     
@@ -3206,8 +3486,13 @@ eli5.explain\_weights:
                style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
             <thead>
             <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature weights. Note that weights do not account for feature value scales, so if feature values have different scales, features with highest weights might not be the most important.">
+                        Weight<sup>?</sup>
+                    </th>
+                
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
             </tr>
             </thead>
             <tbody>
@@ -3219,6 +3504,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.istitle()
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 95.48%); border: none;">
@@ -3228,6 +3514,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.istitle()
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 95.82%); border: none;">
@@ -3237,15 +3524,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.lower():josé
         </td>
-    </tr>
-            
-                <tr style="background-color: hsl(120, 100.00%, 96.09%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +0.598
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag[:2]:AQ
-        </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.09%); border: none;">
@@ -3255,6 +3534,17 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:postag:AQ
         </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(120, 100.00%, 96.09%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            +0.598
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            -1:postag[:2]:AQ
+        </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.51%); border: none;">
@@ -3264,6 +3554,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:postag[:2]:VM
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.62%); border: none;">
@@ -3273,6 +3564,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.lower():juan
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.95%); border: none;">
@@ -3282,6 +3574,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.lower():maría
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.99%); border: none;">
@@ -3291,6 +3584,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:postag:VMI
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 97.34%); border: none;">
@@ -3300,6 +3594,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.lower():luis
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 97.49%); border: none;">
@@ -3309,6 +3604,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.lower():manuel
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 97.51%); border: none;">
@@ -3318,6 +3614,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             postag:NC
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 97.51%); border: none;">
@@ -3327,6 +3624,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             postag[:2]:NC
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 97.54%); border: none;">
@@ -3336,6 +3634,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.lower():carlos
         </td>
+        
     </tr>
             
             
@@ -3361,6 +3660,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             postag:NP
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 97.59%); border: none;">
@@ -3370,6 +3670,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             postag[:2]:NP
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 97.58%); border: none;">
@@ -3379,24 +3680,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word[-3:]:ión
         </td>
-    </tr>
-            
-                <tr style="background-color: hsl(0, 100.00%, 97.56%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            -0.305
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            word[-3:]:&quot;
-        </td>
-    </tr>
-            
-                <tr style="background-color: hsl(0, 100.00%, 97.56%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            -0.305
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            word.lower():&quot;
-        </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 97.56%); border: none;">
@@ -3406,6 +3690,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             postag[:2]:Fe
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 97.56%); border: none;">
@@ -3415,6 +3700,27 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             postag:Fe
         </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(0, 100.00%, 97.56%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            -0.305
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            word.lower():&quot;
+        </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(0, 100.00%, 97.56%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            -0.305
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            word[-3:]:&quot;
+        </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 97.56%); border: none;">
@@ -3424,6 +3730,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             +1:word.lower():que
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 97.46%); border: none;">
@@ -3433,15 +3740,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.lower():el
         </td>
-    </tr>
-            
-                <tr style="background-color: hsl(0, 100.00%, 97.17%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            -0.377
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            +1:postag:Z
-        </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 97.17%); border: none;">
@@ -3451,6 +3750,17 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             +1:postag[:2]:Z
         </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(0, 100.00%, 97.17%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            -0.377
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            +1:postag:Z
+        </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 97.07%); border: none;">
@@ -3460,6 +3770,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             postag:VMI
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 96.89%); border: none;">
@@ -3469,6 +3780,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             +1:postag:SP
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 96.89%); border: none;">
@@ -3478,6 +3790,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             +1:postag[:2]:SP
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 96.63%); border: none;">
@@ -3487,6 +3800,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             postag[:2]:VM
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 92.81%); border: none;">
@@ -3496,6 +3810,7 @@ eli5.explain\_weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             bias
         </td>
+        
     </tr>
             
     
@@ -4161,8 +4476,13 @@ Let's check what effect does regularization have on CRF weights:
                style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
             <thead>
             <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature weights. Note that weights do not account for feature value scales, so if feature values have different scales, features with highest weights might not be the most important.">
+                        Weight<sup>?</sup>
+                    </th>
+                
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
             </tr>
             </thead>
             <tbody>
@@ -4174,6 +4494,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             BOS
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 87.31%); border: none;">
@@ -4183,6 +4504,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             bias
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 88.47%); border: none;">
@@ -4192,6 +4514,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             postag[:2]:Fp
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 95.41%); border: none;">
@@ -4201,6 +4524,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.isupper()
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.57%); border: none;">
@@ -4210,6 +4534,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             +1:postag:AQ
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.57%); border: none;">
@@ -4219,24 +4544,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             +1:postag[:2]:AQ
         </td>
-    </tr>
-            
-                <tr style="background-color: hsl(120, 100.00%, 96.78%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +0.400
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag[:2]:Fc
-        </td>
-    </tr>
-            
-                <tr style="background-color: hsl(120, 100.00%, 96.78%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +0.400
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag:Fc
-        </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.78%); border: none;">
@@ -4246,6 +4554,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.lower():,
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.78%); border: none;">
@@ -4255,6 +4564,27 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word[-3:]:,
         </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(120, 100.00%, 96.78%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            +0.400
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            postag:Fc
+        </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(120, 100.00%, 96.78%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            +0.400
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            postag[:2]:Fc
+        </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.83%); border: none;">
@@ -4264,6 +4594,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             postag:CC
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.83%); border: none;">
@@ -4273,6 +4604,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             postag[:2]:CC
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.99%); border: none;">
@@ -4282,6 +4614,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             EOS
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 97.00%); border: none;">
@@ -4291,6 +4624,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             +1:postag:NC
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 97.00%); border: none;">
@@ -4300,15 +4634,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             +1:postag[:2]:NC
         </td>
-    </tr>
-            
-                <tr style="background-color: hsl(120, 100.00%, 97.28%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +0.315
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag:SP
-        </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 97.28%); border: none;">
@@ -4318,6 +4644,17 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             postag[:2]:SP
         </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(120, 100.00%, 97.28%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            +0.315
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            postag:SP
+        </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 97.36%); border: none;">
@@ -4327,6 +4664,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             +1:word.isupper()
         </td>
+        
     </tr>
             
             
@@ -4350,8 +4688,9 @@ Let's check what effect does regularization have on CRF weights:
             -0.216
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag[:2]:AQ
+            postag:AQ
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 97.91%); border: none;">
@@ -4359,17 +4698,9 @@ Let's check what effect does regularization have on CRF weights:
             -0.216
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag:AQ
+            postag[:2]:AQ
         </td>
-    </tr>
-            
-                <tr style="background-color: hsl(0, 100.00%, 97.17%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            -0.334
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag[:2]:SP
-        </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 97.17%); border: none;">
@@ -4379,15 +4710,17 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:postag:SP
         </td>
+        
     </tr>
             
-                <tr style="background-color: hsl(0, 100.00%, 96.69%); border: none;">
+                <tr style="background-color: hsl(0, 100.00%, 97.17%); border: none;">
         <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            -0.417
+            -0.334
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag:NP
+            -1:postag[:2]:SP
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 96.69%); border: none;">
@@ -4397,6 +4730,17 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             postag[:2]:NP
         </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(0, 100.00%, 96.69%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            -0.417
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            postag:NP
+        </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 96.00%); border: none;">
@@ -4406,6 +4750,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             postag:NC
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 96.00%); border: none;">
@@ -4415,6 +4760,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             postag[:2]:NC
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 96.00%); border: none;">
@@ -4424,6 +4770,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.lower():de
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 95.73%); border: none;">
@@ -4433,6 +4780,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word[-3:]:de
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 85.17%); border: none;">
@@ -4442,6 +4790,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.isupper()
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 80.00%); border: none;">
@@ -4451,6 +4800,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.istitle()
         </td>
+        
     </tr>
             
     
@@ -4471,8 +4821,13 @@ Let's check what effect does regularization have on CRF weights:
                style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
             <thead>
             <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature weights. Note that weights do not account for feature value scales, so if feature values have different scales, features with highest weights might not be the most important.">
+                        Weight<sup>?</sup>
+                    </th>
+                
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
             </tr>
             </thead>
             <tbody>
@@ -4484,6 +4839,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.lower():en
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 93.13%); border: none;">
@@ -4493,6 +4849,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.istitle()
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.25%); border: none;">
@@ -4502,24 +4859,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             +1:postag[:2]:Fp
         </td>
-    </tr>
-            
-                <tr style="background-color: hsl(120, 100.00%, 98.38%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +0.150
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            +1:postag[:2]:Fc
-        </td>
-    </tr>
-            
-                <tr style="background-color: hsl(120, 100.00%, 98.38%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +0.150
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            +1:postag:Fc
-        </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 98.38%); border: none;">
@@ -4529,6 +4869,27 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             +1:word.lower():,
         </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(120, 100.00%, 98.38%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            +0.150
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            +1:postag:Fc
+        </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(120, 100.00%, 98.38%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            +0.150
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            +1:postag[:2]:Fc
+        </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 98.80%); border: none;">
@@ -4538,6 +4899,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:postag[:2]:Fp
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 98.95%); border: none;">
@@ -4547,6 +4909,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.lower():(
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 98.95%); border: none;">
@@ -4556,6 +4919,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:postag:Fpa
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 98.95%); border: none;">
@@ -4565,6 +4929,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             postag:NP
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 98.95%); border: none;">
@@ -4574,15 +4939,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             postag[:2]:NP
         </td>
-    </tr>
-            
-                <tr style="background-color: hsl(120, 100.00%, 99.19%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +0.056
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag:SP
-        </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 99.19%); border: none;">
@@ -4592,15 +4949,17 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:postag[:2]:SP
         </td>
+        
     </tr>
             
-                <tr style="background-color: hsl(120, 100.00%, 99.58%); border: none;">
+                <tr style="background-color: hsl(120, 100.00%, 99.19%); border: none;">
         <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +0.022
+            +0.056
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag:NC
+            -1:postag:SP
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 99.58%); border: none;">
@@ -4610,6 +4969,17 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             postag[:2]:NC
         </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(120, 100.00%, 99.58%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            +0.022
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            postag:NC
+        </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 99.62%); border: none;">
@@ -4619,6 +4989,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             BOS
         </td>
+        
     </tr>
             
             
@@ -4632,6 +5003,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             +1:word.istitle()
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 99.49%); border: none;">
@@ -4641,6 +5013,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.lower():del
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 95.87%); border: none;">
@@ -4650,6 +5023,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.istitle()
         </td>
+        
     </tr>
             
     
@@ -4670,8 +5044,13 @@ Let's check what effect does regularization have on CRF weights:
                style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
             <thead>
             <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature weights. Note that weights do not account for feature value scales, so if feature values have different scales, features with highest weights might not be the most important.">
+                        Weight<sup>?</sup>
+                    </th>
+                
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
             </tr>
             </thead>
             <tbody>
@@ -4683,6 +5062,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.istitle()
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 97.70%); border: none;">
@@ -4692,6 +5072,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word[-3:]:de
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 97.77%); border: none;">
@@ -4701,6 +5082,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.lower():de
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 98.03%); border: none;">
@@ -4710,15 +5092,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.lower():de
         </td>
-    </tr>
-            
-                <tr style="background-color: hsl(120, 100.00%, 98.09%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +0.190
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag:SP
-        </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 98.09%); border: none;">
@@ -4728,15 +5102,17 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             postag[:2]:SP
         </td>
+        
     </tr>
             
-                <tr style="background-color: hsl(120, 100.00%, 99.15%); border: none;">
+                <tr style="background-color: hsl(120, 100.00%, 98.09%); border: none;">
         <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +0.060
+            +0.190
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag[:2]:SP
+            postag:SP
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 99.15%); border: none;">
@@ -4746,6 +5122,17 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:postag:SP
         </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(120, 100.00%, 99.15%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            +0.060
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            -1:postag[:2]:SP
+        </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 99.35%); border: none;">
@@ -4755,6 +5142,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             +1:word.istitle()
         </td>
+        
     </tr>
             
             
@@ -4779,8 +5167,13 @@ Let's check what effect does regularization have on CRF weights:
                style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
             <thead>
             <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature weights. Note that weights do not account for feature value scales, so if feature values have different scales, features with highest weights might not be the most important.">
+                        Weight<sup>?</sup>
+                    </th>
+                
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
             </tr>
             </thead>
             <tbody>
@@ -4792,15 +5185,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.isupper()
         </td>
-    </tr>
-            
-                <tr style="background-color: hsl(120, 100.00%, 99.22%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +0.053
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag:DA
-        </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 99.22%); border: none;">
@@ -4810,6 +5195,17 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:postag[:2]:DA
         </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(120, 100.00%, 99.22%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            +0.053
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            -1:postag:DA
+        </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 99.47%); border: none;">
@@ -4819,6 +5215,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.istitle()
         </td>
+        
     </tr>
             
             
@@ -4832,6 +5229,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:postag[:2]:SP
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 99.77%); border: none;">
@@ -4841,6 +5239,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:postag:SP
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 99.15%); border: none;">
@@ -4850,6 +5249,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             bias
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 98.22%); border: none;">
@@ -4859,6 +5259,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.istitle()
         </td>
+        
     </tr>
             
     
@@ -4879,8 +5280,13 @@ Let's check what effect does regularization have on CRF weights:
                style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
             <thead>
             <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature weights. Note that weights do not account for feature value scales, so if feature values have different scales, features with highest weights might not be the most important.">
+                        Weight<sup>?</sup>
+                    </th>
+                
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
             </tr>
             </thead>
             <tbody>
@@ -4892,15 +5298,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.istitle()
         </td>
-    </tr>
-            
-                <tr style="background-color: hsl(120, 100.00%, 98.32%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +0.158
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag[:2]:NC
-        </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 98.32%); border: none;">
@@ -4910,6 +5308,17 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:postag:NC
         </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(120, 100.00%, 98.32%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            +0.158
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            -1:postag[:2]:NC
+        </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 98.41%); border: none;">
@@ -4919,6 +5328,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             +1:postag[:2]:Fe
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 98.41%); border: none;">
@@ -4928,6 +5338,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             +1:postag:Fe
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 98.41%); border: none;">
@@ -4937,15 +5348,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             +1:word.lower():&quot;
         </td>
-    </tr>
-            
-                <tr style="background-color: hsl(120, 100.00%, 99.47%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +0.030
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag:SP
-        </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 99.47%); border: none;">
@@ -4955,6 +5358,17 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             postag[:2]:SP
         </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(120, 100.00%, 99.47%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            +0.030
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            postag:SP
+        </td>
+        
     </tr>
             
             
@@ -4968,6 +5382,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.istitle()
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 98.83%); border: none;">
@@ -4977,6 +5392,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             bias
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 98.63%); border: none;">
@@ -4986,6 +5402,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.isupper()
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 98.61%); border: none;">
@@ -4995,6 +5412,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.isupper()
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 98.61%); border: none;">
@@ -5004,6 +5422,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             +1:word.isupper()
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 97.94%); border: none;">
@@ -5013,6 +5432,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             +1:word.istitle()
         </td>
+        
     </tr>
             
     
@@ -5033,8 +5453,13 @@ Let's check what effect does regularization have on CRF weights:
                style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
             <thead>
             <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature weights. Note that weights do not account for feature value scales, so if feature values have different scales, features with highest weights might not be the most important.">
+                        Weight<sup>?</sup>
+                    </th>
+                
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
             </tr>
             </thead>
             <tbody>
@@ -5046,6 +5471,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.isupper()
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.20%); border: none;">
@@ -5055,15 +5481,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.lower():del
         </td>
-    </tr>
-            
-                <tr style="background-color: hsl(120, 100.00%, 97.07%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +0.350
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag:DA
-        </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 97.07%); border: none;">
@@ -5073,6 +5491,17 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:postag[:2]:DA
         </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(120, 100.00%, 97.07%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            +0.350
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            -1:postag:DA
+        </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 97.48%); border: none;">
@@ -5082,6 +5511,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.lower():efe
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 97.79%); border: none;">
@@ -5091,15 +5521,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word[-3:]:EFE
         </td>
-    </tr>
-            
-                <tr style="background-color: hsl(120, 100.00%, 98.05%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +0.195
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:word.lower():(
-        </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 98.05%); border: none;">
@@ -5109,6 +5531,17 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:postag:Fpa
         </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(120, 100.00%, 98.05%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            +0.195
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            -1:word.lower():(
+        </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 98.08%); border: none;">
@@ -5118,6 +5551,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.istitle()
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 98.17%); border: none;">
@@ -5127,6 +5561,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             +1:word.lower():)
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 98.17%); border: none;">
@@ -5136,6 +5571,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             +1:postag:Fpt
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 98.21%); border: none;">
@@ -5145,6 +5581,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:postag[:2]:Fp
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 98.49%); border: none;">
@@ -5154,6 +5591,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.lower():el
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 98.69%); border: none;">
@@ -5163,6 +5601,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             postag:NC
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 98.69%); border: none;">
@@ -5172,6 +5611,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             postag[:2]:NC
         </td>
+        
     </tr>
             
             
@@ -5185,6 +5625,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             +1:word.istitle()
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 99.56%); border: none;">
@@ -5194,6 +5635,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             +1:postag[:2]:Fp
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 99.35%); border: none;">
@@ -5203,6 +5645,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             +1:postag[:2]:NC
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 99.35%); border: none;">
@@ -5212,6 +5655,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             +1:postag:NC
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 97.95%); border: none;">
@@ -5221,6 +5665,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.lower():de
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 96.16%); border: none;">
@@ -5230,6 +5675,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             bias
         </td>
+        
     </tr>
             
     
@@ -5250,8 +5696,13 @@ Let's check what effect does regularization have on CRF weights:
                style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
             <thead>
             <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature weights. Note that weights do not account for feature value scales, so if feature values have different scales, features with highest weights might not be the most important.">
+                        Weight<sup>?</sup>
+                    </th>
+                
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
             </tr>
             </thead>
             <tbody>
@@ -5263,6 +5714,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.istitle()
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 94.95%); border: none;">
@@ -5272,15 +5724,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.lower():de
         </td>
-    </tr>
-            
-                <tr style="background-color: hsl(120, 100.00%, 98.13%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +0.185
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag:SP
-        </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 98.13%); border: none;">
@@ -5290,6 +5734,17 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:postag[:2]:SP
         </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(120, 100.00%, 98.13%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            +0.185
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            -1:postag:SP
+        </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 98.13%); border: none;">
@@ -5299,6 +5754,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word[-3:]:de
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 99.17%); border: none;">
@@ -5308,6 +5764,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.lower():de
         </td>
+        
     </tr>
             
             
@@ -5321,6 +5778,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.isupper()
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 97.58%); border: none;">
@@ -5330,6 +5788,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             +1:word.istitle()
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 96.06%); border: none;">
@@ -5339,6 +5798,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             bias
         </td>
+        
     </tr>
             
     
@@ -5359,8 +5819,13 @@ Let's check what effect does regularization have on CRF weights:
                style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
             <thead>
             <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature weights. Note that weights do not account for feature value scales, so if feature values have different scales, features with highest weights might not be the most important.">
+                        Weight<sup>?</sup>
+                    </th>
+                
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
             </tr>
             </thead>
             <tbody>
@@ -5372,15 +5837,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.istitle()
         </td>
-    </tr>
-            
-                <tr style="background-color: hsl(120, 100.00%, 96.44%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +0.463
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag:Fc
-        </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.44%); border: none;">
@@ -5390,6 +5847,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:postag[:2]:Fc
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.44%); border: none;">
@@ -5399,6 +5857,17 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.lower():,
         </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(120, 100.00%, 96.44%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            +0.463
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            -1:postag:Fc
+        </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 98.40%); border: none;">
@@ -5408,6 +5877,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             +1:postag:VMI
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 98.58%); border: none;">
@@ -5417,6 +5887,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             +1:word.istitle()
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 98.83%); border: none;">
@@ -5426,15 +5897,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             +1:postag[:2]:VM
         </td>
-    </tr>
-            
-                <tr style="background-color: hsl(120, 100.00%, 99.81%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +0.007
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            +1:postag[:2]:AQ
-        </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 99.81%); border: none;">
@@ -5444,6 +5907,17 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             +1:postag:AQ
         </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(120, 100.00%, 99.81%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            +0.007
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            +1:postag[:2]:AQ
+        </td>
+        
     </tr>
             
             
@@ -5457,15 +5931,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.istitle()
         </td>
-    </tr>
-            
-                <tr style="background-color: hsl(0, 100.00%, 99.17%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            -0.058
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag[:2]:DA
-        </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 99.17%); border: none;">
@@ -5475,6 +5941,17 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             postag:DA
         </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(0, 100.00%, 99.17%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            -0.058
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            postag[:2]:DA
+        </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 99.12%); border: none;">
@@ -5484,6 +5961,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             bias
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 99.08%); border: none;">
@@ -5493,6 +5971,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.lower():de
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 98.32%); border: none;">
@@ -5502,6 +5981,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:postag:SP
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 98.32%); border: none;">
@@ -5511,15 +5991,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:postag[:2]:SP
         </td>
-    </tr>
-            
-                <tr style="background-color: hsl(0, 100.00%, 97.60%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            -0.263
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag:DA
-        </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 97.60%); border: none;">
@@ -5529,6 +6001,17 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:postag[:2]:DA
         </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(0, 100.00%, 97.60%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            -0.263
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            -1:postag:DA
+        </td>
+        
     </tr>
             
     
@@ -5549,8 +6032,13 @@ Let's check what effect does regularization have on CRF weights:
                style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
             <thead>
             <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature weights. Note that weights do not account for feature value scales, so if feature values have different scales, features with highest weights might not be the most important.">
+                        Weight<sup>?</sup>
+                    </th>
+                
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
             </tr>
             </thead>
             <tbody>
@@ -5562,6 +6050,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.istitle()
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 97.18%); border: none;">
@@ -5571,15 +6060,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.istitle()
         </td>
-    </tr>
-            
-                <tr style="background-color: hsl(120, 100.00%, 99.66%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +0.016
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            +1:postag[:2]:Fc
-        </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 99.66%); border: none;">
@@ -5589,6 +6070,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             +1:postag:Fc
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 99.66%); border: none;">
@@ -5598,6 +6080,17 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             +1:word.lower():,
         </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(120, 100.00%, 99.66%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            +0.016
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            +1:postag[:2]:Fc
+        </td>
+        
     </tr>
             
             
@@ -5609,8 +6102,9 @@ Let's check what effect does regularization have on CRF weights:
             -0.089
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            +1:postag[:2]:SP
+            +1:postag:SP
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 98.87%); border: none;">
@@ -5618,8 +6112,9 @@ Let's check what effect does regularization have on CRF weights:
             -0.089
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            +1:postag:SP
+            +1:postag[:2]:SP
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 95.49%); border: none;">
@@ -5629,6 +6124,7 @@ Let's check what effect does regularization have on CRF weights:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             bias
         </td>
+        
     </tr>
             
     
@@ -6362,8 +6858,13 @@ subset of labels:
                style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
             <thead>
             <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature weights. Note that weights do not account for feature value scales, so if feature values have different scales, features with highest weights might not be the most important.">
+                        Weight<sup>?</sup>
+                    </th>
+                
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
             </tr>
             </thead>
             <tbody>
@@ -6375,6 +6876,7 @@ subset of labels:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             BOS
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 87.10%); border: none;">
@@ -6384,6 +6886,7 @@ subset of labels:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             postag[:2]:Fp
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 87.62%); border: none;">
@@ -6393,15 +6896,7 @@ subset of labels:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             bias
         </td>
-    </tr>
-            
-                <tr style="background-color: hsl(120, 100.00%, 90.77%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +2.328
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag:Fc
-        </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 90.77%); border: none;">
@@ -6411,6 +6906,7 @@ subset of labels:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             postag[:2]:Fc
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 90.77%); border: none;">
@@ -6420,6 +6916,7 @@ subset of labels:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.lower():,
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 90.77%); border: none;">
@@ -6429,6 +6926,17 @@ subset of labels:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word[-3:]:,
         </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(120, 100.00%, 90.77%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            +2.328
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            postag:Fc
+        </td>
+        
     </tr>
             
             
@@ -6452,8 +6960,9 @@ subset of labels:
             -2.187
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag:NP
+            postag[:2]:NP
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 87.27%); border: none;">
@@ -6463,6 +6972,7 @@ subset of labels:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.isupper()
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 80.00%); border: none;">
@@ -6472,6 +6982,7 @@ subset of labels:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.istitle()
         </td>
+        
     </tr>
             
     
@@ -6492,8 +7003,13 @@ subset of labels:
                style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
             <thead>
             <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature weights. Note that weights do not account for feature value scales, so if feature values have different scales, features with highest weights might not be the most important.">
+                        Weight<sup>?</sup>
+                    </th>
+                
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
             </tr>
             </thead>
             <tbody>
@@ -6505,6 +7021,7 @@ subset of labels:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.isupper()
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 89.10%); border: none;">
@@ -6514,6 +7031,7 @@ subset of labels:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.lower():efe
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 92.14%); border: none;">
@@ -6523,6 +7041,7 @@ subset of labels:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word[-3:]:EFE
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 93.93%); border: none;">
@@ -6532,6 +7051,7 @@ subset of labels:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.lower():gobierno
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 94.77%); border: none;">
@@ -6541,6 +7061,7 @@ subset of labels:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word[-3:]:rno
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 94.87%); border: none;">
@@ -6550,6 +7071,7 @@ subset of labels:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.istitle()
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 95.39%); border: none;">
@@ -6559,6 +7081,7 @@ subset of labels:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.lower():del
         </td>
+        
     </tr>
             
             
@@ -6584,6 +7107,7 @@ subset of labels:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.lower():en
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 93.48%); border: none;">
@@ -6593,6 +7117,7 @@ subset of labels:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             postag:SP
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 93.48%); border: none;">
@@ -6602,6 +7127,7 @@ subset of labels:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             postag[:2]:SP
         </td>
+        
     </tr>
             
     
@@ -6622,8 +7148,13 @@ subset of labels:
                style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
             <thead>
             <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature weights. Note that weights do not account for feature value scales, so if feature values have different scales, features with highest weights might not be the most important.">
+                        Weight<sup>?</sup>
+                    </th>
+                
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
             </tr>
             </thead>
             <tbody>
@@ -6635,6 +7166,7 @@ subset of labels:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.lower():de
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 94.92%); border: none;">
@@ -6644,6 +7176,7 @@ subset of labels:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.istitle()
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.28%); border: none;">
@@ -6653,6 +7186,7 @@ subset of labels:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:postag:SP
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.28%); border: none;">
@@ -6662,6 +7196,7 @@ subset of labels:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:postag[:2]:SP
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.55%); border: none;">
@@ -6671,6 +7206,7 @@ subset of labels:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.lower():real
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.65%); border: none;">
@@ -6680,6 +7216,7 @@ subset of labels:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.istitle()
         </td>
+        
     </tr>
             
             
@@ -6705,6 +7242,7 @@ subset of labels:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             postag:VMI
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 96.82%); border: none;">
@@ -6714,6 +7252,7 @@ subset of labels:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             postag[:2]:VM
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 96.71%); border: none;">
@@ -6723,6 +7262,7 @@ subset of labels:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.isupper()
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 93.89%); border: none;">
@@ -6732,6 +7272,7 @@ subset of labels:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             bias
         </td>
+        
     </tr>
             
     
@@ -6854,8 +7395,13 @@ hide transition table:
                style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
             <thead>
             <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature weights. Note that weights do not account for feature value scales, so if feature values have different scales, features with highest weights might not be the most important.">
+                        Weight<sup>?</sup>
+                    </th>
+                
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
             </tr>
             </thead>
             <tbody>
@@ -6871,6 +7417,7 @@ hide transition table:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.isupper()
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 80.00%); border: none;">
@@ -6880,6 +7427,7 @@ hide transition table:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.istitle()
         </td>
+        
     </tr>
             
     
@@ -6914,8 +7462,13 @@ hide transition table:
                style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
             <thead>
             <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature weights. Note that weights do not account for feature value scales, so if feature values have different scales, features with highest weights might not be the most important.">
+                        Weight<sup>?</sup>
+                    </th>
+                
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
             </tr>
             </thead>
             <tbody>
@@ -6927,6 +7480,7 @@ hide transition table:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.istitle()
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 98.99%); border: none;">
@@ -6936,6 +7490,7 @@ hide transition table:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.isupper()
         </td>
+        
     </tr>
             
             
@@ -6949,6 +7504,7 @@ hide transition table:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.isdigit()
         </td>
+        
     </tr>
             
     
@@ -6983,8 +7539,13 @@ hide transition table:
                style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
             <thead>
             <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature weights. Note that weights do not account for feature value scales, so if feature values have different scales, features with highest weights might not be the most important.">
+                        Weight<sup>?</sup>
+                    </th>
+                
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
             </tr>
             </thead>
             <tbody>
@@ -6996,6 +7557,7 @@ hide transition table:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.istitle()
         </td>
+        
     </tr>
             
             
@@ -7009,6 +7571,7 @@ hide transition table:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.isdigit()
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 97.57%); border: none;">
@@ -7018,6 +7581,7 @@ hide transition table:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.isupper()
         </td>
+        
     </tr>
             
     
@@ -7052,8 +7616,13 @@ hide transition table:
                style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
             <thead>
             <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature weights. Note that weights do not account for feature value scales, so if feature values have different scales, features with highest weights might not be the most important.">
+                        Weight<sup>?</sup>
+                    </th>
+                
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
             </tr>
             </thead>
             <tbody>
@@ -7065,6 +7634,7 @@ hide transition table:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.isupper()
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 96.41%); border: none;">
@@ -7074,6 +7644,7 @@ hide transition table:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.istitle()
         </td>
+        
     </tr>
             
             
@@ -7087,6 +7658,7 @@ hide transition table:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.isdigit()
         </td>
+        
     </tr>
             
     
@@ -7121,8 +7693,13 @@ hide transition table:
                style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
             <thead>
             <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature weights. Note that weights do not account for feature value scales, so if feature values have different scales, features with highest weights might not be the most important.">
+                        Weight<sup>?</sup>
+                    </th>
+                
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
             </tr>
             </thead>
             <tbody>
@@ -7134,6 +7711,7 @@ hide transition table:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.isdigit()
         </td>
+        
     </tr>
             
             
@@ -7147,6 +7725,7 @@ hide transition table:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.isupper()
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 98.94%); border: none;">
@@ -7156,6 +7735,7 @@ hide transition table:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.istitle()
         </td>
+        
     </tr>
             
     
@@ -7190,8 +7770,13 @@ hide transition table:
                style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
             <thead>
             <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature weights. Note that weights do not account for feature value scales, so if feature values have different scales, features with highest weights might not be the most important.">
+                        Weight<sup>?</sup>
+                    </th>
+                
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
             </tr>
             </thead>
             <tbody>
@@ -7203,6 +7788,7 @@ hide transition table:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.isupper()
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 94.87%); border: none;">
@@ -7212,6 +7798,7 @@ hide transition table:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.istitle()
         </td>
+        
     </tr>
             
             
@@ -7225,6 +7812,7 @@ hide transition table:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.isdigit()
         </td>
+        
     </tr>
             
     
@@ -7259,8 +7847,13 @@ hide transition table:
                style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
             <thead>
             <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature weights. Note that weights do not account for feature value scales, so if feature values have different scales, features with highest weights might not be the most important.">
+                        Weight<sup>?</sup>
+                    </th>
+                
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
             </tr>
             </thead>
             <tbody>
@@ -7272,6 +7865,7 @@ hide transition table:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.istitle()
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 99.75%); border: none;">
@@ -7281,6 +7875,7 @@ hide transition table:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.isdigit()
         </td>
+        
     </tr>
             
             
@@ -7294,6 +7889,7 @@ hide transition table:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.isupper()
         </td>
+        
     </tr>
             
     
@@ -7328,8 +7924,13 @@ hide transition table:
                style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
             <thead>
             <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature weights. Note that weights do not account for feature value scales, so if feature values have different scales, features with highest weights might not be the most important.">
+                        Weight<sup>?</sup>
+                    </th>
+                
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
             </tr>
             </thead>
             <tbody>
@@ -7341,6 +7942,7 @@ hide transition table:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.istitle()
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 99.37%); border: none;">
@@ -7350,6 +7952,7 @@ hide transition table:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.isupper()
         </td>
+        
     </tr>
             
             
@@ -7363,6 +7966,7 @@ hide transition table:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.isdigit()
         </td>
+        
     </tr>
             
     
@@ -7397,8 +8001,13 @@ hide transition table:
                style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
             <thead>
             <tr style="border: none;">
-                <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature weights. Note that weights do not account for feature value scales, so if feature values have different scales, features with highest weights might not be the most important.">
+                        Weight<sup>?</sup>
+                    </th>
+                
                 <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
             </tr>
             </thead>
             <tbody>
@@ -7410,6 +8019,7 @@ hide transition table:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.istitle()
         </td>
+        
     </tr>
             
                 <tr style="background-color: hsl(120, 100.00%, 98.38%); border: none;">
@@ -7419,6 +8029,7 @@ hide transition table:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.isupper()
         </td>
+        
     </tr>
             
             
@@ -7432,6 +8043,7 @@ hide transition table:
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.isdigit()
         </td>
+        
     </tr>
             
     
@@ -7486,34 +8098,37 @@ console):
     I-LOC  -0.184   -0.585    2.404
     
     y='O' top features
-    ----------------------------
-      +4.931  BOS               
-      +3.754  postag[:2]:Fp     
-      +3.539  bias              
-           …  (15043 more positive features)
-           …  (3906 more negative features)
-      -3.685  word.isupper()    
-      -7.025  word.istitle()    
+    Weight  Feature       
+    ------  --------------
+    +4.931  BOS           
+    +3.754  postag[:2]:Fp 
+    +3.539  bias          
+    … 15043 more positive …
+    … 3906 more negative …
+    -3.685  word.isupper()
+    -7.025  word.istitle()
     
     y='B-LOC' top features
-    ----------------------------
-      +2.397  word.istitle()    
-      +2.147  -1:word.lower():en
-           …  (2284 more positive features)
-           …  (433 more negative features)
-      -1.080  postag[:2]:SP     
-      -1.080  postag:SP         
-      -1.273  -1:word.istitle() 
+    Weight  Feature           
+    ------  ------------------
+    +2.397  word.istitle()    
+    +2.147  -1:word.lower():en
+      … 2284 more positive …  
+      … 433 more negative …   
+    -1.080  postag[:2]:SP     
+    -1.080  postag:SP         
+    -1.273  -1:word.istitle() 
     
     y='I-LOC' top features
-    ----------------------------
-      +0.882  -1:word.lower():de
-      +0.780  -1:word.istitle() 
-      +0.718  word[-3:]:de      
-      +0.711  word.lower():de   
-           …  (1684 more positive features)
-           …  (268 more negative features)
-      -1.965  BOS               
+    Weight  Feature           
+    ------  ------------------
+    +0.882  -1:word.lower():de
+    +0.780  -1:word.istitle() 
+    +0.718  word[-3:]:de      
+    +0.711  word.lower():de   
+      … 1684 more positive …  
+      … 268 more negative …   
+    -1.965  BOS               
     
 
 
