@@ -2182,7 +2182,7 @@ decision tree:
         
             
             <br>
-            <pre><svg width="788pt" height="280pt"
+            <pre><svg width="520pt" height="180pt"
      viewBox="0.00 0.00 788.00 280.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
     <g id="graph1" class="graph" transform="scale(1 1) rotate(0) translate(4 276)">
     <title>Tree</title>
