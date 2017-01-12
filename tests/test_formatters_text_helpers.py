@@ -42,7 +42,8 @@ def test_prepare_weighted_spans():
                     DocWeightedSpans(
                         document='xz',
                         spans=[
-                            ('xz', [(0, 2)], 1.5),
+                            # char_wb at the start of the document
+                            (' xz', [(-1, 2)], 1.5),
                         ],
                     )],
             )),
