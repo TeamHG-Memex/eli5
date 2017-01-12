@@ -135,6 +135,7 @@ def explain_prediction(estimator, doc, **kwargs):
     feature_filter : Callable[[str, float], bool], optional
         Only feature names for which ``feature_filter`` function returns True
         are returned. It must accept feature name and it's value.
+        Missing features always have a NaN value.
 
     **kwargs: dict
         Keyword arguments. All keyword arguments are passed to
