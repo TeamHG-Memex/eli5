@@ -23,6 +23,8 @@ def get_char_weights(doc_weighted_spans, preserve_density=None):
     feature_counts = Counter(f for f, _, _ in doc_weighted_spans.spans)
     for feature, spans, weight in doc_weighted_spans.spans:
         for start, end in spans:
+            # start can be -1 for char_wb at the start of the document.
+            start = max(0, start)
             if preserve_density:
                 weight /= (end - start)
             weight /= feature_counts[feature]
