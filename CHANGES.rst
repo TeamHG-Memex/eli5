@@ -1,8 +1,8 @@
 Changelog
 =========
 
-0.3 (TBA)
----------
+0.3 (2017-01-13)
+----------------
 
 * :func:`eli5.explain_prediction` works for XGBClassifier, XGBRegressor
   from XGBoost and for ExtraTreesClassifier, ExtraTreesRegressor,
