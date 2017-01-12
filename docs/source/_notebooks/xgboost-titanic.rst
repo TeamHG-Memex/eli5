@@ -2,11 +2,11 @@
 Explaining XGBoost predictions on the Titanic dataset
 =====================================================
 
-This tutorial will show you how to analyze predictions of a tree
-ensemble classifier (XGBoost in this case, but it also works for tree
-ensembles from scikit-learn and for regression). We will use `Titanic
+This tutorial will show you how to analyze predictions of an XGBoost
+classifier (regression for XGBoost and most scikit-learn tree ensembles
+are also supported by eli5). We will use `Titanic
 dataset <https://www.kaggle.com/c/titanic/data>`__, which is small and
-has not too many features, but is still rich enough.
+has not too many features, but is still interesting enough.
 
 We are using `XGBoost <https://xgboost.readthedocs.io/en/latest/>`__
 0.6a2 and data downloaded from https://www.kaggle.com/c/titanic/data (it
@@ -84,15 +84,17 @@ predict: survival.
     891 items total, 38.4% true
 
 
-We do just minimal preprocessing: convert obviously contiuous ``Age``
-and ``Fare`` variables to floats, and ``SibSp``, ``Parch`` to integers.
-``Age`` can be missing, we default to 0 and will tell XGBoost to treat
-it as missing later.
+We do just minimal preprocessing: convert obviously contiuous *Age* and
+*Fare* variables to floats, and *SibSp*, *Parch* to integers. Missing
+*Age* values are removed.
 
 .. code:: python
 
     for x in all_xs:
-        x['Age'] = float(x['Age'] or 0)
+        if x['Age']:
+            x['Age'] = float(x['Age'])
+        else:
+            x.pop('Age')
         x['Fare'] = float(x['Fare'])
         x['SibSp'] = int(x['SibSp'])
         x['Parch'] = int(x['Parch'])
@@ -100,9 +102,11 @@ it as missing later.
 2. Simple XGBoost classifier
 ----------------------------
 
-Let's first build a very simple classifier with ``XGBClassifier`` and
-``sklearn.feature_extraction.DictVectorizer``, and check it's accuracy
-with cross-validation:
+Let's first build a very simple classifier with
+`xbgoost.XGBClassifier <http://xgboost.readthedocs.io/en/latest/python/python_api.html#xgboost.XGBClassifier>`__
+and
+`sklearn.feature\_extraction.DictVectorizer <http://scikit-learn.org/stable/modules/generated/sklearn.feature_extraction.DictVectorizer.html>`__,
+and check it's accuracy with cross-validation:
 
 .. code:: python
 
@@ -114,9 +118,16 @@ with cross-validation:
     from sklearn.pipeline import make_pipeline
     from sklearn.model_selection import cross_val_score
     
-    clf = XGBClassifier(missing=0)
-    vec = DictVectorizer(sparse=False)  # https://github.com/dmlc/xgboost/issues/1238
-    pipeline = make_pipeline(vec, clf)
+    class CSCTransformer:
+        def transform(self, xs):
+            # work around https://github.com/dmlc/xgboost/issues/1238#issuecomment-243872543
+            return xs.tocsc()
+        def fit(self, *args):
+            return self
+        
+    clf = XGBClassifier()
+    vec = DictVectorizer()
+    pipeline = make_pipeline(vec, CSCTransformer(), clf)
     
     def evaluate(_clf):
         scores = cross_val_score(_clf, all_xs, all_ys, scoring='accuracy')
@@ -128,20 +139,62 @@ with cross-validation:
 
 .. parsed-literal::
 
-    Accuracy: 0.823 ± 0.008
+    Accuracy: 0.824 ± 0.011
 
 
-There are two tricky parts in above code. First is that we pass
-``missing=0`` to ``XGBClassifier``. This tells XGBoost to treat zeros as
-missing values, which is how most scikit-learn vectorizers work. It is
-important both for training and for correct feature visualization.
+There is one tricky bit about the code above: XGBClassifier in xgboost
+0.6a2 has some `issues <https://github.com/dmlc/xgboost/issues/1238>`__
+with sparse data. One way to solve them is to convert a sparse matrix to
+CSC format, so we add a ``CSCTransformer`` to the pipelne. One may be
+templed to just pass ``dense=True`` to ``DictVectorizer``: after all, in
+this case the matrixes are small. But this is not a great solution,
+because we will loose the ability to distinguish features that are
+missing and features that have zero value.
 
-Second tricky bit is that XGBClassifier in xgboost 0.6a2 has some
-`issues <https://github.com/dmlc/xgboost/issues/1238>`__ with sparse
-data. In this case we don't really need sparsity, so pass ``dense=True``
-to ``DictVectorizer``.
+3. Explaining weights
+---------------------
 
-Now let's check out feature importances:
+In order to calculate a prediction, XGBoost sums predictions of all it's
+trees. The number of trees is controlled by ``n_estimators`` argument
+and is 100 by default. Each tree is not a great predictor on it's own,
+but by summing across all trees, XGBoost is able to provide a robust
+estimate in many cases. Here is one of the trees:
+
+.. code:: python
+
+    booster = clf.booster()
+    original_feature_names = booster.feature_names
+    booster.feature_names = vec.get_feature_names()
+    print(booster.get_dump()[0])
+    # recover original feature names
+    booster.feature_names = original_feature_names
+
+
+.. parsed-literal::
+
+    0:[Sex=female<-9.53674e-07] yes=1,no=2,missing=1
+    	1:[Age<13] yes=3,no=4,missing=4
+    		3:[SibSp<2] yes=7,no=8,missing=7
+    			7:leaf=0.145455
+    			8:leaf=-0.125
+    		4:[Fare<26.2687] yes=9,no=10,missing=9
+    			9:leaf=-0.151515
+    			10:leaf=-0.0727273
+    	2:[Pclass=3<-9.53674e-07] yes=5,no=6,missing=5
+    		5:[Fare<12.175] yes=11,no=12,missing=12
+    			11:leaf=0.05
+    			12:leaf=0.175194
+    		6:[Fare<24.8083] yes=13,no=14,missing=14
+    			13:leaf=0.0365591
+    			14:leaf=-0.152
+    
+
+
+We see that this tree checks *Sex*, *Age*, *Pclass*, *Fare* and *SibSp*
+features. ``leaf`` gives the decision of a single tree, and they are
+summed over all trees in the ensemble.
+
+Let's check feature importances with ``eli5.show_weights``:
 
 .. code:: python
 
@@ -352,50 +405,20 @@ Now let's check out feature importances:
 
 
 
-In order to calculate a prediction, XGBoost sums predictions of all it's
-trees (the number of trees is controlled by ``n_estimators`` argument
-and is 100 by default). Each tree is not a great predictor on it's own,
-but by summing across all trees, XGBoost is able to provide a robust
-estimate in many cases. Here is one of the trees:
-
-.. code:: python
-
-    booster = clf.booster()
-    booster.feature_names = vec.get_feature_names()
-    print(booster.get_dump()[0])
-
-
-.. parsed-literal::
-
-    0:[Sex=female<-9.53674e-07] yes=1,no=2,missing=1
-    	1:[Age<13] yes=3,no=4,missing=4
-    		3:[SibSp<2] yes=7,no=8,missing=7
-    			7:leaf=0.145455
-    			8:leaf=-0.125
-    		4:[Fare<26.2687] yes=9,no=10,missing=9
-    			9:leaf=-0.151515
-    			10:leaf=-0.0727273
-    	2:[Pclass=3<-9.53674e-07] yes=5,no=6,missing=5
-    		5:[Fare<12.175] yes=11,no=12,missing=12
-    			11:leaf=0.05
-    			12:leaf=0.175194
-    		6:[Fare<24.8083] yes=13,no=14,missing=14
-    			13:leaf=0.0365591
-    			14:leaf=-0.152
-    
-
-
 Feature importances are proportional to how many times a feature is used
 to split the data across all trees, and is also called "fscore", or
 "weight" importance. It's possible to calculate other kinds of feature
 importancs by calling xgboost directly (to get average coverage or
 average gain of each feature), but "fscore" is used by default by eli5.
 
-3. Explaining predictions
+Now we know that *Age* and *Fare* are most important, but we still don't
+know how XGBoost decides what prediction to make based on their values.
+
+4. Explaining predictions
 -------------------------
 
 To get a better idea of how our classifier works, let's examine
-individual predictions:
+individual predictions with ``eli5.show_prediction``:
 
 .. code:: python
 
@@ -453,7 +476,7 @@ individual predictions:
     </b>
     
         
-        (probability <b>0.626</b>, score <b>0.515</b>)
+        (probability <b>0.566</b>, score <b>0.264</b>)
     
     top features
             </p>
@@ -503,9 +526,9 @@ individual predictions:
         
     </tr>
             
-                <tr style="background-color: hsl(120, 100.00%, 90.80%); border: none;">
+                <tr style="background-color: hsl(120, 100.00%, 94.71%); border: none;">
         <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +0.142
+            +0.065
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             Fare
@@ -513,20 +536,6 @@ individual predictions:
         
             <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
                 7.879
-            </td>
-        
-    </tr>
-            
-                <tr style="background-color: hsl(120, 100.00%, 93.52%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +0.086
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            SibSp
-        </td>
-        
-            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
-                Missing
             </td>
         
     </tr>
@@ -600,7 +609,7 @@ individual predictions:
         </td>
         
             <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
-                Missing
+                0.000
             </td>
         
     </tr>
@@ -619,6 +628,20 @@ individual predictions:
         
     </tr>
             
+                <tr style="background-color: hsl(0, 100.00%, 94.99%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            -0.060
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            SibSp
+        </td>
+        
+            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
+                0.000
+            </td>
+        
+    </tr>
+            
                 <tr style="background-color: hsl(0, 100.00%, 94.81%); border: none;">
         <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
             -0.063
@@ -633,9 +656,9 @@ individual predictions:
         
     </tr>
             
-                <tr style="background-color: hsl(0, 100.00%, 94.11%); border: none;">
+                <tr style="background-color: hsl(0, 100.00%, 92.71%); border: none;">
         <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            -0.075
+            -0.102
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             Age
@@ -722,14 +745,16 @@ Here we see that classifier thinks it's good to be a female, but bad to
 travel third class. Some features have "Missing" as value (we are
 passing ``show_feature_values=True`` to view the values): that means
 that the feature was missing, so in this case it's good to not have
-embarked in Southampton.
+embarked in Southampton. This is where our decision to go with sparse
+matrices comes handy - we still see that *Parch* is zero, not missing.
 
 It's possible to show only features that are present using
-``feature_filter`` argument:
+``feature_filter`` argument: it's a function that accepts feature name
+and value, and returns True value for features that should be shown:
 
 .. code:: python
 
-    no_missing = lambda feature_name, feature_value: feature_value != 0
+    no_missing = lambda feature_name, feature_value: not np.isnan(feature_value)
     show_prediction(clf, valid_xs[1], vec=vec, show_feature_values=True, feature_filter=no_missing)
 
 
@@ -783,7 +808,7 @@ It's possible to show only features that are present using
     </b>
     
         
-        (probability <b>0.626</b>, score <b>0.515</b>)
+        (probability <b>0.566</b>, score <b>0.264</b>)
     
     top features
             </p>
@@ -819,9 +844,9 @@ It's possible to show only features that are present using
         
     </tr>
             
-                <tr style="background-color: hsl(120, 100.00%, 90.80%); border: none;">
+                <tr style="background-color: hsl(120, 100.00%, 94.71%); border: none;">
         <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +0.142
+            +0.065
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             Fare
@@ -851,6 +876,34 @@ It's possible to show only features that are present using
         
     </tr>
             
+                <tr style="background-color: hsl(0, 100.00%, 98.09%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            -0.015
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            Parch
+        </td>
+        
+            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
+                0.000
+            </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(0, 100.00%, 94.99%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            -0.060
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            SibSp
+        </td>
+        
+            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
+                0.000
+            </td>
+        
+    </tr>
+            
                 <tr style="background-color: hsl(0, 100.00%, 94.81%); border: none;">
         <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
             -0.063
@@ -865,9 +918,9 @@ It's possible to show only features that are present using
         
     </tr>
             
-                <tr style="background-color: hsl(0, 100.00%, 94.11%); border: none;">
+                <tr style="background-color: hsl(0, 100.00%, 92.71%); border: none;">
         <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            -0.075
+            -0.102
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             Age
@@ -944,11 +997,15 @@ It's possible to show only features that are present using
 
 
 
-4. Adding text features
+5. Adding text features
 -----------------------
 
-Right now we treat ``Name`` field as categorical, like other text
-features. But it might contain some useful information. We don't want to
+Right now we treat *Name* field as categorical, like other text
+features. But in this dataset each name is unique, so XGBoost does not
+use this feature at all, because it's such a poor discriminator: it's
+absent from the weights table in section 3.
+
+But *Name* still might contain some useful information. We don't want to
 guess how to best pre-process it and what features to extract, so let's
 use the most general character ngram vectorizer:
 
@@ -957,37 +1014,28 @@ use the most general character ngram vectorizer:
     from sklearn.pipeline import FeatureUnion
     from sklearn.feature_extraction.text import CountVectorizer
     
-    class CSCTransformer:
-        def transform(self, xs):
-            # work around https://github.com/dmlc/xgboost/issues/1238#issuecomment-243872543
-            return xs.tocsc()
-        def fit(self, *args):
-            return self
-     
-    def make_vec(field, ngram_range, analyzer='char', max_features=100):
-        return CountVectorizer(
-            analyzer='char_wb',
-            ngram_range=ngram_range,
-            preprocessor=lambda x: x[field],
-            max_features=max_features,
-        )
     vec2 = FeatureUnion([
-        ('Name', make_vec('Name', (3, 4))),
+        ('Name', CountVectorizer(
+            analyzer='char_wb',
+            ngram_range=(3, 4),
+            preprocessor=lambda x: x['Name'],
+            max_features=100,
+        )),
         ('All', DictVectorizer()),
     ])
-    clf2 = XGBClassifier(missing=0)
+    clf2 = XGBClassifier()
     pipeline2 = make_pipeline(vec2, CSCTransformer(), clf2)
     evaluate(pipeline2)
 
 
 .. parsed-literal::
 
-    Accuracy: 0.832 ± 0.011
+    Accuracy: 0.831 ± 0.006
 
 
 In this case the pipeline is more complex, we slightly improved our
-result, but the improvement is not significant. Let's look at the
-weights:
+result, but the improvement is not significant. Let's look at feature
+importances:
 
 .. code:: python
 
@@ -1197,7 +1245,7 @@ weights:
                             
                         </td>
                         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-                            Name__e,<span style="background-color: hsl(120, 80%, 70%); margin: 0 0 0 0.1em" title="A space symbol">&emsp;</span>
+                            All__Parch
                         </td>
                     </tr>
                 
@@ -1207,17 +1255,7 @@ weights:
                             
                         </td>
                         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-                            All__Parch
-                        </td>
-                    </tr>
-                
-                    <tr style="background-color: hsl(120, 100.00%, 96.60%); border: none;">
-                        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-                            0.0151
-                            
-                        </td>
-                        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-                            All__Embarked=S
+                            Name__e,<span style="background-color: hsl(120, 80%, 70%); margin: 0 0 0 0.1em" title="A space symbol">&emsp;</span>
                         </td>
                     </tr>
                 
@@ -1238,6 +1276,16 @@ weights:
                         </td>
                         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
                             All__Pclass=1
+                        </td>
+                    </tr>
+                
+                    <tr style="background-color: hsl(120, 100.00%, 96.60%); border: none;">
+                        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                            0.0151
+                            
+                        </td>
+                        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                            All__Embarked=S
                         </td>
                     </tr>
                 
@@ -1285,8 +1333,8 @@ weights:
 
 
 
-We see that now there are a lot of features that come from ``Name``
-field (in fact, a classifier based on ``Name`` alone gives about 0.79
+We see that now there are a lot of features that come from the *Name*
+field (in fact, a classifier based on *Name* alone gives about 0.79
 accuracy). Name features listed in this way are not very informative,
 they make more sense when we check out predictions. We hide missing
 features here because there are a lot of missing features in text, but
@@ -1444,6 +1492,20 @@ they are not very interesting:
         
             <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
                 1.000
+            </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(0, 100.00%, 95.85%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            -0.053
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            All__Parch
+        </td>
+        
+            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
+                0.000
             </td>
         
     </tr>
@@ -1675,6 +1737,20 @@ they are not very interesting:
         
     </tr>
             
+                <tr style="background-color: hsl(0, 100.00%, 93.94%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            -0.067
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            All__SibSp
+        </td>
+        
+            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
+                0.000
+            </td>
+        
+    </tr>
+            
                 <tr style="background-color: hsl(0, 100.00%, 84.33%); border: none;">
         <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
             -0.260
@@ -1699,6 +1775,20 @@ they are not very interesting:
         
             <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
                 1.000
+            </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(0, 100.00%, 80.00%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            -0.368
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            All__Parch
+        </td>
+        
+            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
+                0.000
             </td>
         
     </tr>
@@ -1820,7 +1910,7 @@ they are not very interesting:
     </b>
     
         
-        (probability <b>0.070</b>, score <b>-2.588</b>)
+        (probability <b>0.059</b>, score <b>-2.762</b>)
     
     top features
             </p>
@@ -1842,9 +1932,9 @@ they are not very interesting:
             </thead>
             <tbody>
             
-                <tr style="background-color: hsl(120, 100.00%, 95.06%); border: none;">
+                <tr style="background-color: hsl(120, 100.00%, 92.65%); border: none;">
         <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +0.232
+            +0.377
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             Name: Highlighted in text (sum)
@@ -1860,7 +1950,7 @@ they are not very interesting:
     
             
             
-                <tr style="background-color: hsl(0, 100.00%, 99.19%); border: none;">
+                <tr style="background-color: hsl(0, 100.00%, 99.15%); border: none;">
         <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
             -0.017
         </td>
@@ -1874,7 +1964,7 @@ they are not very interesting:
         
     </tr>
             
-                <tr style="background-color: hsl(0, 100.00%, 97.96%); border: none;">
+                <tr style="background-color: hsl(0, 100.00%, 97.84%); border: none;">
         <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
             -0.065
         </td>
@@ -1888,7 +1978,7 @@ they are not very interesting:
         
     </tr>
             
-                <tr style="background-color: hsl(0, 100.00%, 97.72%); border: none;">
+                <tr style="background-color: hsl(0, 100.00%, 97.59%); border: none;">
         <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
             -0.077
         </td>
@@ -1902,21 +1992,7 @@ they are not very interesting:
         
     </tr>
             
-                <tr style="background-color: hsl(0, 100.00%, 96.02%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            -0.170
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            All__Parch
-        </td>
-        
-            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
-                2.000
-            </td>
-        
-    </tr>
-            
-                <tr style="background-color: hsl(0, 100.00%, 95.88%); border: none;">
+                <tr style="background-color: hsl(0, 100.00%, 95.64%); border: none;">
         <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
             -0.179
         </td>
@@ -1930,9 +2006,23 @@ they are not very interesting:
         
     </tr>
             
-                <tr style="background-color: hsl(0, 100.00%, 86.15%); border: none;">
+                <tr style="background-color: hsl(0, 100.00%, 94.92%); border: none;">
         <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            -1.009
+            -0.222
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            All__Parch
+        </td>
+        
+            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
+                2.000
+            </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(0, 100.00%, 85.25%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            -1.020
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             All__Fare
@@ -1946,7 +2036,7 @@ they are not very interesting:
             
                 <tr style="background-color: hsl(0, 100.00%, 80.00%); border: none;">
         <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            -1.706
+            -1.575
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             All__SibSp
@@ -1967,7 +2057,7 @@ they are not very interesting:
     
     
         <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
-            <b>Name:</b> <span style="opacity: 0.80">Sag</span><span style="background-color: hsl(0, 100.00%, 78.98%); opacity: 0.88" title="-0.036">e,</span><span style="background-color: hsl(120, 100.00%, 71.99%); opacity: 0.92" title="0.054"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.090">Ma</span><span style="background-color: hsl(120, 100.00%, 66.68%); opacity: 0.95" title="0.069">s</span><span style="opacity: 0.80">ter. Thomas Henry</span>
+            <b>Name:</b> <span style="opacity: 0.80">Sag</span><span style="background-color: hsl(0, 100.00%, 84.46%); opacity: 0.85" title="-0.036">e,</span><span style="background-color: hsl(120, 100.00%, 67.58%); opacity: 0.95" title="0.103"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.138">Ma</span><span style="background-color: hsl(120, 100.00%, 75.36%); opacity: 0.90" title="0.069">s</span><span style="opacity: 0.80">ter. Thomas Henry</span>
         </p>
     
     
@@ -2061,7 +2151,7 @@ they are not very interesting:
     </b>
     
         
-        (probability <b>0.726</b>, score <b>0.975</b>)
+        (probability <b>0.679</b>, score <b>0.750</b>)
     
     top features
             </p>
@@ -2097,6 +2187,20 @@ they are not very interesting:
         
     </tr>
             
+                <tr style="background-color: hsl(120, 100.00%, 88.51%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            +0.127
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            Name: Highlighted in text (sum)
+        </td>
+        
+            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
+                
+            </td>
+        
+    </tr>
+            
                 <tr style="background-color: hsl(120, 100.00%, 93.02%); border: none;">
         <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
             +0.062
@@ -2107,6 +2211,20 @@ they are not very interesting:
         
             <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
                 1.000
+            </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(120, 100.00%, 94.29%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            +0.047
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            All__SibSp
+        </td>
+        
+            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
+                0.000
             </td>
         
     </tr>
@@ -2129,6 +2247,20 @@ they are not very interesting:
         
     </tr>
             
+                <tr style="background-color: hsl(0, 100.00%, 96.72%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            -0.021
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            All__Parch
+        </td>
+        
+            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
+                0.000
+            </td>
+        
+    </tr>
+            
                 <tr style="background-color: hsl(0, 100.00%, 92.77%); border: none;">
         <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
             -0.065
@@ -2139,20 +2271,6 @@ they are not very interesting:
         
             <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
                 1.000
-            </td>
-        
-    </tr>
-            
-                <tr style="background-color: hsl(0, 100.00%, 92.15%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            -0.074
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            Name: Highlighted in text (sum)
-        </td>
-        
-            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
-                
             </td>
         
     </tr>
@@ -2180,7 +2298,7 @@ they are not very interesting:
     
     
         <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
-            <b>Name:</b> <span style="opacity: 0.80">Mockl</span><span style="background-color: hsl(120, 100.00%, 88.36%); opacity: 0.83" title="0.009">e</span><span style="background-color: hsl(120, 100.00%, 74.88%); opacity: 0.90" title="0.026">r,</span><span style="background-color: hsl(120, 100.00%, 81.08%); opacity: 0.87" title="0.017"> </span><span style="opacity: 0.80">Miss. Helen</span><span style="background-color: hsl(0, 100.00%, 65.35%); opacity: 0.96" title="-0.041"> </span><span style="background-color: hsl(0, 100.00%, 60.00%); opacity: 1.00" title="-0.051">Ma</span><span style="background-color: hsl(0, 100.00%, 87.70%); opacity: 0.84" title="-0.009">r</span><span style="opacity: 0.80">y &quot;Ellie&quot;</span>
+            <b>Name:</b> <span style="opacity: 0.80">Mockl</span><span style="background-color: hsl(120, 100.00%, 73.79%); opacity: 0.91" title="0.036">e</span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.065">r,</span><span style="background-color: hsl(120, 100.00%, 77.01%); opacity: 0.89" title="0.030"> </span><span style="opacity: 0.80">Miss. Helen</span><span style="background-color: hsl(0, 100.00%, 86.56%); opacity: 0.84" title="-0.014"> </span><span style="background-color: hsl(0, 100.00%, 80.67%); opacity: 0.87" title="-0.023">Ma</span><span style="background-color: hsl(0, 100.00%, 89.73%); opacity: 0.83" title="-0.009">r</span><span style="opacity: 0.80">y &quot;Ellie&quot;</span>
         </p>
     
     
@@ -2274,7 +2392,7 @@ they are not very interesting:
     </b>
     
         
-        (probability <b>0.856</b>, score <b>1.782</b>)
+        (probability <b>0.660</b>, score <b>0.663</b>)
     
     top features
             </p>
@@ -2296,20 +2414,6 @@ they are not very interesting:
             </thead>
             <tbody>
             
-                <tr style="background-color: hsl(120, 100.00%, 85.18%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +0.182
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            All__SibSp
-        </td>
-        
-            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
-                2.000
-            </td>
-        
-    </tr>
-            
                 <tr style="background-color: hsl(120, 100.00%, 85.28%); border: none;">
         <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
             +0.180
@@ -2324,9 +2428,9 @@ they are not very interesting:
         
     </tr>
             
-                <tr style="background-color: hsl(120, 100.00%, 87.04%); border: none;">
+                <tr style="background-color: hsl(120, 100.00%, 87.72%); border: none;">
         <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +0.151
+            +0.139
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             All__Fare
@@ -2366,6 +2470,20 @@ they are not very interesting:
         
     </tr>
             
+                <tr style="background-color: hsl(120, 100.00%, 94.29%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            +0.047
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            All__SibSp
+        </td>
+        
+            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
+                2.000
+            </td>
+        
+    </tr>
+            
             
     
             
@@ -2380,6 +2498,20 @@ they are not very interesting:
         
             <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
                 1.000
+            </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(0, 100.00%, 93.77%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            -0.053
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            All__Parch
+        </td>
+        
+            <td style="padding: 0 0.5em 0 1em; text-align: right; border: none;">
+                0.000
             </td>
         
     </tr>
@@ -2463,6 +2595,10 @@ they are not very interesting:
     
 
 
+
+Text features from the *Name* field are highlighted directly in text,
+and the sum of weights is shown in the weights table as "Name:
+Highlighted in text (sum)".
 
 Looks like name classifier tried to infer both gender and status from
 the title: "Mr." is bad because women are saved first, and it's better
