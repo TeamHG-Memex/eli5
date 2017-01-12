@@ -194,7 +194,7 @@ We see that this tree checks *Sex*, *Age*, *Pclass*, *Fare* and *SibSp*
 features. ``leaf`` gives the decision of a single tree, and they are
 summed over all trees in the ensemble.
 
-Let's check feature importances with ``eli5.show_weights``:
+Let's check feature importances with :func:`eli5.show_weights`:
 
 .. code:: python
 
@@ -418,7 +418,7 @@ know how XGBoost decides what prediction to make based on their values.
 -------------------------
 
 To get a better idea of how our classifier works, let's examine
-individual predictions with ``eli5.show_prediction``:
+individual predictions with :func:`eli5.show_prediction`:
 
 .. code:: python
 
