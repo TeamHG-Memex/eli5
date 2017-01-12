@@ -60,7 +60,12 @@ def show_weights(estimator, **kwargs):
         This argument may be supported or not, depending on estimator type.
 
     feature_re : str, optional
-        Only feature names which match ``feature_re`` regex are returned.
+        Only feature names which match ``feature_re`` regex are shown
+        (more precisely, ``re.search(feature_re, x)`` is checked).
+
+    feature_filter : Callable[[str], bool], optional
+        Only feature names for which ``feature_filter`` function returns True
+        are shown.
 
     show : List[str], optional
         List of sections to show. Allowed values:
@@ -161,6 +166,15 @@ def show_prediction(estimator, doc, **kwargs):
         names when they are not provided by an estimator object.
 
         This argument may be supported or not, depending on estimator type.
+
+    feature_re : str, optional
+        Only feature names which match ``feature_re`` regex are shown
+        (more precisely, ``re.search(feature_re, x)`` is checked).
+
+    feature_filter : Callable[[str, float], bool], optional
+        Only feature names for which ``feature_filter`` function returns True
+        are shown. It must accept feature name and feature value.
+        Missing features always have a NaN value.
 
     horizontal_layout : bool
         When True, feature weight tables are printed horizontally
