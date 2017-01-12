@@ -14,6 +14,7 @@ Changelog
 * :func:`eli5.explain_weights` now supports tree-based regressors from
   scikit-learn: DecisionTreeRegressor, AdaBoostRegressor,
   GradientBoostingRegressor, RandomForestRegressor and ExtraTreesRegressor.
+* :func:`eli5.explain_weights` works for XGBRegressor;
 * new :ref:`TextExplainer <lime-tutorial>` class allows to explain predictions
   of black-box text classification pipelines using LIME algorithm;
   many improvements in :ref:`eli5.lime <eli5-lime>`.
