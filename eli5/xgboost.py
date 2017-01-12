@@ -265,6 +265,8 @@ def _indexed_leafs(parent):
     """ Return a leaf nodeid -> node dictionary with
     "parent" and "leaf" (average child "leaf" value) added to all nodes.
     """
+    if not parent.get('children'):
+        return {parent['nodeid']: parent}
     indexed = {}
     for child in parent['children']:
         child['parent'] = parent

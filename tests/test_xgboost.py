@@ -80,17 +80,21 @@ def test_explain_prediction_clf_binary(newsgroups_train_binary_big, missing):
         assert 'Missing' not in expl
 
 
-def test_explain_prediction_clf_multitarget(newsgroups_train):
+@pytest.mark.parametrize(['filter_missing'], [[True], [False]])
+def test_explain_prediction_clf_multitarget(newsgroups_train, filter_missing):
     docs, ys, target_names = newsgroups_train
     vec = CountVectorizer(stop_words='english')
     xs = vec.fit_transform(docs)
-    clf = XGBClassifier(n_estimators=100, max_depth=2, missing=0)
+    clf = XGBClassifier(n_estimators=100, max_depth=2)
     clf.fit(xs, ys)
+    feature_filter = (lambda _, v: not np.isnan(v)) if filter_missing else None
     res = explain_prediction(
         clf, 'computer graphics in space: a new religion',
-        vec=vec, target_names=target_names)
+        vec=vec, target_names=target_names,
+        feature_filter=feature_filter)
     format_as_all(res, clf)
-    check_targets_scores(res)
+    if not filter_missing:
+        check_targets_scores(res)
     graphics_weights = res.targets[1].feature_weights
     assert 'computer' in get_all_features(graphics_weights.pos)
     religion_weights = res.targets[3].feature_weights
@@ -111,6 +115,25 @@ def test_explain_prediction_clf_xor():
         print(x)
         print(format_as_text(res, show=fields.WEIGHTS))
         check_targets_scores(res)
+
+
+def test_dense_missing():
+    xs = np.array([[0, 1], [0, 2], [1, 2], [1, 0], [0.1, 0.1]] * 10)
+    ys = np.array([0, 0, 3, 2, 0.2] * 10)
+    # set too high n_estimators to check empty trees too
+    reg = XGBRegressor(n_estimators=100, max_depth=2, missing=0)
+    reg.fit(xs, ys)
+    res = explain_prediction(reg, np.array([2, 0]))
+    check_targets_scores(res)
+    for expl in format_as_all(res, reg, show_feature_values=True):
+        assert 'x0' in expl
+        assert 'x1' in expl
+        assert 'Missing' in expl
+    flt_res = explain_prediction(reg, np.array([2, 0]),
+                                 feature_filter=lambda _, v: not np.isnan(v))
+    for expl in format_as_all(flt_res, reg, show_feature_values=True):
+        assert 'x1' not in expl
+        assert 'Missing' not in expl
 
 
 def test_explain_prediction_clf_interval():
