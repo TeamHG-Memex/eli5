@@ -106,7 +106,7 @@ Let's first build a very simple classifier with
 `xbgoost.XGBClassifier <http://xgboost.readthedocs.io/en/latest/python/python_api.html#xgboost.XGBClassifier>`__
 and
 `sklearn.feature\_extraction.DictVectorizer <http://scikit-learn.org/stable/modules/generated/sklearn.feature_extraction.DictVectorizer.html>`__,
-and check it's accuracy with cross-validation:
+and check its accuracy with 10-fold cross-validation:
 
 .. code:: python
 
@@ -130,7 +130,7 @@ and check it's accuracy with cross-validation:
     pipeline = make_pipeline(vec, CSCTransformer(), clf)
     
     def evaluate(_clf):
-        scores = cross_val_score(_clf, all_xs, all_ys, scoring='accuracy')
+        scores = cross_val_score(_clf, all_xs, all_ys, scoring='accuracy', cv=10)
         print('Accuracy: {:.3f} ± {:.3f}'.format(np.mean(scores), 2 * np.std(scores)))
         _clf.fit(train_xs, train_ys)  # so that parts of the original pipeline are fitted
          
@@ -139,7 +139,7 @@ and check it's accuracy with cross-validation:
 
 .. parsed-literal::
 
-    Accuracy: 0.824 ± 0.011
+    Accuracy: 0.823 ± 0.071
 
 
 There is one tricky bit about the code above: XGBClassifier in xgboost
@@ -154,7 +154,7 @@ missing and features that have zero value.
 3. Explaining weights
 ---------------------
 
-In order to calculate a prediction, XGBoost sums predictions of all it's
+In order to calculate a prediction, XGBoost sums predictions of all its
 trees. The number of trees is controlled by ``n_estimators`` argument
 and is 100 by default. Each tree is not a great predictor on it's own,
 but by summing across all trees, XGBoost is able to provide a robust
@@ -1030,7 +1030,7 @@ use the most general character ngram vectorizer:
 
 .. parsed-literal::
 
-    Accuracy: 0.831 ± 0.006
+    Accuracy: 0.839 ± 0.081
 
 
 In this case the pipeline is more complex, we slightly improved our
@@ -1333,11 +1333,11 @@ importances:
 
 
 
-We see that now there are a lot of features that come from the *Name*
+We see that now there is a lot of features that come from the *Name*
 field (in fact, a classifier based on *Name* alone gives about 0.79
 accuracy). Name features listed in this way are not very informative,
 they make more sense when we check out predictions. We hide missing
-features here because there are a lot of missing features in text, but
+features here because there is a lot of missing features in text, but
 they are not very interesting:
 
 .. code:: python
