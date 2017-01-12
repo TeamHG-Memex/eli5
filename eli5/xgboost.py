@@ -21,7 +21,7 @@ from eli5.sklearn.text import add_weighted_spans
 from eli5.sklearn.utils import (
     add_intercept, get_feature_names, get_X, handle_vec, predict_proba)
 from eli5.utils import (
-    argsort_k_largest_positive, get_target_display_names, mask)
+    argsort_k_largest_positive, get_target_display_names, mask, is_sparse_vector)
 from eli5._decision_path import DECISION_PATHS_CAVEATS
 from eli5._feature_weights import get_top_features
 
@@ -150,10 +150,12 @@ def explain_prediction_xgboost(
         # Work around XGBoost issue:
         # https://github.com/dmlc/xgboost/issues/1238#issuecomment-243872543
         X = X.tocsc()
-    x, = add_intercept(X)
 
     proba = predict_proba(xgb, X)
     scores_weights = _prediction_feature_weights(xgb, X, feature_names)
+
+    x, = add_intercept(X)
+    x = _missing_values_set_to_nan(x, xgb.missing, sparse_missing=True)
     feature_names, flt_indices = feature_names.handle_filter(
         feature_filter, feature_re, x)
 
@@ -181,7 +183,7 @@ def explain_prediction_xgboost(
             _x = mask(_x, flt_indices)
             _feature_weights = mask(_feature_weights, flt_indices)
         return _score, get_top_features(
-            feature_names, _feature_weights, top, _x, xgb.missing)
+            feature_names, _feature_weights, top, _x)
 
     if is_multiclass:
         for label_id, label in display_names:
@@ -263,6 +265,8 @@ def _indexed_leafs(parent):
     """ Return a leaf nodeid -> node dictionary with
     "parent" and "leaf" (average child "leaf" value) added to all nodes.
     """
+    if not parent.get('children'):
+        return {parent['nodeid']: parent}
     indexed = {}
     for child in parent['children']:
         child['parent'] = parent
@@ -356,3 +360,29 @@ def _parse_dump_line(line):
             'cover': float(cover),
         }
     raise ValueError('Line in unexpected format: {}'.format(line))
+
+
+def _missing_values_set_to_nan(values, missing_value, sparse_missing):
+    """ Return a copy of values where missing values (equal to missing_value)
+    are replaced to nan according. If sparse_missing is True,
+    entries missing in a sparse matrix will also be set to nan.
+    Sparse matrices will be converted to dense format.
+    """
+    if sp.issparse(values):
+        assert values.shape[0] == 1
+    if sparse_missing and sp.issparse(values) and missing_value != 0:
+        # Nothing special needs to be done for missing.value == 0 because
+        # missing values are assumed to be zero in sparse matrices.
+        values_coo = values.tocoo()
+        values = values.toarray()[0]
+        missing_mask = values == 0
+        # fix for possible zero values
+        missing_mask[values_coo.col] = False
+        values[missing_mask] = np.nan
+    elif is_sparse_vector(values):
+        values = values.toarray()[0]
+    else:
+        values = values.copy()
+    if not np.isnan(missing_value):
+        values[values == missing_value] = np.nan
+    return values
