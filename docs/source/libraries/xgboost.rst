@@ -42,6 +42,9 @@ for XGBClassifer_ and XGBRegressor_:
   estimator. Set it to False if you're passing ``vec``,
   but ``doc`` is already vectorized.
 
+See the :ref:`tutorial <xgboost-titanic-tutorial>` for a more detailed usage
+example.
+
 .. note::
     Top-level :func:`eli5.explain_prediction` calls are dispatched
     to :func:`eli5.xgboost.explain_prediction_xgboost` for

@@ -46,6 +46,17 @@ sed -i '' 's/``MaskingTextSamplers``/:class:`~.MaskingTextSamplers`/g' \
 sed -i '' 's/<svg width="790pt" height="280pt"/<svg width="520pt" height="180pt"/g' \
     source/_notebooks/text-explainer.rst
 
+# xgboost-titanic tutorial
+jupyter nbconvert \
+        --to rst \
+        --stdout \
+        '../notebooks/xgboost-titanic.ipynb' \
+        > source/_notebooks/xgboost-titanic.rst
+sed -i '' 's/eli5.show\\_weights/:func:`eli5.show_weights`/g' \
+    source/_notebooks/xgboost-titanic.rst
+sed -i '' 's/eli5.show\\_prediction/:func:`eli5.show_prediction`/g' \
+    source/_notebooks/xgboost-titanic.rst
+
 # LIME
 #jupyter nbconvert \
 #        --to rst \
