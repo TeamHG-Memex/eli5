@@ -37,6 +37,7 @@ setup(
         'scipy',
         'singledispatch >= 3.4.0.3',
         'six',
+        'scikit-learn >= 0.18',
         'typing',
         'graphviz',
         'tabulate>=0.7.7',
