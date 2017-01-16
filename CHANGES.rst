@@ -1,6 +1,11 @@
 Changelog
 =========
 
+0.3.1 (2017-01-16)
+------------------
+
+* packaging fix: scikit-learn is added to install_requires in setup.py.
+
 0.3 (2017-01-13)
 ----------------
 
