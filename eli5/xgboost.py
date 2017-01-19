@@ -60,7 +60,9 @@ def explain_weights_xgboost(xgb,
                             targets=None,  # ignored
                             feature_names=None,
                             feature_re=None,
-                            feature_filter=None):
+                            feature_filter=None,
+                            importance_type='gain',
+                            ):
     """
     Return an explanation of an XGBoost estimator (via scikit-learn wrapper
     XGBClassifier or XGBRegressor) as feature importances.
@@ -70,8 +72,19 @@ def explain_weights_xgboost(xgb,
     ``feature_re`` and ``feature_filter`` parameters.
 
     ``target_names`` and ``targets`` parameters are ignored.
+
+    Parameters
+    ----------
+    importance_type : str, optional
+        A way to get feature importance. Possible values are:
+
+        - 'gain' - the average gain of the feature when it is used in trees
+          (default)
+        - 'weight' - the number of times a feature is used to split the data
+          across all trees
+        - 'cover' - the average coverage of the feature when it is used in trees
     """
-    coef = _xgb_feature_importances(xgb)
+    coef = _xgb_feature_importances(xgb, importance_type=importance_type)
     num_features = coef.shape[-1]
     feature_names = get_feature_names(
         xgb, vec, feature_names=feature_names, num_features=num_features)
@@ -296,11 +309,9 @@ def _xgb_n_targets(xgb):
         raise TypeError
 
 
-def _xgb_feature_importances(xgb):
-    # XGBRegressor does not have feature_importances_ property
-    # in xgboost <= 0.6a2, fixed in https://github.com/dmlc/xgboost/pull/1591
+def _xgb_feature_importances(xgb, importance_type):
     b = xgb.booster()
-    fs = b.get_fscore()
+    fs = b.get_score(importance_type=importance_type)
     all_features = np.array(
         [fs.get(f, 0.) for f in b.feature_names], dtype=np.float32)
     return all_features / all_features.sum()
