@@ -145,6 +145,15 @@ def show_prediction(estimator, doc, **kwargs):
 
         This argument may be supported or not, depending on estimator type.
 
+    top_targets : int, optional
+        Number of targets to show. When ``top_targets`` is provided,
+        only specified number of targets with highest scores are shown.
+        Negative value means targets with lowest scores are shown.
+        Must not be given with ``targets`` argument.
+        ``None`` value means no limit: all targets are shown (default).
+
+        This argument may be supported or not, depending on estimator type.
+
     target_names : list[str] or {'old_name': 'new_name'} dict, optional
         Names of targets or classes. This argument can be used to provide
         human-readable class/target names for estimators which don't expose

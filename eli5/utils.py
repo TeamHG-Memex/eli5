@@ -119,6 +119,10 @@ def get_target_display_names(original_names=None, target_names=None,
     >>> get_target_display_names(['x', 'y', 'z'], score=[1, 2, 1.5], top_targets=2)
     [(1, 'y'), (2, 'z')]
 
+    Top target selection by score, negative:
+    >>> get_target_display_names(['x', 'y', 'z'], score=[1, 2, 1.5], top_targets=-3)
+    [(0, 'x'), (2, 'z'), (1, 'y')]
+
     Error is raised if both top_targets and targets are passed:
     >>> get_target_display_names(['x', 'y'], targets=['x'], score=[1, 2], top_targets=1)
     Traceback (most recent call last):
@@ -142,11 +146,16 @@ def get_target_display_names(original_names=None, target_names=None,
     if targets is None:
         if top_targets is not None:
             assert len(score) == len(original_names)
+            if top_targets < 0:
+                reverse = False
+                top_targets = -top_targets
+            else:
+                reverse = True
             targets = [
                 target for _, target in sorted(
                     enumerate(original_names),
                     key=lambda x: score[x[0]],
-                    reverse=True,
+                    reverse=reverse,
                 )][:top_targets]
         else:
             targets = original_names

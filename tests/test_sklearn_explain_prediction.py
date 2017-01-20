@@ -104,6 +104,10 @@ def assert_multiclass_linear_classifier_explained(newsgroups_train, clf,
         t for t, _ in sorted(scores.items(), key=lambda x: x[1], reverse=True)]
     assert [t.target for t in top2_targets_res.targets] == sorted_targets[:2]
 
+    top_neg_targets_res = get_res(top_targets=-1)
+    assert len(top_neg_targets_res.targets) == 1
+    assert [t.target for t in top_neg_targets_res.targets] == sorted_targets[-1:]
+
 
 def assert_linear_regression_explained(boston_train, reg, explain_prediction,
                                        atol=1e-8, reg_has_intercept=None):

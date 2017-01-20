@@ -109,6 +109,7 @@ def explain_prediction(estimator, doc, **kwargs):
     top_targets : int, optional
         Number of targets to show. When ``top_targets`` is provided,
         only specified number of targets with highest scores are shown.
+        Negative value means targets with lowest scores are shown.
         Must not be given with ``targets`` argument.
         ``None`` value means no limit: all targets are shown (default).
 
