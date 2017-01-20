@@ -1,6 +1,19 @@
 Changelog
 =========
 
+0.4 (2017-01-20)
+----------------
+
+* :func:`eli5.explain_prediction`: new 'top_targets' argument allows
+  to display only predictions with highest or lowest scores;
+* :func:`eli5.explain_weights` allows to customize the way feature importances
+  are computed for XGBClassifier and XGBRegressor using ``importance_type``
+  argument (see docs for the :ref:`eli5 XGBoost support <library-xgboost>`);
+* :func:`eli5.explain_weights` uses gain for XGBClassifier and XGBRegressor
+  feature importances by default; this method is a better indication of
+  what's going, and it makes results more compatible with feature importances
+  displayed for scikit-learn gradient boosting methods.
+
 0.3.1 (2017-01-16)
 ------------------
 
