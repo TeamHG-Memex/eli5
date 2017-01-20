@@ -106,6 +106,14 @@ def explain_prediction(estimator, doc, **kwargs):
 
         This argument may be supported or not, depending on estimator type.
 
+    top_targets : int, optional
+        Number of targets to show. When ``top_targets`` is provided,
+        only specified number of targets with highest scores are shown.
+        Must not be given with ``targets`` argument.
+        ``None`` value means no limit: all targets are shown (default).
+
+        This argument may be supported or not, depending on estimator type.
+
     target_names : list[str] or {'old_name': 'new_name'} dict, optional
         Names of targets or classes. This argument can be used to provide
         human-readable class/target names for estimators which don't expose
@@ -119,6 +127,7 @@ def explain_prediction(estimator, doc, **kwargs):
         to show information only for a subset of classes. It should be a list
         of class / target names which match either names provided by
         an estimator or names defined in ``target_names`` parameter.
+        Must not be given with ``top_targets`` argument.
 
         This argument may be supported or not, depending on estimator type.
 

@@ -66,6 +66,7 @@ from eli5._feature_weights import get_top_features
 def explain_prediction_sklearn(estimator, doc,
                                vec=None,
                                top=None,
+                               top_targets=None,
                                target_names=None,
                                targets=None,
                                feature_names=None,
@@ -106,6 +107,7 @@ def explain_prediction_ovr_sklearn(clf, doc, **kwargs):
 def explain_prediction_linear_classifier(clf, doc,
                                          vec=None,
                                          top=None,
+                                         top_targets=None,
                                          target_names=None,
                                          targets=None,
                                          feature_names=None,
@@ -117,8 +119,8 @@ def explain_prediction_linear_classifier(clf, doc,
     Explain prediction of a linear classifier.
 
     See :func:`eli5.explain_prediction` for description of
-    ``top``, ``target_names``, ``targets``, ``feature_names``,
-    ``feature_re`` and ``feature_filter`` parameters.
+    ``top``, ``top_targets``, ``target_names``, ``targets``,
+    ``feature_names``, ``feature_re`` and ``feature_filter`` parameters.
 
     ``vec`` is a vectorizer instance used to transform
     raw features to the input of the classifier ``clf``
@@ -152,7 +154,7 @@ def explain_prediction_linear_classifier(clf, doc,
 
     _weights = _linear_weights(clf, x, top, feature_names, flt_indices)
     display_names = get_target_display_names(clf.classes_, target_names,
-                                             targets)
+                                             targets, top_targets, score)
 
     if is_multiclass_classifier(clf):
         for label_id, label in display_names:
@@ -194,6 +196,7 @@ def explain_prediction_linear_classifier(clf, doc,
 def explain_prediction_linear_regressor(reg, doc,
                                         vec=None,
                                         top=None,
+                                        top_targets=None,
                                         target_names=None,
                                         targets=None,
                                         feature_names=None,
@@ -204,8 +207,8 @@ def explain_prediction_linear_regressor(reg, doc,
     Explain prediction of a linear regressor.
 
     See :func:`eli5.explain_prediction` for description of
-    ``top``, ``target_names``, ``targets``, ``feature_names``,
-    ``feature_re`` and ``feature_filter`` parameters.
+    ``top``, ``top_targets``, ``target_names``, ``targets``,
+    ``feature_names``, ``feature_re`` and ``feature_filter`` parameters.
 
     ``vec`` is a vectorizer instance used to transform
     raw features to the input of the classifier ``clf``;
@@ -238,7 +241,8 @@ def explain_prediction_linear_regressor(reg, doc,
 
     _weights = _linear_weights(reg, x, top, feature_names, flt_indices)
     names = get_default_target_names(reg)
-    display_names = get_target_display_names(names, target_names, targets)
+    display_names = get_target_display_names(names, target_names, targets,
+                                             top_targets, score)
 
     if is_multitarget_regressor(reg):
         for label_id, label in display_names:
@@ -294,6 +298,7 @@ def explain_prediction_tree_classifier(
         clf, doc,
         vec=None,
         top=None,
+        top_targets=None,
         target_names=None,
         targets=None,
         feature_names=None,
@@ -303,8 +308,8 @@ def explain_prediction_tree_classifier(
     """ Explain prediction of a tree classifier.
 
     See :func:`eli5.explain_prediction` for description of
-    ``top``, ``target_names``, ``targets``, ``feature_names``,
-    ``feature_re`` and ``feature_filter`` parameters.
+    ``top``, ``top_targets``, ``target_names``, ``targets``,
+    ``feature_names``, ``feature_re`` and ``feature_filter`` parameters.
 
     ``vec`` is a vectorizer instance used to transform
     raw features to the input of the classifier ``clf``
@@ -362,7 +367,8 @@ def explain_prediction_tree_classifier(
     )
 
     display_names = get_target_display_names(
-        clf.classes_, target_names, targets)
+        clf.classes_, target_names, targets, top_targets,
+        score=score if score is not None else proba)
 
     if is_multiclass:
         for label_id, label in display_names:
@@ -395,6 +401,7 @@ def explain_prediction_tree_regressor(
         reg, doc,
         vec=None,
         top=None,
+        top_targets=None,
         target_names=None,
         targets=None,
         feature_names=None,
@@ -404,8 +411,8 @@ def explain_prediction_tree_regressor(
     """ Explain prediction of a tree regressor.
 
     See :func:`eli5.explain_prediction` for description of
-    ``top``, ``target_names``, ``targets``, ``feature_names``,
-    ``feature_re`` and ``feature_filter`` parameters.
+    ``top``, ``top_targets``, ``target_names``, ``targets``,
+    ``feature_names``, ``feature_re`` and ``feature_filter`` parameters.
 
     ``vec`` is a vectorizer instance used to transform
     raw features to the input of the regressor ``reg``
@@ -459,7 +466,8 @@ def explain_prediction_tree_regressor(
     )
 
     names = get_default_target_names(reg, num_targets=num_targets)
-    display_names = get_target_display_names(names, target_names, targets)
+    display_names = get_target_display_names(names, target_names, targets,
+                                             top_targets, score)
 
     if is_multitarget:
         for label_id, label in display_names:
