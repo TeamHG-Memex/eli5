@@ -12,9 +12,18 @@ xgboost >= 0.6a2.
 .. _XGBClassifer: https://xgboost.readthedocs.io/en/latest/python/python_api.html#xgboost.XGBClassifier
 .. _XGBRegressor: https://xgboost.readthedocs.io/en/latest/python/python_api.html#xgboost.XGBRegressor
 
-:func:`eli5.explain_weights` uses feature importances. For
-XGBClassifer_ and XGBRegressor_ there are no additional supported
-keyword arguments; ``target_names`` and ``target`` arguments are ignored.
+:func:`eli5.explain_weights` uses feature importances. Additional
+arguments for XGBClassifer_ and XGBRegressor_:
+
+* ``importance_type`` is a way to get feature importance. Possible values are:
+
+    - 'gain' - the average gain of the feature when it is used in trees
+      (default)
+    - 'weight' - the number of times a feature is used to split the data
+      across all trees
+    - 'cover' - the average coverage of the feature when it is used in trees
+
+``target_names`` and ``target`` arguments are ignored.
 
 .. note::
     Top-level :func:`eli5.explain_weights` calls are dispatched
