@@ -70,7 +70,9 @@ def assert_multiclass_linear_classifier_explained(newsgroups_train, clf,
     expl_text, expl_html = format_as_all(res, clf)
 
     file_weight = None
+    scores = {}
     for e in res.targets:
+        scores[e.target] = e.score
         if e.target == 'comp.graphics':
             pos = get_all_features(e.feature_weights.pos, with_weights=True)
             assert 'file' in pos
@@ -91,6 +93,20 @@ def assert_multiclass_linear_classifier_explained(newsgroups_train, clf,
             assert 'file' in pos
             assert pos['file'] == file_weight
             assert len(pos) == 1
+
+    targets_res = get_res(targets=['comp.graphics'])
+    assert len(targets_res.targets) == 1
+    assert targets_res.targets[0].target == 'comp.graphics'
+
+    top2_targets_res = get_res(top_targets=2)
+    assert len(top2_targets_res.targets) == 2
+    sorted_targets = [
+        t for t, _ in sorted(scores.items(), key=lambda x: x[1], reverse=True)]
+    assert [t.target for t in top2_targets_res.targets] == sorted_targets[:2]
+
+    top_neg_targets_res = get_res(top_targets=-1)
+    assert len(top_neg_targets_res.targets) == 1
+    assert [t.target for t in top_neg_targets_res.targets] == sorted_targets[-1:]
 
 
 def assert_linear_regression_explained(boston_train, reg, explain_prediction,
@@ -165,6 +181,9 @@ def assert_multitarget_linear_regression_explained(reg, explain_prediction):
 
     assert res == explain_prediction(reg, X[0])
     check_targets_scores(res)
+
+    top_targets_res = explain_prediction(reg, X[0], top_targets=1)
+    assert len(top_targets_res.targets) == 1
 
 
 def assert_feature_values_present(expl, feature_names, x):
@@ -281,6 +300,9 @@ def test_explain_tree_clf_multiclass(clf, iris_train):
         assert_feature_values_present(expl, feature_names, X[0])
     check_targets_scores(res)
 
+    top_targets_res = explain_prediction(clf, X[0], top_targets=1)
+    assert len(top_targets_res.targets) == 1
+
 
 @pytest.mark.parametrize(['clf'], [
     [DecisionTreeClassifier(random_state=42)],
@@ -310,6 +332,9 @@ def test_explain_tree_regressor_multitarget(reg):
         assert 'BIAS' in expl
         assert any('x%d' % i in expl for i in range(10))
     check_targets_scores(res)
+
+    top_targets_res = explain_prediction(reg, X[0], top_targets=1)
+    assert len(top_targets_res.targets) == 1
 
 
 @pytest.mark.parametrize(['reg'], [

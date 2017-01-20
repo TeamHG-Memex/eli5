@@ -82,7 +82,7 @@ def vstack(blocks, format=None, dtype=None):
 
 
 def get_target_display_names(original_names=None, target_names=None,
-                             targets=None):
+                             targets=None, top_targets=None, score=None):
     """
     Return a list of (class_id, display_name) tuples.
 
@@ -114,6 +114,20 @@ def get_target_display_names(original_names=None, target_names=None,
     Traceback (most recent call last):
     ...
     ValueError: target_names must have the same length as original names (expected 2, got 1)
+
+    Top target selection by score:
+    >>> get_target_display_names(['x', 'y', 'z'], score=[1, 2, 1.5], top_targets=2)
+    [(1, 'y'), (2, 'z')]
+
+    Top target selection by score, negative:
+    >>> get_target_display_names(['x', 'y', 'z'], score=[1, 2, 1.5], top_targets=-3)
+    [(0, 'x'), (2, 'z'), (1, 'y')]
+
+    Error is raised if both top_targets and targets are passed:
+    >>> get_target_display_names(['x', 'y'], targets=['x'], score=[1, 2], top_targets=1)
+    Traceback (most recent call last):
+    ...
+    ValueError: Pass either "targets" or "top_targets", not both
     """
     if isinstance(target_names, (list, tuple, np.ndarray)):
         if original_names is not None:
@@ -130,7 +144,24 @@ def get_target_display_names(original_names=None, target_names=None,
         display_names = original_names
 
     if targets is None:
-        targets = original_names
+        if top_targets is not None:
+            assert len(score) == len(original_names)
+            if top_targets < 0:
+                reverse = False
+                top_targets = -top_targets
+            else:
+                reverse = True
+            targets = [
+                target for _, target in sorted(
+                    enumerate(original_names),
+                    key=lambda x: score[x[0]],
+                    reverse=reverse,
+                )][:top_targets]
+        else:
+            targets = original_names
+    elif top_targets is not None:
+        raise ValueError('Pass either "targets" or "top_targets", not both')
+
 
     class_indices = _get_value_indices(original_names, display_names,
                                        targets)

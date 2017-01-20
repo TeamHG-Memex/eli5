@@ -115,6 +115,7 @@ def explain_prediction_xgboost(
         xgb, doc,
         vec=None,
         top=None,
+        top_targets=None,
         target_names=None,
         targets=None,
         feature_names=None,
@@ -126,8 +127,8 @@ def explain_prediction_xgboost(
     XGBClassifier or XGBRegressor) as feature weights.
 
     See :func:`eli5.explain_prediction` for description of
-    ``top``, ``target_names``, ``targets``, ``feature_names``,
-    ``feature_re`` and ``feature_filter`` parameters.
+    ``top``, ``top_targets``, ``target_names``, ``targets``,
+    ``feature_names``, ``feature_re`` and ``feature_filter`` parameters.
 
     ``vec`` is a vectorizer instance used to transform
     raw features to the input of the estimator ``xgb``
@@ -175,7 +176,8 @@ def explain_prediction_xgboost(
     is_multiclass = _xgb_n_targets(xgb) > 1
     is_regression = isinstance(xgb, XGBRegressor)
     names = xgb.classes_ if not is_regression else ['y']
-    display_names = get_target_display_names(names, target_names, targets)
+    display_names = get_target_display_names(names, target_names, targets,
+                                             top_targets, proba)
 
     res = Explanation(
         estimator=repr(xgb),

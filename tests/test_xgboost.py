@@ -88,10 +88,9 @@ def test_explain_prediction_clf_multitarget(newsgroups_train, filter_missing):
     clf = XGBClassifier(n_estimators=100, max_depth=2)
     clf.fit(xs, ys)
     feature_filter = (lambda _, v: not np.isnan(v)) if filter_missing else None
-    res = explain_prediction(
-        clf, 'computer graphics in space: a new religion',
-        vec=vec, target_names=target_names,
-        feature_filter=feature_filter)
+    doc = 'computer graphics in space: a new religion'
+    res = explain_prediction(clf, doc, vec=vec, target_names=target_names,
+                             feature_filter=feature_filter)
     format_as_all(res, clf)
     if not filter_missing:
         check_targets_scores(res)
@@ -99,6 +98,11 @@ def test_explain_prediction_clf_multitarget(newsgroups_train, filter_missing):
     assert 'computer' in get_all_features(graphics_weights.pos)
     religion_weights = res.targets[3].feature_weights
     assert 'religion' in get_all_features(religion_weights.pos)
+
+    top_target_res = explain_prediction(clf, doc, vec=vec, top_targets=2)
+    assert len(top_target_res.targets) == 2
+    assert sorted(t.proba for t in top_target_res.targets) == sorted(
+        t.proba for t in res.targets)[-2:]
 
 
 def test_explain_prediction_clf_xor():
