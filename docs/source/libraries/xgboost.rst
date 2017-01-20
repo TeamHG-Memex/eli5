@@ -17,11 +17,11 @@ arguments for XGBClassifer_ and XGBRegressor_:
 
 * ``importance_type`` is a way to get feature importance. Possible values are:
 
-    - 'gain' - the average gain of the feature when it is used in trees
-      (default)
-    - 'weight' - the number of times a feature is used to split the data
-      across all trees
-    - 'cover' - the average coverage of the feature when it is used in trees
+  - 'gain' - the average gain of the feature when it is used in trees
+    (default)
+  - 'weight' - the number of times a feature is used to split the data
+    across all trees
+  - 'cover' - the average coverage of the feature when it is used in trees
 
 ``target_names`` and ``target`` arguments are ignored.
 
