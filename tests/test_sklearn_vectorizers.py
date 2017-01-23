@@ -165,7 +165,7 @@ def test_explain_regression_hashing_vectorizer(newsgroups_train_binary):
 
 @pytest.mark.parametrize(['vec_cls'], [
     [CountVectorizer],
-   #[HashingVectorizer],
+    [HashingVectorizer],
 ])
 def test_explain_feature_union(vec_cls):
     data = [
