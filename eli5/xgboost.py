@@ -299,7 +299,7 @@ def _parent_value(children):
     covers = np.array([child['cover'] for child in children])
     covers /= np.sum(covers)
     leafs = np.array([child['leaf'] for child in children])
-    return np.mean(leafs * covers)
+    return np.sum(leafs * covers)
 
 
 def _xgb_n_targets(xgb):

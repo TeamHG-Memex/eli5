@@ -87,9 +87,11 @@ def get_names_coefs(feature_weights):
 def check_targets_scores(explanation, atol=1e-8):
     # type: (Explanation, float) -> None
     """ Check that feature weights sum to target score or proba,
+    if both proba and score are present they match,
     and that there are no "remaining" features.
     """
-    for target in explanation.targets:
+    targets = explanation.targets
+    for target in targets:
         weights = target.feature_weights
         # else the check is invalid
         assert weights.neg_remaining == weights.pos_remaining == 0
@@ -98,3 +100,15 @@ def check_targets_scores(explanation, atol=1e-8):
         expected = target.score if target.score is not None else target.proba
         assert np.isclose(expected, weights_sum, atol=atol), \
             (expected, weights_sum)
+    if any(t.score is not None for t in targets):
+        if len(targets) == 1 and targets[0].proba is not None:
+            target = targets[0]
+            # one target with proba => assume sigmoid
+            assert np.isclose(target.proba, 1. / (1 + np.exp(-target.score)),
+                              atol=atol)
+        elif any(t.proba is not None for t in targets):
+            # many targets with proba => assume softmax
+            norm = np.sum(np.exp([t.score for t in targets]))
+            for target in targets:
+                assert np.isclose(np.exp(target.score) / norm, target.proba,
+                                  atol=atol)
