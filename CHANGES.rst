@@ -1,6 +1,13 @@
 Changelog
 =========
 
+TBA
+---
+
+* feature contribution calculation fixed
+  for :func:`eli5.xgboost.explain_prediction_xgboost`
+
+
 0.4 (2017-01-20)
 ----------------
 
