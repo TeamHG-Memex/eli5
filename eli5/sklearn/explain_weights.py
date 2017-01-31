@@ -421,6 +421,7 @@ def explain_weights_pipeline(estimator, feature_names=None, **kwargs):
     last_estimator = estimator.steps[-1][1]
     transform_pipeline = Pipeline(estimator.steps[:-1])
     feature_names = transform_feature_names(transform_pipeline, feature_names)
-    out = explain_weights(last_estimator, feature_names=feature_names)
+    out = explain_weights(last_estimator, feature_names=feature_names,
+                          **kwargs)
     out.estimator = repr(estimator)
     return out
