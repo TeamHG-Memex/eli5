@@ -55,6 +55,9 @@ class FeatureNames(Sized):
                 return self.unkn_template % idx
         raise IndexError('Feature index out of range')
 
+    def take(self, idx, axis=None, out=None, mode=None):
+        return np.take(self.feature_names, idx, out=out, mode=mode)
+
     def _slice(self, aslice):
         # type: (slice) -> Any
         if isinstance(self.feature_names, (list, np.ndarray)):
