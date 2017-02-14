@@ -5,7 +5,7 @@ from singledispatch import singledispatch
 import numpy as np  # type: ignore
 
 from sklearn.base import BaseEstimator  # type: ignore
-from sklearn.pipeline import Pipeline
+from sklearn.pipeline import Pipeline  # type: ignore
 from sklearn.linear_model import (   # type: ignore
     ElasticNet,  # includes Lasso, MultiTaskElasticNet, etc.
     ElasticNetCV,

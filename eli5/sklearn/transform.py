@@ -3,9 +3,9 @@
 
 import itertools
 
-import numpy as np
-from sklearn.pipeline import Pipeline, FeatureUnion
-from sklearn.feature_selection.base import SelectorMixin
+import numpy as np  # type: ignore
+from sklearn.pipeline import Pipeline, FeatureUnion  # type: ignore
+from sklearn.feature_selection.base import SelectorMixin  # type: ignore
 
 from eli5.transform import transform_feature_names
 from eli5.sklearn.utils import get_feature_names as _get_feature_names
@@ -142,18 +142,20 @@ def transform_feature_names_binarizer(est, in_names=None):
 
 
 def register_experimental_feature_names():
-    from sklearn.feature_extraction.text import TfidfTransformer
-    from sklearn.decomposition import (LatentDirichletAllocation,
-                                       TruncatedSVD,
-                                       PCA)
-    from sklearn.preprocessing import (Imputer,
-                                       StandardScaler,
-                                       RobustScaler,
-                                       MinMaxScaler,
-                                       Normalizer,
-                                       Binarizer,
-                                       OneHotEncoder,
-                                       PolynomialFeatures)
+    from sklearn.feature_extraction.text import TfidfTransformer  # type: ignore
+    from sklearn.decomposition import (  # type: ignore
+        LatentDirichletAllocation,
+        TruncatedSVD,
+        PCA)
+    from sklearn.preprocessing import (  # type: ignore
+        Imputer,
+        StandardScaler,
+        RobustScaler,
+        MinMaxScaler,
+        Normalizer,
+        Binarizer,
+        OneHotEncoder,
+        PolynomialFeatures)
 
     # By default these are ignored as all features are treated identically
     @transform_feature_names.register(Imputer)
