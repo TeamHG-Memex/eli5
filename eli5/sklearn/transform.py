@@ -2,7 +2,9 @@
 """
 
 import itertools
+import operator
 
+import six  # type: ignore
 import numpy as np  # type: ignore
 from sklearn.pipeline import Pipeline, FeatureUnion  # type: ignore
 from sklearn.feature_selection.base import SelectorMixin  # type: ignore
@@ -39,37 +41,48 @@ def _select_names(est, in_names=None):
 # I've left them here to make use of eli5.sklearn.utils.get_feature_names
 
 
+def _attrgetter_or_identity(func):
+    if isinstance(func, six.string_types):
+        return operator.attrgetter(func)
+    return func
+
+
 def _formatted_names(fmt, get_n_inputs=None):
+    get_n_inputs = _attrgetter_or_identity(get_n_inputs)
+
     def transform_names(est, in_names=None):
-        if get_n_inputs:
+        if get_n_inputs is not None:
             in_names = _get_feature_names(est, feature_names=in_names,
                                           num_features=get_n_inputs(est))
-        print(in_names[:100])
         return [fmt.format(name) for name in in_names]
     return transform_names
 
 
-def _component_names(fmt, attr):
+def _component_names(fmt, get_n_outputs):
+    get_n_outputs = _attrgetter_or_identity(get_n_outputs)
+
     def transform_names(est, in_names=None):
-        return [fmt.format(i) for i in range(getattr(est, attr))]
+        return [fmt.format(i) for i in range(get_n_outputs(est))]
     return transform_names
 
 
-def make_tfn_featurewise(func_name):
-    return _formatted_names(func_name + '({})')
+def make_tfn_featurewise(func_name, get_n_inputs=None):
+    return _formatted_names(func_name + '({})', get_n_inputs)
 
 
-def make_tfn_components(func_name, n_components_attr):
-    return _component_names(func_name + '{}', n_components_attr)
+def make_tfn_components(func_name, get_n_outputs):
+    return _component_names(func_name + '{}', get_n_outputs)
 
 
-def make_tfn_weighted(weight_attr=None, max_features=3,
+def make_tfn_weighted(get_weights=None, max_features=3,
                       threshold=None, abs=False,
                       show_weights=True,
                       func_name=None):
 
-    if max_features and weight_attr is None:
-        raise ValueError('Require weight_attr if max_features != 0')
+    if max_features and get_weights is None:
+        raise ValueError('Require get_weights if max_features != 0')
+
+    get_weights = _attrgetter_or_identity(get_weights)
 
     if threshold is None:
         threshold = 0. if abs else -np.inf
@@ -90,7 +103,7 @@ def make_tfn_weighted(weight_attr=None, max_features=3,
         fmt = '{func_name}{i}'
 
     def transform_names(est, in_names=None):
-        weights = orig_weights = getattr(est, weight_attr)
+        weights = orig_weights = get_weights(est)
         in_names = _get_feature_names(est, feature_names=in_names,
                                       num_features=weights.shape[1])
         if max_features:
