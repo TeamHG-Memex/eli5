@@ -129,6 +129,84 @@ def make_tfn_weighted(get_weights=None, max_features=3,
     return transform_names
 
 
+def make_tfn_tree_paths(get_trees, show_thresholds=True,
+                        feature_order='depth'):
+    """Constructs a feature name transformer for each leaf of each tree
+
+    Parameters
+    ----------
+    get_trees : callable or str
+        Used to get one or more Tree objects from the estimator
+    show_thresholds : bool or str
+        If False, feature names in the path are shown without split thresholds.
+        If True (default), format string is '0.2g', otherwise according to
+        provided string.
+    feature_order : {'depth' (default), 'index', 'alpha'}
+        'depth' uses the tree depth order, 'index' sorts by input feature name
+        order, 'alpha' sorts alphabetically.
+    """
+    get_trees = _attrgetter_or_identity(get_trees)
+    if show_thresholds is True:
+        show_thresholds = '0.2g'
+    threshold_fmt = '{:%s}' % show_thresholds
+
+    def transform_names(est, in_names=None):
+        trees = get_trees(est)
+        try:
+            iter(trees)
+        except TypeError:
+            trees = [trees]
+
+        out = []
+        for i, tree in enumerate(trees):
+            if i == 0:
+                in_names = _get_feature_names(est, feature_names=in_names,
+                                              num_features=tree.n_features)
+
+            # we use node_count + 1 to handle -1 indices
+            parent = np.empty(tree.node_count + 1, dtype=int)
+            # calculate parents
+            parent[tree.children_left] = np.arange(tree.node_count)
+            parent[tree.children_right] = np.arange(tree.node_count)
+            parent[0] = -1
+
+            # Note parent_feature[0] is junk
+            parent_feature = tree.feature.take(parent[:-1], mode='clip')
+            parent_feature_name = [in_names[f] for f in parent_feature]
+            if show_thresholds:
+                threshold_str = [threshold_fmt.format(t)
+                                 for t in tree.threshold]
+                parent_threshold_str = [threshold_str[p] for p in parent[:-1]]
+                side = np.ones(tree.node_count + 1, dtype=int)
+                side[tree.children_left] = -1
+                parent_feature_name = [name + ('<=' if s == -1 else '>') + t
+                                       for name, s, t
+                                       in zip(parent_feature_name,
+                                              side.tolist(),
+                                              parent_threshold_str)]
+
+            for i in np.flatnonzero(tree.children_left == -1):
+                leaf_names = []
+                leaf_features = []
+                while i != 0:
+                    leaf_names.append(parent_feature_name[i])
+                    leaf_features.append(parent_feature[i])
+                    i = parent[i]
+
+                if feature_order == 'depth':
+                    leaf_names = leaf_names[::-1]
+                elif feature_order == 'alpha':
+                    leaf_names.sort()
+                elif feature_order == 'index':
+                    leaf_names = np.take(leaf_names,
+                                         np.argsort(leaf_features)).tolist()
+                out.append('&'.join(leaf_names))
+
+        return out
+
+    return transform_names
+
+
 def transform_feature_names_polynomial_features(est, in_names=None):
     # Thanks to @amueller in scikit-learn#6732
     powers = est.powers_
@@ -169,6 +247,7 @@ def register_experimental_feature_names():
         Binarizer,
         OneHotEncoder,
         PolynomialFeatures)
+    from sklearn.ensemble import RandomTreesEmbedding
 
     # By default these are ignored as all features are treated identically
     @transform_feature_names.register(Imputer)
@@ -183,6 +262,9 @@ def register_experimental_feature_names():
         transform_feature_names_binarizer)  # Perhaps should also be identity
     transform_feature_names.register(PolynomialFeatures)(
         transform_feature_names_polynomial_features)
+    transform_feature_names.register(RandomTreesEmbedding)(
+        make_tfn_tree_paths(lambda est: [dtc.tree_
+                                         for dtc in est.estimators_]))
 
     # TODO: OneHotEncoder. scikit-learn#6441 doesn't appear complete
 
