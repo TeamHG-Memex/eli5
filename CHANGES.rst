@@ -1,6 +1,12 @@
 Changelog
 =========
 
+0.4.2 (2017-03-03)
+------------------
+
+* bug fix: eli5 should remain importable if xgboost is available, but
+  not installed correctly.
+
 0.4.1 (2017-01-25)
 ------------------
 
