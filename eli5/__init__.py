@@ -38,3 +38,9 @@ try:
 except ImportError:
     # xgboost is not available
     pass
+except Exception as e:
+    if e.__class__.__name__ == 'XGBoostLibraryNotFound':
+        # improperly installed xgboost
+        pass
+    else:
+        raise
