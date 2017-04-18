@@ -19,9 +19,18 @@ from eli5.base import (
 from eli5.explain import explain_weights, explain_prediction
 from eli5.sklearn.text import add_weighted_spans
 from eli5.sklearn.utils import (
-    add_intercept, get_feature_names, get_X, handle_vec, predict_proba)
+    add_intercept,
+    get_feature_names_filtered,
+    get_X,
+    handle_vec,
+    predict_proba
+)
 from eli5.utils import (
-    argsort_k_largest_positive, get_target_display_names, mask, is_sparse_vector)
+    argsort_k_largest_positive,
+    get_target_display_names,
+    mask,
+    is_sparse_vector,
+)
 from eli5._decision_path import DECISION_PATHS_CAVEATS
 from eli5._feature_weights import get_top_features
 
@@ -84,22 +93,24 @@ def explain_weights_xgboost(xgb,
           across all trees
         - 'cover' - the average coverage of the feature when it is used in trees
     """
-    coef = _xgb_feature_importances(xgb, importance_type=importance_type)
-    num_features = coef.shape[-1]
-    feature_names = get_feature_names(
-        xgb, vec, feature_names=feature_names, num_features=num_features)
-
-    feature_names, flt_indices = feature_names.handle_filter(
-        feature_filter, feature_re)
+    importances = _xgb_feature_importances(xgb,
+                                           importance_type=importance_type)
+    feature_names, flt_indices = get_feature_names_filtered(
+        xgb, vec,
+        num_features=importances.shape[-1],
+        feature_names=feature_names,
+        feature_filter=feature_filter,
+        feature_re=feature_re,
+    )
     if flt_indices is not None:
-        coef = coef[flt_indices]
+        importances = importances[flt_indices]
 
-    indices = argsort_k_largest_positive(coef, top)
-    names, values = feature_names[indices], coef[indices]
+    indices = argsort_k_largest_positive(importances, top)
+    names, values = feature_names[indices], importances[indices]
     return Explanation(
         feature_importances=FeatureImportances(
             [FeatureWeight(*x) for x in zip(names, values)],
-            remaining=np.count_nonzero(coef) - len(indices),
+            remaining=np.count_nonzero(importances) - len(indices),
         ),
         description=DESCRIPTION_XGBOOST,
         estimator=repr(xgb),

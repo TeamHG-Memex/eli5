@@ -107,6 +107,15 @@ def get_feature_names(clf, vec=None, bias_name='<BIAS>', feature_names=None,
         return FeatureNames(feature_names, bias_name=bias_name)
 
 
+def get_feature_names_filtered(clf, vec=None, bias_name='<BIAS>',
+                               feature_names=None, num_features=None,
+                               feature_filter=None, feature_re=None):
+    feature_names = get_feature_names(clf, vec=vec, bias_name=bias_name,
+                                      feature_names=feature_names,
+                                      num_features=num_features)
+    return feature_names.handle_filter(feature_filter, feature_re)
+
+
 def get_default_target_names(estimator, num_targets=None):
     """
     Return a vector of target names: "y" if there is only one target,
