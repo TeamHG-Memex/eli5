@@ -271,8 +271,8 @@ def explain_rf_feature_importance(estimator,
     names, values = feature_names[indices], importances[indices]
     std = coef_std[indices]
     return Explanation(
-        feature_importances=FeatureImportances(
-            [FeatureWeight(*x) for x in zip(names, values, std)],
+        feature_importances=FeatureImportances.from_names_values(
+            names, values, std,
             remaining=np.count_nonzero(importances) - len(indices),
         ),
         description=DESCRIPTION_RANDOM_FOREST,
@@ -328,8 +328,8 @@ def explain_decision_tree(estimator,
         **export_graphviz_kwargs)
 
     return Explanation(
-        feature_importances=FeatureImportances(
-            [FeatureWeight(*x) for x in zip(names, values)],
+        feature_importances=FeatureImportances.from_names_values(
+            names, values,
             remaining=np.count_nonzero(importances) - len(indices),
         ),
         decision_tree=tree_info,

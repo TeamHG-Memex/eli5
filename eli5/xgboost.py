@@ -108,8 +108,8 @@ def explain_weights_xgboost(xgb,
     indices = argsort_k_largest_positive(importances, top)
     names, values = feature_names[indices], importances[indices]
     return Explanation(
-        feature_importances=FeatureImportances(
-            [FeatureWeight(*x) for x in zip(names, values)],
+        feature_importances=FeatureImportances.from_names_values(
+            names, values,
             remaining=np.count_nonzero(importances) - len(indices),
         ),
         description=DESCRIPTION_XGBOOST,
