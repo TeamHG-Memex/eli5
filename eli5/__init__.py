@@ -44,3 +44,10 @@ except Exception as e:
         pass
     else:
         raise
+
+
+try:
+    from .lightgbm import explain_weights_lightgbm
+except ImportError:
+    # lightgbm is not available
+    pass
