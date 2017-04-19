@@ -4,7 +4,7 @@ from singledispatch import singledispatch
 
 import numpy as np  # type: ignore
 
-from sklearn.base import BaseEstimator  # type: ignore
+from sklearn.base import BaseEstimator, RegressorMixin  # type: ignore
 from sklearn.linear_model import (   # type: ignore
     ElasticNet,  # includes Lasso, MultiTaskElasticNet, etc.
     ElasticNetCV,
@@ -61,8 +61,10 @@ from eli5.sklearn.utils import (
     get_default_target_names,
 )
 from eli5.explain import explain_weights
-from eli5._feature_importances import get_feature_importances_filtered
-
+from eli5._feature_importances import (
+    get_feature_importances_filtered,
+    get_feature_importance_explanation,
+)
 
 LINEAR_CAVEATS = """
 Caveats:
@@ -257,20 +259,14 @@ def explain_rf_feature_importance(estimator,
     coef = estimator.feature_importances_
     trees = np.array(estimator.estimators_).ravel()
     coef_std = np.std([tree.feature_importances_ for tree in trees], axis=0)
-
-    feature_names, flt_indices = get_feature_names_filtered(
-        estimator, vec,
+    return get_feature_importance_explanation(estimator, vec, coef,
+        coef_std=coef_std,
         feature_names=feature_names,
         feature_filter=feature_filter,
         feature_re=feature_re,
-    )
-    feature_importances = get_feature_importances_filtered(
-        coef, feature_names, flt_indices, top, coef_std)
-    return Explanation(
-        feature_importances=feature_importances,
+        top=top,
         description=DESCRIPTION_RANDOM_FOREST,
-        estimator=repr(estimator),
-        method='feature importances',
+        is_regression=isinstance(estimator, RegressorMixin),
     )
 
 

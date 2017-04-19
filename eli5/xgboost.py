@@ -19,7 +19,6 @@ from eli5.explain import explain_weights, explain_prediction
 from eli5.sklearn.text import add_weighted_spans
 from eli5.sklearn.utils import (
     add_intercept,
-    get_feature_names_filtered,
     get_X,
     handle_vec,
     predict_proba
@@ -31,7 +30,7 @@ from eli5.utils import (
 )
 from eli5._decision_path import DECISION_PATHS_CAVEATS
 from eli5._feature_weights import get_top_features
-from eli5._feature_importances import get_feature_importances_filtered
+from eli5._feature_importances import get_feature_importance_explanation
 
 
 DECISION_PATHS_CAVEATS = """
@@ -93,21 +92,14 @@ def explain_weights_xgboost(xgb,
         - 'cover' - the average coverage of the feature when it is used in trees
     """
     coef = _xgb_feature_importances(xgb, importance_type=importance_type)
-    feature_names, flt_indices = get_feature_names_filtered(
-        xgb, vec,
-        num_features=coef.shape[-1],
+    return get_feature_importance_explanation(xgb, vec, coef,
         feature_names=feature_names,
         feature_filter=feature_filter,
         feature_re=feature_re,
-    )
-    feature_importances = get_feature_importances_filtered(
-        coef, feature_names, flt_indices, top)
-    return Explanation(
-        feature_importances=feature_importances,
+        top=top,
         description=DESCRIPTION_XGBOOST,
-        estimator=repr(xgb),
-        method='feature importances',
         is_regression=isinstance(xgb, XGBRegressor),
+        num_features=coef.shape[-1],
     )
 
 
