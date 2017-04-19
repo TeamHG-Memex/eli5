@@ -47,7 +47,7 @@ from sklearn.tree import (  # type: ignore
 )
 
 from eli5.base import (
-    Explanation, TargetExplanation, FeatureWeight, FeatureImportances)
+    Explanation, TargetExplanation, FeatureImportances)
 from eli5._feature_weights import get_top_features
 from eli5.utils import argsort_k_largest_positive, get_target_display_names
 from eli5.sklearn.unhashing import handle_hashing_vec, is_invhashing
@@ -61,6 +61,7 @@ from eli5.sklearn.utils import (
     get_default_target_names,
 )
 from eli5.explain import explain_weights
+from eli5._feature_importances import get_feature_importances_filtered
 
 
 LINEAR_CAVEATS = """
@@ -253,28 +254,20 @@ def explain_rf_feature_importance(estimator,
     raw features to the input of the estimator (e.g. a fitted
     CountVectorizer instance); you can pass it instead of ``feature_names``.
     """
-    importances = estimator.feature_importances_
+    coef = estimator.feature_importances_
+    trees = np.array(estimator.estimators_).ravel()
+    coef_std = np.std([tree.feature_importances_ for tree in trees], axis=0)
+
     feature_names, flt_indices = get_feature_names_filtered(
         estimator, vec,
         feature_names=feature_names,
         feature_filter=feature_filter,
         feature_re=feature_re,
     )
-    trees = np.array(estimator.estimators_).ravel()
-    coef_std = np.std([tree.feature_importances_ for tree in trees], axis=0)
-
-    if flt_indices is not None:
-        importances = importances[flt_indices]
-        coef_std = coef_std[flt_indices]
-
-    indices = argsort_k_largest_positive(importances, top)
-    names, values = feature_names[indices], importances[indices]
-    std = coef_std[indices]
+    feature_importances = get_feature_importances_filtered(
+        coef, feature_names, flt_indices, top, coef_std)
     return Explanation(
-        feature_importances=FeatureImportances.from_names_values(
-            names, values, std,
-            remaining=np.count_nonzero(importances) - len(indices),
-        ),
+        feature_importances=feature_importances,
         description=DESCRIPTION_RANDOM_FOREST,
         estimator=repr(estimator),
         method='feature importances',
@@ -315,11 +308,9 @@ def explain_decision_tree(estimator,
     tree_feature_names = feature_names
     feature_names, flt_indices = feature_names.handle_filter(
         feature_filter, feature_re)
-    importances = estimator.feature_importances_
-    if flt_indices is not None:
-        importances = importances[flt_indices]
-    indices = argsort_k_largest_positive(importances, top)
-    names, values = feature_names[indices], importances[indices]
+    feature_importances = get_feature_importances_filtered(
+        estimator.feature_importances_, feature_names, flt_indices, top)
+
     export_graphviz_kwargs.setdefault("proportion", True)
     tree_info = get_tree_info(
         estimator,
@@ -328,10 +319,7 @@ def explain_decision_tree(estimator,
         **export_graphviz_kwargs)
 
     return Explanation(
-        feature_importances=FeatureImportances.from_names_values(
-            names, values,
-            remaining=np.count_nonzero(importances) - len(indices),
-        ),
+        feature_importances=feature_importances,
         decision_tree=tree_info,
         description=DESCRIPTION_DECISION_TREE,
         estimator=repr(estimator),

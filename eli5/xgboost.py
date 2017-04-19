@@ -14,8 +14,7 @@ from xgboost import (  # type: ignore
     DMatrix
 )
 
-from eli5.base import (
-    FeatureWeight, FeatureImportances, Explanation, TargetExplanation)
+from eli5.base import (Explanation, TargetExplanation)
 from eli5.explain import explain_weights, explain_prediction
 from eli5.sklearn.text import add_weighted_spans
 from eli5.sklearn.utils import (
@@ -26,13 +25,13 @@ from eli5.sklearn.utils import (
     predict_proba
 )
 from eli5.utils import (
-    argsort_k_largest_positive,
     get_target_display_names,
     mask,
     is_sparse_vector,
 )
 from eli5._decision_path import DECISION_PATHS_CAVEATS
 from eli5._feature_weights import get_top_features
+from eli5._feature_importances import get_feature_importances_filtered
 
 
 DECISION_PATHS_CAVEATS = """
@@ -93,25 +92,18 @@ def explain_weights_xgboost(xgb,
           across all trees
         - 'cover' - the average coverage of the feature when it is used in trees
     """
-    importances = _xgb_feature_importances(xgb,
-                                           importance_type=importance_type)
+    coef = _xgb_feature_importances(xgb, importance_type=importance_type)
     feature_names, flt_indices = get_feature_names_filtered(
         xgb, vec,
-        num_features=importances.shape[-1],
+        num_features=coef.shape[-1],
         feature_names=feature_names,
         feature_filter=feature_filter,
         feature_re=feature_re,
     )
-    if flt_indices is not None:
-        importances = importances[flt_indices]
-
-    indices = argsort_k_largest_positive(importances, top)
-    names, values = feature_names[indices], importances[indices]
+    feature_importances = get_feature_importances_filtered(
+        coef, feature_names, flt_indices, top)
     return Explanation(
-        feature_importances=FeatureImportances.from_names_values(
-            names, values,
-            remaining=np.count_nonzero(importances) - len(indices),
-        ),
+        feature_importances=feature_importances,
         description=DESCRIPTION_XGBOOST,
         estimator=repr(xgb),
         method='feature importances',
