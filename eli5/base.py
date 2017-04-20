@@ -26,6 +26,7 @@ class Explanation(object):
                  highlight_spaces=None,
                  transition_features=None,  # type: TransitionFeatureWeights
                  ):
+        # type: (...) -> None
         self.estimator = estimator
         self.description = description
         self.error = error
@@ -50,6 +51,7 @@ class FeatureImportances(object):
     """ Feature importances with number of remaining non-zero features.
     """
     def __init__(self, importances, remaining):
+        # type: (...) -> None
         self.importances = importances  # type: List[FeatureWeight]
         self.remaining = remaining  # type: int
 
@@ -67,6 +69,7 @@ class TargetExplanation(object):
                  score=None,  # type: float
                  weighted_spans=None,  # type: WeightedSpans
                  ):
+        # type: (...) -> None
         self.target = target
         self.feature_weights = feature_weights
         self.proba = proba
@@ -91,6 +94,7 @@ class FeatureWeights(object):
                  pos_remaining=0,  # type: int
                  neg_remaining=0,  # type: int
                  ):
+        # type: (...) -> None
         self.pos = pos
         self.neg = neg
         self.pos_remaining = pos_remaining
@@ -105,6 +109,7 @@ class FeatureWeight(object):
                  std=None,  # type: float
                  value=None,  # type: Any
                  ):
+        # type: (...) -> None
         self.feature = feature
         self.weight = weight
         self.std = std
@@ -120,6 +125,7 @@ class WeightedSpans(object):
                  docs_weighted_spans,  # type: List[DocWeightedSpans]
                  other=None,  # type: FeatureWeights
                  ):
+        # type: (...) -> None
         self.docs_weighted_spans = docs_weighted_spans
         self.other = other
 
@@ -146,6 +152,7 @@ class DocWeightedSpans(object):
                  preserve_density=None,  # type: bool
                  vec_name=None,  # type: str
                  ):
+        # type: (...) -> None
         self.document = document
         self.spans = spans
         self.preserve_density = preserve_density
@@ -159,6 +166,7 @@ class TransitionFeatureWeights(object):
                  class_names,  # type: List[str],
                  coef,
                  ):
+        # type: (...) -> None
         self.class_names = class_names
         self.coef = coef
 
@@ -175,6 +183,7 @@ class TreeInfo(object):
                  graphviz,  # type: str
                  is_classification, # type: bool
                  ):
+        # type: (...) -> None
         self.criterion = criterion
         self.tree = tree
         self.graphviz = graphviz
@@ -200,6 +209,7 @@ class NodeInfo(object):
                  left=None,          # type: NodeInfo
                  right=None,         # type: NodeInfo
                  ):
+        # type: (...) -> None
         self.id = id
         self.is_leaf = is_leaf
         self.value = value

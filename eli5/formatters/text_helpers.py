@@ -39,6 +39,7 @@ class PreparedWeightedSpans(object):
                  char_weights,  # type: np.ndarray
                  weight_range,  # type: float
                  ):
+        # type: (...) -> None
         self.doc_weighted_spans = doc_weighted_spans
         self.char_weights = char_weights
         self.weight_range = weight_range
