@@ -1,5 +1,6 @@
 language: python
-sudo: true
+dist: trusty
+sudo: required
 branches:
     only:
         - master
