@@ -20,7 +20,7 @@ def get_char_weights(doc_weighted_spans, preserve_density=None):
     if preserve_density is None:
         preserve_density = doc_weighted_spans.preserve_density
     char_weights = np.zeros(len(doc_weighted_spans.document))
-    feature_counts = Counter(f for f, _, _ in doc_weighted_spans.spans)
+    feature_counts = Counter(f for f, _, __ in doc_weighted_spans.spans)
     for feature, spans, weight in doc_weighted_spans.spans:
         for start, end in spans:
             # start can be -1 for char_wb at the start of the document.
