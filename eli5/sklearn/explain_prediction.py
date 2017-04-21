@@ -61,7 +61,6 @@ from eli5._decision_path import DECISION_PATHS_CAVEATS
 from eli5._feature_weights import get_top_features
 
 
-@explain_prediction.register(BaseEstimator)
 @singledispatch
 def explain_prediction_sklearn(estimator, doc,
                                vec=None,
@@ -80,6 +79,13 @@ def explain_prediction_sklearn(estimator, doc,
     )
 
 
+def register(cls):
+    def deco(f):
+        return explain_prediction.register(cls)(
+            explain_prediction_sklearn.register(cls)(f))
+    return deco
+
+
 @explain_prediction.register(OneVsRestClassifier)
 def explain_prediction_ovr(clf, doc, **kwargs):
     estimator = clf.estimator
@@ -96,14 +102,14 @@ def explain_prediction_ovr_sklearn(clf, doc, **kwargs):
     return func(clf, doc, **kwargs)
 
 
-@explain_prediction_sklearn.register(LogisticRegression)
-@explain_prediction_sklearn.register(LogisticRegressionCV)
-@explain_prediction_sklearn.register(SGDClassifier)
-@explain_prediction_sklearn.register(PassiveAggressiveClassifier)
-@explain_prediction_sklearn.register(Perceptron)
-@explain_prediction_sklearn.register(LinearSVC)
-@explain_prediction_sklearn.register(RidgeClassifier)
-@explain_prediction_sklearn.register(RidgeClassifierCV)
+@register(LogisticRegression)
+@register(LogisticRegressionCV)
+@register(SGDClassifier)
+@register(PassiveAggressiveClassifier)
+@register(Perceptron)
+@register(LinearSVC)
+@register(RidgeClassifier)
+@register(RidgeClassifierCV)
 def explain_prediction_linear_classifier(clf, doc,
                                          vec=None,
                                          top=None,
@@ -179,20 +185,20 @@ def explain_prediction_linear_classifier(clf, doc,
     return res
 
 
-@explain_prediction_sklearn.register(ElasticNet)
-@explain_prediction_sklearn.register(ElasticNetCV)
-@explain_prediction_sklearn.register(HuberRegressor)
-@explain_prediction_sklearn.register(Lars)
-@explain_prediction_sklearn.register(LassoCV)
-@explain_prediction_sklearn.register(LinearRegression)
-@explain_prediction_sklearn.register(LinearSVR)
-@explain_prediction_sklearn.register(OrthogonalMatchingPursuit)
-@explain_prediction_sklearn.register(OrthogonalMatchingPursuitCV)
-@explain_prediction_sklearn.register(PassiveAggressiveRegressor)
-@explain_prediction_sklearn.register(Ridge)
-@explain_prediction_sklearn.register(RidgeCV)
-@explain_prediction_sklearn.register(SGDRegressor)
-@explain_prediction_sklearn.register(TheilSenRegressor)
+@register(ElasticNet)
+@register(ElasticNetCV)
+@register(HuberRegressor)
+@register(Lars)
+@register(LassoCV)
+@register(LinearRegression)
+@register(LinearSVR)
+@register(OrthogonalMatchingPursuit)
+@register(OrthogonalMatchingPursuitCV)
+@register(PassiveAggressiveRegressor)
+@register(Ridge)
+@register(RidgeCV)
+@register(SGDRegressor)
+@register(TheilSenRegressor)
 def explain_prediction_linear_regressor(reg, doc,
                                         vec=None,
                                         top=None,
@@ -290,10 +296,10 @@ Features with largest coefficients per target.
 """ + DECISION_PATHS_CAVEATS
 
 
-@explain_prediction_sklearn.register(DecisionTreeClassifier)
-@explain_prediction_sklearn.register(ExtraTreesClassifier)
-@explain_prediction_sklearn.register(GradientBoostingClassifier)
-@explain_prediction_sklearn.register(RandomForestClassifier)
+@register(DecisionTreeClassifier)
+@register(ExtraTreesClassifier)
+@register(GradientBoostingClassifier)
+@register(RandomForestClassifier)
 def explain_prediction_tree_classifier(
         clf, doc,
         vec=None,
@@ -393,10 +399,10 @@ def explain_prediction_tree_classifier(
     return res
 
 
-@explain_prediction_sklearn.register(DecisionTreeRegressor)
-@explain_prediction_sklearn.register(ExtraTreesRegressor)
-@explain_prediction_sklearn.register(GradientBoostingRegressor)
-@explain_prediction_sklearn.register(RandomForestRegressor)
+@register(DecisionTreeRegressor)
+@register(ExtraTreesRegressor)
+@register(GradientBoostingRegressor)
+@register(RandomForestRegressor)
 def explain_prediction_tree_regressor(
         reg, doc,
         vec=None,

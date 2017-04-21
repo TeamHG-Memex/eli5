@@ -52,7 +52,6 @@ DESCRIPTION_REGRESSION = DESCRIPTION_CLF_BINARY
 
 @explain_weights.register(XGBClassifier)
 @explain_weights.register(XGBRegressor)
-@singledispatch
 def explain_weights_xgboost(xgb,
                             vec=None,
                             top=20,
@@ -110,7 +109,6 @@ def explain_weights_xgboost(xgb,
 
 @explain_prediction.register(XGBClassifier)
 @explain_prediction.register(XGBRegressor)
-@singledispatch
 def explain_prediction_xgboost(
         xgb, doc,
         vec=None,
