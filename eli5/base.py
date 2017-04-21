@@ -163,7 +163,7 @@ class DocWeightedSpans(object):
 class TransitionFeatureWeights(object):
     """ Weights matrix for transition features. """
     def __init__(self,
-                 class_names,  # type: List[str],
+                 class_names,  # type: List[str]
                  coef,
                  ):
         # type: (...) -> None

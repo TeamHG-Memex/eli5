@@ -22,7 +22,7 @@ from .text_helpers import prepare_weighted_spans, PreparedWeightedSpans
 template_env = Environment(
     loader=PackageLoader('eli5', 'templates'),
     extensions=['jinja2.ext.with_'])
-template_env.globals.update(zip=zip, numpy=np)
+template_env.globals.update(dict(zip=zip, numpy=np))
 template_env.filters.update(dict(
     weight_color=lambda w, w_range: format_hsl(weight_color_hsl(w, w_range)),
     remaining_weight_color=lambda ws, w_range, pos_neg:
