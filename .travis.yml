@@ -45,7 +45,7 @@ addons:
 before_install:
     - sudo apt-get -qq update
     - if [[ "$TOXENV" != "py35-nodeps" ]]; then sudo apt-get install graphviz; fi
-    - if [[ "$LIGHTGBM" = 1 ]]; then bash _ci/install_lightgbm_linux.sh; export LIGHTGBM_CHECKOUT=_ci/LightGBM; fi
+    - if [[ "$LIGHTGBM" = 1 ]]; then bash _ci/install_lightgbm_linux.sh; export LIGHTGBM_CHECKOUT=LightGBM; fi
 
 install:
     - pip install -U pip tox codecov
