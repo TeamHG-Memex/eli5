@@ -24,6 +24,7 @@ def explain_weights_lightgbm(lgb,
                              feature_names=None,
                              feature_re=None,
                              feature_filter=None,
+                             importance_type='gain',
                              ):
     """
     Return an explanation of an LightGBM estimator (via scikit-learn wrapper
@@ -34,8 +35,18 @@ def explain_weights_lightgbm(lgb,
     ``feature_re`` and ``feature_filter`` parameters.
 
     ``target_names`` and ``targets`` parameters are ignored.
+    
+    Parameters
+    ----------
+    importance_type : str, optional
+        A way to get feature importance. Possible values are:
+
+        - 'gain' - the average gain of the feature when it is used in trees
+          (default)
+        - 'split' - the number of times a feature is used to split the data
+          across all trees    
     """
-    coef = lgb.feature_importances_
+    coef = _get_lgb_feature_importances(lgb, importance_type)
     return get_feature_importance_explanation(lgb, vec, coef,
         feature_names=feature_names,
         feature_filter=feature_filter,
@@ -45,3 +56,9 @@ def explain_weights_lightgbm(lgb,
         num_features=coef.shape[-1],
         is_regression=isinstance(lgb, lightgbm.LGBMRegressor),
     )
+
+
+def _get_lgb_feature_importances(lgb, importance_type):
+    coef = lgb.booster_.feature_importance(importance_type=importance_type)
+    norm = coef.sum()
+    return coef / norm if norm else coef
