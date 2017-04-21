@@ -56,7 +56,8 @@ class FeatureImportances(object):
     @classmethod
     def from_names_values(cls, names, values, std=None, **kwargs):
         params = zip(names, values) if std is None else zip(names, values, std)
-        return cls([FeatureWeight(*x) for x in params], **kwargs)
+        importances = [FeatureWeight(*x) for x in params]  # type: ignore
+        return cls(importances, **kwargs)
 
 
 @attrs

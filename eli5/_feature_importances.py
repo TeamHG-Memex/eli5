@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import numpy as np
+import numpy as np  # type: ignore
 from eli5.base import FeatureImportances, Explanation
 from eli5.sklearn.utils import get_feature_names_filtered
 from eli5.utils import argsort_k_largest_positive
