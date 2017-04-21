@@ -44,7 +44,8 @@ def explain_weights_lightgbm(lgb,
         - 'gain' - the average gain of the feature when it is used in trees
           (default)
         - 'split' - the number of times a feature is used to split the data
-          across all trees    
+          across all trees
+        - 'weight' - the same as 'split', for compatibility with xgboost
     """
     coef = _get_lgb_feature_importances(lgb, importance_type)
     return get_feature_importance_explanation(lgb, vec, coef,
@@ -59,6 +60,9 @@ def explain_weights_lightgbm(lgb,
 
 
 def _get_lgb_feature_importances(lgb, importance_type):
-    coef = lgb.booster_.feature_importance(importance_type=importance_type)
+    aliases = {'weight': 'split'}
+    coef = lgb.booster_.feature_importance(
+        importance_type=aliases.get(importance_type, importance_type)
+    )
     norm = coef.sum()
     return coef / norm if norm else coef
