@@ -189,7 +189,10 @@ def _weight_opacity(weight, weight_range):
     """ Return opacity value for given weight as a string.
     """
     min_opacity = 0.8
-    rel_weight = abs(weight) / weight_range
+    if np.isclose(weight, 0) and np.isclose(weight_range, 0):
+        rel_weight = 0
+    else:
+        rel_weight = abs(weight) / weight_range
     return '{:.2f}'.format(min_opacity + (1 - min_opacity) * rel_weight)
 
 
