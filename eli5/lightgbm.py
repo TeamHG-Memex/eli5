@@ -118,27 +118,28 @@ def explain_prediction_lightgbm(
 
     proba = predict_proba(lgb, X)
 
-    weights_dict = _get_prediction_feature_weights(lgb, X)
-    weights = _target_feature_weights(weights_dict, feature_names)
-    score = _get_score(weights_dict)
+    weight_dicts = _get_prediction_feature_weights(lgb, X, _lgb_n_targets(lgb))
     x, = add_intercept(X)
 
-    feature_names, flt_indices = feature_names.handle_filter(
+    flt_feature_names, flt_indices = feature_names.handle_filter(
         feature_filter, feature_re, x)
 
-    # is_multiclass = _xgb_n_targets(xgb) > 1
     names = lgb.classes_ if not is_regression else ['y']
     display_names = get_target_display_names(names, target_names, targets,
                                              top_targets, proba)
 
-    def get_feature_weights(_label_id):
-        assert _label_id == 0
-        _feature_weights = weights
+    def get_score_feature_weights(_label_id):
+        _weights = _target_feature_weights(
+            weight_dicts[_label_id],
+            num_features=len(feature_names),
+            bias_idx=feature_names.bias_idx,
+        )
+        _score = _get_score(weight_dicts[_label_id])
         _x = x
         if flt_indices is not None:
             _x = mask(_x, flt_indices)
-            _feature_weights = mask(_feature_weights, flt_indices)
-        return get_top_features(feature_names, _feature_weights, top, _x)
+            _weights = mask(_weights, flt_indices)
+        return _score, get_top_features(flt_feature_names, _weights, top, _x)
 
     res = Explanation(
         estimator=repr(lgb),
@@ -153,16 +154,36 @@ def explain_prediction_lightgbm(
         targets=[],
     )
 
-    feature_weights = get_feature_weights(0)
-    target_expl = TargetExplanation(
-        target=display_names[-1][1],
-        feature_weights=feature_weights,
-        score=score,
-        proba=proba[1] if proba is not None else None,
-    )
-    add_weighted_spans(doc, vec, vectorized, target_expl)
-    res.targets.append(target_expl)
+    if _lgb_n_targets(lgb) > 2:
+        # multiclass
+        for label_id, label in display_names:
+            score, feature_weights = get_score_feature_weights(label_id)
+            target_expl = TargetExplanation(
+                target=label,
+                feature_weights=feature_weights,
+                score=score,
+                proba=proba[label_id] if proba is not None else None,
+            )
+            add_weighted_spans(doc, vec, vectorized, target_expl)
+            res.targets.append(target_expl)
+    else:
+        score, feature_weights = get_score_feature_weights(0)
+        target_expl = TargetExplanation(
+            target=display_names[-1][1],
+            feature_weights=feature_weights,
+            score=score,
+            proba=proba[1] if proba is not None else None,
+        )
+        add_weighted_spans(doc, vec, vectorized, target_expl)
+        res.targets.append(target_expl)
     return res
+
+
+def _lgb_n_targets(lgb):
+    if isinstance(lgb, lightgbm.LGBMClassifier):
+        return lgb.n_classes_
+    else:
+        return 1
 
 
 def _get_lgb_feature_importances(lgb, importance_type):
@@ -235,33 +256,40 @@ def _get_leaf_split_indices(tree_structure):
     return leaf_index, split_index
 
 
-def _get_prediction_feature_weights(lgb, X):
+def _get_prediction_feature_weights(lgb, X, n_targets):
     """ 
-    Return {feat_id: value} dict with feature weights, following ideas from 
-    http://blog.datadive.net/interpreting-random-forests/  
+    Return a list of {feat_id: value} dicts with feature weights, 
+    following ideas from  http://blog.datadive.net/interpreting-random-forests/  
     """
+    if n_targets == 2:
+        n_targets = 1
     dump = lgb.booster_.dump_model()
     tree_info = dump['tree_info']
     _compute_node_values(tree_info)
-    pred_leafs = lgb.booster_.predict(X, pred_leaf=True).reshape(-1)
+    pred_leafs = lgb.booster_.predict(X, pred_leaf=True).reshape(-1, n_targets)
+    tree_info = np.array(tree_info).reshape(-1, n_targets)
+    assert pred_leafs.shape == tree_info.shape
 
-    feature_weights = defaultdict(float)  # type: DefaultDict[str, float]
-    for info, leaf_id in zip(tree_info, pred_leafs):
-        leaf_index, split_index = _get_leaf_split_indices(
-            info['tree_structure']
-        )
-        bias, path = _get_decision_path(leaf_index, split_index, leaf_id)
-        feature_weights[None] += bias
-        for feat, value in path:
-            feature_weights[feat] += value
-    return dict(feature_weights)
+    res = []
+    for target in range(n_targets):
+        feature_weights = defaultdict(float)  # type: DefaultDict[str, float]
+        for info, leaf_id in zip(tree_info[:, target], pred_leafs[:, target]):
+            leaf_index, split_index = _get_leaf_split_indices(
+                info['tree_structure']
+            )
+            bias, path = _get_decision_path(leaf_index, split_index, leaf_id)
+            feature_weights[None] += bias
+            for feat, value in path:
+                feature_weights[feat] += value
+        res.append(dict(feature_weights))
+    return res
 
 
-def _target_feature_weights(feature_weights_dict, feature_names):
-    feature_weights = np.zeros(len(feature_names))
+def _target_feature_weights(feature_weights_dict, num_features, bias_idx):
+    feature_weights = np.zeros(num_features)
     for k, v in feature_weights_dict.items():
         if k is None:
-            feature_weights[feature_names.bias_idx] = v
+            feature_weights[bias_idx] = v
         else:
             feature_weights[k] = v
     return feature_weights
