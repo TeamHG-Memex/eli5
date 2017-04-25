@@ -14,7 +14,6 @@ from eli5.sklearn.text import add_weighted_spans
 from eli5.sklearn.utils import handle_vec, get_X, add_intercept, predict_proba
 from eli5.utils import get_target_display_names, mask
 
-
 DESCRIPTION_LIGHTGBM = """
 LightGBM feature importances; values are numbers 0 <= x <= 1;
 all values sum to 1.
@@ -119,11 +118,10 @@ def explain_prediction_lightgbm(
 
     proba = predict_proba(lgb, X)
 
-    weights_dict = _get_prediction_feature_weights(lgb, X[0])
+    weights_dict = _get_prediction_feature_weights(lgb, X)
     weights = _target_feature_weights(weights_dict, feature_names)
     score = _get_score(weights_dict)
     x, = add_intercept(X)
-    # x = _missing_values_set_to_nan(x, xgb.missing, sparse_missing=True)
 
     feature_names, flt_indices = feature_names.handle_filter(
         feature_filter, feature_re, x)
@@ -237,7 +235,7 @@ def _get_leaf_split_indices(tree_structure):
     return leaf_index, split_index
 
 
-def _get_prediction_feature_weights(lgb, x):
+def _get_prediction_feature_weights(lgb, X):
     """ 
     Return {feat_id: value} dict with feature weights, following ideas from 
     http://blog.datadive.net/interpreting-random-forests/  
@@ -245,7 +243,7 @@ def _get_prediction_feature_weights(lgb, x):
     dump = lgb.booster_.dump_model()
     tree_info = dump['tree_info']
     _compute_node_values(tree_info)
-    pred_leafs = lgb.booster_.predict([x], pred_leaf=True).reshape(-1)
+    pred_leafs = lgb.booster_.predict(X, pred_leaf=True).reshape(-1)
 
     feature_weights = defaultdict(float)  # type: DefaultDict[str, float]
     for info, leaf_id in zip(tree_info, pred_leafs):
