@@ -34,7 +34,10 @@ except ImportError as e:
 
 
 try:
-    from .xgboost import explain_weights_xgboost
+    from .xgboost import (
+        explain_weights_xgboost,
+        explain_prediction_xgboost
+    )
 except ImportError:
     # xgboost is not available
     pass
@@ -44,3 +47,13 @@ except Exception as e:
         pass
     else:
         raise
+
+
+try:
+    from .lightgbm import (
+        explain_weights_lightgbm,
+        explain_prediction_lightgbm
+    )
+except ImportError:
+    # lightgbm is not available
+    pass
