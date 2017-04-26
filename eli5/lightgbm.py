@@ -169,7 +169,7 @@ def _get_lgb_feature_importances(lgb, importance_type):
 
 
 def _compute_node_values(tree_info):
-    """ Add node_value key with an average value for non-leaf nodes """
+    """ Add node_value key with an expected value for non-leaf nodes """
     def walk(tree):
         if 'leaf_value' in tree:
             return tree['leaf_value'], tree['leaf_count']
