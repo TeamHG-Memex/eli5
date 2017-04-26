@@ -7,17 +7,11 @@ import numpy as np  # type: ignore
 import lightgbm  # type: ignore
 
 from eli5._feature_weights import get_top_features
-from eli5.base import Explanation, TargetExplanation
 from eli5.explain import explain_weights, explain_prediction
 from eli5._feature_importances import get_feature_importance_explanation
-from eli5.sklearn.text import add_weighted_spans
 from eli5.sklearn.utils import handle_vec, get_X, add_intercept, predict_proba
-from eli5.utils import get_target_display_names, mask
-from eli5._decision_path import (
-    DESCRIPTION_CLF_BINARY,
-    DESCRIPTION_CLF_MULTICLASS,
-    DESCRIPTION_REGRESSION
-)
+from eli5.utils import mask
+from eli5._decision_path import get_decision_path_explanation
 
 
 DESCRIPTION_LIGHTGBM = """
@@ -120,20 +114,16 @@ def explain_prediction_lightgbm(
         # them as having an intercept
         feature_names.bias_name = '<BIAS>'
     X = get_X(doc, vec, vectorized=vectorized)
-    is_regression = isinstance(lgb, lightgbm.LGBMRegressor)
-    is_multiclass = _lgb_n_targets(lgb) > 2
 
     proba = predict_proba(lgb, X)
-
     weight_dicts = _get_prediction_feature_weights(lgb, X, _lgb_n_targets(lgb))
     x, = add_intercept(X)
-
     flt_feature_names, flt_indices = feature_names.handle_filter(
         feature_filter, feature_re, x)
 
+    is_regression = isinstance(lgb, lightgbm.LGBMRegressor)
+    is_multiclass = _lgb_n_targets(lgb) > 2
     names = lgb.classes_ if not is_regression else ['y']
-    display_names = get_target_display_names(names, target_names, targets,
-                                             top_targets, proba)
 
     def get_score_feature_weights(_label_id):
         _weights = _target_feature_weights(
@@ -148,40 +138,18 @@ def explain_prediction_lightgbm(
             _weights = mask(_weights, flt_indices)
         return _score, get_top_features(flt_feature_names, _weights, top, _x)
 
-    res = Explanation(
-        estimator=repr(lgb),
-        method='decision paths',
-        description={
-            (False, False): DESCRIPTION_CLF_BINARY,
-            (False, True): DESCRIPTION_CLF_MULTICLASS,
-            (True, False): DESCRIPTION_REGRESSION,
-        }[is_regression, is_multiclass],
+    return get_decision_path_explanation(
+        lgb, doc, vec,
+        vectorized=vectorized,
+        original_display_names=names,
+        target_names=target_names,
+        targets=targets,
+        top_targets=top_targets,
         is_regression=is_regression,
-        targets=[],
-    )
-
-    if is_multiclass:
-        for label_id, label in display_names:
-            score, feature_weights = get_score_feature_weights(label_id)
-            target_expl = TargetExplanation(
-                target=label,
-                feature_weights=feature_weights,
-                score=score,
-                proba=proba[label_id] if proba is not None else None,
-            )
-            add_weighted_spans(doc, vec, vectorized, target_expl)
-            res.targets.append(target_expl)
-    else:
-        score, feature_weights = get_score_feature_weights(0)
-        target_expl = TargetExplanation(
-            target=display_names[-1][1],
-            feature_weights=feature_weights,
-            score=score,
-            proba=proba[1] if proba is not None else None,
-        )
-        add_weighted_spans(doc, vec, vectorized, target_expl)
-        res.targets.append(target_expl)
-    return res
+        is_multiclass=is_multiclass,
+        proba=proba,
+        get_score_feature_weights=get_score_feature_weights,
+     )
 
 
 def _lgb_n_targets(lgb):

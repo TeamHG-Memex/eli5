@@ -14,25 +14,15 @@ from xgboost import (  # type: ignore
     DMatrix
 )
 
-from eli5.base import (Explanation, TargetExplanation)
 from eli5.explain import explain_weights, explain_prediction
-from eli5.sklearn.text import add_weighted_spans
 from eli5.sklearn.utils import (
     add_intercept,
     get_X,
     handle_vec,
     predict_proba
 )
-from eli5.utils import (
-    get_target_display_names,
-    mask,
-    is_sparse_vector,
-)
-from eli5._decision_path import (
-    DESCRIPTION_CLF_BINARY,
-    DESCRIPTION_CLF_MULTICLASS,
-    DESCRIPTION_REGRESSION
-)
+from eli5.utils import mask, is_sparse_vector
+from eli5._decision_path import get_decision_path_explanation
 from eli5._feature_weights import get_top_features
 from eli5._feature_importances import get_feature_importance_explanation
 
@@ -157,20 +147,6 @@ def explain_prediction_xgboost(
     is_multiclass = _xgb_n_targets(xgb) > 1
     is_regression = isinstance(xgb, XGBRegressor)
     names = xgb.classes_ if not is_regression else ['y']
-    display_names = get_target_display_names(names, target_names, targets,
-                                             top_targets, proba)
-
-    res = Explanation(
-        estimator=repr(xgb),
-        method='decision paths',
-        description={
-            (False, False): DESCRIPTION_CLF_BINARY,
-            (False, True): DESCRIPTION_CLF_MULTICLASS,
-            (True, False): DESCRIPTION_REGRESSION,
-        }[is_regression, is_multiclass],
-        is_regression=is_regression,
-        targets=[],
-    )
 
     def get_score_feature_weights(_label_id):
         _score, _feature_weights = scores_weights[_label_id]
@@ -181,29 +157,18 @@ def explain_prediction_xgboost(
         return _score, get_top_features(
             feature_names, _feature_weights, top, _x)
 
-    if is_multiclass:
-        for label_id, label in display_names:
-            score, feature_weights = get_score_feature_weights(label_id)
-            target_expl = TargetExplanation(
-                target=label,
-                feature_weights=feature_weights,
-                score=score,
-                proba=proba[label_id] if proba is not None else None,
-            )
-            add_weighted_spans(doc, vec, vectorized, target_expl)
-            res.targets.append(target_expl)
-    else:
-        score, feature_weights = get_score_feature_weights(0)
-        target_expl = TargetExplanation(
-            target=display_names[-1][1],
-            feature_weights=feature_weights,
-            score=score,
-            proba=proba[1] if proba is not None else None,
-        )
-        add_weighted_spans(doc, vec, vectorized, target_expl)
-        res.targets.append(target_expl)
-
-    return res
+    return get_decision_path_explanation(
+        xgb, doc, vec,
+        vectorized=vectorized,
+        original_display_names=names,
+        target_names=target_names,
+        targets=targets,
+        top_targets=top_targets,
+        is_regression=is_regression,
+        is_multiclass=is_multiclass,
+        proba=proba,
+        get_score_feature_weights=get_score_feature_weights,
+     )
 
 
 def _prediction_feature_weights(xgb, X, feature_names):
