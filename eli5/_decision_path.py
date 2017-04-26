@@ -3,6 +3,15 @@
 # Implementations are in eli5.xgboost and eli5.sklearn.explain_prediction
 
 
+DECISION_PATHS_DESCRIPTION = """
+Feature weights are calculated by following decision paths in trees
+of an ensemble. Each leaf has an output score, and expected scores can also be
+assigned to parent nodes. Contribution of one feature on the decision path
+is how much expected score changes from parent to child. Weights of all 
+features sum to the output score of the estimator.
+"""
+
+
 DECISION_PATHS_CAVEATS = """
 Caveats:
 1. Feature weights just show if the feature contributed positively or
@@ -16,3 +25,20 @@ Caveats:
    a problem, but it is not reliable if most trees happen to choose the same
    feature at the top.
 """
+
+
+DECISION_PATHS_EXPLANATION = "".join([
+    DECISION_PATHS_DESCRIPTION,
+    DECISION_PATHS_CAVEATS
+])
+
+
+DESCRIPTION_CLF_MULTICLASS = """
+Features with largest coefficients per class.
+""" + DECISION_PATHS_EXPLANATION
+
+DESCRIPTION_CLF_BINARY = """
+Features with largest coefficients.
+""" + DECISION_PATHS_EXPLANATION
+
+DESCRIPTION_REGRESSION = DESCRIPTION_CLF_BINARY

@@ -28,33 +28,19 @@ from eli5.utils import (
     mask,
     is_sparse_vector,
 )
-from eli5._decision_path import DECISION_PATHS_CAVEATS
+from eli5._decision_path import (
+    DESCRIPTION_CLF_BINARY,
+    DESCRIPTION_CLF_MULTICLASS,
+    DESCRIPTION_REGRESSION
+)
 from eli5._feature_weights import get_top_features
 from eli5._feature_importances import get_feature_importance_explanation
 
-
-DECISION_PATHS_CAVEATS = """
-Feature weights are calculated by following decision paths in trees
-of an ensemble. Each leaf has an output score, and expected scores can also be
-assigned to parent nodes. Contribution of one feature on the decision path
-is how much expected score changes from parent to child. Weights of all features
-sum to the output score of the estimator.
-""" + DECISION_PATHS_CAVEATS
 
 DESCRIPTION_XGBOOST = """
 XGBoost feature importances; values are numbers 0 <= x <= 1;
 all values sum to 1.
 """
-
-DESCRIPTION_CLF_MULTICLASS = """
-Features with largest coefficients per class.
-""" + DECISION_PATHS_CAVEATS
-
-DESCRIPTION_CLF_BINARY = """
-Features with largest coefficients.
-""" + DECISION_PATHS_CAVEATS
-
-DESCRIPTION_REGRESSION = DESCRIPTION_CLF_BINARY
 
 
 @explain_weights.register(XGBClassifier)

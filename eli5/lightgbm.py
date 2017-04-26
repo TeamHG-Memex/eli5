@@ -13,6 +13,12 @@ from eli5._feature_importances import get_feature_importance_explanation
 from eli5.sklearn.text import add_weighted_spans
 from eli5.sklearn.utils import handle_vec, get_X, add_intercept, predict_proba
 from eli5.utils import get_target_display_names, mask
+from eli5._decision_path import (
+    DESCRIPTION_CLF_BINARY,
+    DESCRIPTION_CLF_MULTICLASS,
+    DESCRIPTION_REGRESSION
+)
+
 
 DESCRIPTION_LIGHTGBM = """
 LightGBM feature importances; values are numbers 0 <= x <= 1;
@@ -115,6 +121,7 @@ def explain_prediction_lightgbm(
         feature_names.bias_name = '<BIAS>'
     X = get_X(doc, vec, vectorized=vectorized)
     is_regression = isinstance(lgb, lightgbm.LGBMRegressor)
+    is_multiclass = _lgb_n_targets(lgb) > 2
 
     proba = predict_proba(lgb, X)
 
@@ -144,18 +151,16 @@ def explain_prediction_lightgbm(
     res = Explanation(
         estimator=repr(lgb),
         method='decision paths',
-        description='',
-        # description={
-        #     (False, False): DESCRIPTION_CLF_BINARY,
-        #     (False, True): DESCRIPTION_CLF_MULTICLASS,
-        #     (True, False): DESCRIPTION_REGRESSION,
-        # }[is_regression, is_multiclass],
+        description={
+            (False, False): DESCRIPTION_CLF_BINARY,
+            (False, True): DESCRIPTION_CLF_MULTICLASS,
+            (True, False): DESCRIPTION_REGRESSION,
+        }[is_regression, is_multiclass],
         is_regression=is_regression,
         targets=[],
     )
 
-    if _lgb_n_targets(lgb) > 2:
-        # multiclass
+    if is_multiclass:
         for label_id, label in display_names:
             score, feature_weights = get_score_feature_weights(label_id)
             target_expl = TargetExplanation(
