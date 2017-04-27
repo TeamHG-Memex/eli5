@@ -60,7 +60,8 @@ from eli5.sklearn import InvertableHashingVectorizer
 from .utils import format_as_all, get_all_features, get_names_coefs
 
 
-def check_newsgroups_explanation_linear(clf, vec, target_names, **kwargs):
+def check_newsgroups_explanation_linear(
+        clf, vec, target_names, explain_weights=explain_weights, **kwargs):
     def get_result():
         _kwargs = dict(vec=vec, target_names=target_names, top=20)
         _kwargs.update(kwargs)
@@ -90,8 +91,8 @@ def check_newsgroups_explanation_linear(clf, vec, target_names, **kwargs):
     assert res == get_result()
 
 
-def assert_explained_weights_linear_classifier(newsgroups_train, clf,
-                                               add_bias=False):
+def assert_explained_weights_linear_classifier(
+        newsgroups_train, clf, add_bias=False, explain_weights=explain_weights):
     docs, y, target_names = newsgroups_train
     vec = TfidfVectorizer()
     X = vec.fit_transform(docs)
@@ -104,6 +105,7 @@ def assert_explained_weights_linear_classifier(newsgroups_train, clf,
     clf.fit(X, y)
     check_newsgroups_explanation_linear(clf, vec, target_names,
                                         feature_names=feature_names,
+                                        explain_weights=explain_weights,
                                         top=(20, 20))
 
 
