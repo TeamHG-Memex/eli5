@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 
-__version__ = '0.3.1'
+__version__ = '0.5'
 
 from .formatters import format_as_html, format_html_styles, format_as_text
 from .explain import explain_weights, explain_prediction
@@ -34,7 +34,26 @@ except ImportError as e:
 
 
 try:
-    from .xgboost import explain_weights_xgboost
+    from .xgboost import (
+        explain_weights_xgboost,
+        explain_prediction_xgboost
+    )
 except ImportError:
     # xgboost is not available
+    pass
+except Exception as e:
+    if e.__class__.__name__ == 'XGBoostLibraryNotFound':
+        # improperly installed xgboost
+        pass
+    else:
+        raise
+
+
+try:
+    from .lightgbm import (
+        explain_weights_lightgbm,
+        explain_prediction_lightgbm
+    )
+except ImportError:
+    # lightgbm is not available
     pass

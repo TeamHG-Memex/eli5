@@ -11,7 +11,8 @@ from sklearn.pipeline import FeatureUnion
 from sklearn.preprocessing import FunctionTransformer
 
 from eli5.xgboost import (
-    _parse_tree_dump, _xgb_n_targets, _missing_values_set_to_nan)
+    _parse_tree_dump, _xgb_n_targets, _missing_values_set_to_nan,
+    _parent_value)
 from eli5.explain import explain_prediction, explain_weights
 from eli5.formatters.text import format_as_text
 from eli5.formatters import fields
@@ -314,3 +315,9 @@ def test_set_missing_values_to_nan_sparse(matrix_type, value, sparse_missing):
     elif value == 12:
         assert np.isnan(m[54])
     assert m[7] == -13
+
+
+def test_parent_value():
+    assert _parent_value([{'cover': 10., 'leaf': 15.}]) == 15.
+    assert _parent_value([
+        {'cover': 10., 'leaf': 15.}, {'cover': 40., 'leaf': 5.}]) == 7.

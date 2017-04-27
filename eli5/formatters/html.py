@@ -22,7 +22,7 @@ from .text_helpers import prepare_weighted_spans, PreparedWeightedSpans
 template_env = Environment(
     loader=PackageLoader('eli5', 'templates'),
     extensions=['jinja2.ext.with_'])
-template_env.globals.update(zip=zip, numpy=np)
+template_env.globals.update(dict(zip=zip, numpy=np))
 template_env.filters.update(dict(
     weight_color=lambda w, w_range: format_hsl(weight_color_hsl(w, w_range)),
     remaining_weight_color=lambda ws, w_range, pos_neg:
@@ -189,7 +189,10 @@ def _weight_opacity(weight, weight_range):
     """ Return opacity value for given weight as a string.
     """
     min_opacity = 0.8
-    rel_weight = abs(weight) / weight_range
+    if np.isclose(weight, 0) and np.isclose(weight_range, 0):
+        rel_weight = 0
+    else:
+        rel_weight = abs(weight) / weight_range
     return '{:.2f}'.format(min_opacity + (1 - min_opacity) * rel_weight)
 
 

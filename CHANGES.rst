@@ -1,6 +1,45 @@
 Changelog
 =========
 
+0.5 (2017-04-27)
+----------------
+
+* LightGBM_ support: :func:`eli5.explain_prediction` and
+  :func:`eli5.explain_weights` are now supported for
+  ``LGBMClassifier`` and ``LGBMRegressor``
+  (see :ref:`eli5 LightGBM support <library-lightgbm>`).
+* fixed text formatting if all weights are zero;
+* type checks now use latest mypy;
+* testing setup improvements: Travis CI now uses Ubuntu 14.04.
+
+.. _LightGBM: https://github.com/Microsoft/LightGBM
+
+0.4.2 (2017-03-03)
+------------------
+
+* bug fix: eli5 should remain importable if xgboost is available, but
+  not installed correctly.
+
+0.4.1 (2017-01-25)
+------------------
+
+* feature contribution calculation fixed
+  for :func:`eli5.xgboost.explain_prediction_xgboost`
+
+
+0.4 (2017-01-20)
+----------------
+
+* :func:`eli5.explain_prediction`: new 'top_targets' argument allows
+  to display only predictions with highest or lowest scores;
+* :func:`eli5.explain_weights` allows to customize the way feature importances
+  are computed for XGBClassifier and XGBRegressor using ``importance_type``
+  argument (see docs for the :ref:`eli5 XGBoost support <library-xgboost>`);
+* :func:`eli5.explain_weights` uses gain for XGBClassifier and XGBRegressor
+  feature importances by default; this method is a better indication of
+  what's going, and it makes results more compatible with feature importances
+  displayed for scikit-learn gradient boosting methods.
+
 0.3.1 (2017-01-16)
 ------------------
 

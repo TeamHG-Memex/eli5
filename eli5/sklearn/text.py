@@ -27,6 +27,7 @@ def get_weighted_spans(doc, vec, feature_weights):
                 [doc_weighted_spans],
                 other=_get_other(feature_weights, [('', found_features)]),
             )
+    return None
 
 
 def add_weighted_spans(doc, vec, vectorized, target_expl):
@@ -133,6 +134,8 @@ def _get_weighted_spans_from_union(doc, vec_union, feature_weights):
             docs_weighted_spans,
             other=_get_other(feature_weights, named_found_features),
         )
+    else:
+        return None
 
 
 def _get_other(feature_weights, named_found_features):
