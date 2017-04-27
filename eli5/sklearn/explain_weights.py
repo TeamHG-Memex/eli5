@@ -121,11 +121,11 @@ def explain_weights_sklearn(estimator, vec=None, top=_TOP,
                             feature_names=None, coef_scale=None,
                             feature_re=None, feature_filter=None):
     """ Return an explanation of an estimator """
-    return explain_weights_not_supported(estimator)
+    return explain_weights_sklearn_not_supported(estimator)
 
 
 @explain_weights.register(BaseEstimator)
-def explain_weights_not_supported(
+def explain_weights_sklearn_not_supported(
         estimator, vec=None, top=_TOP,
         target_names=None,
         targets=None,

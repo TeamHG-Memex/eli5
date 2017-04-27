@@ -21,9 +21,17 @@ def explain_weights_lightning(estimator, vec=None, top=20, target_names=None,
                               targets=None, feature_names=None,
                               coef_scale=None):
     """ Return an explanation of a lightning estimator weights """
+    return explain_weights_lightning_not_supported(estimator)
+
+
+@explain_weights.register(BaseEstimator)
+def explain_weights_lightning_not_supported(
+        estimator, vec=None, top=20, target_names=None,
+        targets=None, feature_names=None,
+        coef_scale=None):
     return Explanation(
         estimator=repr(estimator),
-        description="Error: estimator %r is not supported" % estimator,
+        error="Error: estimator %r is not supported" % estimator,
     )
 
 
@@ -33,9 +41,18 @@ def explain_prediction_lightning(estimator, doc, vec=None, top=None,
                                  feature_names=None, vectorized=False,
                                  coef_scale=None):
     """ Return an explanation of a lightning estimator predictions """
+    return explain_weights_lightning_not_supported(estimator, doc)
+
+
+@explain_prediction.register(BaseEstimator)
+def explain_prediction_lightning_not_supported(
+        estimator, doc, vec=None, top=None,
+        target_names=None, targets=None,
+        feature_names=None, vectorized=False,
+        coef_scale=None):
     return Explanation(
         estimator=repr(estimator),
-        description="Error: estimator %r is not supported" % estimator,
+        error="Error: estimator %r is not supported" % estimator,
     )
 
 
