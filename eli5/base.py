@@ -55,6 +55,12 @@ class FeatureImportances(object):
         self.importances = importances  # type: List[FeatureWeight]
         self.remaining = remaining  # type: int
 
+    @classmethod
+    def from_names_values(cls, names, values, std=None, **kwargs):
+        params = zip(names, values) if std is None else zip(names, values, std)
+        importances = [FeatureWeight(*x) for x in params]  # type: ignore
+        return cls(importances, **kwargs)
+
 
 @attrs
 class TargetExplanation(object):

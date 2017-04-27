@@ -4,7 +4,7 @@ from singledispatch import singledispatch
 
 import numpy as np  # type: ignore
 
-from sklearn.base import BaseEstimator  # type: ignore
+from sklearn.base import BaseEstimator, RegressorMixin  # type: ignore
 from sklearn.linear_model import (   # type: ignore
     ElasticNet,  # includes Lasso, MultiTaskElasticNet, etc.
     ElasticNetCV,
@@ -47,7 +47,7 @@ from sklearn.tree import (  # type: ignore
 )
 
 from eli5.base import (
-    Explanation, TargetExplanation, FeatureWeight, FeatureImportances)
+    Explanation, TargetExplanation, FeatureImportances)
 from eli5._feature_weights import get_top_features
 from eli5.utils import argsort_k_largest_positive, get_target_display_names
 from eli5.sklearn.unhashing import handle_hashing_vec, is_invhashing
@@ -57,10 +57,14 @@ from eli5.sklearn.utils import (
     is_multiclass_classifier,
     is_multitarget_regressor,
     get_feature_names,
+    get_feature_names_filtered,
     get_default_target_names,
 )
 from eli5.explain import explain_weights
-
+from eli5._feature_importances import (
+    get_feature_importances_filtered,
+    get_feature_importance_explanation,
+)
 
 LINEAR_CAVEATS = """
 Caveats:
@@ -183,9 +187,12 @@ def explain_linear_classifier_weights(clf,
     """
     feature_names, coef_scale = handle_hashing_vec(vec, feature_names,
                                                    coef_scale)
-    feature_names = get_feature_names(clf, vec, feature_names=feature_names)
-    feature_names, flt_indices = feature_names.handle_filter(
-        feature_filter, feature_re)
+    feature_names, flt_indices = get_feature_names_filtered(
+        clf, vec,
+        feature_names=feature_names,
+        feature_filter=feature_filter,
+        feature_re=feature_re,
+    )
 
     _extra_caveats = "\n" + HASHING_CAVEATS if is_invhashing(vec) else ''
 
@@ -255,28 +262,17 @@ def explain_rf_feature_importance(estimator,
     raw features to the input of the estimator (e.g. a fitted
     CountVectorizer instance); you can pass it instead of ``feature_names``.
     """
-    feature_names = get_feature_names(estimator, vec,
-                                      feature_names=feature_names)
     coef = estimator.feature_importances_
     trees = np.array(estimator.estimators_).ravel()
     coef_std = np.std([tree.feature_importances_ for tree in trees], axis=0)
-
-    feature_names, flt_indices = feature_names.handle_filter(
-        feature_filter, feature_re)
-    if flt_indices is not None:
-        coef = coef[flt_indices]
-        coef_std = coef_std[flt_indices]
-
-    indices = argsort_k_largest_positive(coef, top)
-    names, values, std = feature_names[indices], coef[indices], coef_std[indices]
-    return Explanation(
-        feature_importances=FeatureImportances(
-            [FeatureWeight(*x) for x in zip(names, values, std)],
-            remaining=np.count_nonzero(coef) - len(indices),
-        ),
+    return get_feature_importance_explanation(estimator, vec, coef,
+        coef_std=coef_std,
+        feature_names=feature_names,
+        feature_filter=feature_filter,
+        feature_re=feature_re,
+        top=top,
         description=DESCRIPTION_RANDOM_FOREST,
-        estimator=repr(estimator),
-        method='feature importances',
+        is_regression=isinstance(estimator, RegressorMixin),
     )
 
 
@@ -311,14 +307,12 @@ def explain_decision_tree(estimator,
     """
     feature_names = get_feature_names(estimator, vec,
                                       feature_names=feature_names)
-    coef = estimator.feature_importances_
     tree_feature_names = feature_names
     feature_names, flt_indices = feature_names.handle_filter(
         feature_filter, feature_re)
-    if flt_indices is not None:
-        coef = coef[flt_indices]
-    indices = argsort_k_largest_positive(coef, top)
-    names, values = feature_names[indices], coef[indices]
+    feature_importances = get_feature_importances_filtered(
+        estimator.feature_importances_, feature_names, flt_indices, top)
+
     export_graphviz_kwargs.setdefault("proportion", True)
     tree_info = get_tree_info(
         estimator,
@@ -327,10 +321,7 @@ def explain_decision_tree(estimator,
         **export_graphviz_kwargs)
 
     return Explanation(
-        feature_importances=FeatureImportances(
-            [FeatureWeight(*x) for x in zip(names, values)],
-            remaining=np.count_nonzero(coef) - len(indices),
-        ),
+        feature_importances=feature_importances,
         decision_tree=tree_info,
         description=DESCRIPTION_DECISION_TREE,
         estimator=repr(estimator),
@@ -380,9 +371,12 @@ def explain_linear_regressor_weights(reg,
     """
     feature_names, coef_scale = handle_hashing_vec(vec, feature_names,
                                                    coef_scale)
-    feature_names = get_feature_names(reg, vec, feature_names=feature_names)
-    feature_names, flt_indices = feature_names.handle_filter(
-        feature_filter, feature_re)
+    feature_names, flt_indices = get_feature_names_filtered(
+        reg, vec,
+        feature_names=feature_names,
+        feature_filter=feature_filter,
+        feature_re=feature_re,
+    )
     _extra_caveats = "\n" + HASHING_CAVEATS if is_invhashing(vec) else ''
 
     def _features(target_id):

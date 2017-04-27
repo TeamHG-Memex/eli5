@@ -8,6 +8,7 @@ Supported Libraries
 
    sklearn
    xgboost
+   lightgbm
    lightning
    sklearn_crfsuite
 

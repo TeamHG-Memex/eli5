@@ -84,7 +84,7 @@ def vstack(blocks, format=None, dtype=None):
 def get_target_display_names(original_names=None, target_names=None,
                              targets=None, top_targets=None, score=None):
     """
-    Return a list of (class_id, display_name) tuples.
+    Return a list of (target_id, display_name) tuples.
 
     ``targets`` can be written using both names from ``target_names` and
     from ``original_names``:
@@ -162,11 +162,9 @@ def get_target_display_names(original_names=None, target_names=None,
     elif top_targets is not None:
         raise ValueError('Pass either "targets" or "top_targets", not both')
 
-
-    class_indices = _get_value_indices(original_names, display_names,
-                                       targets)
-    names = [display_names[i] for i in class_indices]
-    return list(zip(class_indices, names))
+    target_indices = _get_value_indices(original_names, display_names, targets)
+    names = [display_names[i] for i in target_indices]
+    return list(zip(target_indices, names))
 
 
 def _get_value_indices(names1, names2, lookups):

@@ -38,6 +38,9 @@ It provides support for the following machine learning frameworks and packages:
 * xgboost_ - show feature importances and explain predictions of XGBClassifier
   and XGBRegressor.
 
+* LightGBM_ - show feature importances and explain predictions of
+  LGBMClassifier and LGBMRegressor.
+
 * lightning_ - explain weights and predictions of lightning classifiers and
   regressors.
 
@@ -60,6 +63,7 @@ rendering and formatting on a client.
 .. _LIME: http://eli5.readthedocs.io/en/latest/lime.html
 .. _TextExplainer: http://eli5.readthedocs.io/en/latest/tutorials/black-box-text-classifiers.html
 .. _xgboost: https://github.com/dmlc/xgboost
+.. _LightGBM: https://github.com/Microsoft/LightGBM
 
 License is MIT.
 

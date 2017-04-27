@@ -1,6 +1,7 @@
 import re
 
 import pytest
+import numpy as np
 from sklearn.datasets import make_regression
 from sklearn.linear_model import LinearRegression
 
@@ -124,6 +125,22 @@ def test_render_weighted_spans_word():
          '<span > </span>'
          '<span  title="0.200">tree</span>'
     )
+
+
+def test_render_weighted_spans_zero():
+    weighted_spans = DocWeightedSpans(
+        document='ab',
+        spans=[('a', [(0, 1)], 0.0),
+               ('b', [(1, 2)], 0.0)],
+        preserve_density=False,
+    )
+    np_err = np.geterr()
+    np.seterr(all='raise')
+    try:
+        s = _render_weighted_spans(weighted_spans)
+    finally:
+        np.seterr(**np_err)
+    assert s == '<span style="opacity: 0.80">ab</span>'
 
 
 def test_render_weighted_spans_char():
