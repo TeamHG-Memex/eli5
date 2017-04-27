@@ -189,11 +189,11 @@ def _get_decision_path(leaf_index, split_index, leaf_id):
     parent_id, leaf = leaf_index[leaf_id]
     path.append(leaf['leaf_value'])
     while True:
+        if parent_id == -1:
+            break
         parent_id, node = split_index[parent_id]
         path.append(node['node_value'])
         split_features.append(node['split_feature'])
-        if parent_id is None:
-            break
 
     path.reverse()
     changes = _changes(path)
@@ -217,7 +217,7 @@ def _get_leaf_split_indices(tree_structure):
     leaf_index = {}   # leaf id => (parent_id, leaf)
     split_index = {}  # split id => (parent_id, subtree)
 
-    def walk(tree, parent_id=None):
+    def walk(tree, parent_id=-1):
         if 'leaf_index' in tree:
             leaf_index[tree['leaf_index']] = tree['leaf_parent'], tree
         else:

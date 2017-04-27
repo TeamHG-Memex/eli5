@@ -93,6 +93,17 @@ def test_explain_prediction_clf_multitarget(newsgroups_train):
         t.proba for t in res.targets)[-2:]
 
 
+def test_explain_prediction_single_leaf_tree(iris_train):
+    X, y, feature_names, target_names = iris_train
+    clf = LGBMClassifier(n_estimators=100)
+    clf.fit(X, y)
+    # at least one of the trees has only a single leaf
+
+    res = explain_prediction(clf, X[0], target_names=target_names)
+    format_as_all(res, clf)
+    check_targets_scores(res)
+
+
 def test_explain_prediction_regression(boston_train):
     assert_linear_regression_explained(
         boston_train, LGBMRegressor(), explain_prediction,
