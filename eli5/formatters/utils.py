@@ -69,7 +69,7 @@ def should_highlight_spaces(explanation):
 
 
 def _has_invisible_spaces(name):
-    # type: (Union[str, List[Dict]]) -> bool
+    # type: (Union[str, List[Dict], FormattedFeatureName]) -> bool
     if isinstance(name, FormattedFeatureName):
         return False
     elif isinstance(name, list):

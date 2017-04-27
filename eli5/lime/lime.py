@@ -209,6 +209,7 @@ class TextExplainer(BaseEstimator):
             doc,             # type: str
             predict_proba,   # type: Callable[[Any], Any]
             ):
+        # type: (...) -> TextExplainer
         """
         Explain ``predict_proba`` probabilistic classification function
         for the ``doc`` example. This method fits a local classification
@@ -229,7 +230,6 @@ class TextExplainer(BaseEstimator):
             probability values - a row per document and a column per output
             label.
         """
-        # type: (...) -> TextExplainer
         self.doc_ = doc
 
         if self.position_dependent:
