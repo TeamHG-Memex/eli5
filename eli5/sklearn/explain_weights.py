@@ -154,7 +154,7 @@ def explain_weights_ovr(ovr, **kwargs):
 @explain_weights_sklearn.register(OneVsRestClassifier)
 def explain_weights_ovr_sklearn(ovr, **kwargs):
     # dispatch OvR to eli5.sklearn
-    # if explain_prediction_sklearn is called explicitly
+    # if explain_weights_sklearn is called explicitly
     estimator = ovr.estimator
     func = explain_weights_sklearn.dispatch(estimator.__class__)
     return func(ovr, **kwargs)
