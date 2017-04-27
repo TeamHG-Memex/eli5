@@ -55,7 +55,7 @@ from sklearn.multiclass import OneVsRestClassifier
 import pytest
 
 from eli5 import _graphviz
-from eli5 import explain_weights
+from eli5 import explain_weights, explain_weights_sklearn
 from eli5.sklearn import InvertableHashingVectorizer
 from .utils import format_as_all, get_all_features, get_names_coefs
 
@@ -156,7 +156,7 @@ def test_explain_linear(newsgroups_train, clf):
 def test_explain_linear_multilabel(clf):
     X, Y = make_multilabel_classification(random_state=42)
     clf.fit(X, Y)
-    res = explain_weights(clf)
+    res = explain_weights_sklearn(clf)
     expl_text, expl_html = format_as_all(res, clf)
     for expl in [expl_text, expl_html]:
         assert 'y=4' in expl

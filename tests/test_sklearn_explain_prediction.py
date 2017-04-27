@@ -46,7 +46,7 @@ from sklearn.svm import LinearSVC, LinearSVR
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 
-from eli5 import explain_prediction
+from eli5 import explain_prediction, explain_prediction_sklearn
 from eli5.formatters import format_as_text, fields
 from eli5.sklearn.utils import has_intercept
 from .utils import (
@@ -244,6 +244,9 @@ def assert_tree_explain_prediction_single_target(clf, X, feature_names):
 def test_explain_linear(newsgroups_train, clf):
     assert_multiclass_linear_classifier_explained(newsgroups_train, clf,
                                                   explain_prediction)
+    if isinstance(clf, OneVsRestClassifier):
+        assert_multiclass_linear_classifier_explained(
+            newsgroups_train, clf, explain_prediction_sklearn)
 
 
 @pytest.mark.parametrize(['reg'], [
