@@ -388,6 +388,8 @@ def test_unsupported():
     for expl in format_as_all(res, clf):
         assert 'Error' in expl
         assert 'BaseEstimator' in expl
+    with pytest.raises(TypeError):
+        explain_weights(clf, unknown_argument=True)
 
 
 @pytest.mark.parametrize(['reg'], [

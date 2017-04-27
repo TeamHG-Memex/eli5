@@ -4,6 +4,7 @@ from functools import partial
 from pprint import pprint
 
 import pytest
+from sklearn.base import BaseEstimator
 from sklearn.datasets import make_regression
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from sklearn.ensemble import (
@@ -362,3 +363,16 @@ def test_explain_tree_classifier_text(clf, newsgroups_train_big):
     res = explain_prediction(clf, docs[0], vec=vec, target_names=target_names)
     check_targets_scores(res)
     format_as_all(res, clf)
+
+
+def test_unsupported():
+    vec = CountVectorizer()
+    clf = BaseEstimator()
+    doc = 'doc'
+    res = explain_prediction(clf, doc, vec=vec)
+    assert 'BaseEstimator' in res.error
+    for expl in format_as_all(res, clf):
+        assert 'Error' in expl
+        assert 'BaseEstimator' in expl
+    with pytest.raises(TypeError):
+        explain_prediction(clf, doc, unknown_argument=True)

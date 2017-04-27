@@ -73,6 +73,21 @@ def explain_prediction_sklearn(estimator, doc,
                                feature_filter=None,
                                vectorized=False):
     """ Return an explanation of a scikit-learn estimator """
+    return explain_prediction_sklearn_not_supported(estimator, doc)
+
+
+@explain_prediction.register(BaseEstimator)
+def explain_prediction_sklearn_not_supported(
+        estimator, doc,
+        vec=None,
+        top=None,
+        top_targets=None,
+        target_names=None,
+        targets=None,
+        feature_names=None,
+        feature_re=None,
+        feature_filter=None,
+        vectorized=False):
     return Explanation(
         estimator=repr(estimator),
         error="estimator %r is not supported" % estimator,
