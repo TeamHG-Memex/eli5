@@ -8,6 +8,7 @@ from itertools import chain
 from typing import List, Iterable, Any, Dict, Tuple, Union
 
 import numpy as np  # type: ignore
+import six
 from sklearn.base import BaseEstimator, TransformerMixin  # type: ignore
 from sklearn.feature_extraction.text import (  # type: ignore
     HashingVectorizer,
@@ -162,7 +163,11 @@ class FeatureUnhasher(BaseEstimator):
         """
         if not self._attributes_dirty and not force:
             return
-        terms = np.array([term for term, _ in self._term_counts.most_common()])
+        terms = [term for term, _ in self._term_counts.most_common()]
+        if six.PY2:
+            terms = np.array(terms, dtype=np.object)
+        else:
+            terms = np.array(terms)
         if len(terms):
             indices, signs = _get_indices_and_signs(self.hasher, terms)
         else:
