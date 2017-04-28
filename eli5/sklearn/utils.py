@@ -247,9 +247,9 @@ def _handle_invhashing_feature_union(doc, vec_union, feature_names):
         elif build_feature_names:
             vec_feature_names = vec.get_feature_names()
             feature_names_store.update(
-                (shift + idx, fname)
+                (shift + idx, '{}__{}'.format(vec_name, fname))
                 for idx, fname in enumerate(vec_feature_names))
-            shift += vec_feature_names
+            shift += len(vec_feature_names)
         transformer_list.append((vec_name, vec))
     if build_feature_names:
         feature_names = FeatureNames(

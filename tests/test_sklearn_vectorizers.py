@@ -202,7 +202,7 @@ def test_explain_feature_union(vec_cls):
 
 @pytest.mark.parametrize(['vec_cls'], [
     [CountVectorizer],
-    #[HashingVectorizer],
+    [HashingVectorizer],
 ])
 def test_explain_feature_union_with_nontext(vec_cls):
     data = [
