@@ -226,6 +226,11 @@ def handle_vec(clf, doc, vec, vectorized, feature_names, num_features=None):
 def _handle_invhashing_feature_union(doc, vec_union, feature_names):
     transformer_list = []
     build_feature_names = feature_names is None
+    # The reason why we have to build feature names here instead of relying
+    # on scikit-learn is that we want to features returned by
+    # InvertableHashingVectorizer to remain lists of dicts with name and sign keys
+    # instead of turning them to strings. We want that for better formatting
+    # support at the end (e.g. showing only the first term in html formatter).
     feature_names_store = {}
     unkn_template = None
     shift = 0
