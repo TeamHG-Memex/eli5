@@ -5,7 +5,7 @@ Utilities to reverse transformation done by FeatureHasher or HashingVectorizer.
 from __future__ import absolute_import
 from collections import defaultdict, Counter
 from itertools import chain
-from typing import List, Iterable, Any, Dict, Tuple
+from typing import List, Iterable, Any, Dict, Tuple, Union
 
 import numpy as np  # type: ignore
 from sklearn.base import BaseEstimator, TransformerMixin  # type: ignore
@@ -13,7 +13,7 @@ from sklearn.feature_extraction.text import (  # type: ignore
     HashingVectorizer,
     FeatureHasher,
 )
-from sklearn.pipeline import FeatureUnion
+from sklearn.pipeline import FeatureUnion  # type: ignore
 
 from eli5._feature_names import FeatureNames
 
@@ -253,7 +253,7 @@ def handle_hashing_vec(vec, feature_names, coef_scale, with_coef_scale=True):
 
 def _invhashing_union_feature_names_scale(vec_union):
     # type: (FeatureUnion) -> Tuple[FeatureNames, np.ndarray]
-    feature_names_store = {}
+    feature_names_store = {}  # type: Dict[int, Union[str, List]]
     unkn_template = None
     shift = 0
     coef_scale_values = []
