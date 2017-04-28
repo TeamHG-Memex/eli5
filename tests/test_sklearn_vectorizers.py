@@ -199,11 +199,14 @@ def test_explain_feature_union(vec_cls):
         inv_vec = vec
     weights_res = explain_weights(clf, inv_vec)
     html_expl = format_as_html(weights_res)
-    write_html(clf, html_expl, '', postfix='_weights')
+    write_html(clf, html_expl, '', postfix='{}_weights'.format(vec_cls.__name__))
+    assert 'text__security' in html_expl
+    assert 'url__log' in html_expl
+    assert 'BIAS' in html_expl
 
     pred_res = explain_prediction(clf, data[0], vec)
     html_expl = format_as_html(pred_res, force_weights=False)
-    write_html(clf, html_expl, '')
+    write_html(clf, html_expl, '', postfix=vec_cls.__name__)
     assert 'text: Highlighted in text (sum)' in html_expl
     assert 'url: Highlighted in text (sum)' in html_expl
     assert '<b>url:</b> <span' in html_expl
@@ -229,16 +232,29 @@ def test_explain_feature_union_with_nontext(vec_cls):
          'text': 'security'},
     ]
     ys = [1, 0, 0, 0, 1]
-    vec = FeatureUnion([
-        ('score', DictVectorizer()),
-        ('text', vec_cls(preprocessor=lambda x: x['text'])),
-    ])
+    score_vec = DictVectorizer()
+    text_vec = vec_cls(preprocessor=lambda x: x['text'])
+    vec = FeatureUnion([('score', score_vec), ('text', text_vec)])
     xs = vec.fit_transform(data)
     clf = LogisticRegression(random_state=42)
     clf.fit(xs, ys)
+
+    if vec_cls is HashingVectorizer:
+        inv_text_vec = InvertableHashingVectorizer(text_vec)
+        inv_text_vec.fit(data)
+        inv_vec = FeatureUnion([('score', score_vec), ('text', inv_text_vec)])
+    else:
+        inv_vec = vec
+    weights_res = explain_weights(clf, inv_vec)
+    html_expl = format_as_html(weights_res)
+    write_html(clf, html_expl, '', postfix='{}_weights'.format(vec_cls.__name__))
+    assert 'score__score' in html_expl
+    assert 'text__security' in html_expl
+    assert 'BIAS' in html_expl
+
     res = explain_prediction(clf, data[0], vec)
     html_expl = format_as_html(res, force_weights=False)
-    write_html(clf, html_expl, '')
+    write_html(clf, html_expl, '', postfix=vec_cls.__name__)
     assert 'text: Highlighted in text (sum)' in html_expl
     assert '<b>text:</b> <span' in html_expl
     assert 'BIAS' in html_expl
