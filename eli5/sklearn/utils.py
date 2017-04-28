@@ -4,13 +4,9 @@ from typing import Any, Optional
 
 import numpy as np  # type: ignore
 import scipy.sparse as sp  # type: ignore
-from sklearn.pipeline import FeatureUnion  # type: ignore
 from sklearn.multiclass import OneVsRestClassifier  # type: ignore
-from sklearn.feature_extraction.text import HashingVectorizer  # type: ignore
 
-from eli5.sklearn.unhashing import (
-    InvertableHashingVectorizer, invert_and_fit, handle_hashing_vec,
-)
+from eli5.sklearn.unhashing import invert_and_fit, handle_hashing_vec
 from eli5._feature_names import FeatureNames
 
 
