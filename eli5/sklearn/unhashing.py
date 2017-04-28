@@ -308,13 +308,7 @@ def _fit_invhashing_union(vec_union, docs):
     # type: (FeatureUnion, Any) -> FeatureUnion
     """ Fit InvertableHashingVectorizer on doc inside a FeatureUnion.
     """
-    transformer_list = []
-    for vec_name, vec in vec_union.transformer_list:
-        if isinstance(vec, HashingVectorizer):
-            vec = InvertableHashingVectorizer(vec)
-            vec.fit(docs)
-        transformer_list.append((vec_name, vec))
     return FeatureUnion(
-        transformer_list,
+        [(name, invert_and_fit(v, docs)) for name, v in vec_union.transformer_list],
         transformer_weights=vec_union.transformer_weights,
         n_jobs=vec_union.n_jobs)
