@@ -8,7 +8,9 @@ from sklearn.pipeline import FeatureUnion  # type: ignore
 from sklearn.multiclass import OneVsRestClassifier  # type: ignore
 from sklearn.feature_extraction.text import HashingVectorizer  # type: ignore
 
-from eli5.sklearn.unhashing import InvertableHashingVectorizer, is_invhashing
+from eli5.sklearn.unhashing import (
+    InvertableHashingVectorizer, is_invhashing, handle_hashing_vec,
+)
 from eli5._feature_names import FeatureNames
 
 
@@ -206,66 +208,37 @@ def get_X(doc, vec=None, vectorized=False, to_dense=False):
 
 def handle_vec(clf, doc, vec, vectorized, feature_names, num_features=None):
     if not vectorized:
+        # User convenience: fit InvertableHashingVectorizer on doc
         if isinstance(vec, HashingVectorizer):
             vec = InvertableHashingVectorizer(vec)
             vec.fit([doc])
         elif (isinstance(vec, FeatureUnion) and
               any(isinstance(v, HashingVectorizer)
                   for _, v in vec.transformer_list)):
-            vec, feature_names = _handle_invhashing_feature_union(
-                doc, vec, feature_names)
-    if is_invhashing(vec) and feature_names is None:
-        # Explaining predictions does not need coef_scale,
-        # because it is handled by the vectorizer.
-        feature_names = vec.get_feature_names(always_signed=False)
+            vec = _fit_invhashing_union(vec, doc)
+    # Explaining predictions does not need coef_scale
+    # because it is handled by the vectorizer.
+    feature_names = handle_hashing_vec(
+        vec, feature_names, coef_scale=None, with_coef_scale=False)
     feature_names = get_feature_names(
         clf, vec, feature_names=feature_names, num_features=num_features)
     return vec, feature_names
 
 
-def _handle_invhashing_feature_union(doc, vec_union, feature_names):
+def _fit_invhashing_union(vec_union, doc):
+    # type: (FeatureUnion, Any) -> FeatureUnion
+    """ Fit InvertableHashingVectorizer on doc inside a FeatureUnion.
+    """
     transformer_list = []
-    build_feature_names = feature_names is None
-    # The reason why we have to build feature names here instead of relying
-    # on scikit-learn is that we want to features returned by
-    # InvertableHashingVectorizer to remain lists of dicts with name and sign keys
-    # instead of turning them to strings. We want that for better formatting
-    # support at the end (e.g. showing only the first term in html formatter).
-    feature_names_store = {}
-    unkn_template = None
-    shift = 0
     for vec_name, vec in vec_union.transformer_list:
         if isinstance(vec, HashingVectorizer):
             vec = InvertableHashingVectorizer(vec)
             vec.fit([doc])
-            if build_feature_names:
-                vec_feature_names = vec.get_feature_names(always_signed=False)
-                unkn_template = vec_feature_names.unkn_template
-                for idx, fs in vec_feature_names.feature_names.items():
-                    new_fs = []
-                    for f in fs:
-                        new_f = dict(f)
-                        new_f['name'] = '{}__{}'.format(vec_name, f['name'])
-                        new_fs.append(new_f)
-                    feature_names_store[idx + shift] = new_fs
-                shift += vec_feature_names.n_features
-        elif build_feature_names:
-            vec_feature_names = vec.get_feature_names()
-            feature_names_store.update(
-                (shift + idx, '{}__{}'.format(vec_name, fname))
-                for idx, fname in enumerate(vec_feature_names))
-            shift += len(vec_feature_names)
         transformer_list.append((vec_name, vec))
-    if build_feature_names:
-        feature_names = FeatureNames(
-            feature_names=feature_names_store,
-            n_features=shift,
-            unkn_template=unkn_template)
-    vec_union = FeatureUnion(
+    return FeatureUnion(
         transformer_list,
         transformer_weights=vec_union.transformer_weights,
         n_jobs=vec_union.n_jobs)
-    return vec_union, feature_names
 
 
 def add_intercept(X):

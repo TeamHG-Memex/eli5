@@ -13,7 +13,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import FeatureUnion
 
-from eli5 import explain_prediction
+from eli5 import explain_prediction, explain_weights
 from eli5.formatters import format_as_html
 from .utils import format_as_all, get_all_features, get_names_coefs, write_html
 
@@ -181,17 +181,28 @@ def test_explain_feature_union(vec_cls):
          'text': 'security'},
         ]
     ys = [1, 0, 0, 0, 1]
-    vec = FeatureUnion([
-        ('url', vec_cls(preprocessor=lambda x: x['url'],
-                        analyzer='char',
-                        ngram_range=(3, 3))),
-        ('text', vec_cls(preprocessor=lambda x: x['text'])),
-    ])
+    url_vec = vec_cls(
+        preprocessor=lambda x: x['url'], analyzer='char', ngram_range=(3, 3))
+    text_vec = vec_cls(preprocessor=lambda x: x['text'])
+    vec = FeatureUnion([('url', url_vec), ('text', text_vec)])
     xs = vec.fit_transform(data)
     clf = LogisticRegression(random_state=42)
     clf.fit(xs, ys)
-    res = explain_prediction(clf, data[0], vec)
-    html_expl = format_as_html(res, force_weights=False)
+
+    if vec_cls is HashingVectorizer:
+        inv_url_vec = InvertableHashingVectorizer(url_vec)
+        inv_url_vec.fit(data)
+        inv_text_vec = InvertableHashingVectorizer(text_vec)
+        inv_text_vec.fit(data)
+        inv_vec = FeatureUnion([('url', inv_url_vec), ('text', inv_text_vec)])
+    else:
+        inv_vec = vec
+    weights_res = explain_weights(clf, inv_vec)
+    html_expl = format_as_html(weights_res)
+    write_html(clf, html_expl, '', postfix='_weights')
+
+    pred_res = explain_prediction(clf, data[0], vec)
+    html_expl = format_as_html(pred_res, force_weights=False)
     write_html(clf, html_expl, '')
     assert 'text: Highlighted in text (sum)' in html_expl
     assert 'url: Highlighted in text (sum)' in html_expl
