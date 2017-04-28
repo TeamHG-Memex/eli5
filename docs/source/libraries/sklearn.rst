@@ -221,7 +221,7 @@ automatically; to handle HashingVectorizer_ and FeatureHasher_ for
 
 HashingVectorizer_ is also supported inside a FeatureUnion_:
 :func:`eli5.explain_prediction` handles this case automatically, and for
-:func:`eli5.explain_weights` you can use :func:`eli5.sklearn.invert_and_fit``
+:func:`eli5.explain_weights` you can use :func:`eli5.sklearn.invert_and_fit`
 (it works for plain HashingVectorizer_ too) - it tears FeatureUnion_ apart,
 inverts and fits all hashing vectorizers and returns a new FeatureUnion_::
 
