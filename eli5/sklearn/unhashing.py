@@ -285,3 +285,36 @@ def _invhashing_union_feature_names_scale(vec_union):
     for idx, values in coef_scale_values:
         coef_scale[idx: idx + len(values)] = values
     return feature_names, coef_scale
+
+
+def invert_and_fit(vec, docs):
+    # type: (Union[FeatureUnion, HashingVectorizer], Any) -> Union[FeatureUnion, InvertableHashingVectorizer]
+    """ Create an InvertableHashingVectorizer from hashing vectorizer vec
+    and fit it on docs. If vec is a FeatureUnion, do it for all
+    hashing vectorizers in the union.
+    Returns an InvertableHashingVectorizer, or a Union, or an unchanged vectorizer.
+    """
+    if isinstance(vec, HashingVectorizer):
+        vec = InvertableHashingVectorizer(vec)
+        vec.fit(docs)
+    elif (isinstance(vec, FeatureUnion) and
+              any(isinstance(v, HashingVectorizer)
+                  for _, v in vec.transformer_list)):
+        vec = _fit_invhashing_union(vec, docs)
+    return vec
+
+
+def _fit_invhashing_union(vec_union, docs):
+    # type: (FeatureUnion, Any) -> FeatureUnion
+    """ Fit InvertableHashingVectorizer on doc inside a FeatureUnion.
+    """
+    transformer_list = []
+    for vec_name, vec in vec_union.transformer_list:
+        if isinstance(vec, HashingVectorizer):
+            vec = InvertableHashingVectorizer(vec)
+            vec.fit(docs)
+        transformer_list.append((vec_name, vec))
+    return FeatureUnion(
+        transformer_list,
+        transformer_weights=vec_union.transformer_weights,
+        n_jobs=vec_union.n_jobs)

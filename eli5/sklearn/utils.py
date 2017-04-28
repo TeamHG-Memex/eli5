@@ -9,7 +9,7 @@ from sklearn.multiclass import OneVsRestClassifier  # type: ignore
 from sklearn.feature_extraction.text import HashingVectorizer  # type: ignore
 
 from eli5.sklearn.unhashing import (
-    InvertableHashingVectorizer, is_invhashing, handle_hashing_vec,
+    InvertableHashingVectorizer, invert_and_fit, handle_hashing_vec,
 )
 from eli5._feature_names import FeatureNames
 
@@ -208,14 +208,7 @@ def get_X(doc, vec=None, vectorized=False, to_dense=False):
 
 def handle_vec(clf, doc, vec, vectorized, feature_names, num_features=None):
     if not vectorized:
-        # User convenience: fit InvertableHashingVectorizer on doc
-        if isinstance(vec, HashingVectorizer):
-            vec = InvertableHashingVectorizer(vec)
-            vec.fit([doc])
-        elif (isinstance(vec, FeatureUnion) and
-              any(isinstance(v, HashingVectorizer)
-                  for _, v in vec.transformer_list)):
-            vec = _fit_invhashing_union(vec, doc)
+        vec = invert_and_fit(vec, [doc])
     # Explaining predictions does not need coef_scale
     # because it is handled by the vectorizer.
     feature_names = handle_hashing_vec(
@@ -223,22 +216,6 @@ def handle_vec(clf, doc, vec, vectorized, feature_names, num_features=None):
     feature_names = get_feature_names(
         clf, vec, feature_names=feature_names, num_features=num_features)
     return vec, feature_names
-
-
-def _fit_invhashing_union(vec_union, doc):
-    # type: (FeatureUnion, Any) -> FeatureUnion
-    """ Fit InvertableHashingVectorizer on doc inside a FeatureUnion.
-    """
-    transformer_list = []
-    for vec_name, vec in vec_union.transformer_list:
-        if isinstance(vec, HashingVectorizer):
-            vec = InvertableHashingVectorizer(vec)
-            vec.fit([doc])
-        transformer_list.append((vec_name, vec))
-    return FeatureUnion(
-        transformer_list,
-        transformer_weights=vec_union.transformer_weights,
-        n_jobs=vec_union.n_jobs)
 
 
 def add_intercept(X):

@@ -5,7 +5,6 @@ from pprint import pprint
 import attr
 import pytest
 
-from eli5.sklearn import InvertableHashingVectorizer
 from sklearn.base import BaseEstimator
 from sklearn.feature_extraction import DictVectorizer
 from sklearn.feature_extraction.text import CountVectorizer, HashingVectorizer
@@ -15,6 +14,7 @@ from sklearn.pipeline import FeatureUnion
 
 from eli5 import explain_prediction, explain_weights
 from eli5.formatters import format_as_html
+from eli5.sklearn import invert_and_fit, InvertableHashingVectorizer
 from .utils import format_as_all, get_all_features, get_names_coefs, write_html
 
 
@@ -189,15 +189,8 @@ def test_explain_feature_union(vec_cls):
     clf = LogisticRegression(random_state=42)
     clf.fit(xs, ys)
 
-    if vec_cls is HashingVectorizer:
-        inv_url_vec = InvertableHashingVectorizer(url_vec)
-        inv_url_vec.fit(data)
-        inv_text_vec = InvertableHashingVectorizer(text_vec)
-        inv_text_vec.fit(data)
-        inv_vec = FeatureUnion([('url', inv_url_vec), ('text', inv_text_vec)])
-    else:
-        inv_vec = vec
-    weights_res = explain_weights(clf, inv_vec)
+    ivec = invert_and_fit(vec, data)
+    weights_res = explain_weights(clf, ivec)
     html_expl = format_as_html(weights_res)
     write_html(clf, html_expl, '', postfix='{}_weights'.format(vec_cls.__name__))
     assert 'text__security' in html_expl
@@ -239,13 +232,8 @@ def test_explain_feature_union_with_nontext(vec_cls):
     clf = LogisticRegression(random_state=42)
     clf.fit(xs, ys)
 
-    if vec_cls is HashingVectorizer:
-        inv_text_vec = InvertableHashingVectorizer(text_vec)
-        inv_text_vec.fit(data)
-        inv_vec = FeatureUnion([('score', score_vec), ('text', inv_text_vec)])
-    else:
-        inv_vec = vec
-    weights_res = explain_weights(clf, inv_vec)
+    ivec = invert_and_fit(vec, data)
+    weights_res = explain_weights(clf, ivec)
     html_expl = format_as_html(weights_res)
     write_html(clf, html_expl, '', postfix='{}_weights'.format(vec_cls.__name__))
     assert 'score__score' in html_expl
