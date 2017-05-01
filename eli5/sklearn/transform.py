@@ -8,33 +8,23 @@ import six  # type: ignore
 import numpy as np  # type: ignore
 from sklearn.pipeline import Pipeline, FeatureUnion  # type: ignore
 from sklearn.feature_selection.base import SelectorMixin  # type: ignore
+from sklearn.feature_extraction.text import TfidfTransformer  # type: ignore
+from sklearn.decomposition import (  # type: ignore
+    LatentDirichletAllocation,
+    TruncatedSVD,
+    PCA)
+from sklearn.preprocessing import (  # type: ignore
+    Imputer,
+    StandardScaler,
+    RobustScaler,
+    MinMaxScaler,
+    Normalizer,
+    Binarizer,
+    PolynomialFeatures)
+from sklearn.ensemble import RandomTreesEmbedding
 
 from eli5.transform import transform_feature_names
 from eli5.sklearn.utils import get_feature_names as _get_feature_names
-
-
-@transform_feature_names.register(Pipeline)
-def _pipeline_names(est, in_names=None):
-    names = in_names
-    for name, trans in est.steps:
-        if trans is not None:
-            names = transform_feature_names(trans, names)
-    return names
-
-
-@transform_feature_names.register(FeatureUnion)
-def _union_names(est, in_names=None):
-    return ['{}:{}'.format(trans_name, feat_name)
-            for trans_name, trans, _ in est._iter()
-            for feat_name in transform_feature_names(trans, in_names)]
-
-
-@transform_feature_names.register(SelectorMixin)
-def _select_names(est, in_names=None):
-    mask = est.get_support(indices=False)
-    in_names = _get_feature_names(est, feature_names=in_names,
-                                  num_features=len(mask))
-    return [in_names[i] for i in np.flatnonzero(mask)]
 
 
 # XXX Should these generic things be in eli5.transform?
@@ -67,10 +57,42 @@ def _component_names(fmt, get_n_outputs):
 
 
 def make_tfn_featurewise(func_name, get_n_inputs=None):
+    """Makes feature names of form func(input_name)
+
+    Parameters
+    ----------
+    func_name : str
+        Specifies constant text to prepend to input feature name.
+    get_n_inputs : callable or str, optional
+        A function or attribute name which, applied to the registered
+        transformer, will return the number of features input (equivalently,
+        output) by it.  Only required when in_names is not provided to
+        transform_feature_names.
+
+    Returns
+    -------
+    tfn : callable
+        A transform_feature_names implementation
+    """
     return _formatted_names(func_name + '({})', get_n_inputs)
 
 
 def make_tfn_components(func_name, get_n_outputs):
+    """Makes feature names of form func0, func1, ...
+
+    Parameters
+    ----------
+    func_name : str
+        Specifies constant text to prepend to output feature number.
+    get_n_outputs : callable or str
+        A function or attribute name which, applied to the registered
+        transformer, will return the number of features output by it.
+
+    Returns
+    -------
+    tfn : callable
+        A transform_feature_names implementation
+    """
     return _component_names(func_name + '{}', get_n_outputs)
 
 
@@ -78,6 +100,22 @@ def make_tfn_weighted(get_weights=None, max_features=3,
                       threshold=None, abs=False,
                       show_weights=True,
                       func_name=None):
+    """Makes feature names representing a weighted sum of input features
+
+    Parameters
+    ----------
+    get_weights : callable or str, optional if max_features=0
+        A function or attribute name which, applied to the registered
+        transformer, will return an array of shape (n_outputs, n_inputs)
+        describing the linear combination of inputs to produce outputs.
+    func_name : str, optional
+        Specifies constant text to prepend to output feature number.
+
+    Returns
+    -------
+    tfn : callable
+        A transform_feature_names implementation
+    """
 
     if max_features and get_weights is None:
         raise ValueError('Require get_weights if max_features != 0')
@@ -136,7 +174,8 @@ def make_tfn_tree_paths(get_trees, show_thresholds=True,
     Parameters
     ----------
     get_trees : callable or str
-        Used to get one or more Tree objects from the estimator
+        A function or attribute name which, applied to the registered
+        transformer, will return one or more trees.
     show_thresholds : bool or str
         If False, feature names in the path are shown without split thresholds.
         If True (default), format string is '0.2g', otherwise according to
@@ -232,45 +271,64 @@ def transform_feature_names_binarizer(est, in_names=None):
     return [fmt.format(name) for name in in_names]
 
 
-def register_experimental_feature_names():
-    from sklearn.feature_extraction.text import TfidfTransformer  # type: ignore
-    from sklearn.decomposition import (  # type: ignore
-        LatentDirichletAllocation,
-        TruncatedSVD,
-        PCA)
-    from sklearn.preprocessing import (  # type: ignore
-        Imputer,
-        StandardScaler,
-        RobustScaler,
-        MinMaxScaler,
-        Normalizer,
-        Binarizer,
-        OneHotEncoder,
-        PolynomialFeatures)
-    from sklearn.ensemble import RandomTreesEmbedding
+# By default these are ignored as all features are treated identically
+# An alternative is to use make_tfn_featurewise
 
-    # By default these are ignored as all features are treated identically
-    @transform_feature_names.register(Imputer)
-    @transform_feature_names.register(StandardScaler)
-    @transform_feature_names.register(RobustScaler)
-    @transform_feature_names.register(MinMaxScaler)
-    @transform_feature_names.register(Normalizer)
-    def identity(est, in_names=None):
-        return in_names
+@transform_feature_names.register(Imputer)
+@transform_feature_names.register(StandardScaler)
+@transform_feature_names.register(RobustScaler)
+@transform_feature_names.register(MinMaxScaler)
+@transform_feature_names.register(Normalizer)
+def identity(est, in_names=None):
+    return in_names
 
-    transform_feature_names.register(Binarizer)(
-        transform_feature_names_binarizer)  # Perhaps should also be identity
-    transform_feature_names.register(PolynomialFeatures)(
-        transform_feature_names_polynomial_features)
-    transform_feature_names.register(RandomTreesEmbedding)(
-        make_tfn_tree_paths(lambda est: [dtc.tree_
-                                         for dtc in est.estimators_]))
 
-    # TODO: OneHotEncoder. scikit-learn#6441 doesn't appear complete
+# Other preprocessing:
 
-    transform_feature_names.register(TfidfTransformer)(
-        make_tfn_featurewise('tfidf', lambda est: len(est.idf_)))
-    for cls, prefix in [(LatentDirichletAllocation, 'topic'),
-                        (PCA, 'pc'), (TruncatedSVD, 'pc')]:
-        transform_feature_names.register(cls)(
-            make_tfn_weighted('components_', func_name=prefix))
+transform_feature_names.register(Binarizer)(
+    transform_feature_names_binarizer)  # Perhaps should also be identity
+transform_feature_names.register(PolynomialFeatures)(
+    transform_feature_names_polynomial_features)
+transform_feature_names.register(RandomTreesEmbedding)(
+    make_tfn_tree_paths(lambda est: [dtc.tree_
+                                     for dtc in est.estimators_]))
+
+# TODO: OneHotEncoder
+
+
+# Decomposition (linear weights):
+
+transform_feature_names.register(TfidfTransformer)(
+    make_tfn_featurewise('tfidf', lambda est: len(est.idf_)))
+for cls, prefix in [(LatentDirichletAllocation, 'topic'),
+                    (PCA, 'pc'), (TruncatedSVD, 'pc')]:
+    transform_feature_names.register(cls)(
+        make_tfn_weighted('components_', func_name=prefix))
+
+
+# Feature selection:
+
+@transform_feature_names.register(SelectorMixin)
+def _select_names(est, in_names=None):
+    mask = est.get_support(indices=False)
+    in_names = _get_feature_names(est, feature_names=in_names,
+                                  num_features=len(mask))
+    return [in_names[i] for i in np.flatnonzero(mask)]
+
+
+# Pipelines
+
+@transform_feature_names.register(Pipeline)
+def _pipeline_names(est, in_names=None):
+    names = in_names
+    for name, trans in est.steps:
+        if trans is not None:
+            names = transform_feature_names(trans, names)
+    return names
+
+
+@transform_feature_names.register(FeatureUnion)
+def _union_names(est, in_names=None):
+    return ['{}:{}'.format(trans_name, feat_name)
+            for trans_name, trans, _ in est._iter()
+            for feat_name in transform_feature_names(trans, in_names)]
