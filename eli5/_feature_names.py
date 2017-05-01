@@ -83,8 +83,8 @@ class FeatureNames(Sized):
 
     def filtered(self, feature_filter, x=None):
         # type: (Any, Any) -> Tuple[FeatureNames, List[int]]
-        """ Return feature names filtered by a regular expression ``feature_re``,
-        and indices of filtered elements.
+        """ Return feature names filtered by a regular expression 
+        ``feature_re``, and indices of filtered elements.
         """
         indices = []
         filtered_feature_names = []

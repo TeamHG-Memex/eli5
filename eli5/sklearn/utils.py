@@ -40,13 +40,13 @@ def is_probabilistic_classifier(clf):
     return True
 
 
-def predict_proba(clf, X):
+def predict_proba(estimator, X):
     # type: (Any, Any) -> Optional[np.ndarray]
-    """ Return result of predict_proba, if the classifier supports it, or None.
+    """ Return result of predict_proba, if an estimator supports it, or None.
     """
-    if is_probabilistic_classifier(clf):
+    if is_probabilistic_classifier(estimator):
         try:
-            proba, = clf.predict_proba(X)
+            proba, = estimator.predict_proba(X)
             return proba
         except NotImplementedError:
             return None
@@ -85,7 +85,10 @@ def get_feature_names(clf, vec=None, bias_name='<BIAS>', feature_names=None,
         else:
             num_features = num_features or get_num_features(clf)
             return FeatureNames(
-                n_features=num_features, unkn_template='x%d', bias_name=bias_name)
+                n_features=num_features,
+                unkn_template='x%d',
+                bias_name=bias_name
+            )
 
     num_features = num_features or get_num_features(clf)
     if isinstance(feature_names, FeatureNames):
@@ -105,6 +108,15 @@ def get_feature_names(clf, vec=None, bias_name='<BIAS>', feature_names=None,
                              "expected=%d, got=%d" % (num_features,
                                                       len(feature_names)))
         return FeatureNames(feature_names, bias_name=bias_name)
+
+
+def get_feature_names_filtered(clf, vec=None, bias_name='<BIAS>',
+                               feature_names=None, num_features=None,
+                               feature_filter=None, feature_re=None):
+    feature_names = get_feature_names(clf, vec=vec, bias_name=bias_name,
+                                      feature_names=feature_names,
+                                      num_features=num_features)
+    return feature_names.handle_filter(feature_filter, feature_re)
 
 
 def get_default_target_names(estimator, num_targets=None):
@@ -163,20 +175,22 @@ def get_coef(clf, label_id, scale=None):
     return np.hstack([coef, bias])
 
 
-def get_num_features(clf):
-    """ Return size of a feature vector classifier expects as an input. """
-    if hasattr(clf, 'coef_'):  # linear models
-        return clf.coef_.shape[-1]
-    elif hasattr(clf, 'feature_importances_'):  # ensembles
-        return clf.feature_importances_.shape[-1]
-    elif hasattr(clf, 'feature_count_'):  # naive bayes
-        return clf.feature_count_.shape[-1]
-    elif hasattr(clf, 'theta_'):
-        return clf.theta_.shape[-1]
-    elif hasattr(clf, 'estimators_') and len(clf.estimators_):  # OvR
-        return get_num_features(clf.estimators_[0])
+def get_num_features(estimator):
+    """ Return size of a feature vector estimator expects as an input. """
+    if hasattr(estimator, 'coef_'):  # linear models
+        return estimator.coef_.shape[-1]
+    elif hasattr(estimator, 'feature_importances_'):  # ensembles
+        return estimator.feature_importances_.shape[-1]
+    elif hasattr(estimator, 'feature_count_'):  # naive bayes
+        return estimator.feature_count_.shape[-1]
+    elif hasattr(estimator, 'theta_'):
+        return estimator.theta_.shape[-1]
+    elif hasattr(estimator, 'estimators_') and len(estimator.estimators_):
+        # OvR
+        return get_num_features(estimator.estimators_[0])
     else:
-        raise ValueError("Can't figure out feature vector size for %s" % clf)
+        raise ValueError("Can't figure out feature vector size for %s" %
+                         estimator)
 
 
 def get_X(doc, vec=None, vectorized=False, to_dense=False):

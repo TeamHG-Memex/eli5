@@ -4,7 +4,7 @@ from singledispatch import singledispatch
 
 import numpy as np  # type: ignore
 
-from sklearn.base import BaseEstimator  # type: ignore
+from sklearn.base import BaseEstimator, RegressorMixin  # type: ignore
 from sklearn.pipeline import Pipeline  # type: ignore
 from sklearn.linear_model import (   # type: ignore
     ElasticNet,  # includes Lasso, MultiTaskElasticNet, etc.
@@ -48,7 +48,7 @@ from sklearn.tree import (  # type: ignore
 )
 
 from eli5.base import (
-    Explanation, TargetExplanation, FeatureWeight, FeatureImportances)
+    Explanation, TargetExplanation, FeatureImportances)
 from eli5._feature_weights import get_top_features
 from eli5.utils import argsort_k_largest_positive, get_target_display_names
 from eli5.sklearn.unhashing import handle_hashing_vec, is_invhashing
@@ -58,11 +58,15 @@ from eli5.sklearn.utils import (
     is_multiclass_classifier,
     is_multitarget_regressor,
     get_feature_names,
+    get_feature_names_filtered,
     get_default_target_names,
 )
 from eli5.explain import explain_weights
 from eli5.transform import transform_feature_names
-
+from eli5._feature_importances import (
+    get_feature_importances_filtered,
+    get_feature_importance_explanation,
+)
 
 LINEAR_CAVEATS = """
 Caveats:
@@ -112,7 +116,6 @@ all values sum to 1.
 _TOP = 20
 
 
-@explain_weights.register(BaseEstimator)
 @singledispatch
 def explain_weights_sklearn(estimator, vec=None, top=_TOP,
                             target_names=None,
@@ -120,10 +123,27 @@ def explain_weights_sklearn(estimator, vec=None, top=_TOP,
                             feature_names=None, coef_scale=None,
                             feature_re=None, feature_filter=None):
     """ Return an explanation of an estimator """
+    return explain_weights_sklearn_not_supported(estimator)
+
+
+@explain_weights.register(BaseEstimator)
+def explain_weights_sklearn_not_supported(
+        estimator, vec=None, top=_TOP,
+        target_names=None,
+        targets=None,
+        feature_names=None, coef_scale=None,
+        feature_re=None, feature_filter=None):
     return Explanation(
         estimator=repr(estimator),
         error="estimator %r is not supported" % estimator,
     )
+
+
+def register(cls):
+    def deco(f):
+        return explain_weights.register(cls)(
+            explain_weights_sklearn.register(cls)(f))
+    return deco
 
 
 @explain_weights.register(OneVsRestClassifier)
@@ -136,20 +156,20 @@ def explain_weights_ovr(ovr, **kwargs):
 @explain_weights_sklearn.register(OneVsRestClassifier)
 def explain_weights_ovr_sklearn(ovr, **kwargs):
     # dispatch OvR to eli5.sklearn
-    # if explain_prediction_sklearn is called explicitly
+    # if explain_weights_sklearn is called explicitly
     estimator = ovr.estimator
     func = explain_weights_sklearn.dispatch(estimator.__class__)
     return func(ovr, **kwargs)
 
 
-@explain_weights_sklearn.register(LogisticRegression)
-@explain_weights_sklearn.register(LogisticRegressionCV)
-@explain_weights_sklearn.register(SGDClassifier)
-@explain_weights_sklearn.register(PassiveAggressiveClassifier)
-@explain_weights_sklearn.register(Perceptron)
-@explain_weights_sklearn.register(LinearSVC)
-@explain_weights_sklearn.register(RidgeClassifier)
-@explain_weights_sklearn.register(RidgeClassifierCV)
+@register(LogisticRegression)
+@register(LogisticRegressionCV)
+@register(SGDClassifier)
+@register(PassiveAggressiveClassifier)
+@register(Perceptron)
+@register(LinearSVC)
+@register(RidgeClassifier)
+@register(RidgeClassifierCV)
 def explain_linear_classifier_weights(clf,
                                       vec=None,
                                       top=_TOP,
@@ -179,9 +199,12 @@ def explain_linear_classifier_weights(clf,
     """
     feature_names, coef_scale = handle_hashing_vec(vec, feature_names,
                                                    coef_scale)
-    feature_names = get_feature_names(clf, vec, feature_names=feature_names)
-    feature_names, flt_indices = feature_names.handle_filter(
-        feature_filter, feature_re)
+    feature_names, flt_indices = get_feature_names_filtered(
+        clf, vec,
+        feature_names=feature_names,
+        feature_filter=feature_filter,
+        feature_re=feature_re,
+    )
 
     _extra_caveats = "\n" + HASHING_CAVEATS if is_invhashing(vec) else ''
 
@@ -221,14 +244,14 @@ def explain_linear_classifier_weights(clf,
         )
 
 
-@explain_weights_sklearn.register(RandomForestClassifier)
-@explain_weights_sklearn.register(RandomForestRegressor)
-@explain_weights_sklearn.register(ExtraTreesClassifier)
-@explain_weights_sklearn.register(ExtraTreesRegressor)
-@explain_weights_sklearn.register(GradientBoostingClassifier)
-@explain_weights_sklearn.register(GradientBoostingRegressor)
-@explain_weights_sklearn.register(AdaBoostClassifier)
-@explain_weights_sklearn.register(AdaBoostRegressor)
+@register(RandomForestClassifier)
+@register(RandomForestRegressor)
+@register(ExtraTreesClassifier)
+@register(ExtraTreesRegressor)
+@register(GradientBoostingClassifier)
+@register(GradientBoostingRegressor)
+@register(AdaBoostClassifier)
+@register(AdaBoostRegressor)
 def explain_rf_feature_importance(estimator,
                                   vec=None,
                                   top=_TOP,
@@ -251,33 +274,22 @@ def explain_rf_feature_importance(estimator,
     raw features to the input of the estimator (e.g. a fitted
     CountVectorizer instance); you can pass it instead of ``feature_names``.
     """
-    feature_names = get_feature_names(estimator, vec,
-                                      feature_names=feature_names)
     coef = estimator.feature_importances_
     trees = np.array(estimator.estimators_).ravel()
     coef_std = np.std([tree.feature_importances_ for tree in trees], axis=0)
-
-    feature_names, flt_indices = feature_names.handle_filter(
-        feature_filter, feature_re)
-    if flt_indices is not None:
-        coef = coef[flt_indices]
-        coef_std = coef_std[flt_indices]
-
-    indices = argsort_k_largest_positive(coef, top)
-    names, values, std = feature_names[indices], coef[indices], coef_std[indices]
-    return Explanation(
-        feature_importances=FeatureImportances(
-            [FeatureWeight(*x) for x in zip(names, values, std)],
-            remaining=np.count_nonzero(coef) - len(indices),
-        ),
+    return get_feature_importance_explanation(estimator, vec, coef,
+        coef_std=coef_std,
+        feature_names=feature_names,
+        feature_filter=feature_filter,
+        feature_re=feature_re,
+        top=top,
         description=DESCRIPTION_RANDOM_FOREST,
-        estimator=repr(estimator),
-        method='feature importances',
+        is_regression=isinstance(estimator, RegressorMixin),
     )
 
 
-@explain_weights_sklearn.register(DecisionTreeClassifier)
-@explain_weights_sklearn.register(DecisionTreeRegressor)
+@register(DecisionTreeClassifier)
+@register(DecisionTreeRegressor)
 def explain_decision_tree(estimator,
                           vec=None,
                           top=_TOP,
@@ -307,14 +319,12 @@ def explain_decision_tree(estimator,
     """
     feature_names = get_feature_names(estimator, vec,
                                       feature_names=feature_names)
-    coef = estimator.feature_importances_
     tree_feature_names = feature_names
     feature_names, flt_indices = feature_names.handle_filter(
         feature_filter, feature_re)
-    if flt_indices is not None:
-        coef = coef[flt_indices]
-    indices = argsort_k_largest_positive(coef, top)
-    names, values = feature_names[indices], coef[indices]
+    feature_importances = get_feature_importances_filtered(
+        estimator.feature_importances_, feature_names, flt_indices, top)
+
     export_graphviz_kwargs.setdefault("proportion", True)
     tree_info = get_tree_info(
         estimator,
@@ -323,10 +333,7 @@ def explain_decision_tree(estimator,
         **export_graphviz_kwargs)
 
     return Explanation(
-        feature_importances=FeatureImportances(
-            [FeatureWeight(*x) for x in zip(names, values)],
-            remaining=np.count_nonzero(coef) - len(indices),
-        ),
+        feature_importances=feature_importances,
         decision_tree=tree_info,
         description=DESCRIPTION_DECISION_TREE,
         estimator=repr(estimator),
@@ -334,20 +341,20 @@ def explain_decision_tree(estimator,
     )
 
 
-@explain_weights_sklearn.register(ElasticNet)
-@explain_weights_sklearn.register(ElasticNetCV)
-@explain_weights_sklearn.register(HuberRegressor)
-@explain_weights_sklearn.register(Lars)
-@explain_weights_sklearn.register(LassoCV)
-@explain_weights_sklearn.register(LinearRegression)
-@explain_weights_sklearn.register(LinearSVR)
-@explain_weights_sklearn.register(OrthogonalMatchingPursuit)
-@explain_weights_sklearn.register(OrthogonalMatchingPursuitCV)
-@explain_weights_sklearn.register(PassiveAggressiveRegressor)
-@explain_weights_sklearn.register(Ridge)
-@explain_weights_sklearn.register(RidgeCV)
-@explain_weights_sklearn.register(SGDRegressor)
-@explain_weights_sklearn.register(TheilSenRegressor)
+@register(ElasticNet)
+@register(ElasticNetCV)
+@register(HuberRegressor)
+@register(Lars)
+@register(LassoCV)
+@register(LinearRegression)
+@register(LinearSVR)
+@register(OrthogonalMatchingPursuit)
+@register(OrthogonalMatchingPursuitCV)
+@register(PassiveAggressiveRegressor)
+@register(Ridge)
+@register(RidgeCV)
+@register(SGDRegressor)
+@register(TheilSenRegressor)
 def explain_linear_regressor_weights(reg,
                                      vec=None,
                                      top=_TOP,
@@ -376,9 +383,12 @@ def explain_linear_regressor_weights(reg,
     """
     feature_names, coef_scale = handle_hashing_vec(vec, feature_names,
                                                    coef_scale)
-    feature_names = get_feature_names(reg, vec, feature_names=feature_names)
-    feature_names, flt_indices = feature_names.handle_filter(
-        feature_filter, feature_re)
+    feature_names, flt_indices = get_feature_names_filtered(
+        reg, vec,
+        feature_names=feature_names,
+        feature_filter=feature_filter,
+        feature_re=feature_re,
+    )
     _extra_caveats = "\n" + HASHING_CAVEATS if is_invhashing(vec) else ''
 
     def _features(target_id):

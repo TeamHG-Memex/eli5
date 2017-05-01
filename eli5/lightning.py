@@ -16,28 +16,43 @@ from eli5.sklearn import (
 from eli5.explain import explain_prediction, explain_weights
 
 
-@explain_weights.register(BaseEstimator)
 @singledispatch
 def explain_weights_lightning(estimator, vec=None, top=20, target_names=None,
                               targets=None, feature_names=None,
                               coef_scale=None):
     """ Return an explanation of a lightning estimator weights """
+    return explain_weights_lightning_not_supported(estimator)
+
+
+@explain_weights.register(BaseEstimator)
+def explain_weights_lightning_not_supported(
+        estimator, vec=None, top=20, target_names=None,
+        targets=None, feature_names=None,
+        coef_scale=None):
     return Explanation(
         estimator=repr(estimator),
-        description="Error: estimator %r is not supported" % estimator,
+        error="Error: estimator %r is not supported" % estimator,
     )
 
 
-@explain_prediction.register(BaseEstimator)
 @singledispatch
 def explain_prediction_lightning(estimator, doc, vec=None, top=None,
                                  target_names=None, targets=None,
                                  feature_names=None, vectorized=False,
                                  coef_scale=None):
     """ Return an explanation of a lightning estimator predictions """
+    return explain_weights_lightning_not_supported(estimator, doc)
+
+
+@explain_prediction.register(BaseEstimator)
+def explain_prediction_lightning_not_supported(
+        estimator, doc, vec=None, top=None,
+        target_names=None, targets=None,
+        feature_names=None, vectorized=False,
+        coef_scale=None):
     return Explanation(
         estimator=repr(estimator),
-        description="Error: estimator %r is not supported" % estimator,
+        error="Error: estimator %r is not supported" % estimator,
     )
 
 
@@ -84,10 +99,14 @@ _REGRESSORS = [
 ]
 
 for clf in _CLASSIFIERS:
+    explain_weights.register(clf, explain_linear_classifier_weights)
     explain_weights_lightning.register(clf, explain_linear_classifier_weights)
+    explain_prediction.register(clf, explain_prediction_linear_classifier)
     explain_prediction_lightning.register(clf, explain_prediction_linear_classifier)
 
 
 for reg in _REGRESSORS:
+    explain_weights.register(reg, explain_linear_regressor_weights)
     explain_weights_lightning.register(reg, explain_linear_regressor_weights)
+    explain_prediction.register(reg, explain_prediction_linear_regressor)
     explain_prediction_lightning.register(reg, explain_prediction_linear_regressor)

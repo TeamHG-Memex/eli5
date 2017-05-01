@@ -13,4 +13,5 @@ API documentation is auto-generated.
    ./sklearn
    ./sklearn_crfsuite
    ./xgboost
+   ./lightgbm
    ./base

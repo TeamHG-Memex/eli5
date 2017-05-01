@@ -57,12 +57,13 @@ from sklearn.multiclass import OneVsRestClassifier
 import pytest
 
 from eli5 import _graphviz
-from eli5 import explain_weights
+from eli5 import explain_weights, explain_weights_sklearn
 from eli5.sklearn import InvertableHashingVectorizer
 from .utils import format_as_all, get_all_features, get_names_coefs
 
 
-def check_newsgroups_explanation_linear(clf, vec, target_names, **kwargs):
+def check_newsgroups_explanation_linear(
+        clf, vec, target_names, explain_weights=explain_weights, **kwargs):
     def get_result():
         _kwargs = dict(vec=vec, target_names=target_names, top=20)
         _kwargs.update(kwargs)
@@ -92,8 +93,8 @@ def check_newsgroups_explanation_linear(clf, vec, target_names, **kwargs):
     assert res == get_result()
 
 
-def assert_explained_weights_linear_classifier(newsgroups_train, clf,
-                                               add_bias=False):
+def assert_explained_weights_linear_classifier(
+        newsgroups_train, clf, add_bias=False, explain_weights=explain_weights):
     docs, y, target_names = newsgroups_train
     vec = TfidfVectorizer()
     X = vec.fit_transform(docs)
@@ -106,6 +107,7 @@ def assert_explained_weights_linear_classifier(newsgroups_train, clf,
     clf.fit(X, y)
     check_newsgroups_explanation_linear(clf, vec, target_names,
                                         feature_names=feature_names,
+                                        explain_weights=explain_weights,
                                         top=(20, 20))
 
 
@@ -158,7 +160,7 @@ def test_explain_linear(newsgroups_train, clf):
 def test_explain_linear_multilabel(clf):
     X, Y = make_multilabel_classification(random_state=42)
     clf.fit(X, Y)
-    res = explain_weights(clf)
+    res = explain_weights_sklearn(clf)
     expl_text, expl_html = format_as_all(res, clf)
     for expl in [expl_text, expl_html]:
         assert 'y=4' in expl
@@ -390,6 +392,8 @@ def test_unsupported():
     for expl in format_as_all(res, clf):
         assert 'Error' in expl
         assert 'BaseEstimator' in expl
+    with pytest.raises(TypeError):
+        explain_weights(clf, unknown_argument=True)
 
 
 @pytest.mark.parametrize(['reg'], [

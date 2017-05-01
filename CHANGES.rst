@@ -1,6 +1,25 @@
 Changelog
 =========
 
+0.5 (2017-04-27)
+----------------
+
+* LightGBM_ support: :func:`eli5.explain_prediction` and
+  :func:`eli5.explain_weights` are now supported for
+  ``LGBMClassifier`` and ``LGBMRegressor``
+  (see :ref:`eli5 LightGBM support <library-lightgbm>`).
+* fixed text formatting if all weights are zero;
+* type checks now use latest mypy;
+* testing setup improvements: Travis CI now uses Ubuntu 14.04.
+
+.. _LightGBM: https://github.com/Microsoft/LightGBM
+
+0.4.2 (2017-03-03)
+------------------
+
+* bug fix: eli5 should remain importable if xgboost is available, but
+  not installed correctly.
+
 0.4.1 (2017-01-25)
 ------------------
 
