@@ -7,6 +7,10 @@ from singledispatch import singledispatch
 def transform_feature_names(transformer, in_names=None):
     """Get feature names for transformer output as a function of input names
 
+    Used by :func:`explain_weights` when applied to a scikit-learn Pipeline,
+    this ``singledispatch`` should be registered with custom name
+    transformations for each class of transformer.
+
     Parameters
     ----------
     transform : scikit-learn-compatible transformer
