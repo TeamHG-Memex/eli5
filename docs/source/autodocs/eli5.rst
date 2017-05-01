@@ -13,3 +13,5 @@ The following functions are exposed to a top level, e.g.
 .. autofunction:: eli5.show_weights
 
 .. autofunction:: eli5.show_prediction
+
+.. autofunction:: eli5.transform_feature_names
