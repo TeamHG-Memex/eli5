@@ -430,6 +430,8 @@ def explain_linear_regressor_weights(reg,
 def explain_weights_pipeline(estimator, feature_names=None, **kwargs):
     last_estimator = estimator.steps[-1][1]
     transform_pipeline = Pipeline(estimator.steps[:-1])
+    if 'vec' in kwargs:
+        feature_names = get_feature_names(feature_names, vec=kwargs.pop('vec'))
     feature_names = transform_feature_names(transform_pipeline, feature_names)
     out = explain_weights(last_estimator,
                           feature_names=feature_names,

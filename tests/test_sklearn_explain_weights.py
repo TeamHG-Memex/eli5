@@ -488,20 +488,20 @@ def test_feature_importances_no_remaining(clf):
         assert 'x1' not in expl  # it has zero importance
 
 
-@pytest.mark.parametrize(['transformer', 'X', 'feature_names'], [
-    [None, [[1, 0], [0, 1]], ['hello', 'world']],
-    [CountVectorizer(), ['hello', 'world'], None],
+@pytest.mark.parametrize(['transformer', 'X', 'feature_names',
+                          'explain_kwargs'], [
+    [None, [[1, 0], [0, 1]], ['hello', 'world'], {}],
+    [None, [[1, 0], [0, 1]], None,
+     {'vec': CountVectorizer().fit(['hello', 'world'])}],
+    [CountVectorizer(), ['hello', 'world'], None, {'top': 1}],
+    [CountVectorizer(), ['hello', 'world'], None, {'top': 2}],
     [make_pipeline(CountVectorizer(),
                    SelectKBest(lambda X, y: np.array([3, 2, 1]), k=2)),
-     ['hello', 'world zzzignored'], None],
+     ['hello', 'world zzzignored'], None, {}],
 ])
 @pytest.mark.parametrize(['predictor'], [
     [LogisticRegression()],
     [LinearSVR()],
-])
-@pytest.mark.parametrize(['explain_kwargs'], [
-    [{'top': 1}],
-    [{'top': 2}],
 ])
 def test_explain_pipeline(predictor, transformer, X, feature_names,
                           explain_kwargs):
