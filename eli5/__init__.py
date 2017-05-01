@@ -6,6 +6,7 @@ __version__ = '0.5'
 from .formatters import format_as_html, format_html_styles, format_as_text
 from .explain import explain_weights, explain_prediction
 from .sklearn import explain_weights_sklearn, explain_prediction_sklearn
+from .transform import transform_feature_names
 
 
 try:

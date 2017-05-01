@@ -53,7 +53,10 @@ class FeatureNames(Sized):
                 return self.feature_names[idx]
             except (TypeError, KeyError, IndexError):
                 return self.unkn_template % idx
-        raise IndexError('Feature index out of range')
+        raise IndexError('Feature index out of range 0 <= {} < {}'.format(idx, self.n_features))
+
+    def take(self, idx, axis=None, out=None, mode=None):
+        return np.take(self.feature_names, idx, out=out, mode=mode)
 
     def _slice(self, aslice):
         # type: (slice) -> Any

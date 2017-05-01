@@ -50,7 +50,9 @@ from sklearn.ensemble import (
     AdaBoostRegressor,
 )
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
-from sklearn.base import BaseEstimator
+from sklearn.base import BaseEstimator, clone
+from sklearn.pipeline import make_pipeline
+from sklearn.feature_selection import SelectKBest
 from sklearn.multiclass import OneVsRestClassifier
 import pytest
 
@@ -484,3 +486,30 @@ def test_feature_importances_no_remaining(clf):
     for expl in format_as_all(res, clf):
         assert 'more features' not in expl and 'more &hellip;' not in expl
         assert 'x1' not in expl  # it has zero importance
+
+
+@pytest.mark.parametrize(['transformer', 'X', 'feature_names',
+                          'explain_kwargs'], [
+    [None, [[1, 0], [0, 1]], ['hello', 'world'], {}],
+    [None, [[1, 0], [0, 1]], None,
+     {'vec': CountVectorizer().fit(['hello', 'world'])}],
+    [CountVectorizer(), ['hello', 'world'], None, {'top': 1}],
+    [CountVectorizer(), ['hello', 'world'], None, {'top': 2}],
+    [make_pipeline(CountVectorizer(),
+                   SelectKBest(lambda X, y: np.array([3, 2, 1]), k=2)),
+     ['hello', 'world zzzignored'], None, {}],
+])
+@pytest.mark.parametrize(['predictor'], [
+    [LogisticRegression()],
+    [LinearSVR()],
+])
+def test_explain_pipeline(predictor, transformer, X, feature_names,
+                          explain_kwargs):
+    y = [1, 0]
+    expected = explain_weights(clone(predictor).fit([[1, 0], [0, 1]], y),
+                               feature_names=['hello', 'world'],
+                               **explain_kwargs)
+    pipe = make_pipeline(transformer, clone(predictor)).fit(X, y)
+    actual = explain_weights(pipe, feature_names=feature_names,
+                             **explain_kwargs)
+    assert expected._repr_html_() == actual._repr_html_()
