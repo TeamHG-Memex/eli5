@@ -5,6 +5,7 @@ from singledispatch import singledispatch
 import numpy as np  # type: ignore
 
 from sklearn.base import BaseEstimator, RegressorMixin  # type: ignore
+from sklearn.pipeline import Pipeline  # type: ignore
 from sklearn.linear_model import (   # type: ignore
     ElasticNet,  # includes Lasso, MultiTaskElasticNet, etc.
     ElasticNetCV,
@@ -61,6 +62,7 @@ from eli5.sklearn.utils import (
     get_default_target_names,
 )
 from eli5.explain import explain_weights
+from eli5.transform import transform_feature_names
 from eli5._feature_importances import (
     get_feature_importances_filtered,
     get_feature_importance_explanation,
@@ -422,3 +424,17 @@ def explain_linear_regressor_weights(reg,
             method='linear model',
             is_regression=True,
         )
+
+
+@explain_weights.register(Pipeline)
+def explain_weights_pipeline(estimator, feature_names=None, **kwargs):
+    last_estimator = estimator.steps[-1][1]
+    transform_pipeline = Pipeline(estimator.steps[:-1])
+    if 'vec' in kwargs:
+        feature_names = get_feature_names(feature_names, vec=kwargs.pop('vec'))
+    feature_names = transform_feature_names(transform_pipeline, feature_names)
+    out = explain_weights(last_estimator,
+                          feature_names=feature_names,
+                          **kwargs)
+    out.estimator = repr(estimator)
+    return out

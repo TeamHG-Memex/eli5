@@ -195,6 +195,23 @@ is independent.
 .. _ExtraTreesClassifier: http://scikit-learn.org/stable/modules/generated/sklearn.ensemble.ExtraTreesClassifier.html#sklearn.ensemble.ExtraTreesClassifier
 .. _ExtraTreesRegressor: http://scikit-learn.org/stable/modules/generated/sklearn.ensemble.ExtraTreesRegressor.html#sklearn.ensemble.ExtraTreesRegressor
 
+.. _sklearn-pipelines:
+
+Transformation pipelines
+------------------------
+
+:func:`eli5.explain_weights` can be applied to a scikit-learn Pipeline_ as
+long as:
+
+* ``explain_weights`` is supported for the final step of the Pipeline
+* :func:`eli5.transform_feature_names` is supported for all preceding steps
+  of the Pipeline. singledispatch_ can be used to register
+  ``transform_feature_names`` for transformer classes not handled (yet) by ELI5
+  or to override the default implementation.
+
+.. _Pipeline: http://scikit-learn.org/stable/modules/generated/sklearn.pipeline.Pipeline.html#sklearn.pipeline.Pipeline
+.. _singledispatch: https://pypi.python.org/pypi/singledispatch
+
 Reversing hashing trick
 -----------------------
 
