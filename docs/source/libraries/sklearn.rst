@@ -219,6 +219,17 @@ automatically; to handle HashingVectorizer_ and FeatureHasher_ for
     # and ``ivec`` can be used as a vectorizer for eli5.explain_weights:
     eli5.explain_weights(clf, vec=ivec)
 
+HashingVectorizer_ is also supported inside a FeatureUnion_:
+:func:`eli5.explain_prediction` handles this case automatically, and for
+:func:`eli5.explain_weights` you can use :func:`eli5.sklearn.invert_hashing_and_fit`
+(it works for plain HashingVectorizer_ too) - it tears FeatureUnion_ apart,
+inverts and fits all hashing vectorizers and returns a new FeatureUnion_::
+
+    from eli5.sklearn import invert_hashing_and_fit
+
+    ivec = invert_hashing_and_fit(vec, X_sample)
+    eli5.explain_weights(clf, vec=ivec)
+
 .. _FeatureHasher: http://scikit-learn.org/stable/modules/generated/sklearn.feature_extraction.FeatureHasher.html#sklearn.feature_extraction.FeatureHasher
 
 .. _sklearn-text-highlighting:

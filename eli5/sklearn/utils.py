@@ -5,9 +5,8 @@ from typing import Any, Optional
 import numpy as np  # type: ignore
 import scipy.sparse as sp  # type: ignore
 from sklearn.multiclass import OneVsRestClassifier  # type: ignore
-from sklearn.feature_extraction.text import HashingVectorizer  # type: ignore
 
-from eli5.sklearn.unhashing import InvertableHashingVectorizer, is_invhashing
+from eli5.sklearn.unhashing import invert_hashing_and_fit, handle_hashing_vec
 from eli5._feature_names import FeatureNames
 
 
@@ -204,13 +203,12 @@ def get_X(doc, vec=None, vectorized=False, to_dense=False):
 
 
 def handle_vec(clf, doc, vec, vectorized, feature_names, num_features=None):
-    if isinstance(vec, HashingVectorizer) and not vectorized:
-        vec = InvertableHashingVectorizer(vec)
-        vec.fit([doc])
-    if is_invhashing(vec) and feature_names is None:
-        # Explaining predictions does not need coef_scale,
-        # because it is handled by the vectorizer.
-        feature_names = vec.get_feature_names(always_signed=False)
+    if not vectorized:
+        vec = invert_hashing_and_fit(vec, [doc])
+    # Explaining predictions does not need coef_scale
+    # because it is handled by the vectorizer.
+    feature_names = handle_hashing_vec(
+        vec, feature_names, coef_scale=None, with_coef_scale=False)
     feature_names = get_feature_names(
         clf, vec, feature_names=feature_names, num_features=num_features)
     return vec, feature_names
