@@ -2,7 +2,7 @@
 """
 
 import numpy as np  # type: ignore
-from sklearn.pipeline import Pipeline
+from sklearn.pipeline import Pipeline  # type: ignore
 from sklearn.feature_selection.base import SelectorMixin  # type: ignore
 
 from eli5.transform import transform_feature_names
