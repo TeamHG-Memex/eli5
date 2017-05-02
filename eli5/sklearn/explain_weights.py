@@ -426,7 +426,7 @@ def explain_linear_regressor_weights(reg,
         )
 
 
-@explain_weights.register(Pipeline)
+@register(Pipeline)
 def explain_weights_pipeline(estimator, feature_names=None, **kwargs):
     last_estimator = estimator.steps[-1][1]
     transform_pipeline = Pipeline(estimator.steps[:-1])
