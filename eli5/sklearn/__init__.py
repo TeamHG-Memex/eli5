@@ -17,3 +17,4 @@ from .unhashing import (
     FeatureUnhasher,
     invert_hashing_and_fit,
 )
+from . import transform as _
