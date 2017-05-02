@@ -15,5 +15,5 @@ from .explain_prediction import (
 from .unhashing import (
     InvertableHashingVectorizer,
     FeatureUnhasher,
-    invert_and_fit,
+    invert_hashing_and_fit,
 )

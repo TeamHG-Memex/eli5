@@ -14,7 +14,7 @@ from sklearn.pipeline import FeatureUnion
 
 from eli5 import explain_prediction, explain_weights
 from eli5.formatters import format_as_html
-from eli5.sklearn import invert_and_fit, InvertableHashingVectorizer
+from eli5.sklearn import invert_hashing_and_fit, InvertableHashingVectorizer
 from .utils import format_as_all, get_all_features, get_names_coefs, write_html
 
 
@@ -189,7 +189,7 @@ def test_explain_feature_union(vec_cls):
     clf = LogisticRegression(random_state=42)
     clf.fit(xs, ys)
 
-    ivec = invert_and_fit(vec, data)
+    ivec = invert_hashing_and_fit(vec, data)
     weights_res = explain_weights(clf, ivec)
     html_expl = format_as_html(weights_res)
     write_html(clf, html_expl, '', postfix='{}_weights'.format(vec_cls.__name__))
@@ -232,7 +232,7 @@ def test_explain_feature_union_with_nontext(vec_cls):
     clf = LogisticRegression(random_state=42)
     clf.fit(xs, ys)
 
-    ivec = invert_and_fit(vec, data)
+    ivec = invert_hashing_and_fit(vec, data)
     weights_res = explain_weights(clf, ivec)
     html_expl = format_as_html(weights_res)
     write_html(clf, html_expl, '', postfix='{}_weights'.format(vec_cls.__name__))
