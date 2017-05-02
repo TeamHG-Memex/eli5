@@ -5,14 +5,16 @@ Utilities to reverse transformation done by FeatureHasher or HashingVectorizer.
 from __future__ import absolute_import
 from collections import defaultdict, Counter
 from itertools import chain
-from typing import List, Iterable, Any, Dict
+from typing import List, Iterable, Any, Dict, Tuple, Union
 
 import numpy as np  # type: ignore
+import six
 from sklearn.base import BaseEstimator, TransformerMixin  # type: ignore
 from sklearn.feature_extraction.text import (  # type: ignore
     HashingVectorizer,
     FeatureHasher,
 )
+from sklearn.pipeline import FeatureUnion  # type: ignore
 
 from eli5._feature_names import FeatureNames
 
@@ -161,7 +163,11 @@ class FeatureUnhasher(BaseEstimator):
         """
         if not self._attributes_dirty and not force:
             return
-        terms = np.array([term for term, _ in self._term_counts.most_common()])
+        terms = [term for term, _ in self._term_counts.most_common()]
+        if six.PY2:
+            terms = np.array(terms, dtype=np.object)
+        else:
+            terms = np.array(terms)
         if len(terms):
             indices, signs = _get_indices_and_signs(self.hasher, terms)
         else:
@@ -225,14 +231,91 @@ def _invert_signs(signs):
     return signs[0] < 0
 
 
-def handle_hashing_vec(vec, feature_names, coef_scale):
+def is_invhashing(vec):
+    return isinstance(vec, InvertableHashingVectorizer)
+
+
+def handle_hashing_vec(vec, feature_names, coef_scale, with_coef_scale=True):
+    """ Return feature_names and coef_scale (if with_coef_scale is True),
+    calling .get_feature_names for invhashing vectorizers.
+    """
+    needs_coef_scale = with_coef_scale and coef_scale is None
     if is_invhashing(vec):
         if feature_names is None:
             feature_names = vec.get_feature_names(always_signed=False)
-        if coef_scale is None:
+        if needs_coef_scale:
             coef_scale = vec.column_signs_
+    elif (isinstance(vec, FeatureUnion) and
+              any(is_invhashing(v) for _, v in vec.transformer_list) and
+              (needs_coef_scale or feature_names is None)):
+        _feature_names, _coef_scale = _invhashing_union_feature_names_scale(vec)
+        if feature_names is None:
+            feature_names = _feature_names
+        if needs_coef_scale:
+            coef_scale = _coef_scale
+    return (feature_names, coef_scale) if with_coef_scale else feature_names
+
+
+def _invhashing_union_feature_names_scale(vec_union):
+    # type: (FeatureUnion) -> Tuple[FeatureNames, np.ndarray]
+    feature_names_store = {}  # type: Dict[int, Union[str, List]]
+    unkn_template = None
+    shift = 0
+    coef_scale_values = []
+    for vec_name, vec in vec_union.transformer_list:
+        if isinstance(vec, InvertableHashingVectorizer):
+            vec_feature_names = vec.get_feature_names(always_signed=False)
+            unkn_template = vec_feature_names.unkn_template
+            for idx, fs in vec_feature_names.feature_names.items():
+                new_fs = []
+                for f in fs:
+                    new_f = dict(f)
+                    new_f['name'] = '{}__{}'.format(vec_name, f['name'])
+                    new_fs.append(new_f)
+                feature_names_store[idx + shift] = new_fs
+            coef_scale_values.append((shift, vec.column_signs_))
+            shift += vec_feature_names.n_features
+        else:
+            vec_feature_names = vec.get_feature_names()
+            feature_names_store.update(
+                (shift + idx, '{}__{}'.format(vec_name, fname))
+                for idx, fname in enumerate(vec_feature_names))
+            shift += len(vec_feature_names)
+    n_features = shift
+    feature_names = FeatureNames(
+        feature_names=feature_names_store,
+        n_features=n_features,
+        unkn_template=unkn_template)
+    coef_scale = np.ones(n_features) * np.nan
+    for idx, values in coef_scale_values:
+        coef_scale[idx: idx + len(values)] = values
     return feature_names, coef_scale
 
 
-def is_invhashing(vec):
-    return isinstance(vec, InvertableHashingVectorizer)
+def invert_hashing_and_fit(vec, docs):
+    # type: (Union[FeatureUnion, HashingVectorizer], Any) -> Union[FeatureUnion, InvertableHashingVectorizer]
+    """ Create an InvertableHashingVectorizer from hashing vectorizer vec
+    and fit it on docs. If vec is a FeatureUnion, do it for all
+    hashing vectorizers in the union.
+    Returns an InvertableHashingVectorizer, or a FeatureUnion,
+    or an unchanged vectorizer.
+    """
+    if isinstance(vec, HashingVectorizer):
+        vec = InvertableHashingVectorizer(vec)
+        vec.fit(docs)
+    elif (isinstance(vec, FeatureUnion) and
+              any(isinstance(v, HashingVectorizer)
+                  for _, v in vec.transformer_list)):
+        vec = _fit_invhashing_union(vec, docs)
+    return vec
+
+
+def _fit_invhashing_union(vec_union, docs):
+    # type: (FeatureUnion, Any) -> FeatureUnion
+    """ Fit InvertableHashingVectorizer on doc inside a FeatureUnion.
+    """
+    return FeatureUnion(
+        [(name, invert_hashing_and_fit(v, docs))
+         for name, v in vec_union.transformer_list],
+        transformer_weights=vec_union.transformer_weights,
+        n_jobs=vec_union.n_jobs)
