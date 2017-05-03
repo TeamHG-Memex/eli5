@@ -422,8 +422,8 @@ def test_explain_linear_regression(boston_train, reg):
 
 
 @pytest.mark.parametrize(['reg'], [
-    [Lasso()],
-    [Lasso(fit_intercept=False)],
+    [Lasso(random_state=42)],
+    [Lasso(fit_intercept=False, random_state=42)],
     [LinearRegression()],
     [LinearRegression(fit_intercept=False)],
 ])
