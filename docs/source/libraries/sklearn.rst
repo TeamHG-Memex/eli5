@@ -203,7 +203,7 @@ Transformation pipelines
 :func:`eli5.explain_weights` can be applied to a scikit-learn Pipeline_ as
 long as:
 
-* ``explain_weights`` is supported for the final step of the Pipeline
+* ``explain_weights`` is supported for the final step of the Pipeline;
 * :func:`eli5.transform_feature_names` is supported for all preceding steps
   of the Pipeline. singledispatch_ can be used to register
   ``transform_feature_names`` for transformer classes not handled (yet) by ELI5
@@ -238,7 +238,7 @@ automatically; to handle HashingVectorizer_ and FeatureHasher_ for
 
 HashingVectorizer_ is also supported inside a FeatureUnion_:
 :func:`eli5.explain_prediction` handles this case automatically, and for
-:func:`eli5.explain_weights` you can use :func:`eli5.sklearn.invert_hashing_and_fit`
+:func:`eli5.explain_weights` you can use :func:`eli5.sklearn.unhashing.invert_hashing_and_fit`
 (it works for plain HashingVectorizer_ too) - it tears FeatureUnion_ apart,
 inverts and fits all hashing vectorizers and returns a new FeatureUnion_::
 

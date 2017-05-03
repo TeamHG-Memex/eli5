@@ -32,7 +32,8 @@ It provides support for the following machine learning frameworks and packages:
   as text or as SVG, show feature importances and explain predictions
   of decision trees and tree-based ensembles. ELI5 understands text
   processing utilities from scikit-learn and can highlight text data
-  accordingly. It also allows to debug scikit-learn pipelines which contain
+  accordingly. Pipeline and FeatureUnion are supported.
+  It also allows to debug scikit-learn pipelines which contain
   HashingVectorizer, by undoing hashing.
 
 * xgboost_ - show feature importances and explain predictions of XGBClassifier

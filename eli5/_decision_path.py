@@ -1,6 +1,7 @@
 # Method for determining feature importances follows an idea from
 # http://blog.datadive.net/interpreting-random-forests/.
-# Implementations are in eli5.xgboost and eli5.sklearn.explain_prediction
+# Implementations are in eli5.xgboost, eli5.lightgbm and
+# eli5.sklearn.explain_prediction.
 from eli5.base import Explanation, TargetExplanation
 from eli5.sklearn.text import add_weighted_spans
 from eli5.utils import get_target_display_names
