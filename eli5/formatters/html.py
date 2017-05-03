@@ -71,11 +71,17 @@ def format_as_html(explanation, include_styles=True, force_weights=True,
     return template.render(
         include_styles=include_styles,
         force_weights=force_weights,
-        target_table_styles='border-collapse: collapse; border: none; margin-top: 0em;',
+        target_table_styles=
+        'border-collapse: collapse; border: none; margin-top: 0em; table-layout: auto;',
         tr_styles='border: none;',
+        # Weight (th and td)
         td1_styles='padding: 0 1em 0 0.5em; text-align: right; border: none;',
-        tdm_styles='padding: 0 0.5em 0 0.5em; text-align: center; border: none;',
+        # N more positive/negative
+        tdm_styles='padding: 0 0.5em 0 0.5em; text-align: center; border: none; '
+                   'white-space: nowrap;',
+        # Feature (th and td)
         td2_styles='padding: 0 0.5em 0 0.5em; text-align: left; border: none;',
+        # Value (th and td)
         td3_styles='padding: 0 0.5em 0 1em; text-align: right; border: none;',
         horizontal_layout_table_styles=
         'border-collapse: collapse; border: none; margin-bottom: 1.5em;',
