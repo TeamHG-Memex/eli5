@@ -5,10 +5,7 @@ import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.feature_selection import SelectPercentile, SelectKBest
 from sklearn.pipeline import FeatureUnion
-from sklearn.datasets import load_iris
 from eli5 import transform_feature_names
-
-iris_X, iris_y = load_iris(return_X_y=True)
 
 
 class MyFeatureExtractor(BaseEstimator, TransformerMixin):
@@ -36,8 +33,9 @@ def selection_score_func(X, y):
                    ('p', SelectPercentile(selection_score_func, 40))]),
      ['k:<NAME1>', 'k:<NAME2>', 'p:<NAME2>']),
 ])
-def test_transform_feature_names_iris(transformer, expected):
-    transformer.fit(iris_X, iris_y)
+def test_transform_feature_names_iris(transformer, expected, iris_train):
+    X, y, _, _ = iris_train
+    transformer.fit(X, y)
     # Test in_names being provided
     assert (transform_feature_names(transformer,
                                     ['<NAME0>', '<NAME1>', '<NAME2>'])
