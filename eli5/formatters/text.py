@@ -20,12 +20,37 @@ _SPACE = '_' if six.PY2 else '░'
 def format_as_text(expl, show=fields.ALL, highlight_spaces=None,
                    show_feature_values=False):
     """ Format explanation as text.
-    If ``highlight_spaces`` is None (default), spaces will be highlighted in
-    feature names only if there are any spaces at the start or at the end of the
-    feature. Setting it to True forces space highlighting, and setting it to False
-    turns it off.
-    If ``show_feature_values`` is True, feature values are shown if present.
-    Default is False.
+
+    Parameters
+    ----------
+    expl : eli5.base.Explanation
+        Explanation returned by ``eli5.explain_weights`` or
+        ``eli5.explain_prediction`` functions.
+
+    highlight_spaces : bool or None, optional
+        Whether to highlight spaces in feature names. This is useful if
+        you work with text and have ngram features which may include spaces
+        at left or right. Default is None, meaning that the value used
+        is set automatically based on vectorizer and feature values.
+
+    show_feature_values : bool
+        When True, feature values are shown along with feature contributions.
+        Default is False.
+
+    show : List[str], optional
+        List of sections to show. Allowed values:
+
+        * 'targets' - per-target feature weights;
+        * 'transition_features' - transition features of a CRF model;
+        * 'feature_importances' - feature importances of a decision tree or
+          an ensemble-based estimator;
+        * 'decision_tree' - decision tree in a graphical form;
+        * 'method' - a string with explanation method;
+        * 'description' - description of explanation method and its caveats.
+
+        ``eli5.formatters.fields`` provides constants that cover common cases:
+        ``INFO`` (method and description), ``WEIGHTS`` (all the rest),
+        and ``ALL`` (all).
     """
     lines = []  # type: List[str]
 
