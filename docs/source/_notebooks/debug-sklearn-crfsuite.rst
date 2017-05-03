@@ -723,7 +723,7 @@ eli5.explain\_weights:
                                         
         
         <table class="eli5-weights"
-               style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
+               style="border-collapse: collapse; border: none; margin-top: 0em; table-layout: auto; width: 100%;">
             <thead>
             <tr style="border: none;">
                 
@@ -812,7 +812,7 @@ eli5.explain\_weights:
             +2.124
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag:CC
+            postag[:2]:CC
         </td>
         
     </tr>
@@ -822,7 +822,7 @@ eli5.explain\_weights:
             +2.124
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag[:2]:CC
+            postag:CC
         </td>
         
     </tr>
@@ -852,7 +852,7 @@ eli5.explain\_weights:
             +1.684
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag[:2]:RG
+            postag:RG
         </td>
         
     </tr>
@@ -862,7 +862,7 @@ eli5.explain\_weights:
             +1.684
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag:RG
+            postag[:2]:RG
         </td>
         
     </tr>
@@ -892,7 +892,7 @@ eli5.explain\_weights:
             +1.610
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag:Fg
+            word[-3:]:-
         </td>
         
     </tr>
@@ -902,7 +902,7 @@ eli5.explain\_weights:
             +1.610
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            word[-3:]:-
+            postag:Fg
         </td>
         
     </tr>
@@ -912,7 +912,7 @@ eli5.explain\_weights:
             +1.582
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            word.lower():.
+            postag:Fp
         </td>
         
     </tr>
@@ -932,7 +932,7 @@ eli5.explain\_weights:
             +1.582
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag:Fp
+            word.lower():.
         </td>
         
     </tr>
@@ -952,7 +952,7 @@ eli5.explain\_weights:
             +1.187
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag[:2]:CS
+            postag:CS
         </td>
         
     </tr>
@@ -962,17 +962,7 @@ eli5.explain\_weights:
             +1.187
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag:CS
-        </td>
-        
-    </tr>
-            
-                <tr style="background-color: hsl(120, 100.00%, 93.83%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +1.150
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag:Fpa
+            postag[:2]:CS
         </td>
         
     </tr>
@@ -992,6 +982,16 @@ eli5.explain\_weights:
             +1.150
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            postag:Fpa
+        </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(120, 100.00%, 93.83%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            +1.150
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             word.lower():(
         </td>
         
@@ -999,7 +999,7 @@ eli5.explain\_weights:
             
             
                 <tr style="background-color: hsl(120, 100.00%, 93.83%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
+                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none; white-space: nowrap;">
                         <i>&hellip; 16444 more positive &hellip;</i>
                     </td>
                 </tr>
@@ -1007,7 +1007,7 @@ eli5.explain\_weights:
     
             
                 <tr style="background-color: hsl(0, 100.00%, 90.57%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
+                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none; white-space: nowrap;">
                         <i>&hellip; 3771 more negative &hellip;</i>
                     </td>
                 </tr>
@@ -1068,7 +1068,7 @@ eli5.explain\_weights:
                                         
         
         <table class="eli5-weights"
-               style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
+               style="border-collapse: collapse; border: none; margin-top: 0em; table-layout: auto; width: 100%;">
             <thead>
             <tr style="border: none;">
                 
@@ -1197,16 +1197,6 @@ eli5.explain\_weights:
             +0.420
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag[:2]:Fg
-        </td>
-        
-    </tr>
-            
-                <tr style="background-color: hsl(120, 100.00%, 96.95%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +0.420
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:postag:Fg
         </td>
         
@@ -1218,6 +1208,16 @@ eli5.explain\_weights:
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:word.lower():-
+        </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(120, 100.00%, 96.95%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            +0.420
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            -1:postag[:2]:Fg
         </td>
         
     </tr>
@@ -1247,7 +1247,7 @@ eli5.explain\_weights:
             +0.389
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:word.lower():(
+            -1:postag:Fpa
         </td>
         
     </tr>
@@ -1257,7 +1257,7 @@ eli5.explain\_weights:
             +0.389
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag:Fpa
+            -1:word.lower():(
         </td>
         
     </tr>
@@ -1284,7 +1284,7 @@ eli5.explain\_weights:
             
             
                 <tr style="background-color: hsl(120, 100.00%, 97.13%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
+                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none; white-space: nowrap;">
                         <i>&hellip; 2282 more positive &hellip;</i>
                     </td>
                 </tr>
@@ -1292,21 +1292,11 @@ eli5.explain\_weights:
     
             
                 <tr style="background-color: hsl(0, 100.00%, 97.11%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
+                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none; white-space: nowrap;">
                         <i>&hellip; 413 more negative &hellip;</i>
                     </td>
                 </tr>
             
-            
-                <tr style="background-color: hsl(0, 100.00%, 97.11%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            -0.389
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag[:2]:Fe
-        </td>
-        
-    </tr>
             
                 <tr style="background-color: hsl(0, 100.00%, 97.11%); border: none;">
         <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
@@ -1324,6 +1314,16 @@ eli5.explain\_weights:
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:postag:Fe
+        </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(0, 100.00%, 97.11%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            -0.389
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            -1:postag[:2]:Fe
         </td>
         
     </tr>
@@ -1373,7 +1373,7 @@ eli5.explain\_weights:
             -0.986
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag[:2]:SP
+            postag:SP
         </td>
         
     </tr>
@@ -1383,7 +1383,7 @@ eli5.explain\_weights:
             -0.986
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag:SP
+            postag[:2]:SP
         </td>
         
     </tr>
@@ -1413,7 +1413,7 @@ eli5.explain\_weights:
                                         
         
         <table class="eli5-weights"
-               style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
+               style="border-collapse: collapse; border: none; margin-top: 0em; table-layout: auto; width: 100%;">
             <thead>
             <tr style="border: none;">
                 
@@ -1512,7 +1512,7 @@ eli5.explain\_weights:
             +0.262
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag[:2]:SP
+            postag:SP
         </td>
         
     </tr>
@@ -1522,7 +1522,7 @@ eli5.explain\_weights:
             +0.262
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag:SP
+            postag[:2]:SP
         </td>
         
     </tr>
@@ -1609,7 +1609,7 @@ eli5.explain\_weights:
             
             
                 <tr style="background-color: hsl(120, 100.00%, 98.15%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
+                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none; white-space: nowrap;">
                         <i>&hellip; 1665 more positive &hellip;</i>
                     </td>
                 </tr>
@@ -1617,7 +1617,7 @@ eli5.explain\_weights:
     
             
                 <tr style="background-color: hsl(0, 100.00%, 98.15%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
+                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none; white-space: nowrap;">
                         <i>&hellip; 258 more negative &hellip;</i>
                     </td>
                 </tr>
@@ -1648,7 +1648,7 @@ eli5.explain\_weights:
             -0.213
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag:CC
+            -1:postag[:2]:CC
         </td>
         
     </tr>
@@ -1658,7 +1658,7 @@ eli5.explain\_weights:
             -0.213
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag[:2]:CC
+            -1:postag:CC
         </td>
         
     </tr>
@@ -1708,7 +1708,7 @@ eli5.explain\_weights:
             -0.366
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            +1:postag:AQ
+            +1:postag[:2]:AQ
         </td>
         
     </tr>
@@ -1718,7 +1718,7 @@ eli5.explain\_weights:
             -0.366
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            +1:postag[:2]:AQ
+            +1:postag:AQ
         </td>
         
     </tr>
@@ -1758,7 +1758,7 @@ eli5.explain\_weights:
                                         
         
         <table class="eli5-weights"
-               style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
+               style="border-collapse: collapse; border: none; margin-top: 0em; table-layout: auto; width: 100%;">
             <thead>
             <tr style="border: none;">
                 
@@ -1797,7 +1797,7 @@ eli5.explain\_weights:
             +0.606
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag:Fe
+            word.lower():&quot;
         </td>
         
     </tr>
@@ -1817,7 +1817,7 @@ eli5.explain\_weights:
             +0.606
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            word.lower():&quot;
+            postag:Fe
         </td>
         
     </tr>
@@ -1857,7 +1857,7 @@ eli5.explain\_weights:
             +0.508
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag[:2]:Fe
+            -1:postag:Fe
         </td>
         
     </tr>
@@ -1867,7 +1867,7 @@ eli5.explain\_weights:
             +0.508
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag:Fe
+            -1:postag[:2]:Fe
         </td>
         
     </tr>
@@ -2024,7 +2024,7 @@ eli5.explain\_weights:
             
             
                 <tr style="background-color: hsl(120, 100.00%, 97.68%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
+                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none; white-space: nowrap;">
                         <i>&hellip; 2284 more positive &hellip;</i>
                     </td>
                 </tr>
@@ -2032,7 +2032,7 @@ eli5.explain\_weights:
     
             
                 <tr style="background-color: hsl(0, 100.00%, 97.54%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
+                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none; white-space: nowrap;">
                         <i>&hellip; 314 more negative &hellip;</i>
                     </td>
                 </tr>
@@ -2063,7 +2063,7 @@ eli5.explain\_weights:
             -0.908
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag:SP
+            postag[:2]:SP
         </td>
         
     </tr>
@@ -2073,7 +2073,7 @@ eli5.explain\_weights:
             -0.908
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag[:2]:SP
+            postag:SP
         </td>
         
     </tr>
@@ -2103,7 +2103,7 @@ eli5.explain\_weights:
                                         
         
         <table class="eli5-weights"
-               style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
+               style="border-collapse: collapse; border: none; margin-top: 0em; table-layout: auto; width: 100%;">
             <thead>
             <tr style="border: none;">
                 
@@ -2142,7 +2142,7 @@ eli5.explain\_weights:
             +0.597
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            +1:postag[:2]:Fe
+            +1:postag:Fe
         </td>
         
     </tr>
@@ -2162,17 +2162,7 @@ eli5.explain\_weights:
             +0.597
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            +1:postag:Fe
-        </td>
-        
-    </tr>
-            
-                <tr style="background-color: hsl(120, 100.00%, 97.21%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +0.369
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag[:2]:NC
+            +1:postag[:2]:Fe
         </td>
         
     </tr>
@@ -2183,6 +2173,16 @@ eli5.explain\_weights:
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             -1:postag:NC
+        </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(120, 100.00%, 97.21%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            +0.369
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            -1:postag[:2]:NC
         </td>
         
     </tr>
@@ -2232,7 +2232,7 @@ eli5.explain\_weights:
             +0.261
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag:SP
+            -1:postag[:2]:SP
         </td>
         
     </tr>
@@ -2242,7 +2242,7 @@ eli5.explain\_weights:
             +0.261
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag[:2]:SP
+            -1:postag:SP
         </td>
         
     </tr>
@@ -2282,7 +2282,7 @@ eli5.explain\_weights:
             +0.234
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            +1:postag[:2]:Z
+            +1:postag:Z
         </td>
         
     </tr>
@@ -2292,7 +2292,7 @@ eli5.explain\_weights:
             +0.234
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            +1:postag:Z
+            +1:postag[:2]:Z
         </td>
         
     </tr>
@@ -2309,7 +2309,7 @@ eli5.explain\_weights:
             
             
                 <tr style="background-color: hsl(120, 100.00%, 98.01%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
+                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none; white-space: nowrap;">
                         <i>&hellip; 3675 more positive &hellip;</i>
                     </td>
                 </tr>
@@ -2317,7 +2317,7 @@ eli5.explain\_weights:
     
             
                 <tr style="background-color: hsl(0, 100.00%, 97.97%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
+                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none; white-space: nowrap;">
                         <i>&hellip; 573 more negative &hellip;</i>
                     </td>
                 </tr>
@@ -2378,7 +2378,7 @@ eli5.explain\_weights:
             -0.306
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag[:2]:CC
+            -1:postag:CC
         </td>
         
     </tr>
@@ -2388,7 +2388,7 @@ eli5.explain\_weights:
             -0.306
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag:CC
+            -1:postag[:2]:CC
         </td>
         
     </tr>
@@ -2448,7 +2448,7 @@ eli5.explain\_weights:
                                         
         
         <table class="eli5-weights"
-               style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
+               style="border-collapse: collapse; border: none; margin-top: 0em; table-layout: auto; width: 100%;">
             <thead>
             <tr style="border: none;">
                 
@@ -2537,7 +2537,7 @@ eli5.explain\_weights:
             +0.671
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            word.lower():pp
+            word[-3:]:PP
         </td>
         
     </tr>
@@ -2547,7 +2547,7 @@ eli5.explain\_weights:
             +0.671
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            word[-3:]:PP
+            word.lower():pp
         </td>
         
     </tr>
@@ -2607,7 +2607,7 @@ eli5.explain\_weights:
             +0.391
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag[:2]:AQ
+            postag:AQ
         </td>
         
     </tr>
@@ -2617,14 +2617,14 @@ eli5.explain\_weights:
             +0.391
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag:AQ
+            postag[:2]:AQ
         </td>
         
     </tr>
             
             
                 <tr style="background-color: hsl(120, 100.00%, 97.10%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
+                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none; white-space: nowrap;">
                         <i>&hellip; 3518 more positive &hellip;</i>
                     </td>
                 </tr>
@@ -2632,7 +2632,7 @@ eli5.explain\_weights:
     
             
                 <tr style="background-color: hsl(0, 100.00%, 96.90%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
+                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none; white-space: nowrap;">
                         <i>&hellip; 619 more negative &hellip;</i>
                     </td>
                 </tr>
@@ -2643,7 +2643,7 @@ eli5.explain\_weights:
             -0.430
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag:AQ
+            -1:postag[:2]:AQ
         </td>
         
     </tr>
@@ -2653,7 +2653,7 @@ eli5.explain\_weights:
             -0.430
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag[:2]:AQ
+            -1:postag:AQ
         </td>
         
     </tr>
@@ -2763,7 +2763,7 @@ eli5.explain\_weights:
             -1.289
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag:SP
+            postag[:2]:SP
         </td>
         
     </tr>
@@ -2773,7 +2773,7 @@ eli5.explain\_weights:
             -1.289
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag[:2]:SP
+            postag:SP
         </td>
         
     </tr>
@@ -2793,7 +2793,7 @@ eli5.explain\_weights:
                                         
         
         <table class="eli5-weights"
-               style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
+               style="border-collapse: collapse; border: none; margin-top: 0em; table-layout: auto; width: 100%;">
             <thead>
             <tr style="border: none;">
                 
@@ -2872,7 +2872,7 @@ eli5.explain\_weights:
             +0.428
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag[:2]:SP
+            -1:postag:SP
         </td>
         
     </tr>
@@ -2882,7 +2882,7 @@ eli5.explain\_weights:
             +0.428
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag:SP
+            -1:postag[:2]:SP
         </td>
         
     </tr>
@@ -2942,7 +2942,7 @@ eli5.explain\_weights:
             +0.336
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag:AQ
+            postag[:2]:AQ
         </td>
         
     </tr>
@@ -2952,17 +2952,7 @@ eli5.explain\_weights:
             +0.336
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag[:2]:AQ
-        </td>
-        
-    </tr>
-            
-                <tr style="background-color: hsl(120, 100.00%, 97.41%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +0.332
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            +1:word.lower():(
+            postag:AQ
         </td>
         
     </tr>
@@ -2973,6 +2963,16 @@ eli5.explain\_weights:
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             +1:postag:Fpa
+        </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(120, 100.00%, 97.41%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            +0.332
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            +1:word.lower():(
         </td>
         
     </tr>
@@ -2999,7 +2999,7 @@ eli5.explain\_weights:
             
             
                 <tr style="background-color: hsl(120, 100.00%, 97.56%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
+                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none; white-space: nowrap;">
                         <i>&hellip; 3473 more positive &hellip;</i>
                     </td>
                 </tr>
@@ -3007,7 +3007,7 @@ eli5.explain\_weights:
     
             
                 <tr style="background-color: hsl(0, 100.00%, 97.57%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
+                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none; white-space: nowrap;">
                         <i>&hellip; 703 more negative &hellip;</i>
                     </td>
                 </tr>
@@ -3018,7 +3018,7 @@ eli5.explain\_weights:
             -0.304
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag:NP
+            postag[:2]:NP
         </td>
         
     </tr>
@@ -3028,7 +3028,7 @@ eli5.explain\_weights:
             -0.304
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag[:2]:NP
+            postag:NP
         </td>
         
     </tr>
@@ -3138,7 +3138,7 @@ eli5.explain\_weights:
                                         
         
         <table class="eli5-weights"
-               style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
+               style="border-collapse: collapse; border: none; margin-top: 0em; table-layout: auto; width: 100%;">
             <thead>
             <tr style="border: none;">
                 
@@ -3257,7 +3257,7 @@ eli5.explain\_weights:
             +0.472
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag[:2]:NC
+            postag:NC
         </td>
         
     </tr>
@@ -3267,17 +3267,7 @@ eli5.explain\_weights:
             +0.472
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag:NC
-        </td>
-        
-    </tr>
-            
-                <tr style="background-color: hsl(120, 100.00%, 96.79%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +0.452
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag:Fc
+            postag[:2]:NC
         </td>
         
     </tr>
@@ -3302,9 +3292,19 @@ eli5.explain\_weights:
         
     </tr>
             
+                <tr style="background-color: hsl(120, 100.00%, 96.79%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            +0.452
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            -1:postag:Fc
+        </td>
+        
+    </tr>
+            
             
                 <tr style="background-color: hsl(120, 100.00%, 96.79%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
+                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none; white-space: nowrap;">
                         <i>&hellip; 4117 more positive &hellip;</i>
                     </td>
                 </tr>
@@ -3312,7 +3312,7 @@ eli5.explain\_weights:
     
             
                 <tr style="background-color: hsl(0, 100.00%, 96.69%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
+                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none; white-space: nowrap;">
                         <i>&hellip; 351 more negative &hellip;</i>
                     </td>
                 </tr>
@@ -3343,7 +3343,7 @@ eli5.explain\_weights:
             -0.475
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag:Fe
+            -1:word.lower():&quot;
         </td>
         
     </tr>
@@ -3353,7 +3353,7 @@ eli5.explain\_weights:
             -0.475
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:word.lower():&quot;
+            -1:postag:Fe
         </td>
         
     </tr>
@@ -3453,7 +3453,7 @@ eli5.explain\_weights:
             -1.319
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag[:2]:DA
+            postag:DA
         </td>
         
     </tr>
@@ -3463,7 +3463,7 @@ eli5.explain\_weights:
             -1.319
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag:DA
+            postag[:2]:DA
         </td>
         
     </tr>
@@ -3483,7 +3483,7 @@ eli5.explain\_weights:
                                         
         
         <table class="eli5-weights"
-               style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
+               style="border-collapse: collapse; border: none; margin-top: 0em; table-layout: auto; width: 100%;">
             <thead>
             <tr style="border: none;">
                 
@@ -3532,7 +3532,7 @@ eli5.explain\_weights:
             +0.598
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag:AQ
+            -1:postag[:2]:AQ
         </td>
         
     </tr>
@@ -3542,7 +3542,7 @@ eli5.explain\_weights:
             +0.598
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag[:2]:AQ
+            -1:postag:AQ
         </td>
         
     </tr>
@@ -3612,7 +3612,7 @@ eli5.explain\_weights:
             +0.315
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag:NC
+            postag[:2]:NC
         </td>
         
     </tr>
@@ -3622,7 +3622,7 @@ eli5.explain\_weights:
             +0.315
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag[:2]:NC
+            postag:NC
         </td>
         
     </tr>
@@ -3639,7 +3639,7 @@ eli5.explain\_weights:
             
             
                 <tr style="background-color: hsl(120, 100.00%, 97.54%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
+                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none; white-space: nowrap;">
                         <i>&hellip; 3903 more positive &hellip;</i>
                     </td>
                 </tr>
@@ -3647,7 +3647,7 @@ eli5.explain\_weights:
     
             
                 <tr style="background-color: hsl(0, 100.00%, 97.59%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
+                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none; white-space: nowrap;">
                         <i>&hellip; 365 more negative &hellip;</i>
                     </td>
                 </tr>
@@ -3658,7 +3658,7 @@ eli5.explain\_weights:
             -0.301
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag:NP
+            postag[:2]:NP
         </td>
         
     </tr>
@@ -3668,7 +3668,7 @@ eli5.explain\_weights:
             -0.301
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag[:2]:NP
+            postag:NP
         </td>
         
     </tr>
@@ -3698,7 +3698,7 @@ eli5.explain\_weights:
             -0.305
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag:Fe
+            word.lower():&quot;
         </td>
         
     </tr>
@@ -3708,7 +3708,7 @@ eli5.explain\_weights:
             -0.305
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            word.lower():&quot;
+            postag:Fe
         </td>
         
     </tr>
@@ -4473,7 +4473,7 @@ Let's check what effect does regularization have on CRF weights:
                                         
         
         <table class="eli5-weights"
-               style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
+               style="border-collapse: collapse; border: none; margin-top: 0em; table-layout: auto; width: 100%;">
             <thead>
             <tr style="border: none;">
                 
@@ -4532,7 +4532,7 @@ Let's check what effect does regularization have on CRF weights:
             +0.439
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            +1:postag:AQ
+            +1:postag[:2]:AQ
         </td>
         
     </tr>
@@ -4542,7 +4542,17 @@ Let's check what effect does regularization have on CRF weights:
             +0.439
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            +1:postag[:2]:AQ
+            +1:postag:AQ
+        </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(120, 100.00%, 96.78%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            +0.400
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            postag[:2]:Fc
         </td>
         
     </tr>
@@ -4573,16 +4583,6 @@ Let's check what effect does regularization have on CRF weights:
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             postag:Fc
-        </td>
-        
-    </tr>
-            
-                <tr style="background-color: hsl(120, 100.00%, 96.78%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +0.400
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag[:2]:Fc
         </td>
         
     </tr>
@@ -4642,7 +4642,7 @@ Let's check what effect does regularization have on CRF weights:
             +0.315
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag[:2]:SP
+            postag:SP
         </td>
         
     </tr>
@@ -4652,7 +4652,7 @@ Let's check what effect does regularization have on CRF weights:
             +0.315
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag:SP
+            postag[:2]:SP
         </td>
         
     </tr>
@@ -4669,7 +4669,7 @@ Let's check what effect does regularization have on CRF weights:
             
             
                 <tr style="background-color: hsl(120, 100.00%, 97.36%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
+                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none; white-space: nowrap;">
                         <i>&hellip; 15 more positive &hellip;</i>
                     </td>
                 </tr>
@@ -4677,7 +4677,7 @@ Let's check what effect does regularization have on CRF weights:
     
             
                 <tr style="background-color: hsl(0, 100.00%, 97.91%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
+                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none; white-space: nowrap;">
                         <i>&hellip; 14 more negative &hellip;</i>
                     </td>
                 </tr>
@@ -4748,7 +4748,7 @@ Let's check what effect does regularization have on CRF weights:
             -0.547
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag:NC
+            postag[:2]:NC
         </td>
         
     </tr>
@@ -4758,7 +4758,7 @@ Let's check what effect does regularization have on CRF weights:
             -0.547
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag[:2]:NC
+            postag:NC
         </td>
         
     </tr>
@@ -4818,7 +4818,7 @@ Let's check what effect does regularization have on CRF weights:
                                         
         
         <table class="eli5-weights"
-               style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
+               style="border-collapse: collapse; border: none; margin-top: 0em; table-layout: auto; width: 100%;">
             <thead>
             <tr style="border: none;">
                 
@@ -4907,7 +4907,7 @@ Let's check what effect does regularization have on CRF weights:
             +0.081
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:word.lower():(
+            -1:postag:Fpa
         </td>
         
     </tr>
@@ -4917,17 +4917,7 @@ Let's check what effect does regularization have on CRF weights:
             +0.081
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag:Fpa
-        </td>
-        
-    </tr>
-            
-                <tr style="background-color: hsl(120, 100.00%, 98.95%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +0.080
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag:NP
+            -1:word.lower():(
         </td>
         
     </tr>
@@ -4942,12 +4932,12 @@ Let's check what effect does regularization have on CRF weights:
         
     </tr>
             
-                <tr style="background-color: hsl(120, 100.00%, 99.19%); border: none;">
+                <tr style="background-color: hsl(120, 100.00%, 98.95%); border: none;">
         <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +0.056
+            +0.080
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag[:2]:SP
+            postag:NP
         </td>
         
     </tr>
@@ -4962,12 +4952,12 @@ Let's check what effect does regularization have on CRF weights:
         
     </tr>
             
-                <tr style="background-color: hsl(120, 100.00%, 99.58%); border: none;">
+                <tr style="background-color: hsl(120, 100.00%, 99.19%); border: none;">
         <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +0.022
+            +0.056
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag[:2]:NC
+            -1:postag[:2]:SP
         </td>
         
     </tr>
@@ -4978,6 +4968,16 @@ Let's check what effect does regularization have on CRF weights:
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
             postag:NC
+        </td>
+        
+    </tr>
+            
+                <tr style="background-color: hsl(120, 100.00%, 99.58%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            +0.022
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            postag[:2]:NC
         </td>
         
     </tr>
@@ -5041,7 +5041,7 @@ Let's check what effect does regularization have on CRF weights:
                                         
         
         <table class="eli5-weights"
-               style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
+               style="border-collapse: collapse; border: none; margin-top: 0em; table-layout: auto; width: 100%;">
             <thead>
             <tr style="border: none;">
                 
@@ -5164,7 +5164,7 @@ Let's check what effect does regularization have on CRF weights:
                                         
         
         <table class="eli5-weights"
-               style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
+               style="border-collapse: collapse; border: none; margin-top: 0em; table-layout: auto; width: 100%;">
             <thead>
             <tr style="border: none;">
                 
@@ -5227,7 +5227,7 @@ Let's check what effect does regularization have on CRF weights:
             -0.009
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag[:2]:SP
+            -1:postag:SP
         </td>
         
     </tr>
@@ -5237,7 +5237,7 @@ Let's check what effect does regularization have on CRF weights:
             -0.009
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag:SP
+            -1:postag[:2]:SP
         </td>
         
     </tr>
@@ -5277,7 +5277,7 @@ Let's check what effect does regularization have on CRF weights:
                                         
         
         <table class="eli5-weights"
-               style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
+               style="border-collapse: collapse; border: none; margin-top: 0em; table-layout: auto; width: 100%;">
             <thead>
             <tr style="border: none;">
                 
@@ -5306,7 +5306,7 @@ Let's check what effect does regularization have on CRF weights:
             +0.158
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag:NC
+            -1:postag[:2]:NC
         </td>
         
     </tr>
@@ -5316,7 +5316,7 @@ Let's check what effect does regularization have on CRF weights:
             +0.158
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag[:2]:NC
+            -1:postag:NC
         </td>
         
     </tr>
@@ -5336,7 +5336,7 @@ Let's check what effect does regularization have on CRF weights:
             +0.146
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            +1:postag:Fe
+            +1:word.lower():&quot;
         </td>
         
     </tr>
@@ -5346,7 +5346,7 @@ Let's check what effect does regularization have on CRF weights:
             +0.146
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            +1:word.lower():&quot;
+            +1:postag:Fe
         </td>
         
     </tr>
@@ -5450,7 +5450,7 @@ Let's check what effect does regularization have on CRF weights:
                                         
         
         <table class="eli5-weights"
-               style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
+               style="border-collapse: collapse; border: none; margin-top: 0em; table-layout: auto; width: 100%;">
             <thead>
             <tr style="border: none;">
                 
@@ -5489,7 +5489,7 @@ Let's check what effect does regularization have on CRF weights:
             +0.350
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag[:2]:DA
+            -1:postag:DA
         </td>
         
     </tr>
@@ -5499,7 +5499,7 @@ Let's check what effect does regularization have on CRF weights:
             +0.350
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag:DA
+            -1:postag[:2]:DA
         </td>
         
     </tr>
@@ -5529,7 +5529,7 @@ Let's check what effect does regularization have on CRF weights:
             +0.195
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag:Fpa
+            -1:word.lower():(
         </td>
         
     </tr>
@@ -5539,7 +5539,7 @@ Let's check what effect does regularization have on CRF weights:
             +0.195
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:word.lower():(
+            -1:postag:Fpa
         </td>
         
     </tr>
@@ -5559,7 +5559,7 @@ Let's check what effect does regularization have on CRF weights:
             +0.178
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            +1:word.lower():)
+            +1:postag:Fpt
         </td>
         
     </tr>
@@ -5569,7 +5569,7 @@ Let's check what effect does regularization have on CRF weights:
             +0.178
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            +1:postag:Fpt
+            +1:word.lower():)
         </td>
         
     </tr>
@@ -5599,7 +5599,7 @@ Let's check what effect does regularization have on CRF weights:
             +0.110
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag:NC
+            postag[:2]:NC
         </td>
         
     </tr>
@@ -5609,7 +5609,7 @@ Let's check what effect does regularization have on CRF weights:
             +0.110
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag[:2]:NC
+            postag:NC
         </td>
         
     </tr>
@@ -5643,7 +5643,7 @@ Let's check what effect does regularization have on CRF weights:
             -0.041
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            +1:postag[:2]:NC
+            +1:postag:NC
         </td>
         
     </tr>
@@ -5653,7 +5653,7 @@ Let's check what effect does regularization have on CRF weights:
             -0.041
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            +1:postag:NC
+            +1:postag[:2]:NC
         </td>
         
     </tr>
@@ -5693,7 +5693,7 @@ Let's check what effect does regularization have on CRF weights:
                                         
         
         <table class="eli5-weights"
-               style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
+               style="border-collapse: collapse; border: none; margin-top: 0em; table-layout: auto; width: 100%;">
             <thead>
             <tr style="border: none;">
                 
@@ -5732,7 +5732,7 @@ Let's check what effect does regularization have on CRF weights:
             +0.185
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag[:2]:SP
+            -1:postag:SP
         </td>
         
     </tr>
@@ -5742,7 +5742,7 @@ Let's check what effect does regularization have on CRF weights:
             +0.185
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag:SP
+            -1:postag[:2]:SP
         </td>
         
     </tr>
@@ -5816,7 +5816,7 @@ Let's check what effect does regularization have on CRF weights:
                                         
         
         <table class="eli5-weights"
-               style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
+               style="border-collapse: collapse; border: none; margin-top: 0em; table-layout: auto; width: 100%;">
             <thead>
             <tr style="border: none;">
                 
@@ -5845,7 +5845,7 @@ Let's check what effect does regularization have on CRF weights:
             +0.463
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag[:2]:Fc
+            -1:word.lower():,
         </td>
         
     </tr>
@@ -5855,7 +5855,7 @@ Let's check what effect does regularization have on CRF weights:
             +0.463
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:word.lower():,
+            -1:postag[:2]:Fc
         </td>
         
     </tr>
@@ -5999,7 +5999,7 @@ Let's check what effect does regularization have on CRF weights:
             -0.263
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag[:2]:DA
+            -1:postag:DA
         </td>
         
     </tr>
@@ -6009,7 +6009,7 @@ Let's check what effect does regularization have on CRF weights:
             -0.263
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag:DA
+            -1:postag[:2]:DA
         </td>
         
     </tr>
@@ -6029,7 +6029,7 @@ Let's check what effect does regularization have on CRF weights:
                                         
         
         <table class="eli5-weights"
-               style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
+               style="border-collapse: collapse; border: none; margin-top: 0em; table-layout: auto; width: 100%;">
             <thead>
             <tr style="border: none;">
                 
@@ -6068,7 +6068,7 @@ Let's check what effect does regularization have on CRF weights:
             +0.016
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            +1:postag:Fc
+            +1:postag[:2]:Fc
         </td>
         
     </tr>
@@ -6088,7 +6088,7 @@ Let's check what effect does regularization have on CRF weights:
             +0.016
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            +1:postag[:2]:Fc
+            +1:postag:Fc
         </td>
         
     </tr>
@@ -6855,7 +6855,7 @@ subset of labels:
                                         
         
         <table class="eli5-weights"
-               style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
+               style="border-collapse: collapse; border: none; margin-top: 0em; table-layout: auto; width: 100%;">
             <thead>
             <tr style="border: none;">
                 
@@ -6904,7 +6904,7 @@ subset of labels:
             +2.328
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag[:2]:Fc
+            word[-3:]:,
         </td>
         
     </tr>
@@ -6924,7 +6924,7 @@ subset of labels:
             +2.328
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            word[-3:]:,
+            postag[:2]:Fc
         </td>
         
     </tr>
@@ -6941,7 +6941,7 @@ subset of labels:
             
             
                 <tr style="background-color: hsl(120, 100.00%, 90.77%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
+                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none; white-space: nowrap;">
                         <i>&hellip; 15039 more positive &hellip;</i>
                     </td>
                 </tr>
@@ -6949,7 +6949,7 @@ subset of labels:
     
             
                 <tr style="background-color: hsl(0, 100.00%, 91.16%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
+                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none; white-space: nowrap;">
                         <i>&hellip; 3905 more negative &hellip;</i>
                     </td>
                 </tr>
@@ -7000,7 +7000,7 @@ subset of labels:
                                         
         
         <table class="eli5-weights"
-               style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
+               style="border-collapse: collapse; border: none; margin-top: 0em; table-layout: auto; width: 100%;">
             <thead>
             <tr style="border: none;">
                 
@@ -7086,7 +7086,7 @@ subset of labels:
             
             
                 <tr style="background-color: hsl(120, 100.00%, 95.39%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
+                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none; white-space: nowrap;">
                         <i>&hellip; 3524 more positive &hellip;</i>
                     </td>
                 </tr>
@@ -7094,7 +7094,7 @@ subset of labels:
     
             
                 <tr style="background-color: hsl(0, 100.00%, 95.47%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
+                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none; white-space: nowrap;">
                         <i>&hellip; 621 more negative &hellip;</i>
                     </td>
                 </tr>
@@ -7115,7 +7115,7 @@ subset of labels:
             -1.416
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag:SP
+            postag[:2]:SP
         </td>
         
     </tr>
@@ -7125,7 +7125,7 @@ subset of labels:
             -1.416
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            postag[:2]:SP
+            postag:SP
         </td>
         
     </tr>
@@ -7145,7 +7145,7 @@ subset of labels:
                                         
         
         <table class="eli5-weights"
-               style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
+               style="border-collapse: collapse; border: none; margin-top: 0em; table-layout: auto; width: 100%;">
             <thead>
             <tr style="border: none;">
                 
@@ -7184,7 +7184,7 @@ subset of labels:
             +0.637
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag:SP
+            -1:postag[:2]:SP
         </td>
         
     </tr>
@@ -7194,7 +7194,7 @@ subset of labels:
             +0.637
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            -1:postag[:2]:SP
+            -1:postag:SP
         </td>
         
     </tr>
@@ -7221,7 +7221,7 @@ subset of labels:
             
             
                 <tr style="background-color: hsl(120, 100.00%, 96.65%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
+                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none; white-space: nowrap;">
                         <i>&hellip; 3517 more positive &hellip;</i>
                     </td>
                 </tr>
@@ -7229,7 +7229,7 @@ subset of labels:
     
             
                 <tr style="background-color: hsl(0, 100.00%, 96.95%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
+                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none; white-space: nowrap;">
                         <i>&hellip; 676 more negative &hellip;</i>
                     </td>
                 </tr>
@@ -7392,7 +7392,7 @@ hide transition table:
             </p>
         
         <table class="eli5-weights"
-               style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
+               style="border-collapse: collapse; border: none; margin-top: 0em; table-layout: auto; margin-bottom: 2em;">
             <thead>
             <tr style="border: none;">
                 
@@ -7459,7 +7459,7 @@ hide transition table:
             </p>
         
         <table class="eli5-weights"
-               style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
+               style="border-collapse: collapse; border: none; margin-top: 0em; table-layout: auto; margin-bottom: 2em;">
             <thead>
             <tr style="border: none;">
                 
@@ -7536,7 +7536,7 @@ hide transition table:
             </p>
         
         <table class="eli5-weights"
-               style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
+               style="border-collapse: collapse; border: none; margin-top: 0em; table-layout: auto; margin-bottom: 2em;">
             <thead>
             <tr style="border: none;">
                 
@@ -7613,7 +7613,7 @@ hide transition table:
             </p>
         
         <table class="eli5-weights"
-               style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
+               style="border-collapse: collapse; border: none; margin-top: 0em; table-layout: auto; margin-bottom: 2em;">
             <thead>
             <tr style="border: none;">
                 
@@ -7690,7 +7690,7 @@ hide transition table:
             </p>
         
         <table class="eli5-weights"
-               style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
+               style="border-collapse: collapse; border: none; margin-top: 0em; table-layout: auto; margin-bottom: 2em;">
             <thead>
             <tr style="border: none;">
                 
@@ -7767,7 +7767,7 @@ hide transition table:
             </p>
         
         <table class="eli5-weights"
-               style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
+               style="border-collapse: collapse; border: none; margin-top: 0em; table-layout: auto; margin-bottom: 2em;">
             <thead>
             <tr style="border: none;">
                 
@@ -7844,7 +7844,7 @@ hide transition table:
             </p>
         
         <table class="eli5-weights"
-               style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
+               style="border-collapse: collapse; border: none; margin-top: 0em; table-layout: auto; margin-bottom: 2em;">
             <thead>
             <tr style="border: none;">
                 
@@ -7921,7 +7921,7 @@ hide transition table:
             </p>
         
         <table class="eli5-weights"
-               style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
+               style="border-collapse: collapse; border: none; margin-top: 0em; table-layout: auto; margin-bottom: 2em;">
             <thead>
             <tr style="border: none;">
                 
@@ -7998,7 +7998,7 @@ hide transition table:
             </p>
         
         <table class="eli5-weights"
-               style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
+               style="border-collapse: collapse; border: none; margin-top: 0em; table-layout: auto; margin-bottom: 2em;">
             <thead>
             <tr style="border: none;">
                 
