@@ -1,6 +1,25 @@
 Changelog
 =========
 
+0.6 (2017-05-03)
+----------------
+
+* Better scikit-learn Pipeline support in :func:`eli5.explain_weights`:
+  it is now possible to pass a Pipeline object directly. Curently only
+  SelectorMixin-based transformers, FeatureUnion and transformers
+  with ``get_feature_names`` are supported, but users can register other
+  transformers; built-in list of supported transformers will be expanded
+  in future. See :ref:`sklearn-pipelines` for more.
+* Inverting of HashingVectorizer is now supported inside FeatureUnion
+  via :func:`eli5.sklearn.unhashing.invert_hashing_and_fit`.
+  See :ref:`sklearn-unhashing`.
+* Fixed compatibility with Jupyter Notebook >= 5.0.0.
+* Fixed :func:`eli5.explain_weights` for Lasso regression with a single
+  feature and no intercept.
+* Fixed unhashing support in Python 2.x.
+* Documentation and testing improvements.
+
+
 0.5 (2017-04-27)
 ----------------
 
