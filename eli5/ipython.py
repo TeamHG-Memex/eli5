@@ -78,6 +78,10 @@ def show_weights(estimator, **kwargs):
         * 'method' - a string with explanation method;
         * 'description' - description of explanation method and its caveats.
 
+        ``eli5.formatters.fields`` provides constants that cover common cases:
+        ``INFO`` (method and description), ``WEIGHTS`` (all the rest),
+        and ``ALL`` (all).
+
     horizontal_layout : bool
         When True, feature weight tables are printed horizontally
         (left to right); when False, feature weight tables are printed
@@ -184,6 +188,21 @@ def show_prediction(estimator, doc, **kwargs):
         Only feature names for which ``feature_filter`` function returns True
         are shown. It must accept feature name and feature value.
         Missing features always have a NaN value.
+
+    show : List[str], optional
+        List of sections to show. Allowed values:
+
+        * 'targets' - per-target feature weights;
+        * 'transition_features' - transition features of a CRF model;
+        * 'feature_importances' - feature importances of a decision tree or
+          an ensemble-based estimator;
+        * 'decision_tree' - decision tree in a graphical form;
+        * 'method' - a string with explanation method;
+        * 'description' - description of explanation method and its caveats.
+
+        ``eli5.formatters.fields`` provides constants that cover common cases:
+        ``INFO`` (method and description), ``WEIGHTS`` (all the rest),
+        and ``ALL`` (all).
 
     horizontal_layout : bool
         When True, feature weight tables are printed horizontally
