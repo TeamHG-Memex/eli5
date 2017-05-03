@@ -225,12 +225,12 @@ For instance, imagine a transformer which selects every second feature::
         def transform(self, X):
             return check_array(X)[:, 1::2]
 
-    @transform_feature_names.register
+    @transform_feature_names.register(OddTransformer)
     def odd_feature_names(transformer, in_names=None):
         if in_names is None:
             from eli5.sklearn.utils import get_feature_names
             # generate default feature names
-            in_names = get_feature_names(num_features=transformer.n_features_)
+            in_names = get_feature_names(transformer, num_features=transformer.n_features_)
         # return a list of strings derived from in_names
         return in_names[1::2]
 
