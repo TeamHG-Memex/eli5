@@ -421,6 +421,26 @@ def test_explain_linear_regression(boston_train, reg):
     assert_explained_weights_linear_regressor(boston_train, reg)
 
 
+@pytest.mark.parametrize(['reg'], [
+    [Lasso()],
+    [Lasso(fit_intercept=False)],
+    [LinearRegression()],
+    [LinearRegression(fit_intercept=False)],
+])
+def test_explain_linear_regression_one_feature(reg):
+    xs, ys = make_regression(n_samples=10, n_features=1, bias=7.5)
+    reg.fit(xs, ys)
+    res = explain_weights(reg)
+    expl_text, expl_html = format_as_all(res, reg)
+
+    for expl in [expl_text, expl_html]:
+        assert 'x0' in expl
+
+    if reg.fit_intercept:
+        assert '<BIAS>' in expl_text
+        assert '&lt;BIAS&gt;' in expl_html
+
+
 def test_explain_linear_regression_feature_filter(boston_train):
     clf = ElasticNet(random_state=42)
     X, y, feature_names = boston_train

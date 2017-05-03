@@ -124,7 +124,7 @@ def get_default_target_names(estimator, num_targets=None):
     and "y0", "y1", ... if there are multiple targets.
     """
     if num_targets is None:
-        if len(estimator.coef_.shape) == 1:
+        if len(estimator.coef_.shape) <= 1:
             num_targets = 1
         else:
             num_targets, _ = estimator.coef_.shape
@@ -152,6 +152,9 @@ def get_coef(clf, label_id, scale=None):
             raise ValueError(
                 'Unexpected label_id %s for 1D coefficient' % label_id)
         coef = clf.coef_
+    elif len(clf.coef_.shape) == 0:
+        # Lasso with one feature: 0D array
+        coef = np.array([clf.coef_])
     else:
         raise ValueError('Unexpected clf.coef_ shape: %s' % clf.coef_.shape)
 
@@ -177,6 +180,8 @@ def get_coef(clf, label_id, scale=None):
 def get_num_features(estimator):
     """ Return size of a feature vector estimator expects as an input. """
     if hasattr(estimator, 'coef_'):  # linear models
+        if len(estimator.coef_.shape) == 0:
+            return 1
         return estimator.coef_.shape[-1]
     elif hasattr(estimator, 'feature_importances_'):  # ensembles
         return estimator.feature_importances_.shape[-1]
