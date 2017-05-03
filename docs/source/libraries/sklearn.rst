@@ -245,8 +245,26 @@ transformer will always be passed the set of feature names either from
 ``explain_weights(my_pipeline, feature_names=...)`` or from the previous step
 in the Pipeline.
 
+Currently the following transformers are supported out of the box:
+
+* any transformer which provides ``.get_feature_names()`` method;
+* nested FeatureUnions and Pipelines;
+* SelectorMixin-based transformers: SelectPercentile_,
+  SelectKBest_, GenericUnivariateSelect_, VarianceThreshold_,
+  RFE_, RFECV_, SelectFromModel_, RandomizedLogisticRegression_.
+
+.. _GenericUnivariateSelect: http://scikit-learn.org/stable/modules/generated/sklearn.feature_selection.GenericUnivariateSelect.html
+.. _SelectPercentile: http://scikit-learn.org/stable/modules/generated/sklearn.feature_selection.SelectPercentile.html
+.. _SelectKBest: http://scikit-learn.org/stable/modules/generated/sklearn.feature_selection.SelectKBest.html
+.. _SelectFromModel: http://scikit-learn.org/stable/modules/generated/sklearn.feature_selection.SelectFromModel.html
+.. _RFE: http://scikit-learn.org/stable/modules/generated/sklearn.feature_selection.RFE.html
+.. _RFECV: http://scikit-learn.org/stable/modules/generated/sklearn.feature_selection.RFECV.html
+.. _VarianceThreshold: http://scikit-learn.org/stable/modules/generated/sklearn.feature_selection.VarianceThreshold.html
+.. _RandomizedLogisticRegression: http://scikit-learn.org/stable/modules/generated/sklearn.linear_model.RandomizedLogisticRegression.html
 .. _Pipeline: http://scikit-learn.org/stable/modules/generated/sklearn.pipeline.Pipeline.html#sklearn.pipeline.Pipeline
 .. _singledispatch: https://pypi.python.org/pypi/singledispatch
+
+.. _sklearn-unhashing:
 
 Reversing hashing trick
 -----------------------
