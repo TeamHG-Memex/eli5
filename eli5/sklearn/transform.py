@@ -2,7 +2,7 @@
 """
 
 import numpy as np  # type: ignore
-from sklearn.pipeline import Pipeline  # type: ignore
+from sklearn.pipeline import Pipeline, FeatureUnion  # type: ignore
 from sklearn.feature_selection.base import SelectorMixin  # type: ignore
 
 from eli5.transform import transform_feature_names
@@ -28,3 +28,10 @@ def _pipeline_names(est, in_names=None):
         if trans is not None:
             names = transform_feature_names(trans, names)
     return names
+
+
+@transform_feature_names.register(FeatureUnion)
+def _union_names(est, in_names=None):
+    return ['{}:{}'.format(trans_name, feat_name)
+            for trans_name, trans, _ in est._iter()
+            for feat_name in transform_feature_names(trans, in_names)]
