@@ -209,6 +209,42 @@ long as:
   ``transform_feature_names`` for transformer classes not handled (yet) by ELI5
   or to override the default implementation.
 
+For instance, imagine a transformer which selects every second feature::
+
+    from sklearn.base import BaseEstimator, TransformerMixin
+    from sklearn.utils.validation import check_array
+    from eli5 import transform_feature_names
+
+    class OddTransformer(BaseEstimator, TransformerMixin):
+        def fit(self, X, y=None):
+            # we store n_features_ for the sake of transform_feature_names
+            # when in_names=None:
+            self.n_features_ = check_array(X).shape[1]
+            return self
+
+        def transform(self, X):
+            return check_array(X)[:, 1::2]
+
+    @transform_feature_names.register
+    def odd_feature_names(transformer, in_names=None):
+        if in_names is None:
+            from eli5.sklearn.utils import get_feature_names
+            # generate default feature names
+            in_names = get_feature_names(num_features=transformer.n_features_)
+        # return a list of strings derived from in_names
+        return in_names[1::2]
+
+    # Now we can:
+    #   my_pipeline = make_pipeline(OddTransformer(), MyClassifier())
+    #   my_pipeline.fit(X, y)
+    #   explain_weights(my_pipeline)
+    #   explain_weights(my_pipeline, feature_names=['a', 'b', ...])
+
+Note that the ``in_names != None`` case does not need to be handled as long as the
+transformer will always be passed the set of feature names either from
+``explain_weights(my_pipeline, feature_names=...)`` or from the previous step
+in the Pipeline.
+
 .. _Pipeline: http://scikit-learn.org/stable/modules/generated/sklearn.pipeline.Pipeline.html#sklearn.pipeline.Pipeline
 .. _singledispatch: https://pypi.python.org/pypi/singledispatch
 
