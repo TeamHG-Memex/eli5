@@ -16,6 +16,7 @@ from eli5 import (
 from .test_sklearn_explain_prediction import (
     assert_multiclass_linear_classifier_explained,
     assert_linear_regression_explained,
+    test_explain_prediction_pandas as _check_explain_prediction_pandas,
 )
 from .test_sklearn_explain_weights import (
     assert_explained_weights_linear_classifier,
@@ -60,6 +61,11 @@ def test_explain_prediction_regressors(boston_train, reg):
 def test_explain_weights_regressors(boston_train, reg):
     assert_explained_weights_linear_regressor(boston_train, reg,
                                               has_bias=False)
+
+
+@pytest.mark.parametrize(['reg'], regressor_params[:2])
+def test_explain_prediction_pandas(reg, boston_train):
+    _check_explain_prediction_pandas(reg, boston_train)
 
 
 def test_explain_weights_unsupported():

@@ -49,6 +49,7 @@ from eli5.sklearn.utils import (
     get_coef,
     get_default_target_names,
     get_X,
+    get_X0,
     is_multiclass_classifier,
     is_multitarget_regressor,
     predict_proba,
@@ -162,7 +163,7 @@ def explain_prediction_linear_classifier(clf, doc,
 
     if has_intercept(clf):
         X = add_intercept(X)
-    x, = X
+    x = get_X0(X)
 
     feature_names, flt_indices = feature_names.handle_filter(
         feature_filter, feature_re, x)
@@ -248,7 +249,7 @@ def explain_prediction_linear_regressor(reg, doc,
 
     if has_intercept(reg):
         X = add_intercept(X)
-    x, = X
+    x = get_X0(X)
 
     feature_names, flt_indices = feature_names.handle_filter(
         feature_filter, feature_re, x)
@@ -367,7 +368,7 @@ def explain_prediction_tree_classifier(
     is_multiclass = clf.n_classes_ > 2
     feature_weights = _trees_feature_weights(
         clf, X, feature_names, clf.n_classes_)
-    x, = add_intercept(X)
+    x = get_X0(add_intercept(X))
     feature_names, flt_indices = feature_names.handle_filter(
         feature_filter, feature_re, x)
 
@@ -465,7 +466,7 @@ def explain_prediction_tree_regressor(
     num_targets = getattr(reg, 'n_outputs_', 1)
     is_multitarget = num_targets > 1
     feature_weights = _trees_feature_weights(reg, X, feature_names, num_targets)
-    x, = add_intercept(X)
+    x = get_X0(add_intercept(X))
     feature_names, flt_indices = feature_names.handle_filter(
         feature_filter, feature_re, x)
 

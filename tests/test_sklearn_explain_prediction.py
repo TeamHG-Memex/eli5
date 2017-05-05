@@ -174,10 +174,12 @@ def assert_multitarget_linear_regression_explained(reg, explain_prediction):
     pos, neg = (get_all_features(target.feature_weights.pos),
                 get_all_features(target.feature_weights.neg))
     assert 'x8' in pos or 'x8' in neg
-    assert '<BIAS>' in pos or '<BIAS>' in neg
+    if has_intercept(reg):
+        assert '<BIAS>' in pos or '<BIAS>' in neg
 
     assert 'x8' in expl_text
-    assert '<BIAS>' in expl_text
+    if has_intercept(reg):
+        assert '<BIAS>' in expl_text
     assert "'y2'" in expl_text
 
     assert res == explain_prediction(reg, X[0])
@@ -261,6 +263,7 @@ def test_explain_linear(newsgroups_train, clf):
     [LassoLarsCV(max_n_alphas=10)],
     [LassoLarsIC()],
     [LinearRegression()],
+    [LinearRegression(fit_intercept=False)],
     [LinearSVR(random_state=42)],
     [OrthogonalMatchingPursuit(n_nonzero_coefs=10)],
     [OrthogonalMatchingPursuitCV()],
@@ -279,6 +282,7 @@ def test_explain_linear_regression(boston_train, reg):
     [Lars()],
     [Lasso(random_state=42)],
     [LinearRegression()],
+    [LinearRegression(fit_intercept=False)],
     [Ridge(random_state=42)],
 ])
 def test_explain_linear_regression_multitarget(reg):
@@ -379,3 +383,20 @@ def test_unsupported():
         assert 'BaseEstimator' in expl
     with pytest.raises(TypeError):
         explain_prediction(clf, doc, unknown_argument=True)
+
+
+@pytest.mark.parametrize(['reg'], [
+    [LinearRegression()],
+    [LinearRegression(fit_intercept=False)],
+    [RandomForestRegressor(random_state=42)],
+])
+def test_explain_prediction_pandas(reg, boston_train):
+    pd = pytest.importorskip('pandas')
+    X, y, feature_names = boston_train
+    df = pd.DataFrame(X, columns=feature_names)
+    reg.fit(df, y)
+    res = explain_prediction(reg, df.iloc[0])
+    for expl in format_as_all(res, reg):
+        assert 'PTRATIO' in expl
+        if has_intercept(reg):
+            assert 'BIAS' in expl
