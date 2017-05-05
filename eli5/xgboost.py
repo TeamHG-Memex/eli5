@@ -17,6 +17,7 @@ from eli5.explain import explain_weights, explain_prediction
 from eli5.sklearn.utils import (
     add_intercept,
     get_X,
+    get_X0,
     handle_vec,
     predict_proba
 )
@@ -137,7 +138,7 @@ def explain_prediction_xgboost(
     scores_weights = _prediction_feature_weights(
         xgb, X, feature_names, xgb_feature_names)
 
-    x, = add_intercept(X)
+    x = get_X0(add_intercept(X))
     x = _missing_values_set_to_nan(x, xgb.missing, sparse_missing=True)
     feature_names, flt_indices = feature_names.handle_filter(
         feature_filter, feature_re, x)

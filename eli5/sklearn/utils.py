@@ -198,7 +198,7 @@ def get_num_features(estimator):
 
 
 try:
-    import pandas as pd
+    import pandas as pd  # type: ignore
     pandas_available = True
 except ImportError:
     pandas_available = False
@@ -218,6 +218,17 @@ def get_X(doc, vec=None, vectorized=False, to_dense=False):
     if to_dense and sp.issparse(X):
         X = X.toarray()
     return X
+
+
+def get_X0(xs):
+    """ Return zero-th element of a one-element data container.
+    """
+    if pandas_available and isinstance(xs, pd.DataFrame):
+        assert len(xs) == 1
+        x = np.array(xs.iloc[0])
+    else:
+        x, = xs
+    return x
 
 
 def handle_vec(clf, doc, vec, vectorized, feature_names, num_features=None):
