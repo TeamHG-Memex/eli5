@@ -197,9 +197,22 @@ def get_num_features(estimator):
                          estimator)
 
 
+try:
+    import pandas as pd
+    pandas_available = True
+except ImportError:
+    pandas_available = False
+
+
 def get_X(doc, vec=None, vectorized=False, to_dense=False):
     if vec is None or vectorized:
-        X = np.array([doc]) if isinstance(doc, np.ndarray) else doc
+        if isinstance(doc, np.ndarray):
+            X = np.array([doc])
+        elif pandas_available and isinstance(doc, pd.Series):
+            # Convert to a DataFrame with a single row
+            X = doc.to_frame().transpose()
+        else:
+            X = doc
     else:
         X = vec.transform([doc])
     if to_dense and sp.issparse(X):
@@ -210,6 +223,9 @@ def get_X(doc, vec=None, vectorized=False, to_dense=False):
 def handle_vec(clf, doc, vec, vectorized, feature_names, num_features=None):
     if not vectorized:
         vec = invert_hashing_and_fit(vec, [doc])
+    if (vec is None and feature_names is None and
+            pandas_available and isinstance(doc, pd.Series)):
+        feature_names = list(doc.index)
     # Explaining predictions does not need coef_scale
     # because it is handled by the vectorizer.
     feature_names = handle_hashing_vec(

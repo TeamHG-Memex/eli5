@@ -22,7 +22,10 @@ from .test_sklearn_explain_weights import (
     test_explain_random_forest_and_tree_feature_filter as _check_rf_feature_filter,
     test_feature_importances_no_remaining as _check_rf_no_remaining,
 )
-from .test_sklearn_explain_prediction import assert_linear_regression_explained
+from .test_sklearn_explain_prediction import (
+    assert_linear_regression_explained,
+    test_explain_prediction_pandas as _check_explain_prediction_pandas,
+)
 
 
 def test_explain_xgboost(newsgroups_train):
@@ -208,6 +211,10 @@ def test_explain_prediction_feature_union_sparse(newsgroups_train_binary):
     pos_features = get_all_features(weights.pos)
     assert 'word__graphics' in pos_features
     assert res.targets[0].weighted_spans
+
+
+def test_explain_prediction_pandas(boston_train):
+    _check_explain_prediction_pandas(XGBRegressor(), boston_train)
 
 
 def test_parse_tree_dump():

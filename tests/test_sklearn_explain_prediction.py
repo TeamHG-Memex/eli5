@@ -379,3 +379,18 @@ def test_unsupported():
         assert 'BaseEstimator' in expl
     with pytest.raises(TypeError):
         explain_prediction(clf, doc, unknown_argument=True)
+
+
+@pytest.mark.parametrize(['reg'], [
+    [LinearRegression()],
+    [RandomForestRegressor(random_state=42)],
+])
+def test_explain_prediction_pandas(reg, boston_train):
+    pd = pytest.importorskip('pandas')
+    X, y, feature_names = boston_train
+    df = pd.DataFrame(X, columns=feature_names)
+    reg.fit(df, y)
+    res = explain_prediction(reg, df.iloc[0])
+    for expl in format_as_all(res, reg):
+        assert 'PTRATIO' in expl
+        assert 'BIAS' in expl
