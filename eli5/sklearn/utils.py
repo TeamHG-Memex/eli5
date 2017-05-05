@@ -220,14 +220,14 @@ def get_X(doc, vec=None, vectorized=False, to_dense=False):
     return X
 
 
-def get_X0(xs):
+def get_X0(X):
     """ Return zero-th element of a one-element data container.
     """
-    if pandas_available and isinstance(xs, pd.DataFrame):
-        assert len(xs) == 1
-        x = np.array(xs.iloc[0])
+    if pandas_available and isinstance(X, pd.DataFrame):
+        assert len(X) == 1
+        x = np.array(X.iloc[0])
     else:
-        x, = xs
+        x, = X
     return x
 
 

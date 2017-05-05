@@ -97,8 +97,8 @@ def explain_prediction(estimator, doc, **kwargs):
         Example to run estimator on. Estimator makes a prediction for this
         example, and :func:`explain_prediction` tries to show information
         about this prediction. Pass a single element, not a one-element array:
-        if you fitted your estimator on ``xs``, that would be ``xs[i]`` for
-        most containers, and ``xs.iloc[i]`` for ``pandas.DataFrame``.
+        if you fitted your estimator on ``X``, that would be ``X[i]`` for
+        most containers, and ``X.iloc[i]`` for ``pandas.DataFrame``.
 
     top : int or (int, int) tuple, optional
         Number of features to show. When ``top`` is int, ``top`` features with
