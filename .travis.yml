@@ -48,7 +48,7 @@ before_install:
     - if [[ "$LIGHTGBM" = 1 ]]; then bash _ci/install_lightgbm_linux.sh; export LIGHTGBM_CHECKOUT=LightGBM; fi
 
 install:
-    - pip install -U pip tox codecov
+    - pip install -U pip wheel tox codecov
 
 script: tox
 
