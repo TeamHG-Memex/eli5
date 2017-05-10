@@ -1,6 +1,12 @@
 Changelog
 =========
 
+0.6.1 (2017-05-10)
+------------------
+
+* Better pandas support in :func:`eli5.explain_prediction` for
+  xgboost, sklearn, LightGBM and lightning.
+
 0.6 (2017-05-03)
 ----------------
 
