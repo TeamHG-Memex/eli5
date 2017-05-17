@@ -1,6 +1,17 @@
 Changelog
 =========
 
+0.6.2 (2017-05-17)
+------------------
+
+* readable :func:`eli5.explain_weight` for XGBoost models trained on
+  pandas.DataFrame;
+* readable :func:`eli5.explain_weight` for LightGBM models trained on
+  pandas.DataFrame;
+* fixed an issue with :func:`eli5.explain_prediction` for XGBoost
+  models trained on pandas.DataFrame when feature names contain dots;
+* testing improvements.
+
 0.6.1 (2017-05-10)
 ------------------
 
