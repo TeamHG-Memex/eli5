@@ -293,7 +293,7 @@ def _parse_tree_dump(text_dump):
 def _parse_dump_line(line):
     # type: (str) -> Tuple[int, Dict[str, Any]]
     branch_match = re.match(
-        '^(\t*)(\d+):\[(\w+)<([^\]]+)\] '
+        '^(\t*)(\d+):\[([^<]+)<([^\]]+)\] '
         'yes=(\d+),no=(\d+),missing=(\d+),'
         'gain=([^,]+),cover=(.+)$', line)
     if branch_match:

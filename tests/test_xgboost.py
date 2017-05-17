@@ -12,7 +12,8 @@ from sklearn.preprocessing import FunctionTransformer
 
 from eli5.xgboost import (
     _parse_tree_dump, _xgb_n_targets, _missing_values_set_to_nan,
-    _parent_value)
+    _parent_value, _parse_dump_line,
+)
 from eli5.explain import explain_prediction, explain_weights
 from eli5.formatters.text import format_as_text
 from eli5.formatters import fields
@@ -235,6 +236,20 @@ def test_explain_weights_feature_names_pandas(boston_train):
         assert 'zz12' in expl
 
 
+def test_explain_prediction_pandas_dot_in_feature_name(boston_train):
+    pd = pytest.importorskip('pandas')
+    X, y, feature_names = boston_train
+    feature_names = ["%s.%s" % (name, idx)
+                     for idx, name in enumerate(feature_names)]
+    df = pd.DataFrame(X, columns=feature_names)
+
+    reg = XGBRegressor()
+    reg.fit(df, y)
+    res = explain_prediction(reg, df.iloc[0])
+    for expl in format_as_all(res, reg):
+        assert 'PTRATIO.1' in expl
+
+
 def test_parse_tree_dump():
     text_dump = '''\
 0:[f1793<-9.53674e-07] yes=1,no=2,missing=1,gain=6.112,cover=37.5
@@ -287,6 +302,28 @@ def test_parse_tree_dump():
 0:[f1793<-9.53674e-07] yes=1,no=2,missing=1,gain=6.112,cover=37.5
 		1:[f371<-9.53674e-07] yes=3,no=4,missing=3,gain=4.09694,cover=28.5
 ''')
+
+
+@pytest.mark.parametrize(
+    ['line', 'result'],
+    [
+        (
+            '0:[LSTAT.12<7.3] yes=1,no=2,missing=1,gain=4246.13,cover=100',
+            (0, {
+                'depth': 0,
+                'nodeid': 0,
+                'split': 'LSTAT.12',
+                'split_condition': 7.3,
+                'yes': 1,
+                'no': 2,
+                'missing': 1,
+                'gain': 4246.13,
+                'cover': 100,
+            })
+        ),
+    ])
+def test_parse_dump_line(line, result):
+    assert _parse_dump_line(line) == result
 
 
 def test_xgb_n_targets():
