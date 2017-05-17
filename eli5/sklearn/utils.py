@@ -67,8 +67,8 @@ def has_intercept(estimator):
 
 
 def get_feature_names(clf, vec=None, bias_name='<BIAS>', feature_names=None,
-                      num_features=None):
-    # type: (Any, Any, str, Any, int) -> FeatureNames
+                      num_features=None, estimator_feature_names=None):
+    # type: (Any, Any, str, Any, int, Any) -> FeatureNames
     """
     Return a FeatureNames instance that holds all feature names
     and a bias feature.
@@ -82,12 +82,14 @@ def get_feature_names(clf, vec=None, bias_name='<BIAS>', feature_names=None,
         if vec and hasattr(vec, 'get_feature_names'):
             return FeatureNames(vec.get_feature_names(), bias_name=bias_name)
         else:
-            num_features = num_features or get_num_features(clf)
-            return FeatureNames(
-                n_features=num_features,
-                unkn_template='x%d',
-                bias_name=bias_name
-            )
+            if estimator_feature_names is None:
+                num_features = num_features or get_num_features(clf)
+                return FeatureNames(
+                    n_features=num_features,
+                    unkn_template='x%d',
+                    bias_name=bias_name
+                )
+            return FeatureNames(estimator_feature_names, bias_name=bias_name)
 
     num_features = num_features or get_num_features(clf)
     if isinstance(feature_names, FeatureNames):
@@ -111,10 +113,16 @@ def get_feature_names(clf, vec=None, bias_name='<BIAS>', feature_names=None,
 
 def get_feature_names_filtered(clf, vec=None, bias_name='<BIAS>',
                                feature_names=None, num_features=None,
-                               feature_filter=None, feature_re=None):
-    feature_names = get_feature_names(clf, vec=vec, bias_name=bias_name,
-                                      feature_names=feature_names,
-                                      num_features=num_features)
+                               feature_filter=None, feature_re=None,
+                               estimator_feature_names=None):
+    feature_names = get_feature_names(
+        clf=clf,
+        vec=vec,
+        bias_name=bias_name,
+        feature_names=feature_names,
+        num_features=num_features,
+        estimator_feature_names=estimator_feature_names,
+    )
     return feature_names.handle_filter(feature_filter, feature_re)
 
 

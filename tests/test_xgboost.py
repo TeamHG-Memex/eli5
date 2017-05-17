@@ -46,7 +46,7 @@ def test_explain_xgboost_regressor(boston_train):
     reg.fit(xs, ys)
     res = explain_weights(reg)
     for expl in format_as_all(res, reg):
-        assert 'x12' in expl
+        assert 'f12' in expl
     res = explain_weights(reg, feature_names=feature_names)
     for expl in format_as_all(res, reg):
         assert 'LSTAT' in expl
@@ -215,6 +215,24 @@ def test_explain_prediction_feature_union_sparse(newsgroups_train_binary):
 
 def test_explain_prediction_pandas(boston_train):
     _check_explain_prediction_pandas(XGBRegressor(), boston_train)
+
+
+def test_explain_weights_feature_names_pandas(boston_train):
+    pd = pytest.importorskip('pandas')
+    X, y, feature_names = boston_train
+    df = pd.DataFrame(X, columns=feature_names)
+    reg = XGBRegressor().fit(df, y)
+
+    # it shoud pick up feature names from DataFrame columns
+    res = explain_weights(reg)
+    for expl in format_as_all(res, reg):
+        assert 'PTRATIO' in expl
+
+    # it is possible to override DataFrame feature names
+    numeric_feature_names = ["zz%s" % idx for idx in range(len(feature_names))]
+    res = explain_weights(reg, feature_names=numeric_feature_names)
+    for expl in format_as_all(res, reg):
+        assert 'zz12' in expl
 
 
 def test_parse_tree_dump():

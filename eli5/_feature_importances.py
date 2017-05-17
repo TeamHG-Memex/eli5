@@ -24,11 +24,13 @@ def get_feature_importances_filtered(coef, feature_names, flt_indices, top,
 def get_feature_importance_explanation(estimator, vec, coef, feature_names,
                                        feature_filter, feature_re, top,
                                        description, is_regression,
+                                       estimator_feature_names=None,
                                        num_features=None,
                                        coef_std=None):
     feature_names, flt_indices = get_feature_names_filtered(
         estimator, vec,
         feature_names=feature_names,
+        estimator_feature_names=estimator_feature_names,
         feature_filter=feature_filter,
         feature_re=feature_re,
         num_features=num_features,

@@ -66,9 +66,11 @@ def explain_weights_xgboost(xgb,
           across all trees
         - 'cover' - the average coverage of the feature when it is used in trees
     """
+    xgb_feature_names = xgb.booster().feature_names
     coef = _xgb_feature_importances(xgb, importance_type=importance_type)
     return get_feature_importance_explanation(xgb, vec, coef,
         feature_names=feature_names,
+        estimator_feature_names=xgb_feature_names,
         feature_filter=feature_filter,
         feature_re=feature_re,
         top=top,
