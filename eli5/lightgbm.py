@@ -54,8 +54,10 @@ def explain_weights_lightgbm(lgb,
         - 'weight' - the same as 'split', for compatibility with xgboost
     """
     coef = _get_lgb_feature_importances(lgb, importance_type)
+    lgb_feature_names = lgb.booster_.feature_name()
     return get_feature_importance_explanation(lgb, vec, coef,
         feature_names=feature_names,
+        estimator_feature_names=lgb_feature_names,
         feature_filter=feature_filter,
         feature_re=feature_re,
         top=top,

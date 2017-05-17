@@ -13,3 +13,4 @@ htmlcov
 docs/_build
 .hypothesis
 .html
+.mypy_cache
