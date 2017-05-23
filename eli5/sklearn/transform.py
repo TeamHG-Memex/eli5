@@ -1,4 +1,8 @@
 """transform_feature_names implementations for scikit-learn transformers
+
+These are automatically registered for many scikit-learn transformers, but can
+be overridden by, for example, registering ``make_tfn_weighted`` with
+non-default options for a decomposition transformer (such as PCA).
 """
 
 import numpy as np  # type: ignore
