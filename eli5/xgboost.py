@@ -2,7 +2,6 @@
 from __future__ import absolute_import
 from functools import partial
 import re
-from singledispatch import singledispatch
 from typing import Any, Dict, List, Tuple
 
 import numpy as np  # type: ignore
@@ -18,6 +17,7 @@ from eli5.explain import explain_weights, explain_prediction
 from eli5.sklearn.utils import (
     add_intercept,
     get_X,
+    get_X0,
     handle_vec,
     predict_proba
 )
@@ -66,9 +66,11 @@ def explain_weights_xgboost(xgb,
           across all trees
         - 'cover' - the average coverage of the feature when it is used in trees
     """
+    xgb_feature_names = xgb.booster().feature_names
     coef = _xgb_feature_importances(xgb, importance_type=importance_type)
     return get_feature_importance_explanation(xgb, vec, coef,
         feature_names=feature_names,
+        estimator_feature_names=xgb_feature_names,
         feature_filter=feature_filter,
         feature_re=feature_re,
         top=top,
@@ -120,9 +122,9 @@ def explain_prediction_xgboost(
     changes from parent to child.
     Weights of all features sum to the output score of the estimator.
     """
-    num_features = len(xgb.booster().feature_names)
+    xgb_feature_names = xgb.booster().feature_names
     vec, feature_names = handle_vec(
-        xgb, doc, vec, vectorized, feature_names, num_features=num_features)
+        xgb, doc, vec, vectorized, feature_names, num_features=len(xgb_feature_names))
     if feature_names.bias_name is None:
         # XGBoost estimators do not have an intercept, but here we interpret
         # them as having an intercept
@@ -135,9 +137,10 @@ def explain_prediction_xgboost(
         X = X.tocsc()
 
     proba = predict_proba(xgb, X)
-    scores_weights = _prediction_feature_weights(xgb, X, feature_names)
+    scores_weights = _prediction_feature_weights(
+        xgb, X, feature_names, xgb_feature_names)
 
-    x, = add_intercept(X)
+    x = get_X0(add_intercept(X))
     x = _missing_values_set_to_nan(x, xgb.missing, sparse_missing=True)
     feature_names, flt_indices = feature_names.handle_filter(
         feature_filter, feature_re, x)
@@ -169,7 +172,7 @@ def explain_prediction_xgboost(
      )
 
 
-def _prediction_feature_weights(xgb, X, feature_names):
+def _prediction_feature_weights(xgb, X, feature_names, xgb_feature_names):
     """ For each target, return score and numpy array with feature weights
     on this prediction, following an idea from
     http://blog.datadive.net/interpreting-random-forests/
@@ -177,11 +180,13 @@ def _prediction_feature_weights(xgb, X, feature_names):
     # XGBClassifier does not have pred_leaf argument, so use booster
     booster = xgb.booster()  # type: Booster
     leaf_ids, = booster.predict(DMatrix(X, missing=xgb.missing), pred_leaf=True)
+    xgb_feature_names = {f: i for i, f in enumerate(xgb_feature_names)}
     tree_dumps = booster.get_dump(with_stats=True)
     assert len(tree_dumps) == len(leaf_ids)
 
     target_feature_weights = partial(
-        _target_feature_weights, feature_names=feature_names)
+        _target_feature_weights,
+        feature_names=feature_names, xgb_feature_names=xgb_feature_names)
     n_targets = _xgb_n_targets(xgb)
     if n_targets > 1:
         # For multiclass, XGBoost stores dumps and leaf_ids in a 1d array,
@@ -196,7 +201,7 @@ def _prediction_feature_weights(xgb, X, feature_names):
     return scores_weights
 
 
-def _target_feature_weights(leaf_ids, tree_dumps, feature_names):
+def _target_feature_weights(leaf_ids, tree_dumps, feature_names, xgb_feature_names):
     feature_weights = np.zeros(len(feature_names))
     # All trees in XGBoost give equal contribution to the prediction:
     # it is equal to sum of "leaf" values in leafs
@@ -212,8 +217,7 @@ def _target_feature_weights(leaf_ids, tree_dumps, feature_names):
         path.reverse()
         # Check how each split changes "leaf" value
         for node, child in zip(path, path[1:]):
-            f_num_match = re.search('^f(\d+)$', node['split'])
-            idx = int(f_num_match.groups()[0])
+            idx = xgb_feature_names[node['split']]
             feature_weights[idx] += child['leaf'] - node['leaf']
         # Root "leaf" value is interpreted as bias
         feature_weights[feature_names.bias_idx] += path[0]['leaf']
@@ -289,7 +293,7 @@ def _parse_tree_dump(text_dump):
 def _parse_dump_line(line):
     # type: (str) -> Tuple[int, Dict[str, Any]]
     branch_match = re.match(
-        '^(\t*)(\d+):\[(\w+)<([^\]]+)\] '
+        '^(\t*)(\d+):\[([^<]+)<([^\]]+)\] '
         'yes=(\d+),no=(\d+),missing=(\d+),'
         'gain=([^,]+),cover=(.+)$', line)
     if branch_match:

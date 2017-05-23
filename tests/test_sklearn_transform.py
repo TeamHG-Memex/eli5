@@ -8,7 +8,23 @@ from hypothesis import given, example, assume, settings as hyp_settings
 from hypothesis import strategies as st
 from hypothesis.extra import numpy as np_st
 from sklearn.base import BaseEstimator, TransformerMixin
-from sklearn.feature_selection import SelectPercentile, SelectKBest
+from sklearn.feature_selection import (
+    SelectPercentile,
+    SelectKBest,
+    SelectFpr,  # TODO: add tests and document
+    SelectFdr,  # TODO: add tests and document
+    SelectFwe,  # TODO: add tests and document
+    GenericUnivariateSelect,
+    VarianceThreshold,
+    RFE,
+    RFECV,
+    SelectFromModel,
+)
+from sklearn.linear_model import (
+    LogisticRegression,
+    RandomizedLogisticRegression,
+    RandomizedLasso,  # TODO: add tests and document
+)
 from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.pipeline import FeatureUnion
 from sklearn.decomposition import (  # type: ignore
@@ -39,6 +55,15 @@ def selection_score_func(X, y):
     (MyFeatureExtractor(), ['f1', 'f2', 'f3']),
     (SelectKBest(selection_score_func, k=1), ['x3']),
     (SelectKBest(selection_score_func, k=2), ['x2', 'x3']),
+    (VarianceThreshold(0.0), ['x0', 'x1', 'x2', 'x3']),
+    (VarianceThreshold(1.0), ['x2']),
+    (GenericUnivariateSelect(), ['x2']),
+    (GenericUnivariateSelect(mode='k_best', param=2), ['x2', 'x3']),
+    (SelectFromModel(LogisticRegression('l1', C=0.01, random_state=42)),
+     ['x0', 'x2']),
+    (RFE(LogisticRegression(random_state=42), 2), ['x1', 'x3']),
+    (RFECV(LogisticRegression(random_state=42)), ['x0', 'x1', 'x2', 'x3']),
+    (RandomizedLogisticRegression(random_state=42), ['x1', 'x2', 'x3']),
     (FeatureUnion([('k', SelectKBest(selection_score_func, k=2)),
                    ('p', SelectPercentile(selection_score_func, 25))]),
      ['k:x2', 'k:x3', 'p:x3']),
@@ -71,9 +96,9 @@ def test_transform_feature_names_match(transformer, expected, iris_train):
 def test_transform_feature_names_in_names(transformer, iris_train):
     X, y, _, _ = iris_train
     transformer.fit(X, y)
-    specified = transform_feature_names(transformer,
-                                        ['<NAME0>', '<NAME1>', '<NAME2>',
-                                         '<NAME3>'])
+    specified = transform_feature_names(
+        transformer,
+        ['<NAME0>', '<NAME1>', '<NAME2>', '<NAME3>'])
     # ensure that the subtitution below does something
     assert any('<NAME' in name for name in specified)
     expected_default_names = [re.sub('<NAME([0-9]+)>', r'x\1', name)

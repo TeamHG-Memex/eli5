@@ -5,13 +5,18 @@ be overridden by, for example, registering ``make_tfn_weighted`` with
 non-default options for a decomposition transformer (such as PCA).
 """
 
-import numpy as np  # type: ignore
-from sklearn.pipeline import Pipeline, FeatureUnion  # type: ignore
-from sklearn.feature_selection.base import SelectorMixin  # type: ignore
 import itertools
 import operator
+
+import numpy as np  # type: ignore
 from scipy import sparse
 import six  # type: ignore
+from sklearn.pipeline import Pipeline, FeatureUnion  # type: ignore
+from sklearn.feature_selection.base import SelectorMixin  # type: ignore
+from sklearn.linear_model import (  # type: ignore
+    RandomizedLogisticRegression,
+    RandomizedLasso,
+)
 from sklearn.feature_extraction.text import TfidfTransformer  # type: ignore
 from sklearn.decomposition import (  # type: ignore
     PCA,
@@ -187,6 +192,8 @@ for cls, prefix in [(PCA, 'PCA'), (IncrementalPCA, 'PCA'),
 # Feature selection:
 
 @transform_feature_names.register(SelectorMixin)
+@transform_feature_names.register(RandomizedLogisticRegression)
+@transform_feature_names.register(RandomizedLasso)
 def _select_names(est, in_names=None):
     mask = est.get_support(indices=False)
     in_names = _get_feature_names(est, feature_names=in_names,

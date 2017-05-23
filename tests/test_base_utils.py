@@ -38,6 +38,9 @@ def test_attrs_without_default():
 
 
 def test_attrs_with_repr():
+    """ Check that if __repr__ or __hash__ is defined, attrs does not override
+    them (there is a special logic for it in @attrs).
+    """
 
     @attrs
     class WithRepr(object):
@@ -47,11 +50,17 @@ def test_attrs_with_repr():
         def __repr__(self):
             return 'foo'
 
-    assert hash(WithRepr(1)) == hash(WithRepr(1))
+        def __hash__(self):
+            return 1
+
+    assert WithRepr(1) == WithRepr(1) != WithRepr(2)
     assert repr(WithRepr(2)) == 'foo'
+    assert hash(WithRepr(2)) == 1
 
 
 def test_bad_init():
+    """ Constructor argument names must match attribute names.
+    """
 
     @attrs
     class BadInit(object):

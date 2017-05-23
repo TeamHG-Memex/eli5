@@ -9,7 +9,7 @@ import lightgbm  # type: ignore
 from eli5._feature_weights import get_top_features
 from eli5.explain import explain_weights, explain_prediction
 from eli5._feature_importances import get_feature_importance_explanation
-from eli5.sklearn.utils import handle_vec, get_X, add_intercept, predict_proba
+from eli5.sklearn.utils import handle_vec, get_X, get_X0, add_intercept, predict_proba
 from eli5.utils import mask
 from eli5._decision_path import get_decision_path_explanation
 
@@ -54,8 +54,10 @@ def explain_weights_lightgbm(lgb,
         - 'weight' - the same as 'split', for compatibility with xgboost
     """
     coef = _get_lgb_feature_importances(lgb, importance_type)
+    lgb_feature_names = lgb.booster_.feature_name()
     return get_feature_importance_explanation(lgb, vec, coef,
         feature_names=feature_names,
+        estimator_feature_names=lgb_feature_names,
         feature_filter=feature_filter,
         feature_re=feature_re,
         top=top,
@@ -117,7 +119,7 @@ def explain_prediction_lightgbm(
 
     proba = predict_proba(lgb, X)
     weight_dicts = _get_prediction_feature_weights(lgb, X, _lgb_n_targets(lgb))
-    x, = add_intercept(X)
+    x = get_X0(add_intercept(X))
     flt_feature_names, flt_indices = feature_names.handle_filter(
         feature_filter, feature_re, x)
 

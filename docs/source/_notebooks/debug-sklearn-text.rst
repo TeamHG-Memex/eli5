@@ -183,7 +183,7 @@ function:
                                         
         
         <table class="eli5-weights"
-               style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
+               style="border-collapse: collapse; border: none; margin-top: 0em; table-layout: auto; width: 100%;">
             <thead>
             <tr style="border: none;">
                 
@@ -279,7 +279,7 @@ function:
             
             
                 <tr style="background-color: hsl(120, 100.00%, 94.64%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
+                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none; white-space: nowrap;">
                         <i>&hellip; 10174 more positive &hellip;</i>
                     </td>
                 </tr>
@@ -287,7 +287,7 @@ function:
     
             
                 <tr style="background-color: hsl(0, 100.00%, 94.42%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
+                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none; white-space: nowrap;">
                         <i>&hellip; 25605 more negative &hellip;</i>
                     </td>
                 </tr>
@@ -328,7 +328,7 @@ function:
                                         
         
         <table class="eli5-weights"
-               style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
+               style="border-collapse: collapse; border: none; margin-top: 0em; table-layout: auto; width: 100%;">
             <thead>
             <tr style="border: none;">
                 
@@ -434,7 +434,7 @@ function:
             
             
                 <tr style="background-color: hsl(120, 100.00%, 96.98%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
+                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none; white-space: nowrap;">
                         <i>&hellip; 11710 more positive &hellip;</i>
                     </td>
                 </tr>
@@ -442,7 +442,7 @@ function:
     
             
                 <tr style="background-color: hsl(0, 100.00%, 95.16%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
+                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none; white-space: nowrap;">
                         <i>&hellip; 24069 more negative &hellip;</i>
                     </td>
                 </tr>
@@ -473,7 +473,7 @@ function:
                                         
         
         <table class="eli5-weights"
-               style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
+               style="border-collapse: collapse; border: none; margin-top: 0em; table-layout: auto; width: 100%;">
             <thead>
             <tr style="border: none;">
                 
@@ -559,7 +559,7 @@ function:
             
             
                 <tr style="background-color: hsl(120, 100.00%, 94.82%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
+                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none; white-space: nowrap;">
                         <i>&hellip; 15007 more positive &hellip;</i>
                     </td>
                 </tr>
@@ -567,7 +567,7 @@ function:
     
             
                 <tr style="background-color: hsl(0, 100.00%, 94.24%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
+                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none; white-space: nowrap;">
                         <i>&hellip; 20772 more negative &hellip;</i>
                     </td>
                 </tr>
@@ -618,7 +618,7 @@ function:
                                         
         
         <table class="eli5-weights"
-               style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
+               style="border-collapse: collapse; border: none; margin-top: 0em; table-layout: auto; width: 100%;">
             <thead>
             <tr style="border: none;">
                 
@@ -694,7 +694,7 @@ function:
             
             
                 <tr style="background-color: hsl(120, 100.00%, 96.70%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
+                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none; white-space: nowrap;">
                         <i>&hellip; 11122 more positive &hellip;</i>
                     </td>
                 </tr>
@@ -702,7 +702,7 @@ function:
     
             
                 <tr style="background-color: hsl(0, 100.00%, 96.54%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
+                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none; white-space: nowrap;">
                         <i>&hellip; 24657 more negative &hellip;</i>
                     </td>
                 </tr>
@@ -927,7 +927,7 @@ and let eli5 figure out the details automatically:
                                         
         
         <table class="eli5-weights"
-               style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
+               style="border-collapse: collapse; border: none; margin-top: 0em; table-layout: auto; width: 100%;">
             <thead>
             <tr style="border: none;">
                 
@@ -1023,7 +1023,7 @@ and let eli5 figure out the details automatically:
             
             
                 <tr style="background-color: hsl(120, 100.00%, 94.64%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
+                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none; white-space: nowrap;">
                         <i>&hellip; 10174 more positive &hellip;</i>
                     </td>
                 </tr>
@@ -1031,7 +1031,7 @@ and let eli5 figure out the details automatically:
     
             
                 <tr style="background-color: hsl(0, 100.00%, 94.42%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
+                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none; white-space: nowrap;">
                         <i>&hellip; 25605 more negative &hellip;</i>
                     </td>
                 </tr>
@@ -1072,7 +1072,7 @@ and let eli5 figure out the details automatically:
                                         
         
         <table class="eli5-weights"
-               style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
+               style="border-collapse: collapse; border: none; margin-top: 0em; table-layout: auto; width: 100%;">
             <thead>
             <tr style="border: none;">
                 
@@ -1178,7 +1178,7 @@ and let eli5 figure out the details automatically:
             
             
                 <tr style="background-color: hsl(120, 100.00%, 96.98%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
+                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none; white-space: nowrap;">
                         <i>&hellip; 11710 more positive &hellip;</i>
                     </td>
                 </tr>
@@ -1186,7 +1186,7 @@ and let eli5 figure out the details automatically:
     
             
                 <tr style="background-color: hsl(0, 100.00%, 95.16%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
+                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none; white-space: nowrap;">
                         <i>&hellip; 24069 more negative &hellip;</i>
                     </td>
                 </tr>
@@ -1217,7 +1217,7 @@ and let eli5 figure out the details automatically:
                                         
         
         <table class="eli5-weights"
-               style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
+               style="border-collapse: collapse; border: none; margin-top: 0em; table-layout: auto; width: 100%;">
             <thead>
             <tr style="border: none;">
                 
@@ -1303,7 +1303,7 @@ and let eli5 figure out the details automatically:
             
             
                 <tr style="background-color: hsl(120, 100.00%, 94.82%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
+                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none; white-space: nowrap;">
                         <i>&hellip; 15007 more positive &hellip;</i>
                     </td>
                 </tr>
@@ -1311,7 +1311,7 @@ and let eli5 figure out the details automatically:
     
             
                 <tr style="background-color: hsl(0, 100.00%, 94.24%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
+                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none; white-space: nowrap;">
                         <i>&hellip; 20772 more negative &hellip;</i>
                     </td>
                 </tr>
@@ -1362,7 +1362,7 @@ and let eli5 figure out the details automatically:
                                         
         
         <table class="eli5-weights"
-               style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
+               style="border-collapse: collapse; border: none; margin-top: 0em; table-layout: auto; width: 100%;">
             <thead>
             <tr style="border: none;">
                 
@@ -1438,7 +1438,7 @@ and let eli5 figure out the details automatically:
             
             
                 <tr style="background-color: hsl(120, 100.00%, 96.70%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
+                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none; white-space: nowrap;">
                         <i>&hellip; 11122 more positive &hellip;</i>
                     </td>
                 </tr>
@@ -1446,7 +1446,7 @@ and let eli5 figure out the details automatically:
     
             
                 <tr style="background-color: hsl(0, 100.00%, 96.54%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
+                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none; white-space: nowrap;">
                         <i>&hellip; 24657 more negative &hellip;</i>
                     </td>
                 </tr>
@@ -1638,7 +1638,7 @@ example:
             </p>
         
         <table class="eli5-weights"
-               style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
+               style="border-collapse: collapse; border: none; margin-top: 0em; table-layout: auto; margin-bottom: 2em;">
             <thead>
             <tr style="border: none;">
                 
@@ -1726,7 +1726,7 @@ example:
             </p>
         
         <table class="eli5-weights"
-               style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
+               style="border-collapse: collapse; border: none; margin-top: 0em; table-layout: auto; margin-bottom: 2em;">
             <thead>
             <tr style="border: none;">
                 
@@ -1814,7 +1814,7 @@ example:
             </p>
         
         <table class="eli5-weights"
-               style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
+               style="border-collapse: collapse; border: none; margin-top: 0em; table-layout: auto; margin-bottom: 2em;">
             <thead>
             <tr style="border: none;">
                 
@@ -1902,7 +1902,7 @@ example:
             </p>
         
         <table class="eli5-weights"
-               style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
+               style="border-collapse: collapse; border: none; margin-top: 0em; table-layout: auto; margin-bottom: 2em;">
             <thead>
             <tr style="border: none;">
                 
@@ -2155,7 +2155,7 @@ because only a subset of classes is shown - see "targets" argument):
             </p>
         
         <table class="eli5-weights"
-               style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
+               style="border-collapse: collapse; border: none; margin-top: 0em; table-layout: auto; margin-bottom: 2em;">
             <thead>
             <tr style="border: none;">
                 
@@ -2353,7 +2353,7 @@ To help classifier we may filter out stop words:
             </p>
         
         <table class="eli5-weights"
-               style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
+               style="border-collapse: collapse; border: none; margin-top: 0em; table-layout: auto; margin-bottom: 2em;">
             <thead>
             <tr style="border: none;">
                 
@@ -2554,7 +2554,7 @@ the chosen C value could have worked better for one kind of data.
             </p>
         
         <table class="eli5-weights"
-               style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
+               style="border-collapse: collapse; border: none; margin-top: 0em; table-layout: auto; margin-bottom: 2em;">
             <thead>
             <tr style="border: none;">
                 
@@ -2743,7 +2743,7 @@ It helped, but didn't have quite the same effect. Why not do both?
             </p>
         
         <table class="eli5-weights"
-               style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
+               style="border-collapse: collapse; border: none; margin-top: 0em; table-layout: auto; margin-bottom: 2em;">
             <thead>
             <tr style="border: none;">
                 
@@ -2938,7 +2938,7 @@ classifier, but let's skip it for now. Let's try other analysers instead
             </p>
         
         <table class="eli5-weights"
-               style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
+               style="border-collapse: collapse; border: none; margin-top: 0em; table-layout: auto; margin-bottom: 2em;">
             <thead>
             <tr style="border: none;">
                 
@@ -3011,7 +3011,7 @@ classifier, but let's skip it for now. Let's try other analysers instead
             </p>
         
         <table class="eli5-weights"
-               style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
+               style="border-collapse: collapse; border: none; margin-top: 0em; table-layout: auto; margin-bottom: 2em;">
             <thead>
             <tr style="border: none;">
                 
@@ -3084,7 +3084,7 @@ classifier, but let's skip it for now. Let's try other analysers instead
             </p>
         
         <table class="eli5-weights"
-               style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
+               style="border-collapse: collapse; border: none; margin-top: 0em; table-layout: auto; margin-bottom: 2em;">
             <thead>
             <tr style="border: none;">
                 
@@ -3157,7 +3157,7 @@ classifier, but let's skip it for now. Let's try other analysers instead
             </p>
         
         <table class="eli5-weights"
-               style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
+               style="border-collapse: collapse; border: none; margin-top: 0em; table-layout: auto; margin-bottom: 2em;">
             <thead>
             <tr style="border: none;">
                 
@@ -3346,7 +3346,7 @@ looks like:
             </p>
         
         <table class="eli5-weights"
-               style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
+               style="border-collapse: collapse; border: none; margin-top: 0em; table-layout: auto; margin-bottom: 2em;">
             <thead>
             <tr style="border: none;">
                 
@@ -3419,7 +3419,7 @@ looks like:
             </p>
         
         <table class="eli5-weights"
-               style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
+               style="border-collapse: collapse; border: none; margin-top: 0em; table-layout: auto; margin-bottom: 2em;">
             <thead>
             <tr style="border: none;">
                 
@@ -3492,7 +3492,7 @@ looks like:
             </p>
         
         <table class="eli5-weights"
-               style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
+               style="border-collapse: collapse; border: none; margin-top: 0em; table-layout: auto; margin-bottom: 2em;">
             <thead>
             <tr style="border: none;">
                 
@@ -3565,7 +3565,7 @@ looks like:
             </p>
         
         <table class="eli5-weights"
-               style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
+               style="border-collapse: collapse; border: none; margin-top: 0em; table-layout: auto; margin-bottom: 2em;">
             <thead>
             <tr style="border: none;">
                 
@@ -3765,7 +3765,7 @@ cross-validation though. Let's check what model learned:
             </p>
         
         <table class="eli5-weights"
-               style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
+               style="border-collapse: collapse; border: none; margin-top: 0em; table-layout: auto; margin-bottom: 2em;">
             <thead>
             <tr style="border: none;">
                 
@@ -3962,7 +3962,7 @@ don't even have a vocabulary! Why does it work?
                                         
         
         <table class="eli5-weights"
-               style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
+               style="border-collapse: collapse; border: none; margin-top: 0em; table-layout: auto; width: 100%;">
             <thead>
             <tr style="border: none;">
                 
@@ -4038,7 +4038,7 @@ don't even have a vocabulary! Why does it work?
             
             
                 <tr style="background-color: hsl(120, 100.00%, 89.40%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
+                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none; white-space: nowrap;">
                         <i>&hellip; 50341 more positive &hellip;</i>
                     </td>
                 </tr>
@@ -4046,7 +4046,7 @@ don't even have a vocabulary! Why does it work?
     
             
                 <tr style="background-color: hsl(0, 100.00%, 88.79%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
+                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none; white-space: nowrap;">
                         <i>&hellip; 50567 more negative &hellip;</i>
                     </td>
                 </tr>
@@ -4107,7 +4107,7 @@ don't even have a vocabulary! Why does it work?
                                         
         
         <table class="eli5-weights"
-               style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
+               style="border-collapse: collapse; border: none; margin-top: 0em; table-layout: auto; width: 100%;">
             <thead>
             <tr style="border: none;">
                 
@@ -4173,7 +4173,7 @@ don't even have a vocabulary! Why does it work?
             
             
                 <tr style="background-color: hsl(120, 100.00%, 88.40%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
+                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none; white-space: nowrap;">
                         <i>&hellip; 32081 more positive &hellip;</i>
                     </td>
                 </tr>
@@ -4181,7 +4181,7 @@ don't even have a vocabulary! Why does it work?
     
             
                 <tr style="background-color: hsl(0, 100.00%, 88.20%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
+                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none; white-space: nowrap;">
                         <i>&hellip; 31710 more negative &hellip;</i>
                     </td>
                 </tr>
@@ -4252,7 +4252,7 @@ don't even have a vocabulary! Why does it work?
                                         
         
         <table class="eli5-weights"
-               style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
+               style="border-collapse: collapse; border: none; margin-top: 0em; table-layout: auto; width: 100%;">
             <thead>
             <tr style="border: none;">
                 
@@ -4308,7 +4308,7 @@ don't even have a vocabulary! Why does it work?
             
             
                 <tr style="background-color: hsl(120, 100.00%, 87.92%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
+                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none; white-space: nowrap;">
                         <i>&hellip; 44124 more positive &hellip;</i>
                     </td>
                 </tr>
@@ -4316,7 +4316,7 @@ don't even have a vocabulary! Why does it work?
     
             
                 <tr style="background-color: hsl(0, 100.00%, 88.46%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
+                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none; white-space: nowrap;">
                         <i>&hellip; 43892 more negative &hellip;</i>
                     </td>
                 </tr>
@@ -4397,7 +4397,7 @@ don't even have a vocabulary! Why does it work?
                                         
         
         <table class="eli5-weights"
-               style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
+               style="border-collapse: collapse; border: none; margin-top: 0em; table-layout: auto; width: 100%;">
             <thead>
             <tr style="border: none;">
                 
@@ -4463,7 +4463,7 @@ don't even have a vocabulary! Why does it work?
             
             
                 <tr style="background-color: hsl(120, 100.00%, 87.54%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
+                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none; white-space: nowrap;">
                         <i>&hellip; 51475 more positive &hellip;</i>
                     </td>
                 </tr>
@@ -4471,7 +4471,7 @@ don't even have a vocabulary! Why does it work?
     
             
                 <tr style="background-color: hsl(0, 100.00%, 87.26%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
+                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none; white-space: nowrap;">
                         <i>&hellip; 51717 more negative &hellip;</i>
                     </td>
                 </tr>
@@ -4712,7 +4712,7 @@ subset of data to fit it.
                                         
         
         <table class="eli5-weights"
-               style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
+               style="border-collapse: collapse; border: none; margin-top: 0em; table-layout: auto; width: 100%;">
             <thead>
             <tr style="border: none;">
                 
@@ -4761,7 +4761,7 @@ subset of data to fit it.
             +1.625
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            motto
+            motto <span title="(-)mail brl">&hellip;</span>
         </td>
         
     </tr>
@@ -4888,16 +4888,16 @@ subset of data to fit it.
             
             
                 <tr style="background-color: hsl(120, 100.00%, 90.35%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
-                        <i>&hellip; 47045 more positive &hellip;</i>
+                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none; white-space: nowrap;">
+                        <i>&hellip; 47696 more positive &hellip;</i>
                     </td>
                 </tr>
             
     
             
                 <tr style="background-color: hsl(0, 100.00%, 88.12%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
-                        <i>&hellip; 53853 more negative &hellip;</i>
+                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none; white-space: nowrap;">
+                        <i>&hellip; 53202 more negative &hellip;</i>
                     </td>
                 </tr>
             
@@ -4927,7 +4927,7 @@ subset of data to fit it.
             -1.872
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            christ
+            christ <span title="wiggle writes">&hellip;</span>
         </td>
         
     </tr>
@@ -4957,7 +4957,7 @@ subset of data to fit it.
                                         
         
         <table class="eli5-weights"
-               style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
+               style="border-collapse: collapse; border: none; margin-top: 0em; table-layout: auto; width: 100%;">
             <thead>
             <tr style="border: none;">
                 
@@ -5076,7 +5076,7 @@ subset of data to fit it.
             +1.572
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            FEATURE[335136]
+            keywords
         </td>
         
     </tr>
@@ -5143,16 +5143,16 @@ subset of data to fit it.
             
             
                 <tr style="background-color: hsl(120, 100.00%, 89.59%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
-                        <i>&hellip; 29925 more positive &hellip;</i>
+                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none; white-space: nowrap;">
+                        <i>&hellip; 30146 more positive &hellip;</i>
                     </td>
                 </tr>
             
     
             
                 <tr style="background-color: hsl(0, 100.00%, 88.70%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
-                        <i>&hellip; 33856 more negative &hellip;</i>
+                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none; white-space: nowrap;">
+                        <i>&hellip; 33635 more negative &hellip;</i>
                     </td>
                 </tr>
             
@@ -5162,7 +5162,7 @@ subset of data to fit it.
             -1.654
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            people <span title="hasn stopped">&hellip;</span>
+            people
         </td>
         
     </tr>
@@ -5172,7 +5172,7 @@ subset of data to fit it.
             -1.760
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            FEATURE[857427]
+            keyboard
         </td>
         
     </tr>
@@ -5202,7 +5202,7 @@ subset of data to fit it.
                                         
         
         <table class="eli5-weights"
-               style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
+               style="border-collapse: collapse; border: none; margin-top: 0em; table-layout: auto; width: 100%;">
             <thead>
             <tr style="border: none;">
                 
@@ -5361,7 +5361,7 @@ subset of data to fit it.
             +1.435
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            FEATURE[857427]
+            keyboard
         </td>
         
     </tr>
@@ -5378,16 +5378,16 @@ subset of data to fit it.
             
             
                 <tr style="background-color: hsl(120, 100.00%, 89.91%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
-                        <i>&hellip; 43624 more positive &hellip;</i>
+                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none; white-space: nowrap;">
+                        <i>&hellip; 42291 more positive &hellip;</i>
                     </td>
                 </tr>
             
     
             
                 <tr style="background-color: hsl(0, 100.00%, 89.63%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
-                        <i>&hellip; 44382 more negative &hellip;</i>
+                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none; white-space: nowrap;">
+                        <i>&hellip; 45715 more negative &hellip;</i>
                     </td>
                 </tr>
             
@@ -5447,7 +5447,7 @@ subset of data to fit it.
                                         
         
         <table class="eli5-weights"
-               style="border-collapse: collapse; border: none; margin-top: 0em; width: 100%;">
+               style="border-collapse: collapse; border: none; margin-top: 0em; table-layout: auto; width: 100%;">
             <thead>
             <tr style="border: none;">
                 
@@ -5486,7 +5486,7 @@ subset of data to fit it.
             +3.016
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            christ
+            christ <span title="wiggle writes">&hellip;</span>
         </td>
         
     </tr>
@@ -5526,7 +5526,7 @@ subset of data to fit it.
             +2.092
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            heaven
+            heaven <span title="(-)recommend finding">&hellip;</span>
         </td>
         
     </tr>
@@ -5606,7 +5606,7 @@ subset of data to fit it.
             +1.643
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            article apr <span title="(-)risen kiddie">&hellip;</span>
+            article apr
         </td>
         
     </tr>
@@ -5626,7 +5626,7 @@ subset of data to fit it.
             +1.541
         </td>
         <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            sin
+            sin <span title="(-)sight don">&hellip;</span>
         </td>
         
     </tr>
@@ -5643,16 +5643,16 @@ subset of data to fit it.
             
             
                 <tr style="background-color: hsl(120, 100.00%, 89.40%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
-                        <i>&hellip; 50065 more positive &hellip;</i>
+                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none; white-space: nowrap;">
+                        <i>&hellip; 49948 more positive &hellip;</i>
                     </td>
                 </tr>
             
     
             
                 <tr style="background-color: hsl(0, 100.00%, 89.32%); border: none;">
-                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none;">
-                        <i>&hellip; 53117 more negative &hellip;</i>
+                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none; white-space: nowrap;">
+                        <i>&hellip; 53234 more negative &hellip;</i>
                     </td>
                 </tr>
             
@@ -5839,7 +5839,7 @@ something useful.
             </p>
         
         <table class="eli5-weights"
-               style="border-collapse: collapse; border: none; margin-top: 0em; margin-bottom: 2em;">
+               style="border-collapse: collapse; border: none; margin-top: 0em; table-layout: auto; margin-bottom: 2em;">
             <thead>
             <tr style="border: none;">
                 

@@ -12,7 +12,8 @@ from sklearn.preprocessing import FunctionTransformer
 
 from eli5.xgboost import (
     _parse_tree_dump, _xgb_n_targets, _missing_values_set_to_nan,
-    _parent_value)
+    _parent_value, _parse_dump_line,
+)
 from eli5.explain import explain_prediction, explain_weights
 from eli5.formatters.text import format_as_text
 from eli5.formatters import fields
@@ -22,7 +23,10 @@ from .test_sklearn_explain_weights import (
     test_explain_random_forest_and_tree_feature_filter as _check_rf_feature_filter,
     test_feature_importances_no_remaining as _check_rf_no_remaining,
 )
-from .test_sklearn_explain_prediction import assert_linear_regression_explained
+from .test_sklearn_explain_prediction import (
+    assert_linear_regression_explained,
+    test_explain_prediction_pandas as _check_explain_prediction_pandas,
+)
 
 
 def test_explain_xgboost(newsgroups_train):
@@ -43,7 +47,7 @@ def test_explain_xgboost_regressor(boston_train):
     reg.fit(xs, ys)
     res = explain_weights(reg)
     for expl in format_as_all(res, reg):
-        assert 'x12' in expl
+        assert 'f12' in expl
     res = explain_weights(reg, feature_names=feature_names)
     for expl in format_as_all(res, reg):
         assert 'LSTAT' in expl
@@ -210,6 +214,42 @@ def test_explain_prediction_feature_union_sparse(newsgroups_train_binary):
     assert res.targets[0].weighted_spans
 
 
+def test_explain_prediction_pandas(boston_train):
+    _check_explain_prediction_pandas(XGBRegressor(), boston_train)
+
+
+def test_explain_weights_feature_names_pandas(boston_train):
+    pd = pytest.importorskip('pandas')
+    X, y, feature_names = boston_train
+    df = pd.DataFrame(X, columns=feature_names)
+    reg = XGBRegressor().fit(df, y)
+
+    # it shoud pick up feature names from DataFrame columns
+    res = explain_weights(reg)
+    for expl in format_as_all(res, reg):
+        assert 'PTRATIO' in expl
+
+    # it is possible to override DataFrame feature names
+    numeric_feature_names = ["zz%s" % idx for idx in range(len(feature_names))]
+    res = explain_weights(reg, feature_names=numeric_feature_names)
+    for expl in format_as_all(res, reg):
+        assert 'zz12' in expl
+
+
+def test_explain_prediction_pandas_dot_in_feature_name(boston_train):
+    pd = pytest.importorskip('pandas')
+    X, y, feature_names = boston_train
+    feature_names = ["%s.%s" % (name, idx)
+                     for idx, name in enumerate(feature_names)]
+    df = pd.DataFrame(X, columns=feature_names)
+
+    reg = XGBRegressor()
+    reg.fit(df, y)
+    res = explain_prediction(reg, df.iloc[0])
+    for expl in format_as_all(res, reg):
+        assert 'PTRATIO.1' in expl
+
+
 def test_parse_tree_dump():
     text_dump = '''\
 0:[f1793<-9.53674e-07] yes=1,no=2,missing=1,gain=6.112,cover=37.5
@@ -262,6 +302,28 @@ def test_parse_tree_dump():
 0:[f1793<-9.53674e-07] yes=1,no=2,missing=1,gain=6.112,cover=37.5
 		1:[f371<-9.53674e-07] yes=3,no=4,missing=3,gain=4.09694,cover=28.5
 ''')
+
+
+@pytest.mark.parametrize(
+    ['line', 'result'],
+    [
+        (
+            '0:[LSTAT.12<7.3] yes=1,no=2,missing=1,gain=4246.13,cover=100',
+            (0, {
+                'depth': 0,
+                'nodeid': 0,
+                'split': 'LSTAT.12',
+                'split_condition': 7.3,
+                'yes': 1,
+                'no': 2,
+                'missing': 1,
+                'gain': 4246.13,
+                'cover': 100,
+            })
+        ),
+    ])
+def test_parse_dump_line(line, result):
+    assert _parse_dump_line(line) == result
 
 
 def test_xgb_n_targets():

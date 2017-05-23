@@ -16,7 +16,10 @@ from .test_sklearn_explain_weights import (
     test_feature_importances_no_remaining as _check_rf_no_remaining,
     test_explain_tree_regressor as _check_rf_regressor,
 )
-from .test_sklearn_explain_prediction import assert_linear_regression_explained
+from .test_sklearn_explain_prediction import (
+    assert_linear_regression_explained,
+    test_explain_prediction_pandas as _check_explain_prediction_pandas,
+)
 from .utils import format_as_all, check_targets_scores, get_all_features
 
 
@@ -108,3 +111,25 @@ def test_explain_prediction_regression(boston_train):
     assert_linear_regression_explained(
         boston_train, LGBMRegressor(), explain_prediction,
         reg_has_intercept=True)
+
+
+def test_explain_prediction_pandas(boston_train):
+    _check_explain_prediction_pandas(LGBMRegressor(), boston_train)
+
+
+def test_explain_weights_feature_names_pandas(boston_train):
+    pd = pytest.importorskip('pandas')
+    X, y, feature_names = boston_train
+    df = pd.DataFrame(X, columns=feature_names)
+    reg = LGBMRegressor().fit(df, y)
+
+    # it shoud pick up feature names from DataFrame columns
+    res = explain_weights(reg)
+    for expl in format_as_all(res, reg):
+        assert 'PTRATIO' in expl
+
+    # it is possible to override DataFrame feature names
+    numeric_feature_names = ["zz%s" % idx for idx in range(len(feature_names))]
+    res = explain_weights(reg, feature_names=numeric_feature_names)
+    for expl in format_as_all(res, reg):
+        assert 'zz12' in expl

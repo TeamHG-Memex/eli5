@@ -67,8 +67,8 @@ def has_intercept(estimator):
 
 
 def get_feature_names(clf, vec=None, bias_name='<BIAS>', feature_names=None,
-                      num_features=None):
-    # type: (Any, Any, str, Any, int) -> FeatureNames
+                      num_features=None, estimator_feature_names=None):
+    # type: (Any, Any, str, Any, int, Any) -> FeatureNames
     """
     Return a FeatureNames instance that holds all feature names
     and a bias feature.
@@ -82,12 +82,14 @@ def get_feature_names(clf, vec=None, bias_name='<BIAS>', feature_names=None,
         if vec and hasattr(vec, 'get_feature_names'):
             return FeatureNames(vec.get_feature_names(), bias_name=bias_name)
         else:
-            num_features = num_features or get_num_features(clf)
-            return FeatureNames(
-                n_features=num_features,
-                unkn_template='x%d',
-                bias_name=bias_name
-            )
+            if estimator_feature_names is None:
+                num_features = num_features or get_num_features(clf)
+                return FeatureNames(
+                    n_features=num_features,
+                    unkn_template='x%d',
+                    bias_name=bias_name
+                )
+            return FeatureNames(estimator_feature_names, bias_name=bias_name)
 
     num_features = num_features or get_num_features(clf)
     if isinstance(feature_names, FeatureNames):
@@ -111,10 +113,16 @@ def get_feature_names(clf, vec=None, bias_name='<BIAS>', feature_names=None,
 
 def get_feature_names_filtered(clf, vec=None, bias_name='<BIAS>',
                                feature_names=None, num_features=None,
-                               feature_filter=None, feature_re=None):
-    feature_names = get_feature_names(clf, vec=vec, bias_name=bias_name,
-                                      feature_names=feature_names,
-                                      num_features=num_features)
+                               feature_filter=None, feature_re=None,
+                               estimator_feature_names=None):
+    feature_names = get_feature_names(
+        clf=clf,
+        vec=vec,
+        bias_name=bias_name,
+        feature_names=feature_names,
+        num_features=num_features,
+        estimator_feature_names=estimator_feature_names,
+    )
     return feature_names.handle_filter(feature_filter, feature_re)
 
 
@@ -197,9 +205,22 @@ def get_num_features(estimator):
                          estimator)
 
 
+try:
+    import pandas as pd  # type: ignore
+    pandas_available = True
+except ImportError:
+    pandas_available = False
+
+
 def get_X(doc, vec=None, vectorized=False, to_dense=False):
     if vec is None or vectorized:
-        X = np.array([doc]) if isinstance(doc, np.ndarray) else doc
+        if isinstance(doc, np.ndarray):
+            X = np.array([doc])
+        elif pandas_available and isinstance(doc, pd.Series):
+            # Convert to a DataFrame with a single row
+            X = doc.to_frame().transpose()
+        else:
+            X = doc
     else:
         X = vec.transform([doc])
     if to_dense and sp.issparse(X):
@@ -207,9 +228,23 @@ def get_X(doc, vec=None, vectorized=False, to_dense=False):
     return X
 
 
+def get_X0(X):
+    """ Return zero-th element of a one-element data container.
+    """
+    if pandas_available and isinstance(X, pd.DataFrame):
+        assert len(X) == 1
+        x = np.array(X.iloc[0])
+    else:
+        x, = X
+    return x
+
+
 def handle_vec(clf, doc, vec, vectorized, feature_names, num_features=None):
     if not vectorized:
         vec = invert_hashing_and_fit(vec, [doc])
+    if (vec is None and feature_names is None and
+            pandas_available and isinstance(doc, pd.Series)):
+        feature_names = list(doc.index)
     # Explaining predictions does not need coef_scale
     # because it is handled by the vectorizer.
     feature_names = handle_hashing_vec(

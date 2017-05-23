@@ -422,13 +422,14 @@ def test_explain_linear_regression(boston_train, reg):
 
 
 @pytest.mark.parametrize(['reg'], [
-    [Lasso()],
-    [Lasso(fit_intercept=False)],
+    [Lasso(random_state=42)],
+    [Lasso(fit_intercept=False, random_state=42)],
     [LinearRegression()],
     [LinearRegression(fit_intercept=False)],
 ])
 def test_explain_linear_regression_one_feature(reg):
-    xs, ys = make_regression(n_samples=10, n_features=1, bias=7.5)
+    xs, ys = make_regression(n_samples=10, n_features=1, bias=7.5,
+                             random_state=42)
     reg.fit(xs, ys)
     res = explain_weights(reg)
     expl_text, expl_html = format_as_all(res, reg)
