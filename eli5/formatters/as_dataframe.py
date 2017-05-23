@@ -3,7 +3,9 @@ from typing import List, Optional
 
 import pandas as pd
 
-from eli5.base import Explanation, FeatureImportances, TargetExplanation
+from eli5.base import (
+    Explanation, FeatureImportances, TargetExplanation, TransitionFeatureWeights,
+)
 
 
 def format_as_dataframe(expl):
@@ -11,7 +13,9 @@ def format_as_dataframe(expl):
     """ Export an explanation to pandas.DataFrame. Only target weights and
     feature importances can be exported, else None is returned.
     """
-    if expl.targets:
+    if expl.transition_features:
+        return transition_features_to_df(expl.transition_features)
+    elif expl.targets:
         return targets_to_df(expl.targets)
     elif expl.feature_importances:
         return feature_importances_to_df(expl.feature_importances)
@@ -47,3 +51,14 @@ def targets_to_df(targets):
     if any(x is not None for x in values):
         df['value'] = values
     return df
+
+
+def transition_features_to_df(transition_features):
+    # type: (TransitionFeatureWeights) -> pd.DataFrame
+    class_names = transition_features.class_names
+    df = pd.DataFrame({
+        'from': [f for _ in class_names for f in class_names],
+        'to': [f for f in class_names for _ in class_names],
+        'coef': transition_features.coef.reshape(-1),
+    })
+    return pd.pivot_table(df, values='coef', columns=['to'], index=['from'])
