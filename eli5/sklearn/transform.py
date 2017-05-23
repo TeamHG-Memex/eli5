@@ -145,6 +145,7 @@ class make_tfn_weighted:
     def __call__(self, est, in_names=None):
         W = self.get_weights(est)
         if W.ndim == 1:
+            # XXX: This implementation is inefficient and could be rewritten
             W = sparse.csr_matrix((W.copy(), np.arange(len(W)),
                                    np.arange(len(W) + 1)))
 
