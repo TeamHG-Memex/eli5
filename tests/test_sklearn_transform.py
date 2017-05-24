@@ -28,9 +28,19 @@ from sklearn.linear_model import (
 from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.pipeline import FeatureUnion
 from sklearn.decomposition import (  # type: ignore
-    LatentDirichletAllocation,
+    PCA,
+    IncrementalPCA,
+    FactorAnalysis,
+    FastICA,
     TruncatedSVD,
-    PCA)
+    NMF,
+    SparsePCA,
+    MiniBatchSparsePCA,
+    SparseCoder,
+    DictionaryLearning,
+    MiniBatchDictionaryLearning,
+    LatentDirichletAllocation)
+
 
 from eli5 import transform_feature_names
 from eli5.sklearn.transform import make_tfn_weighted
@@ -67,8 +77,29 @@ def selection_score_func(X, y):
     (FeatureUnion([('k', SelectKBest(selection_score_func, k=2)),
                    ('p', SelectPercentile(selection_score_func, 25))]),
      ['k:x2', 'k:x3', 'p:x3']),
+    # Decompositions with 2 components each weighting 3 features
     (PCA(n_components=2),
      [r'PCA0:=\((x[0-9]\*.+){3}\)', r'PCA1:=\((x[0-9]\*.+){3}\)']),
+    (IncrementalPCA(n_components=2),
+     [r'PCA0:=\((x[0-9]\*.+){3}\)', r'PCA1:=\((x[0-9]\*.+){3}\)']),
+    (FactorAnalysis(n_components=2),
+     [r'FA0:=\((x[0-9]\*.+){3}\)', r'FA1:=\((x[0-9]\*.+){3}\)']),
+    (FastICA(n_components=2),
+     [r'ICA0:=\((x[0-9]\*.+){3}\)', r'ICA1:=\((x[0-9]\*.+){3}\)']),
+    (TruncatedSVD(n_components=2),
+     [r'SVD0:=\((x[0-9]\*.+){3}\)', r'SVD1:=\((x[0-9]\*.+){3}\)']),
+    (NMF(n_components=2),
+     [r'NMF0:=\((x[0-9]\*.+){3}\)', r'NMF1:=\((x[0-9]\*.+){3}\)']),
+    (SparsePCA(n_components=2),
+     [r'SPCA0:=\((x[0-9]\*.+){3}\)', r'SPCA1:=\((x[0-9]\*.+){3}\)']),
+    (MiniBatchSparsePCA(n_components=2),
+     [r'SPCA0:=\((x[0-9]\*.+){3}\)', r'SPCA1:=\((x[0-9]\*.+){3}\)']),
+    (SparseCoder(dictionary=np.array([[1, 2, 3, 4], [5, 6, 7, 8]])),
+     [r'SC0:=\((x[0-9]\*.+){3}\)', r'SC1:=\((x[0-9]\*.+){3}\)']),
+    (DictionaryLearning(n_components=2),
+     [r'DL0:=\((x[0-9]\*.+){3}\)', r'DL1:=\((x[0-9]\*.+){3}\)']),
+    (MiniBatchDictionaryLearning(n_components=2),
+     [r'DL0:=\((x[0-9]\*.+){3}\)', r'DL1:=\((x[0-9]\*.+){3}\)']),
     (LatentDirichletAllocation(n_topics=2),
      [r'LDA0:=\((x[0-9]\*.+){3}\)', r'LDA1:=\((x[0-9]\*.+){3}\)']),
     (TfidfTransformer(),
