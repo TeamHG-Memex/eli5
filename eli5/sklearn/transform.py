@@ -9,7 +9,7 @@ import itertools
 import operator
 
 import numpy as np  # type: ignore
-from scipy import sparse
+from scipy import sparse  # type: ignore
 import six  # type: ignore
 from sklearn.pipeline import Pipeline, FeatureUnion  # type: ignore
 from sklearn.feature_selection.base import SelectorMixin  # type: ignore
