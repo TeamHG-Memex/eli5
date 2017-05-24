@@ -173,7 +173,7 @@ class make_tfn_weighted:
 
 # Non-trivial scaling:
 
-transform_feature_names.register(TfidfTransformer)(
+transform_feature_names.register(TfidfTransformer)(  # type: ignore
     make_tfn_weighted('idf_', func_name='TFIDF', show_idx=False))
 
 # Decomposition (linear weights):
@@ -186,7 +186,7 @@ for cls, prefix in [(PCA, 'PCA'), (IncrementalPCA, 'PCA'),
                     (MiniBatchDictionaryLearning, 'DL'),
                     (LatentDirichletAllocation, 'LDA')]:
 
-    transform_feature_names.register(cls)(
+    transform_feature_names.register(cls)(  # type: ignore
         make_tfn_weighted('components_', func_name=prefix))
 
 
