@@ -86,6 +86,7 @@ def explain_weights_xgboost(xgb,
 
 @explain_prediction.register(XGBClassifier)
 @explain_prediction.register(XGBRegressor)
+@explain_prediction.register(Booster)
 def explain_prediction_xgboost(
         xgb, doc,
         vec=None,
@@ -126,7 +127,8 @@ def explain_prediction_xgboost(
     changes from parent to child.
     Weights of all features sum to the output score of the estimator.
     """
-    xgb_feature_names = xgb.booster().feature_names
+    booster = xgb if isinstance(xgb, Booster) else xgb.booster()
+    xgb_feature_names = booster.feature_names
     vec, feature_names = handle_vec(
         xgb, doc, vec, vectorized, feature_names, num_features=len(xgb_feature_names))
     if feature_names.bias_name is None:
@@ -140,17 +142,29 @@ def explain_prediction_xgboost(
         # https://github.com/dmlc/xgboost/issues/1238#issuecomment-243872543
         X = X.tocsc()
 
-    proba = predict_proba(xgb, X)
-    scores_weights = _prediction_feature_weights(
-        xgb, X, feature_names, xgb_feature_names)
+    is_regression = isinstance(xgb, XGBRegressor)  # FIXME
 
+    if isinstance(xgb, Booster):
+        if is_regression:
+            proba = None
+        else:
+            proba = xgb.predict(X)
+    else:
+        proba = predict_proba(xgb, X)
+    n_targets = _xgb_n_targets(xgb)
+    if isinstance(X, DMatrix):  # FIXME - no, looks like we can't support that
+        dmatrix = X
+    else:
+        dmatrix = DMatrix(X, missing=xgb.missing)
+    scores_weights = _prediction_feature_weights(
+        booster, dmatrix, n_targets, feature_names, xgb_feature_names)
+
+    # TODO
     x = get_X0(add_intercept(X))
     x = _missing_values_set_to_nan(x, xgb.missing, sparse_missing=True)
     feature_names, flt_indices = feature_names.handle_filter(
         feature_filter, feature_re, x)
 
-    is_multiclass = _xgb_n_targets(xgb) > 1
-    is_regression = isinstance(xgb, XGBRegressor)
     names = xgb.classes_ if not is_regression else ['y']
 
     def get_score_feature_weights(_label_id):
@@ -170,20 +184,20 @@ def explain_prediction_xgboost(
         targets=targets,
         top_targets=top_targets,
         is_regression=is_regression,
-        is_multiclass=is_multiclass,
+        is_multiclass=n_targets > 1,
         proba=proba,
         get_score_feature_weights=get_score_feature_weights,
      )
 
 
-def _prediction_feature_weights(xgb, X, feature_names, xgb_feature_names):
+def _prediction_feature_weights(booster, dmatrix, n_targets,
+                                feature_names, xgb_feature_names):
     """ For each target, return score and numpy array with feature weights
     on this prediction, following an idea from
     http://blog.datadive.net/interpreting-random-forests/
     """
     # XGBClassifier does not have pred_leaf argument, so use booster
-    booster = xgb.booster()  # type: Booster
-    leaf_ids, = booster.predict(DMatrix(X, missing=xgb.missing), pred_leaf=True)
+    leaf_ids, = booster.predict(dmatrix, pred_leaf=True)
     xgb_feature_names = {f: i for i, f in enumerate(xgb_feature_names)}
     tree_dumps = booster.get_dump(with_stats=True)
     assert len(tree_dumps) == len(leaf_ids)
@@ -191,7 +205,6 @@ def _prediction_feature_weights(xgb, X, feature_names, xgb_feature_names):
     target_feature_weights = partial(
         _target_feature_weights,
         feature_names=feature_names, xgb_feature_names=xgb_feature_names)
-    n_targets = _xgb_n_targets(xgb)
     if n_targets > 1:
         # For multiclass, XGBoost stores dumps and leaf_ids in a 1d array,
         # so we need to split them.
@@ -260,6 +273,7 @@ def _xgb_n_targets(xgb):
     elif isinstance(xgb, XGBRegressor):
         return 1
     else:
+        return 1 # FIXMEEEEEEEE really
         raise TypeError
 
 

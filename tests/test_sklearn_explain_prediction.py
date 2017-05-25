@@ -114,7 +114,15 @@ def assert_linear_regression_explained(boston_train, reg, explain_prediction,
                                        atol=1e-8, reg_has_intercept=None):
     X, y, feature_names = boston_train
     reg.fit(X, y)
-    res = explain_prediction(reg, X[0], feature_names=feature_names)
+    assert_trained_linear_regression_explained(
+        X[0], feature_names, reg, explain_prediction,
+        atol=atol, reg_has_intercept=reg_has_intercept)
+
+
+def assert_trained_linear_regression_explained(
+        x, feature_names, reg, explain_prediction,
+        atol=1e-8, reg_has_intercept=None):
+    res = explain_prediction(reg, x, feature_names=feature_names)
     expl_text, expl_html = expls = format_as_all(res, reg)
 
     assert len(res.targets) == 1

@@ -25,7 +25,7 @@ from .test_sklearn_explain_weights import (
     test_feature_importances_no_remaining as _check_rf_no_remaining,
 )
 from .test_sklearn_explain_prediction import (
-    assert_linear_regression_explained,
+    assert_linear_regression_explained, assert_trained_linear_regression_explained,
     test_explain_prediction_pandas as _check_explain_prediction_pandas,
 )
 
@@ -57,10 +57,7 @@ def test_explain_xgboost_regressor(boston_train):
 def test_explain_xgboost_booster(boston_train):
     xs, ys, feature_names = boston_train
     booster = xgboost.train(
-        params={
-            'objective': 'reg:linear',
-            'silent': True,
-        },
+        params={'objective': 'reg:linear', 'silent': True},
         dtrain=xgboost.DMatrix(xs, label=ys),
     )
     res = explain_weights(booster)
@@ -184,6 +181,18 @@ def test_explain_prediction_clf_interval():
 def test_explain_prediction_reg(boston_train):
     assert_linear_regression_explained(
         boston_train, XGBRegressor(), explain_prediction,
+        reg_has_intercept=True)
+
+
+def test_explain_prediction_reg_booster(boston_train):
+    X, y, feature_names = boston_train
+    booster = xgboost.train(
+        params={'objective': 'reg:linear', 'silent': True},
+        dtrain=xgboost.DMatrix(X, label=y),
+    )
+    dtest = xgboost.DMatrix(X[:1])
+    assert_trained_linear_regression_explained(
+        dtest, feature_names, booster, explain_prediction,
         reg_has_intercept=True)
 
 
