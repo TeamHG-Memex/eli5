@@ -6,6 +6,7 @@ import numpy as np
 import scipy.sparse as sp
 from sklearn.feature_extraction.text import CountVectorizer
 pytest.importorskip('xgboost')
+import xgboost
 from xgboost import XGBClassifier, XGBRegressor
 from sklearn.pipeline import FeatureUnion
 from sklearn.preprocessing import FunctionTransformer
@@ -50,6 +51,23 @@ def test_explain_xgboost_regressor(boston_train):
         assert 'f12' in expl
     res = explain_weights(reg, feature_names=feature_names)
     for expl in format_as_all(res, reg):
+        assert 'LSTAT' in expl
+
+
+def test_explain_xgboost_booster(boston_train):
+    xs, ys, feature_names = boston_train
+    booster = xgboost.train(
+        params={
+            'objective': 'reg:linear',
+            'silent': True,
+        },
+        dtrain=xgboost.DMatrix(xs, label=ys),
+    )
+    res = explain_weights(booster)
+    for expl in format_as_all(res, booster):
+        assert 'f12' in expl
+    res = explain_weights(booster, feature_names=feature_names)
+    for expl in format_as_all(res, booster):
         assert 'LSTAT' in expl
 
 

@@ -35,6 +35,7 @@ all values sum to 1.
 
 @explain_weights.register(XGBClassifier)
 @explain_weights.register(XGBRegressor)
+@explain_weights.register(Booster)
 def explain_weights_xgboost(xgb,
                             vec=None,
                             top=20,
@@ -66,15 +67,18 @@ def explain_weights_xgboost(xgb,
           across all trees
         - 'cover' - the average coverage of the feature when it is used in trees
     """
-    xgb_feature_names = xgb.booster().feature_names
-    coef = _xgb_feature_importances(xgb, importance_type=importance_type)
-    return get_feature_importance_explanation(xgb, vec, coef,
+    booster = xgb if isinstance(xgb, Booster) else xgb.booster()
+    xgb_feature_names = booster.feature_names
+    coef = _xgb_feature_importances(booster, importance_type=importance_type)
+    return get_feature_importance_explanation(
+        xgb, vec, coef,
         feature_names=feature_names,
         estimator_feature_names=xgb_feature_names,
         feature_filter=feature_filter,
         feature_re=feature_re,
         top=top,
         description=DESCRIPTION_XGBOOST,
+        # FIXME - this is wrong for xgb == booster
         is_regression=isinstance(xgb, XGBRegressor),
         num_features=coef.shape[-1],
     )
@@ -259,11 +263,10 @@ def _xgb_n_targets(xgb):
         raise TypeError
 
 
-def _xgb_feature_importances(xgb, importance_type):
-    b = xgb.booster()
-    fs = b.get_score(importance_type=importance_type)
+def _xgb_feature_importances(booster, importance_type):
+    fs = booster.get_score(importance_type=importance_type)
     all_features = np.array(
-        [fs.get(f, 0.) for f in b.feature_names], dtype=np.float32)
+        [fs.get(f, 0.) for f in booster.feature_names], dtype=np.float32)
     return all_features / all_features.sum()
 
 
