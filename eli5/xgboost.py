@@ -109,7 +109,7 @@ def explain_prediction_xgboost(
     ``vectorized`` is a flag which tells eli5 if ``doc`` should be
     passed through ``vec`` or not. By default it is False, meaning that
     if ``vec`` is not None, ``vec.transform([doc])`` is passed to the
-    estimator. Set it to False if you're passing ``vec``,
+    estimator. Set it to True if you're passing ``vec``,
     but ``doc`` is already vectorized.
 
     Method for determining feature importances follows an idea from
