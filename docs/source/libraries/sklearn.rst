@@ -33,7 +33,7 @@ Additional :func:`eli5.explain_prediction` parameters:
 * ``vectorized`` is a flag which tells eli5 if ``doc`` should be
   passed through ``vec`` or not. By default it is False, meaning that
   if ``vec`` is not None, ``vec.transform([doc])`` is passed to the
-  estimator. Set it to False if you're passing ``vec`` (e.g. to get feature
+  estimator. Set it to True if you're passing ``vec`` (e.g. to get feature
   names and/or enable :ref:`text highlighting <sklearn-text-highlighting>`),
   but ``doc`` is already vectorized.
 
