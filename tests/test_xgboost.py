@@ -103,7 +103,7 @@ def test_explain_prediction_clf_binary(
         clf.fit(xs, ys)
     get_res = lambda **kwargs: explain_prediction(
         clf, 'computer graphics in space: a sign of atheism',
-        vec=vec, target_names=target_names, **kwargs, **explain_kwargs)
+        vec=vec, target_names=target_names, **dict(kwargs, **explain_kwargs))
     res = get_res()
     for expl in format_as_all(res, clf, show_feature_values=True):
         assert 'graphics' in expl
