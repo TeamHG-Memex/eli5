@@ -155,10 +155,10 @@ def explain_prediction_xgboost(
             proba = None
         else:
             if n_targets == 1:
-                p = prediction[0]
+                p, = prediction
                 proba = np.array([1 - p, p])
             else:
-                proba = prediction[0]
+                proba, = prediction
     else:
         proba = predict_proba(xgb, X)
         n_targets = _xgb_n_targets(xgb)
