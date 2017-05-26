@@ -5,15 +5,21 @@ XGBoost
 
 XGBoost_ is a popular Gradient Boosting library with Python interface.
 eli5 supports :func:`eli5.explain_weights` and :func:`eli5.explain_prediction`
-for XGBClassifer_ and XGBRegressor_ estimators. It is tested for
+for XGBClassifer_, XGBRegressor_ and Booster_ estimators. It is tested for
 xgboost >= 0.6a2.
 
 .. _XGBoost: https://github.com/dmlc/xgboost
 .. _XGBClassifer: https://xgboost.readthedocs.io/en/latest/python/python_api.html#xgboost.XGBClassifier
 .. _XGBRegressor: https://xgboost.readthedocs.io/en/latest/python/python_api.html#xgboost.XGBRegressor
+.. _Booster: http://xgboost.readthedocs.io/en/latest/python/python_api.html#xgboost.Booster
 
-:func:`eli5.explain_weights` uses feature importances. Additional
-arguments for XGBClassifer_ and XGBRegressor_:
+:func:`eli5.explain_weights` uses feature importances.
+There is one additional required argument for Booster_ estimator:
+
+* ``is_regression`` True if solving a regression problem
+  ("objective" starts with "reg") and False for a classification problem.
+
+Additional optional arguments for XGBClassifer_, XGBRegressor_ and Booster_:
 
 * ``importance_type`` is a way to get feature importance. Possible values are:
 
@@ -36,6 +42,16 @@ feature weights are calculated by following decision paths in trees
 of an ensemble. Each node of the tree has an output score, and
 contribution of a feature on the decision path is how much the score changes
 from parent to child.
+
+There is one additional required argument for the Booster_ estimator:
+
+* ``is_regression`` True if solving a regression problem
+  ("objective" starts with "reg") and False for a classification problem.
+
+.. note::
+    When explaining Booster_ predictions,
+    do not pass an ``xgboost.DMatrix`` object as ``doc``, pass a numpy array
+    or a sparse matrix instead (or have ``vec`` return them).
 
 Additional :func:`eli5.explain_prediction` keyword arguments supported
 for XGBClassifer_ and XGBRegressor_:
