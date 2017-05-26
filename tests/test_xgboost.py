@@ -74,10 +74,10 @@ def test_explain_xgboost_booster(boston_train):
         params={'objective': 'reg:linear', 'silent': True},
         dtrain=xgboost.DMatrix(xs, label=ys),
     )
-    res = explain_weights(booster)
+    res = explain_weights(booster, is_regression=True)
     for expl in format_as_all(res, booster):
         assert 'f12' in expl
-    res = explain_weights(booster, feature_names=feature_names)
+    res = explain_weights(booster, feature_names=feature_names, is_regression=True)
     for expl in format_as_all(res, booster):
         assert 'LSTAT' in expl
 

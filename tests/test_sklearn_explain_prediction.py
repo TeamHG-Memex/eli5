@@ -2,6 +2,7 @@
 from __future__ import absolute_import
 from functools import partial
 from pprint import pprint
+import re
 
 import pytest
 from sklearn.base import BaseEstimator
@@ -203,8 +204,8 @@ def assert_feature_values_present(expl, feature_names, x):
     assert 'Value' in expl
     any_features = False
     for feature, value in zip(feature_names, x):
-        if feature in expl:
-            assert '{:.3f}'.format(value) in expl
+        if re.search(r'[\b\s]{}[\b\s]'.format(re.escape(feature)), expl):
+            assert '{:.3f}'.format(value) in expl, feature
             any_features = True
     assert any_features
 
