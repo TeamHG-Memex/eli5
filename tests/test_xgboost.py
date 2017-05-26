@@ -23,6 +23,7 @@ from .test_sklearn_explain_weights import (
     test_explain_tree_classifier as _check_rf_classifier,
     test_explain_random_forest_and_tree_feature_filter as _check_rf_feature_filter,
     test_feature_importances_no_remaining as _check_rf_no_remaining,
+    assert_tree_classifier_explained,
 )
 from .test_sklearn_explain_prediction import (
     assert_linear_regression_explained, assert_trained_linear_regression_explained,
@@ -32,6 +33,19 @@ from .test_sklearn_explain_prediction import (
 
 def test_explain_xgboost(newsgroups_train):
     _check_rf_classifier(newsgroups_train, XGBClassifier(n_estimators=10))
+
+
+def test_explain_booster(newsgroups_train):
+    docs, y, target_names = newsgroups_train
+    vec = CountVectorizer()
+    X = vec.fit_transform(docs)
+    booster = xgboost.train(
+        params={'objective': 'multi:softprob', 'silent': True, 'max_depth': 3,
+                'num_class': len(target_names)},
+        dtrain=xgboost.DMatrix(X, label=y, missing=np.nan),
+        num_boost_round=10)
+    assert_tree_classifier_explained(booster, vec, target_names,
+                                     is_regression=False)
 
 
 def test_explain_xgboost_feature_filter(newsgroups_train):

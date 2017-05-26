@@ -309,10 +309,13 @@ def test_explain_tree_classifier(newsgroups_train, clf):
     vec = CountVectorizer()
     X = vec.fit_transform(docs)
     clf.fit(X.toarray(), y)
+    assert_tree_classifier_explained(clf, vec, target_names)
 
+
+def assert_tree_classifier_explained(clf, vec, target_names, **explain_kwargs):
     top = 30
     get_res = lambda: explain_weights(
-        clf, vec=vec, target_names=target_names, top=top)
+        clf, vec=vec, target_names=target_names, top=top, **explain_kwargs)
     res = get_res()
     expl_text, expl_html = format_as_all(res, clf)
     for expl in [expl_text, expl_html]:
