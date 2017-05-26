@@ -79,8 +79,9 @@ def test_explain_prediction_clf_binary(
     explain_kwargs = {}
     if use_booster:
         clf = xgboost.train(
-            params={'objective': 'binary:logistic', 'silent': True},
+            params={'objective': 'binary:logistic', 'silent': True, 'max_depth': 2},
             dtrain=xgboost.DMatrix(xs, label=ys, missing=missing),
+            num_boost_round=100,
         )
         explain_kwargs.update({'missing': missing, 'is_regression': False})
     else:
@@ -111,17 +112,30 @@ def test_explain_prediction_clf_binary(
         assert 'Missing' not in expl
 
 
-@pytest.mark.parametrize(['filter_missing'], [[True], [False]])
-def test_explain_prediction_clf_multitarget(newsgroups_train, filter_missing):
+@pytest.mark.parametrize(
+    ['filter_missing', 'use_booster'],
+    [[True, False], [False, False], [True, True]])
+def test_explain_prediction_clf_multitarget(
+        newsgroups_train, filter_missing, use_booster):
     docs, ys, target_names = newsgroups_train
     vec = CountVectorizer(stop_words='english')
     xs = vec.fit_transform(docs)
-    clf = XGBClassifier(n_estimators=100, max_depth=2)
-    clf.fit(xs, ys)
+    explain_kwargs = {}
+    if use_booster:
+        clf = xgboost.train(
+            params={'objective': 'multi:softprob', 'num_class': len(target_names),
+                    'silent': True, 'max_depth': 2},
+            dtrain=xgboost.DMatrix(xs, label=ys, missing=np.nan),
+            num_boost_round=100,
+        )
+        explain_kwargs['is_regression'] = False
+    else:
+        clf = XGBClassifier(n_estimators=100, max_depth=2)
+        clf.fit(xs, ys)
     feature_filter = (lambda _, v: not np.isnan(v)) if filter_missing else None
     doc = 'computer graphics in space: a new religion'
     res = explain_prediction(clf, doc, vec=vec, target_names=target_names,
-                             feature_filter=feature_filter)
+                             feature_filter=feature_filter, **explain_kwargs)
     format_as_all(res, clf)
     if not filter_missing:
         check_targets_scores(res)
@@ -130,7 +144,8 @@ def test_explain_prediction_clf_multitarget(newsgroups_train, filter_missing):
     religion_weights = res.targets[3].feature_weights
     assert 'religion' in get_all_features(religion_weights.pos)
 
-    top_target_res = explain_prediction(clf, doc, vec=vec, top_targets=2)
+    top_target_res = explain_prediction(
+        clf, doc, vec=vec, top_targets=2, **explain_kwargs)
     assert len(top_target_res.targets) == 2
     assert sorted(t.proba for t in top_target_res.targets) == sorted(
         t.proba for t in res.targets)[-2:]
@@ -198,7 +213,7 @@ def test_explain_prediction_reg(boston_train):
 def test_explain_prediction_reg_booster(boston_train):
     X, y, feature_names = boston_train
     booster = xgboost.train(
-        params={'objective': 'reg:linear', 'silent': True},
+        params={'objective': 'reg:linear', 'silent': True, 'max_depth': 2},
         dtrain=xgboost.DMatrix(X, label=y),
     )
     assert_trained_linear_regression_explained(
