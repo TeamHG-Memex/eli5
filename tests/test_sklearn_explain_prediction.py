@@ -121,8 +121,8 @@ def assert_linear_regression_explained(boston_train, reg, explain_prediction,
 
 def assert_trained_linear_regression_explained(
         x, feature_names, reg, explain_prediction,
-        atol=1e-8, reg_has_intercept=None):
-    res = explain_prediction(reg, x, feature_names=feature_names)
+        atol=1e-8, reg_has_intercept=None, **explain_kwargs):
+    res = explain_prediction(reg, x, feature_names=feature_names, **explain_kwargs)
     expl_text, expl_html = expls = format_as_all(res, reg)
 
     assert len(res.targets) == 1
@@ -152,13 +152,15 @@ def assert_trained_linear_regression_explained(
     assert '<b>y</b>' in strip_blanks(expl_html)
 
     for expl in expls:
-        assert_feature_values_present(expl, feature_names, X[0])
+        assert_feature_values_present(expl, feature_names, x)
 
-    assert res == explain_prediction(reg, X[0], feature_names=feature_names)
+    assert res == explain_prediction(reg, x, feature_names=feature_names,
+                                     **explain_kwargs)
     check_targets_scores(res, atol=atol)
 
-    flt_res = explain_prediction(reg, X[0], feature_names=feature_names,
-                                 feature_filter=lambda name, v: name != 'LSTAT')
+    flt_res = explain_prediction(reg, x, feature_names=feature_names,
+                                 feature_filter=lambda name, v: name != 'LSTAT',
+                                 **explain_kwargs)
     format_as_all(flt_res, reg)
     flt_target = flt_res.targets[0]
     flt_pos, flt_neg = get_pos_neg_features(flt_target.feature_weights)

@@ -45,6 +45,7 @@ def explain_weights_xgboost(xgb,
                             feature_re=None,
                             feature_filter=None,
                             importance_type='gain',
+                            is_regression=None,
                             ):
     """
     Return an explanation of an XGBoost estimator (via scikit-learn wrapper
@@ -67,7 +68,7 @@ def explain_weights_xgboost(xgb,
           across all trees
         - 'cover' - the average coverage of the feature when it is used in trees
     """
-    booster = xgb if isinstance(xgb, Booster) else xgb.booster()
+    booster, is_regression = _check_booster_args(xgb, is_regression)
     xgb_feature_names = booster.feature_names
     coef = _xgb_feature_importances(booster, importance_type=importance_type)
     return get_feature_importance_explanation(
@@ -78,8 +79,7 @@ def explain_weights_xgboost(xgb,
         feature_re=feature_re,
         top=top,
         description=DESCRIPTION_XGBOOST,
-        # FIXME - this is wrong for xgb == booster
-        is_regression=isinstance(xgb, XGBRegressor),
+        is_regression=is_regression,
         num_features=coef.shape[-1],
     )
 
@@ -98,6 +98,8 @@ def explain_prediction_xgboost(
         feature_re=None,
         feature_filter=None,
         vectorized=False,
+        is_regression=None,
+        missing=None,
         ):
     """ Return an explanation of XGBoost prediction (via scikit-learn wrapper
     XGBClassifier or XGBRegressor) as feature weights.
@@ -127,7 +129,7 @@ def explain_prediction_xgboost(
     changes from parent to child.
     Weights of all features sum to the output score of the estimator.
     """
-    booster = xgb if isinstance(xgb, Booster) else xgb.booster()
+    booster, is_regression = _check_booster_args(xgb, is_regression)
     xgb_feature_names = booster.feature_names
     vec, feature_names = handle_vec(
         xgb, doc, vec, vectorized, feature_names, num_features=len(xgb_feature_names))
@@ -142,30 +144,32 @@ def explain_prediction_xgboost(
         # https://github.com/dmlc/xgboost/issues/1238#issuecomment-243872543
         X = X.tocsc()
 
-    is_regression = isinstance(xgb, XGBRegressor)  # FIXME
+    if missing is None:
+        missing = np.nan if isinstance(xgb, Booster) else xgb.missing
+    dmatrix = DMatrix(X, missing=missing)
 
     if isinstance(xgb, Booster):
-        if is_regression:
-            proba = None
-        else:
-            proba = xgb.predict(X)
+        prediction = xgb.predict(dmatrix)
+        proba = None if is_regression else prediction
+        n_targets = prediction.shape[-1]
     else:
         proba = predict_proba(xgb, X)
-    n_targets = _xgb_n_targets(xgb)
-    if isinstance(X, DMatrix):  # FIXME - no, looks like we can't support that
-        dmatrix = X
-    else:
-        dmatrix = DMatrix(X, missing=xgb.missing)
+        n_targets = _xgb_n_targets(xgb)
+
     scores_weights = _prediction_feature_weights(
         booster, dmatrix, n_targets, feature_names, xgb_feature_names)
 
-    # TODO
     x = get_X0(add_intercept(X))
-    x = _missing_values_set_to_nan(x, xgb.missing, sparse_missing=True)
+    x = _missing_values_set_to_nan(x, missing, sparse_missing=True)
     feature_names, flt_indices = feature_names.handle_filter(
         feature_filter, feature_re, x)
 
-    names = xgb.classes_ if not is_regression else ['y']
+    if is_regression:
+        names = ['y']
+    elif isinstance(xgb, Booster):
+        assert False  # TODO
+    else:
+        names = xgb.classes_
 
     def get_score_feature_weights(_label_id):
         _score, _feature_weights = scores_weights[_label_id]
@@ -188,6 +192,24 @@ def explain_prediction_xgboost(
         proba=proba,
         get_score_feature_weights=get_score_feature_weights,
      )
+
+
+def _check_booster_args(xgb, is_regression):
+    if isinstance(xgb, Booster):
+        booster = xgb
+        if is_regression is None:
+            raise ValueError('is_regression argument is required when passing '
+                             'an xgboost.Booster object')
+    else:
+        booster = xgb.booster()
+        _is_regression = isinstance(xgb, XGBRegressor)
+        if is_regression is not None and is_regression != _is_regression:
+            raise ValueError(
+                'Inconsistent is_regression={} passed. '
+                'You don\'t have to pass it when using scikit-learn API'
+                .format(is_regression))
+        is_regression = _is_regression
+    return booster, is_regression
 
 
 def _prediction_feature_weights(booster, dmatrix, n_targets,
@@ -273,7 +295,6 @@ def _xgb_n_targets(xgb):
     elif isinstance(xgb, XGBRegressor):
         return 1
     else:
-        return 1 # FIXMEEEEEEEE really
         raise TypeError
 
 

@@ -190,10 +190,9 @@ def test_explain_prediction_reg_booster(boston_train):
         params={'objective': 'reg:linear', 'silent': True},
         dtrain=xgboost.DMatrix(X, label=y),
     )
-    dtest = xgboost.DMatrix(X[:1])
     assert_trained_linear_regression_explained(
-        dtest, feature_names, booster, explain_prediction,
-        reg_has_intercept=True)
+        X[0], feature_names, booster, explain_prediction,
+        reg_has_intercept=True, is_regression=True)
 
 
 def test_explain_prediction_feature_union_dense():
