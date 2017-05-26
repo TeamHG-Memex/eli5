@@ -68,16 +68,27 @@ def test_explain_xgboost_booster(boston_train):
         assert 'LSTAT' in expl
 
 
-@pytest.mark.parametrize(['missing'], [[np.nan], [0]])
-def test_explain_prediction_clf_binary(newsgroups_train_binary_big, missing):
+@pytest.mark.parametrize(
+    ['missing', 'use_booster'],
+    [[np.nan, False], [0, False], [np.nan, True]])
+def test_explain_prediction_clf_binary(
+        newsgroups_train_binary_big, missing, use_booster):
     docs, ys, target_names = newsgroups_train_binary_big
     vec = CountVectorizer(stop_words='english')
-    clf = XGBClassifier(n_estimators=100, max_depth=2, missing=missing)
     xs = vec.fit_transform(docs)
-    clf.fit(xs, ys)
+    explain_kwargs = {}
+    if use_booster:
+        clf = xgboost.train(
+            params={'objective': 'binary:logistic', 'silent': True},
+            dtrain=xgboost.DMatrix(xs, label=ys, missing=missing),
+        )
+        explain_kwargs.update({'missing': missing, 'is_regression': False})
+    else:
+        clf = XGBClassifier(n_estimators=100, max_depth=2, missing=missing)
+        clf.fit(xs, ys)
     get_res = lambda **kwargs: explain_prediction(
         clf, 'computer graphics in space: a sign of atheism',
-        vec=vec, target_names=target_names, **kwargs)
+        vec=vec, target_names=target_names, **kwargs, **explain_kwargs)
     res = get_res()
     for expl in format_as_all(res, clf, show_feature_values=True):
         assert 'graphics' in expl

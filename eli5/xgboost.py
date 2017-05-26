@@ -150,8 +150,15 @@ def explain_prediction_xgboost(
 
     if isinstance(xgb, Booster):
         prediction = xgb.predict(dmatrix)
-        proba = None if is_regression else prediction
         n_targets = prediction.shape[-1]
+        if is_regression:
+            proba = None
+        else:
+            if n_targets == 1:
+                p = prediction[0]
+                proba = np.array([1 - p, p])
+            else:
+                proba = prediction[0]
     else:
         proba = predict_proba(xgb, X)
         n_targets = _xgb_n_targets(xgb)
@@ -167,7 +174,7 @@ def explain_prediction_xgboost(
     if is_regression:
         names = ['y']
     elif isinstance(xgb, Booster):
-        assert False  # TODO
+        names = np.arange(max(2, n_targets))
     else:
         names = xgb.classes_
 
