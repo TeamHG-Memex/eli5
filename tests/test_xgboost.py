@@ -82,6 +82,23 @@ def test_explain_xgboost_booster(boston_train):
         assert 'LSTAT' in expl
 
 
+def test_bad_regression_for_booster(boston_train):
+    xs, ys, feature_names = boston_train
+    booster = xgboost.train(
+        params={'objective': 'reg:linear', 'silent': True},
+        dtrain=xgboost.DMatrix(xs, label=ys),
+    )
+    with pytest.raises(ValueError):
+        explain_weights(booster)
+    explain_weights(booster, is_regression=True)
+    clf = XGBRegressor()
+    clf.fit(xs, ys)
+    with pytest.raises(ValueError):
+        explain_weights(clf, is_regression=False)
+    explain_weights(clf, is_regression=True)
+    explain_weights(clf)
+
+
 @pytest.mark.parametrize(
     ['missing', 'use_booster'],
     [[np.nan, False], [0, False], [np.nan, True]])
