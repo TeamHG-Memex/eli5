@@ -44,8 +44,7 @@ def test_explain_booster(newsgroups_train):
                 'num_class': len(target_names)},
         dtrain=xgboost.DMatrix(X, label=y, missing=np.nan),
         num_boost_round=10)
-    assert_tree_classifier_explained(booster, vec, target_names,
-                                     is_regression=False)
+    assert_tree_classifier_explained(booster, vec, target_names)
 
 
 def test_explain_xgboost_feature_filter(newsgroups_train):
@@ -74,29 +73,12 @@ def test_explain_xgboost_booster(boston_train):
         params={'objective': 'reg:linear', 'silent': True},
         dtrain=xgboost.DMatrix(xs, label=ys),
     )
-    res = explain_weights(booster, is_regression=True)
+    res = explain_weights(booster)
     for expl in format_as_all(res, booster):
         assert 'f12' in expl
-    res = explain_weights(booster, feature_names=feature_names, is_regression=True)
+    res = explain_weights(booster, feature_names=feature_names)
     for expl in format_as_all(res, booster):
         assert 'LSTAT' in expl
-
-
-def test_bad_regression_for_booster(boston_train):
-    xs, ys, feature_names = boston_train
-    booster = xgboost.train(
-        params={'objective': 'reg:linear', 'silent': True},
-        dtrain=xgboost.DMatrix(xs, label=ys),
-    )
-    with pytest.raises(ValueError):
-        explain_weights(booster)
-    explain_weights(booster, is_regression=True)
-    clf = XGBRegressor()
-    clf.fit(xs, ys)
-    with pytest.raises(ValueError):
-        explain_weights(clf, is_regression=False)
-    explain_weights(clf, is_regression=True)
-    explain_weights(clf)
 
 
 @pytest.mark.parametrize(
@@ -151,7 +133,6 @@ def test_explain_prediction_clf_multitarget(
     docs, ys, target_names = newsgroups_train
     vec = CountVectorizer(stop_words='english')
     xs = vec.fit_transform(docs)
-    explain_kwargs = {}
     if use_booster:
         clf = xgboost.train(
             params={'objective': 'multi:softprob', 'num_class': len(target_names),
@@ -159,14 +140,13 @@ def test_explain_prediction_clf_multitarget(
             dtrain=xgboost.DMatrix(xs, label=ys, missing=np.nan),
             num_boost_round=100,
         )
-        explain_kwargs['is_regression'] = False
     else:
         clf = XGBClassifier(n_estimators=100, max_depth=2)
         clf.fit(xs, ys)
     feature_filter = (lambda _, v: not np.isnan(v)) if filter_missing else None
     doc = 'computer graphics in space: a new religion'
     res = explain_prediction(clf, doc, vec=vec, target_names=target_names,
-                             feature_filter=feature_filter, **explain_kwargs)
+                             feature_filter=feature_filter)
     format_as_all(res, clf)
     if not filter_missing:
         check_targets_scores(res)
@@ -175,8 +155,7 @@ def test_explain_prediction_clf_multitarget(
     religion_weights = res.targets[3].feature_weights
     assert 'religion' in get_all_features(religion_weights.pos)
 
-    top_target_res = explain_prediction(
-        clf, doc, vec=vec, top_targets=2, **explain_kwargs)
+    top_target_res = explain_prediction(clf, doc, vec=vec, top_targets=2)
     assert len(top_target_res.targets) == 2
     assert sorted(t.proba for t in top_target_res.targets) == sorted(
         t.proba for t in res.targets)[-2:]
@@ -249,7 +228,7 @@ def test_explain_prediction_reg_booster(boston_train):
     )
     assert_trained_linear_regression_explained(
         X[0], feature_names, booster, explain_prediction,
-        reg_has_intercept=True, is_regression=True)
+        reg_has_intercept=True)
 
 
 def test_explain_prediction_feature_union_dense():

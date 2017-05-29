@@ -13,13 +13,8 @@ xgboost >= 0.6a2.
 .. _XGBRegressor: https://xgboost.readthedocs.io/en/latest/python/python_api.html#xgboost.XGBRegressor
 .. _Booster: http://xgboost.readthedocs.io/en/latest/python/python_api.html#xgboost.Booster
 
-:func:`eli5.explain_weights` uses feature importances.
-There is one additional required argument for Booster_ estimator:
-
-* ``is_regression`` True if solving a regression problem
-  ("objective" starts with "reg") and False for a classification problem.
-
-Additional optional arguments for XGBClassifer_, XGBRegressor_ and Booster_:
+:func:`eli5.explain_weights` uses feature importances. Additional
+arguments for XGBClassifer_, XGBRegressor_ and Booster_:
 
 * ``importance_type`` is a way to get feature importance. Possible values are:
 
@@ -43,18 +38,13 @@ of an ensemble. Each node of the tree has an output score, and
 contribution of a feature on the decision path is how much the score changes
 from parent to child.
 
-There is one additional required argument for the Booster_ estimator:
-
-* ``is_regression`` True if solving a regression problem
-  ("objective" starts with "reg") and False for a classification problem.
-
 .. note::
     When explaining Booster_ predictions,
     do not pass an ``xgboost.DMatrix`` object as ``doc``, pass a numpy array
     or a sparse matrix instead (or have ``vec`` return them).
 
 Additional :func:`eli5.explain_prediction` keyword arguments supported
-for XGBClassifer_ and XGBRegressor_:
+for XGBClassifer_, XGBRegressor_ and Booster_:
 
 * ``vec`` is a vectorizer instance used to transform
   raw features to the input of the estimator ``xgb``
@@ -66,6 +56,17 @@ for XGBClassifer_ and XGBRegressor_:
   if ``vec`` is not None, ``vec.transform([doc])`` is passed to the
   estimator. Set it to True if you're passing ``vec``,
   but ``doc`` is already vectorized.
+
+Booster_ estimator accepts two more optional arguments:
+
+* ``is_regression`` - True if solving a regression problem
+  ("objective" starts with "reg")
+  and False for a classification problem.
+  If not set, regression is assumed for a single target estimator
+  and proba will not be shown.
+* ``missing`` - set it to the same value as the ``missing`` argument to
+  ``xgboost.DMatrix``. Matters only if sparse values are used.
+  Default is ``np.nan``.
 
 See the :ref:`tutorial <xgboost-titanic-tutorial>` for a more detailed usage
 example.

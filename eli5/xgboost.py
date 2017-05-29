@@ -45,7 +45,6 @@ def explain_weights_xgboost(xgb,
                             feature_re=None,
                             feature_filter=None,
                             importance_type='gain',
-                            is_regression=None,
                             ):
     """
     Return an explanation of an XGBoost estimator (via scikit-learn wrapper
@@ -68,12 +67,8 @@ def explain_weights_xgboost(xgb,
         - 'weight' - the number of times a feature is used to split the data
           across all trees
         - 'cover' - the average coverage of the feature when it is used in trees
-
-    is_regression : bool, required only if ``xgboost.Booster`` is passed
-        True if solving a regression problem ("objective" starts with "reg")
-        and False for a classification problem.
     """
-    booster, is_regression = _check_booster_args(xgb, is_regression)
+    booster, is_regression = _check_booster_args(xgb)
     xgb_feature_names = booster.feature_names
     coef = _xgb_feature_importances(booster, importance_type=importance_type)
     return get_feature_importance_explanation(
@@ -128,10 +123,17 @@ def explain_prediction_xgboost(
         estimator. Set it to True if you're passing ``vec``,
         but ``doc`` is already vectorized.
 
-    is_regression : bool, required only if ``xgboost.Booster`` is passed
+    is_regression : bool, optional
+        Pass if an ``xgboost.Booster`` is passed as the first argument.
         True if solving a regression problem ("objective" starts with "reg")
         and False for a classification problem.
+        If not set, regression is assumed for a single target estimator
+        and proba will not be shown.
 
+    missing : optional
+        Pass if an ``xgboost.Booster`` is passed as the first argument.
+        Set it to the same value as the ``missing`` argument to ``xgboost.DMatrix``.
+        Matters only if sparse values are used. Default is ``np.nan``.
 
     Method for determining feature importances follows an idea from
     http://blog.datadive.net/interpreting-random-forests/.
@@ -165,6 +167,11 @@ def explain_prediction_xgboost(
     if isinstance(xgb, Booster):
         prediction = xgb.predict(dmatrix)
         n_targets = prediction.shape[-1]
+        if is_regression is None:
+            # When n_targets is 1, this can be classification too,
+            # but it's safer to assume regression.
+            # If n_targets > 1, it must be classification.
+            is_regression = n_targets == 1
         if is_regression:
             proba = None
         else:
@@ -215,12 +222,9 @@ def explain_prediction_xgboost(
      )
 
 
-def _check_booster_args(xgb, is_regression):
+def _check_booster_args(xgb, is_regression=None):
     if isinstance(xgb, Booster):
         booster = xgb
-        if is_regression is None:
-            raise ValueError('is_regression argument is required when passing '
-                             'an xgboost.Booster object')
     else:
         booster = xgb.booster()
         _is_regression = isinstance(xgb, XGBRegressor)
