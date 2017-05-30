@@ -13,7 +13,7 @@ from sklearn.preprocessing import FunctionTransformer
 
 from eli5.xgboost import (
     _parse_tree_dump, _xgb_n_targets, _missing_values_set_to_nan,
-    _parent_value, _parse_dump_line,
+    _parent_value, _parse_dump_line, _check_booster_args,
 )
 from eli5.explain import explain_prediction, explain_weights
 from eli5.formatters.text import format_as_text
@@ -445,3 +445,28 @@ def test_parent_value():
     assert _parent_value([{'cover': 10., 'leaf': 15.}]) == 15.
     assert _parent_value([
         {'cover': 10., 'leaf': 15.}, {'cover': 40., 'leaf': 5.}]) == 7.
+
+
+def test_check_booster_args():
+    x, y = np.random.random((10, 2)), np.random.randint(2, size=10)
+    regressor = XGBRegressor().fit(x, y)
+    classifier = XGBClassifier().fit(x, y)
+    booster, is_regression = _check_booster_args(regressor)
+    assert is_regression == True
+    assert isinstance(booster, xgboost.Booster)
+    _, is_regression = _check_booster_args(regressor, is_regression=True)
+    assert is_regression == True
+    _, is_regression = _check_booster_args(classifier)
+    assert is_regression == False
+    _, is_regression = _check_booster_args(classifier, is_regression=False)
+    assert is_regression == False
+    with pytest.raises(ValueError):
+        _check_booster_args(classifier, is_regression=True)
+    with pytest.raises(ValueError):
+        _check_booster_args(regressor, is_regression=False)
+    booster = xgboost.Booster()
+    _booster, is_regression = _check_booster_args(booster)
+    assert _booster is booster
+    assert is_regression is None
+    _, is_regression = _check_booster_args(booster, is_regression=True)
+    assert is_regression == True
