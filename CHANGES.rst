@@ -1,12 +1,21 @@
 Changelog
 =========
 
+0.6.3 (2017-06-02)
+------------------
+
+* :func:`eli5.explain_weights` and :func:`eli5.explain_prediction`
+  works with xgboost.Booster, not only with sklearn-like APIs;
+* :func:`eli5.formatters.as_dict.format_as_dict` is now available as
+  ``eli5.format_as_dict``;
+* testing and documentation fixes.
+
 0.6.2 (2017-05-17)
 ------------------
 
-* readable :func:`eli5.explain_weight` for XGBoost models trained on
+* readable :func:`eli5.explain_weights` for XGBoost models trained on
   pandas.DataFrame;
-* readable :func:`eli5.explain_weight` for LightGBM models trained on
+* readable :func:`eli5.explain_weights` for LightGBM models trained on
   pandas.DataFrame;
 * fixed an issue with :func:`eli5.explain_prediction` for XGBoost
   models trained on pandas.DataFrame when feature names contain dots;
