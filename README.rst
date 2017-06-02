@@ -36,8 +36,8 @@ It provides support for the following machine learning frameworks and packages:
   It also allows to debug scikit-learn pipelines which contain
   HashingVectorizer, by undoing hashing.
 
-* xgboost_ - show feature importances and explain predictions of XGBClassifier
-  and XGBRegressor.
+* xgboost_ - show feature importances and explain predictions of XGBClassifier,
+  XGBRegressor and xgboost.Booster.
 
 * LightGBM_ - show feature importances and explain predictions of
   LGBMClassifier and LGBMRegressor.
