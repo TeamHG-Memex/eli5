@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
 import re
 
 import pytest
 pytest.importorskip('sklearn_crfsuite')
-
+import numpy as np
 from sklearn_crfsuite import CRF
 
 from eli5 import explain_weights
@@ -49,6 +49,22 @@ def test_sklearn_crfsuite(xseq, yseq):
     html_nospaces = html.replace(' ', '').replace("\n", '')
     assert u'солнце:не светит' in html
     assert '<th>rainy</th><th>sunny</th>' in html_nospaces
+
+    try:
+        from eli5 import format_as_dataframe, format_as_dataframes
+    except ImportError:
+        pass
+    else:
+        from .test_formatters_as_dataframe import check_targets_dataframe
+        df_dict = format_as_dataframes(expl)
+        check_targets_dataframe(df_dict['targets'], expl)
+        df_transition = df_dict['transition_features']
+        transition = expl.transition_features
+        print(df_transition)
+        assert list(transition.class_names) == ['rainy', 'sunny']
+        assert np.isclose(df_transition['rainy']['rainy'], transition.coef[0, 0])
+        assert np.isclose(df_transition['sunny']['rainy'], transition.coef[0, 1])
+        assert np.isclose(df_transition['rainy']['sunny'], transition.coef[1, 0])
 
 
 def test_sklearn_crfsuite_feature_re(xseq, yseq):

@@ -89,7 +89,7 @@ def _targets_to_df(targets):
 @format_as_dataframe.register(TransitionFeatureWeights)
 def _transition_features_to_df(transition_features):
     # type: (TransitionFeatureWeights) -> pd.DataFrame
-    class_names = transition_features.class_names
+    class_names = list(transition_features.class_names)
     df = pd.DataFrame({
         'from': [f for _ in class_names for f in class_names],
         'to': [f for f in class_names for _ in class_names],
