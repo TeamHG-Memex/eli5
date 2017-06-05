@@ -47,8 +47,9 @@ is currently experimental.
 
 Explanation and formatting are separated; you can get text-based explanation
 to display in console, HTML version embeddable in an IPython notebook
-or web dashboards, or JSON version which allows to implement custom
-rendering and formatting on a client.
+or web dashboards, JSON version which allows to implement custom
+rendering and formatting on a client, and convert explanations to pandas
+DataFrame objects.
 
 .. _lightning: https://github.com/scikit-learn-contrib/lightning
 .. _scikit-learn: https://github.com/scikit-learn/scikit-learn
@@ -74,7 +75,7 @@ If the ML library you're working with is supported then you usually
 can enter something like this in the IPython Notebook::
 
     import eli5
-    eli5.explain_weights(clf)
+    eli5.show_weights(clf)
 
 and get an explanation like this:
 
@@ -126,8 +127,8 @@ Architecture
 In ELI5 "explanation" is separated from output format:
 :func:`eli5.explain_weights` and :func:`eli5.explain_prediction`
 return :class:`~.Explanation` instances; then functions from
-:mod:`eli5.formatters` can be used to get HTML, text or dict/JSON
-representation of the explanation.
+:mod:`eli5.formatters` can be used to get HTML, text, dict/JSON
+or pandas DataFrame representation of the explanation.
 
 It is not convenient to do that all when working interactively in IPython
 notebooks, so there are :func:`eli5.show_weights` and
