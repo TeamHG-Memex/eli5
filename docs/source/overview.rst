@@ -21,12 +21,14 @@ following machine learning frameworks and packages:
   print decision trees as text or as SVG, show feature importances
   and explain predictions of decision trees and tree-based ensembles.
 
+  Pipeline and FeatureUnion are supported.
+
   ELI5 understands text processing utilities from scikit-learn and can
   highlight text data accordingly. It also allows to debug scikit-learn
   pipelines which contain HashingVectorizer, by undoing hashing.
 
 * :ref:`library-xgboost` - show feature importances and explain predictions
-  of XGBClassifier and XGBRegressor.
+  of XGBClassifier, XGBRegressor and xgboost.Booster.
 
 * :ref:`library-lightgbm` - show feature importances and explain predictions
   of LGBMClassifier and LGBMRegressor.
