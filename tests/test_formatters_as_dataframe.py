@@ -23,11 +23,15 @@ def test_explain_weights(boston_train):
     reg.fit(X, y)
     expl = explain_weights(reg)
     df = format_as_dataframe(expl)
+    check_targets_dataframe(df, expl)
+
+
+def check_targets_dataframe(df, expl):
     assert list(df.columns) == ['weight']
-    target = expl.targets[0].target
-    feature_weights = expl.targets[0].feature_weights
-    for fw in chain(feature_weights.pos, feature_weights.neg):
-        assert df.loc[target, fw.feature]['weight'] == fw.weight
+    for target in expl.targets:
+        feature_weights = target.feature_weights
+        for fw in chain(feature_weights.pos, feature_weights.neg):
+            assert df.loc[target.target, fw.feature]['weight'] == fw.weight
 
 
 def test_explain_weights_fi(boston_train):
