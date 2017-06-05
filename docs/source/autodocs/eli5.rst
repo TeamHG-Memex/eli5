@@ -15,3 +15,13 @@ The following functions are exposed to a top level, e.g.
 .. autofunction:: eli5.show_prediction
 
 .. autofunction:: eli5.transform_feature_names
+
+.. autofunction:: eli5.format_as_html
+
+.. autofunction:: eli5.format_as_text
+
+.. autofunction:: eli5.format_as_dict
+
+.. autofunction:: eli5.format_as_dataframe
+
+.. autofunction:: eli5.format_as_dataframes
