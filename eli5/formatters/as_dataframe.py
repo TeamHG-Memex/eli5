@@ -15,9 +15,10 @@ EXPORTED_ATTRIBUTES = ['transition_features', 'targets', 'feature_importances']
 
 def format_as_dataframes(expl):
     # type: (Explanation) -> Dict[str, pd.DataFrame]
-    """ Export an explanation to a dictionary with pandas.DataFrame values
+    """ Export an explanation to a dictionary with ``pandas.DataFrame`` values
     and string keys that correspond to explanation attributes.
-    Use this method if several dataframes can be exported from a single explanation.
+    Use this method if several dataframes can be exported from a single explanation
+    (e.g. for CRF explanation with has both feature weights and transition matrix).
     """
     result = {}
     for attr in EXPORTED_ATTRIBUTES:
@@ -30,9 +31,12 @@ def format_as_dataframes(expl):
 @singledispatch
 def format_as_dataframe(expl):
     # type: (Explanation) -> Optional[pd.DataFrame]
-    """ Export an explanation to a single pandas.DataFrame.
-    In case several dataframes could be exported by format_as_dataframes,
-    a warning is raised. If no dataframe can be exported, None is returned.
+    """ Export an explanation to a single ``pandas.DataFrame``.
+    In case several dataframes could be exported by
+    :func:`eli5.formatters.as_dataframe.format_as_dataframes`,
+    a warning is raised. If no dataframe can be exported, ``None`` is returned.
+    This function also accepts some components of the explanation as arguments:
+    feature importances, targets, transition features.
     """
     for attr in EXPORTED_ATTRIBUTES:
         value = getattr(expl, attr)
