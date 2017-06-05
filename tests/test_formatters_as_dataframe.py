@@ -1,14 +1,61 @@
 from __future__ import print_function
+from itertools import chain
 
 import pytest
 pd = pytest.importorskip('pandas')
 import numpy as np
+from sklearn.linear_model import LinearRegression
+from sklearn.ensemble import ExtraTreesRegressor
 
-from eli5 import format_as_dataframes, format_as_dataframe, format_as_text
+from eli5 import (
+    format_as_dataframes, format_as_dataframe, format_as_text,
+    explain_weights, explain_prediction,
+)
 from eli5.base import (
     Explanation, TargetExplanation, FeatureWeight, FeatureWeights,
     FeatureImportances, TransitionFeatureWeights,
 )
+
+
+def test_explain_weights(boston_train):
+    X, y, feature_names = boston_train
+    reg = LinearRegression()
+    reg.fit(X, y)
+    expl = explain_weights(reg)
+    df = format_as_dataframe(expl)
+    assert list(df.columns) == ['weight']
+    target = expl.targets[0].target
+    feature_weights = expl.targets[0].feature_weights
+    for fw in chain(feature_weights.pos, feature_weights.neg):
+        assert df.loc[target, fw.feature]['weight'] == fw.weight
+
+
+def test_explain_weights_fi(boston_train):
+    X, y, feature_names = boston_train
+    reg = ExtraTreesRegressor()
+    reg.fit(X, y)
+    expl = explain_weights(reg)
+    df = format_as_dataframe(expl)
+    assert list(df.columns) == ['weight', 'std']
+    for fw in expl.feature_importances.importances:
+        df_fw = df.loc[fw.feature]
+        assert np.isclose(df_fw['weight'], fw.weight)
+        assert np.isclose(df_fw['std'], fw.std)
+
+
+def test_explain_prediction(boston_train):
+    X, y, feature_names = boston_train
+    reg = LinearRegression()
+    reg.fit(X, y)
+    expl = explain_prediction(reg, X[0])
+    df = format_as_dataframe(expl)
+    assert list(df.columns) == ['weight', 'value']
+    target = expl.targets[0].target
+    feature_weights = expl.targets[0].feature_weights
+    for fw in chain(feature_weights.pos, feature_weights.neg):
+        df_fw = df.loc[target, fw.feature]
+        assert df_fw['weight'] == fw.weight
+        assert df_fw['value'] == fw.value
 
 
 @pytest.mark.parametrize(
