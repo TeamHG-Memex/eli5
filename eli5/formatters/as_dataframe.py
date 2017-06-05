@@ -10,7 +10,7 @@ from eli5.base import (
 )
 
 
-EXPORTED_ATTRIBUTES = ['transition_features', 'targets', 'features_importances']
+EXPORTED_ATTRIBUTES = ['transition_features', 'targets', 'feature_importances']
 
 
 def format_as_dataframes(expl):
@@ -89,6 +89,6 @@ def transition_features_to_df(transition_features):
     df = pd.DataFrame({
         'from': [f for _ in class_names for f in class_names],
         'to': [f for f in class_names for _ in class_names],
-        'coef': transition_features.coef.reshape(-1),
+        'coef': transition_features.coef.T.reshape(-1),
     })
     return pd.pivot_table(df, values='coef', columns=['to'], index=['from'])
