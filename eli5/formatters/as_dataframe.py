@@ -10,7 +10,7 @@ from eli5.base import (
 )
 
 
-EXPORTED_ATTRIBUTES = ['transition_features', 'targets', 'feature_importances']
+_EXPORTED_ATTRIBUTES = ['transition_features', 'targets', 'feature_importances']
 
 
 def format_as_dataframes(expl):
@@ -21,7 +21,7 @@ def format_as_dataframes(expl):
     (e.g. for CRF explanation with has both feature weights and transition matrix).
     """
     result = {}
-    for attr in EXPORTED_ATTRIBUTES:
+    for attr in _EXPORTED_ATTRIBUTES:
         value = getattr(expl, attr)
         if value:
             result[attr] = format_as_dataframe(value)
@@ -38,10 +38,10 @@ def format_as_dataframe(expl):
     This function also accepts some components of the explanation as arguments:
     feature importances, targets, transition features.
     """
-    for attr in EXPORTED_ATTRIBUTES:
+    for attr in _EXPORTED_ATTRIBUTES:
         value = getattr(expl, attr)
         if value:
-            other_attrs = [a for a in EXPORTED_ATTRIBUTES
+            other_attrs = [a for a in _EXPORTED_ATTRIBUTES
                            if getattr(expl, a) and a != attr]
             if other_attrs:
                 warnings.warn('Exporting {} to DataFrame, but also {} could be '
@@ -51,7 +51,7 @@ def format_as_dataframe(expl):
 
 
 @format_as_dataframe.register(FeatureImportances)
-def feature_importances_to_df(feature_importances):
+def _feature_importances_to_df(feature_importances):
     # type: (FeatureImportances) -> pd.DataFrame
     weights = feature_importances.importances
     df = pd.DataFrame({'weight': [fw.weight for fw in weights]},
@@ -64,7 +64,7 @@ def feature_importances_to_df(feature_importances):
 
 
 @format_as_dataframe.register(list)
-def targets_to_df(targets):
+def _targets_to_df(targets):
     # type: (List[TargetExplanation]) -> pd.DataFrame
     if targets and not isinstance(targets[0], TargetExplanation):
         raise ValueError('Only lists of TargetExplanation are supported')
@@ -87,7 +87,7 @@ def targets_to_df(targets):
 
 
 @format_as_dataframe.register(TransitionFeatureWeights)
-def transition_features_to_df(transition_features):
+def _transition_features_to_df(transition_features):
     # type: (TransitionFeatureWeights) -> pd.DataFrame
     class_names = transition_features.class_names
     df = pd.DataFrame({
