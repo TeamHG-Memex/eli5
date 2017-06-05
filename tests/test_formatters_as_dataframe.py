@@ -11,16 +11,27 @@ from eli5.base import (
 )
 
 
-def test_targets():
+@pytest.mark.parametrize(
+    ['with_std', 'with_value'],
+    [[False, False], [True, False], [False, True]])
+def test_targets(with_std, with_value):
     expl = Explanation(
         estimator='some estimator',
         targets=[
             TargetExplanation(
                 'y', feature_weights=FeatureWeights(
-                    pos=[FeatureWeight('a', 13),
-                         FeatureWeight('b', 5)],
-                    neg=[FeatureWeight('neg1', -10),
-                         FeatureWeight('neg2', -1)],
+                    pos=[FeatureWeight('a', 13,
+                                       std=0.13 if with_std else None,
+                                       value=2 if with_value else None),
+                         FeatureWeight('b', 5,
+                                       std=0.5 if with_std else None,
+                                       value=1 if with_value else None)],
+                    neg=[FeatureWeight('neg1', -10,
+                                       std=0.2 if with_std else None,
+                                       value=5 if with_value else None),
+                         FeatureWeight('neg2', -1,
+                                       std=0.3 if with_std else None,
+                                       value=4 if with_value else None)],
                 )),
             TargetExplanation(
                 'y2', feature_weights=FeatureWeights(
@@ -38,11 +49,20 @@ def test_targets():
         index=pd.MultiIndex.from_tuples(
             [('y', 'a'), ('y', 'b'), ('y', 'neg2'), ('y', 'neg1'),
              ('y2', 'f')], names=['target', 'feature']))
+    if with_std:
+        expected_df['std'] = [0.13, 0.5, 0.3, 0.2, None]
+    if with_value:
+        expected_df['value'] = [2, 1, 4, 5, None]
     print(df, expected_df, sep='\n')
     assert expected_df.equals(df)
 
     single_df = format_as_dataframe(expl)
     assert expected_df.equals(single_df)
+
+
+def test_bad_list():
+    with pytest.raises(ValueError):
+        format_as_dataframe([1])
 
 
 def test_targets_with_value():
@@ -75,13 +95,20 @@ def test_targets_with_value():
     assert expected_df.equals(df)
 
 
-def test_feature_importances():
+@pytest.mark.parametrize(
+    ['with_std', 'with_value'],
+    [[False, False], [True, False], [False, True]])
+def test_feature_importances(with_std, with_value):
     expl = Explanation(
         estimator='some estimator',
         feature_importances=FeatureImportances(
             importances=[
-                FeatureWeight('a', 1),
-                FeatureWeight('b', 2),
+                FeatureWeight('a', 1,
+                              std=0.1 if with_std else None,
+                              value=1 if with_value else None),
+                FeatureWeight('b', 2,
+                              std=0.2 if with_std else None,
+                              value=3 if with_value else None),
             ],
             remaining=10,
         )
@@ -91,31 +118,15 @@ def test_feature_importances():
     assert list(df_dict) == ['feature_importances']
     df = df_dict['feature_importances']
     expected_df = pd.DataFrame({'weight': [1, 2]}, index=['a', 'b'])
+    if with_std:
+        expected_df['std'] = [0.1, 0.2]
+    if with_value:
+        expected_df['value'] = [1, 3]
     print(df, expected_df, sep='\n')
     assert expected_df.equals(df)
 
     single_df = format_as_dataframe(expl)
     assert expected_df.equals(single_df)
-
-
-def test_feature_importances_std():
-    expl = Explanation(
-        estimator='some estimator',
-        feature_importances=FeatureImportances(
-            importances=[
-                FeatureWeight('a', 1, std=0.1),
-                FeatureWeight('b', 2, std=0.2),
-            ],
-            remaining=10,
-        )
-    )
-    df = format_as_dataframe(expl)
-    expected_df = pd.DataFrame(
-        {'weight': [1, 2], 'std': [0.1, 0.2]},
-        columns=['weight', 'std'],
-        index=['a', 'b'])
-    print(df, expected_df, sep='\n')
-    assert expected_df.equals(df)
 
 
 def test_transition_features():
