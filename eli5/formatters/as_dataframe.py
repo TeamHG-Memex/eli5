@@ -13,7 +13,7 @@ from eli5.base import (
 _EXPORTED_ATTRIBUTES = ['transition_features', 'targets', 'feature_importances']
 
 
-def format_as_dataframes(expl):
+def format_as_dataframes(explanation):
     # type: (Explanation) -> Dict[str, pd.DataFrame]
     """ Export an explanation to a dictionary with ``pandas.DataFrame`` values
     and string keys that correspond to explanation attributes.
@@ -22,14 +22,14 @@ def format_as_dataframes(expl):
     """
     result = {}
     for attr in _EXPORTED_ATTRIBUTES:
-        value = getattr(expl, attr)
+        value = getattr(explanation, attr)
         if value:
             result[attr] = format_as_dataframe(value)
     return result
 
 
 @singledispatch
-def format_as_dataframe(expl):
+def format_as_dataframe(explanation):
     # type: (Explanation) -> Optional[pd.DataFrame]
     """ Export an explanation to a single ``pandas.DataFrame``.
     In case several dataframes could be exported by
@@ -39,10 +39,10 @@ def format_as_dataframe(expl):
     feature importances, targets, transition features.
     """
     for attr in _EXPORTED_ATTRIBUTES:
-        value = getattr(expl, attr)
+        value = getattr(explanation, attr)
         if value:
             other_attrs = [a for a in _EXPORTED_ATTRIBUTES
-                           if getattr(expl, a) and a != attr]
+                           if getattr(explanation, a) and a != attr]
             if other_attrs:
                 warnings.warn('Exporting {} to DataFrame, but also {} could be '
                               'exported. Consider using eli5.format_as_dataframes.'
