@@ -8,8 +8,6 @@ from .formatters import (
     format_html_styles,
     format_as_text,
     format_as_dict,
-    format_as_dataframe,
-    format_as_dataframes,
 )
 from .explain import explain_weights, explain_prediction
 from .sklearn import explain_weights_sklearn, explain_prediction_sklearn
@@ -20,6 +18,12 @@ try:
     from .ipython import show_weights, show_prediction
 except ImportError:
     pass  # IPython is not installed
+
+
+try:
+    from .formatters.as_dataframe import format_as_dataframe, format_as_dataframes
+except ImportError:
+    pass  # pandas not available
 
 
 try:
