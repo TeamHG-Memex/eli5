@@ -146,10 +146,10 @@ def test_transition_features():
     print(df)
     print(format_as_text(expl))
     assert str(df) == (
-        'to      class1  class2\n'
+        'to      class2  class1\n'
         'from                  \n'
-        'class1     4.5     3.5\n'
-        'class2     2.5     1.5'
+        'class2     1.5     2.5\n'
+        'class1     3.5     4.5'
     )
 
     with pytest.warns(UserWarning):

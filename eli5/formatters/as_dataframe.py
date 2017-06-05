@@ -91,4 +91,8 @@ def transition_features_to_df(transition_features):
         'to': [f for f in class_names for _ in class_names],
         'coef': transition_features.coef.T.reshape(-1),
     })
-    return pd.pivot_table(df, values='coef', columns=['to'], index=['from'])
+    table = pd.pivot_table(df, values='coef', columns=['to'], index=['from'])
+    # recover original order
+    table = table[class_names]
+    table = table.reindex(class_names)
+    return table
