@@ -304,12 +304,12 @@ def test_explain_linear_feature_filter(newsgroups_train, vec):
     # FIXME:
     # [OneVsRestClassifier(DecisionTreeClassifier(max_depth=3, random_state=42))],
 ])
-def test_explain_tree_classifier(newsgroups_train, clf):
+def test_explain_tree_classifier(newsgroups_train, clf, **explain_kwargs):
     docs, y, target_names = newsgroups_train
     vec = CountVectorizer()
     X = vec.fit_transform(docs)
     clf.fit(X.toarray(), y)
-    assert_tree_classifier_explained(clf, vec, target_names)
+    assert_tree_classifier_explained(clf, vec, target_names, **explain_kwargs)
 
 
 def assert_tree_classifier_explained(clf, vec, target_names, **explain_kwargs):

@@ -30,8 +30,9 @@ def lgb_clf():
                           min_child_weight=0)
 
 
-def test_explain_weights(newsgroups_train, lgb_clf):
-    _check_rf_classifier(newsgroups_train, lgb_clf)
+@pytest.mark.parametrize(['importance_type'], [['gain'], ['split'], ['weight']])
+def test_explain_weights(newsgroups_train, lgb_clf, importance_type):
+    _check_rf_classifier(newsgroups_train, lgb_clf, importance_type=importance_type)
 
 
 def test_explain_weights_feature_filter(newsgroups_train, lgb_clf):
