@@ -221,6 +221,8 @@ def get_X(doc, vec=None, vectorized=False, to_dense=False):
             X = doc.to_frame().transpose()
         else:
             X = doc
+    elif pandas_available and isinstance(doc, pd.DataFrame):
+        X = vec.transform(doc)
     else:
         X = vec.transform([doc])
     if to_dense and sp.issparse(X):
