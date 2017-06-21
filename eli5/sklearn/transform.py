@@ -151,10 +151,6 @@ class make_tfn_weighted:
 
         in_names = _get_feature_names(est, feature_names=in_names,
                                       num_features=W.shape[1])
-        if len(in_names) != W.shape[1]:
-            raise ValueError('Got in_names of length {}, but '
-                             'weights.shape[1]=={}'.format(len(in_names),
-                                                           W.shape[1]))
 
         if self.top:
             fmt = self.contrib_fmt.format
