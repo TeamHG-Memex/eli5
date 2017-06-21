@@ -178,8 +178,12 @@ def _compute_node_values(tree_info):
         left_value, left_count = walk(tree['left_child'])
         right_value, right_count = walk(tree['right_child'])
         count = left_count + right_count
-        tree['node_value'] = (left_value * left_count +
-                              right_value * right_count) / count
+        if tree['split_gain'] <= 0:
+            assert left_value == right_value
+            tree['node_value'] = left_value
+        else:
+            tree['node_value'] = (left_value * left_count +
+                                  right_value * right_count) / count
         return tree['node_value'], count
 
     for tree in tree_info:

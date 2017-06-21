@@ -11,23 +11,17 @@ matrix:
     - python: 2.7
       env: TOXENV=py27
     - python: 2.7
-      env:
-        - TOXENV=py27-extra
-        - LIGHTGBM=1
+      env: TOXENV=py27-extra
     - python: 3.5
       env: TOXENV=py35
     - python: 3.5
-      env:
-        - TOXENV=py35-extra
-        - LIGHTGBM=1
+      env: TOXENV=py35-extra
     - python: 3.5
       env: TOXENV=py35-nodeps
     - python: 3.6
       env: TOXENV=py36
     - python: 3.6
-      env:
-        - TOXENV=py36-extra
-        - LIGHTGBM=1
+      env: TOXENV=py36-extra
     - python: 3.5
       env: TOXENV=mypy
     - python: 3.5
@@ -41,11 +35,11 @@ addons:
             - libatlas-base-dev
             - liblapack-dev
             - gfortran
+            - cmake
 
 before_install:
     - sudo apt-get -qq update
     - if [[ "$TOXENV" != "py35-nodeps" ]]; then sudo apt-get install graphviz; fi
-    - if [[ "$LIGHTGBM" = 1 ]]; then bash _ci/install_lightgbm_linux.sh; export LIGHTGBM_CHECKOUT=LightGBM; fi
 
 install:
     - pip install -U pip tox codecov
