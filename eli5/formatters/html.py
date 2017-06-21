@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
-import cgi
-from itertools import groupby, chain
+from itertools import groupby
 from typing import List
 
 import numpy as np  # type: ignore
@@ -304,4 +303,8 @@ def _format_decision_tree(treedict):
 
 
 def html_escape(text):
-    return cgi.escape(text, quote=True)
+    try:
+        from html import escape
+    except ImportError:
+        from cgi import escape  # type: ignore
+    return escape(text, quote=True)
