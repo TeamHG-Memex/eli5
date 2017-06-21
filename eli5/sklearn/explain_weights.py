@@ -29,7 +29,14 @@ from sklearn.linear_model import (   # type: ignore
     TheilSenRegressor,
 )
 from sklearn.multiclass import OneVsRestClassifier  # type: ignore
-from sklearn.svm import LinearSVC, LinearSVR  # type: ignore
+from sklearn.svm import (  # type: ignore
+    LinearSVC,
+    LinearSVR,
+    SVC,
+    SVR,
+    NuSVC,
+    NuSVR,
+)
 # TODO: see https://github.com/scikit-learn/scikit-learn/pull/2250
 from sklearn.naive_bayes import BernoulliNB, MultinomialNB    # type: ignore
 from sklearn.ensemble import (  # type: ignore
@@ -244,6 +251,24 @@ def explain_linear_classifier_weights(clf,
         )
 
 
+@register(SVC)
+@register(NuSVC)
+def explain_libsvm_linear_classifier_weights(clf, *args, **kwargs):
+    if clf.kernel != 'linear':
+        return Explanation(
+            estimator=repr(clf),
+            error="only kernel='linear' is currently supported for "
+                  "libsvm-based classifiers",
+        )
+    if len(clf.classes_) > 2:
+        return Explanation(
+            estimator=repr(clf),
+            error="only binary libsvm-based classifiers are supported",
+        )
+    return explain_linear_classifier_weights(clf, *args, **kwargs)
+
+
+
 @register(RandomForestClassifier)
 @register(RandomForestRegressor)
 @register(ExtraTreesClassifier)
@@ -355,6 +380,8 @@ def explain_decision_tree(estimator,
 @register(RidgeCV)
 @register(SGDRegressor)
 @register(TheilSenRegressor)
+@register(SVR)
+@register(NuSVR)
 def explain_linear_regressor_weights(reg,
                                      vec=None,
                                      top=_TOP,
@@ -381,6 +408,9 @@ def explain_linear_regressor_weights(reg,
     coef_scale[i] is not nan. Use it if you want to scale coefficients
     before displaying them, to take input feature sign or scale in account.
     """
+    if isinstance(reg, (SVR, NuSVR)) and reg.kernel != 'linear':
+        return explain_weights_sklearn_not_supported(reg)
+
     feature_names, coef_scale = handle_hashing_vec(vec, feature_names,
                                                    coef_scale)
     feature_names, flt_indices = get_feature_names_filtered(
