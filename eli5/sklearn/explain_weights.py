@@ -36,6 +36,7 @@ from sklearn.svm import (  # type: ignore
     SVR,
     NuSVC,
     NuSVR,
+    OneClassSVM,
 )
 # TODO: see https://github.com/scikit-learn/scikit-learn/pull/2250
 from sklearn.naive_bayes import BernoulliNB, MultinomialNB    # type: ignore
@@ -221,7 +222,8 @@ def explain_linear_classifier_weights(clf,
             coef = coef[flt_indices]
         return get_top_features(feature_names, coef, top)
 
-    display_names = get_target_display_names(clf.classes_, target_names, targets)
+    classes = getattr(clf, "classes_", ["-1", "1"])  # OneClassSVM support
+    display_names = get_target_display_names(classes, target_names, targets)
     if is_multiclass_classifier(clf):
         return Explanation(
             targets=[
@@ -253,6 +255,7 @@ def explain_linear_classifier_weights(clf,
 
 @register(SVC)
 @register(NuSVC)
+@register(OneClassSVM)
 def explain_libsvm_linear_classifier_weights(clf, *args, **kwargs):
     if clf.kernel != 'linear':
         return Explanation(
@@ -260,7 +263,7 @@ def explain_libsvm_linear_classifier_weights(clf, *args, **kwargs):
             error="only kernel='linear' is currently supported for "
                   "libsvm-based classifiers",
         )
-    if len(clf.classes_) > 2:
+    if len(getattr(clf, 'classes_', [])) > 2:
         return Explanation(
             estimator=repr(clf),
             error="only binary libsvm-based classifiers are supported",

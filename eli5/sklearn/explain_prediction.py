@@ -42,6 +42,7 @@ from sklearn.svm import (  # type: ignore
     SVR,
     NuSVC,
     NuSVR,
+    OneClassSVM,
 )
 from sklearn.multiclass import OneVsRestClassifier  # type: ignore
 from sklearn.tree import (   # type: ignore
@@ -182,7 +183,8 @@ def explain_prediction_linear_classifier(clf, doc,
     )
 
     _weights = _linear_weights(clf, x, top, feature_names, flt_indices)
-    display_names = get_target_display_names(clf.classes_, target_names,
+    classes = getattr(clf, "classes_", ["-1", "1"])  # OneClassSVM support
+    display_names = get_target_display_names(classes, target_names,
                                              targets, top_targets, score)
 
     if is_multiclass_classifier(clf):
@@ -210,6 +212,7 @@ def explain_prediction_linear_classifier(clf, doc,
 
 @register(NuSVC)
 @register(SVC)
+@register(OneClassSVM)
 def test_explain_prediction_libsvm_linear(clf, doc, *args, **kwargs):
     if clf.kernel != 'linear':
         return Explanation(
@@ -217,7 +220,7 @@ def test_explain_prediction_libsvm_linear(clf, doc, *args, **kwargs):
             error="only kernel='linear' is currently supported for "
                   "libsvm-based classifiers",
         )
-    if len(clf.classes_) > 2:
+    if len(getattr(clf, 'classes_', [])) > 2:
         return Explanation(
             estimator=repr(clf),
             error="only binary libsvm-based classifiers are supported",

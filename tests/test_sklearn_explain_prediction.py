@@ -5,6 +5,7 @@ from pprint import pprint
 import re
 
 import pytest
+import numpy as np
 from sklearn.base import BaseEstimator
 from sklearn.datasets import make_regression
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
@@ -50,6 +51,7 @@ from sklearn.svm import (
     SVR,
     NuSVC,
     NuSVR,
+    OneClassSVM,
 )
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
@@ -300,9 +302,28 @@ def test_explain_linear_binary(newsgroups_train_binary, clf):
                                               explain_prediction)
 
 
+def test_explain_one_class_svm():
+    X = np.array([[0, 0], [0, 1], [5, 3], [93, 94], [90, 91]])
+    clf = OneClassSVM(kernel='linear', random_state=42).fit(X)
+    res = explain_prediction(clf, X[0])
+    assert res.targets[0].score < 0
+    for expl in format_as_all(res, clf):
+        assert 'BIAS' in expl
+        assert 'x0' not in expl
+        assert 'x1' not in expl
+
+    res = explain_prediction(clf, X[4])
+    assert res.targets[0].score > 0
+    for expl in format_as_all(res, clf):
+        assert 'BIAS' in expl
+        assert 'x0' in expl
+        assert 'x1' in expl
+
+
 @pytest.mark.parametrize(['clf'], [
     [SVC()],
     [NuSVC()],
+    [OneClassSVM()],
 ])
 def test_explain_linear_classifiers_unsupported_kernels(clf, newsgroups_train_binary):
     docs, y, target_names = newsgroups_train_binary

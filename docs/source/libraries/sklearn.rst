@@ -79,6 +79,7 @@ Linear SVMs from ``sklearn.svm`` are also supported:
 * SVR_ (only with ``kernel='linear'``)
 * NuSVC_ (only with ``kernel='linear'``, only for binary classification)
 * NuSVR_ (only with ``kernel='linear'``)
+* OneClassSVM_ (only with ``kernel='linear'``)
 
 For linear scikit-learn classifiers :func:`eli5.explain_weights` supports
 one more keyword argument, in addition to common argument and extra arguments
@@ -130,6 +131,7 @@ for all scikit-learn estimators:
 .. _SVR: http://scikit-learn.org/stable/modules/generated/sklearn.svm.SVR.html#sklearn.svm.SVR
 .. _NuSVC: http://scikit-learn.org/stable/modules/generated/sklearn.svm.NuSVC.html#sklearn.svm.NuSVC
 .. _NuSVR: http://scikit-learn.org/stable/modules/generated/sklearn.svm.NuSVR.html#sklearn.svm.NuSVR
+.. _OneClassSVM: http://scikit-learn.org/stable/modules/generated/sklearn.svm.OneClassSVM.html#sklearn.svm.OneClassSVM
 
 Decision Trees, Ensembles
 -------------------------

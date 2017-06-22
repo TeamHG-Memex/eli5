@@ -46,6 +46,7 @@ from sklearn.svm import (
     SVR,
     NuSVC,
     NuSVR,
+    OneClassSVM,
 )
 from sklearn.ensemble import (
     RandomForestClassifier,
@@ -176,8 +177,8 @@ def test_explain_linear(newsgroups_train, clf):
 @pytest.mark.parametrize(['clf'], [
     [LogisticRegression(random_state=42)],
     [SGDClassifier(random_state=42)],
-    [SVC(kernel='linear')],
-    [NuSVC(kernel='linear')],
+    [SVC(kernel='linear', random_state=42)],
+    [NuSVC(kernel='linear', random_state=42)],
 ])
 def test_explain_linear_binary(newsgroups_train_binary, clf):
     assert_explained_weights_linear_classifier(newsgroups_train_binary, clf,
@@ -204,6 +205,28 @@ def test_explain_linear_unsupported_multiclass(clf, newsgroups_train):
     vec = TfidfVectorizer()
     clf.fit(vec.fit_transform(docs), y)
     expl = explain_weights(clf, vec=vec)
+    assert 'supported' in expl.error
+
+
+def test_explain_one_class_svm():
+    X = np.array([[0,0], [0, 1], [5, 3], [93, 94], [90, 91]])
+    clf = OneClassSVM(kernel='linear', random_state=42).fit(X)
+    res = explain_weights(clf)
+    assert len(res.targets) == 1
+    target = res.targets[0]
+    assert target.target == '1'
+    assert target.feature_weights.neg[0].feature == '<BIAS>'
+    assert {f.feature for f in target.feature_weights.pos} == {'x1', 'x0'}
+    for expl in format_as_all(res, clf):
+        assert 'x1' in expl
+        assert 'x0' in expl
+        assert 'BIAS' in expl
+
+
+def test_explain_one_class_svm_unsupported():
+    X = np.array([[0,0], [0, 1], [5, 3], [93, 94], [90, 91]])
+    clf = OneClassSVM().fit(X)
+    expl = explain_weights(clf)
     assert 'supported' in expl.error
 
 
