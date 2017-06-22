@@ -1,6 +1,18 @@
 Changelog
 =========
 
+TBA
+---
+
+* support :func:`eli5.explain_prediction` and :func:`eli5.explain_weights`
+  for libsvm-based linear estimators from sklearn.svm: ``SVC(kernel='linear')``
+  (only binary classification), ``NuSVC(kernel='linear')`` (only
+  binary classification), ``SVR(kernel='linear')``, ``NuSVR(kernel='linear')``,
+  ``OneClassSVM(kernel='linear')``;
+* fixed :func:`eli5.explain_weights` for LightGBM_ estimators in Python 2 when
+  ``importance_type`` is 'split' or 'weight';
+* testing improvements.
+
 0.6.4 (2017-06-22)
 ------------------
 
