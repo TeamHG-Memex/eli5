@@ -185,6 +185,29 @@ def test_explain_linear_binary(newsgroups_train_binary, clf):
 
 
 @pytest.mark.parametrize(['clf'], [
+    [SVC()],
+    [NuSVC()],
+    [SVR()],
+    [NuSVR()],
+])
+def test_explain_linear_unsupported_kernels(clf):
+    res = explain_weights(clf)
+    assert 'supported' in res.error
+
+
+@pytest.mark.parametrize(['clf'], [
+    [SVC(kernel='linear')],
+    [NuSVC(kernel='linear')],
+])
+def test_explain_linear_unsupported_multiclass(clf, newsgroups_train):
+    docs, y, target_names = newsgroups_train
+    vec = TfidfVectorizer()
+    clf.fit(vec.fit_transform(docs), y)
+    expl = explain_weights(clf, vec=vec)
+    assert 'supported' in expl.error
+
+
+@pytest.mark.parametrize(['clf'], [
     [OneVsRestClassifier(SGDClassifier(random_state=42))],
     [OneVsRestClassifier(LogisticRegression(random_state=42))],
 ])
