@@ -35,7 +35,12 @@ from sklearn.linear_model import (  # type: ignore
     SGDRegressor,
     TheilSenRegressor,
 )
-from sklearn.svm import LinearSVC, LinearSVR  # type: ignore
+from sklearn.svm import (  # type: ignore
+    LinearSVC,
+    LinearSVR,
+    SVR,
+    NuSVR,
+)
 from sklearn.multiclass import OneVsRestClassifier  # type: ignore
 from sklearn.tree import (   # type: ignore
     DecisionTreeClassifier,
@@ -215,6 +220,8 @@ def explain_prediction_linear_classifier(clf, doc,
 @register(RidgeCV)
 @register(SGDRegressor)
 @register(TheilSenRegressor)
+@register(SVR)
+@register(NuSVR)
 def explain_prediction_linear_regressor(reg, doc,
                                         vec=None,
                                         top=None,
@@ -242,6 +249,9 @@ def explain_prediction_linear_regressor(reg, doc,
     regressor ``reg``. Set it to True if you're passing ``vec``,
     but ``doc`` is already vectorized.
     """
+    if isinstance(reg, (SVR, NuSVR)) and reg.kernel != 'linear':
+        return explain_prediction_sklearn_not_supported(reg, doc)
+
     vec, feature_names = handle_vec(reg, doc, vec, vectorized, feature_names)
     X = get_X(doc, vec=vec, vectorized=vectorized, to_dense=True)
 

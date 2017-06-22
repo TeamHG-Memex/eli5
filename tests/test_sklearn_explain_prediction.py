@@ -43,7 +43,12 @@ from sklearn.linear_model import (
     SGDRegressor,
     TheilSenRegressor,
 )
-from sklearn.svm import LinearSVC, LinearSVR
+from sklearn.svm import (
+    LinearSVC,
+    LinearSVR,
+    SVR,
+    NuSVR,
+)
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 
@@ -281,9 +286,22 @@ def test_explain_linear(newsgroups_train, clf):
     [RidgeCV()],
     [SGDRegressor(random_state=42)],
     [TheilSenRegressor()],
+    [SVR(kernel='linear')],
+    [NuSVR(kernel='linear')],
 ])
 def test_explain_linear_regression(boston_train, reg):
     assert_linear_regression_explained(boston_train, reg, explain_prediction)
+
+
+@pytest.mark.parametrize(['reg'], [
+    [SVR()],
+    [NuSVR()],
+])
+def test_explain_linear_unsupported_kernels(reg, boston_train):
+    X, y, feature_names = boston_train
+    reg.fit(X, y)
+    res = explain_prediction(reg, X[0], feature_names=feature_names)
+    assert 'supported' in res.error
 
 
 @pytest.mark.parametrize(['reg'], [
