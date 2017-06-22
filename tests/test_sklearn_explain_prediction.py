@@ -301,8 +301,8 @@ def test_explain_linear_binary(newsgroups_train_binary, clf):
 
 
 @pytest.mark.parametrize(['clf'], [
-    [SVR()],
-    [NuSVR()],
+    [SVC()],
+    [NuSVC()],
 ])
 def test_explain_linear_classifiers_unsupported_kernels(clf, newsgroups_train_binary):
     docs, y, target_names = newsgroups_train_binary
