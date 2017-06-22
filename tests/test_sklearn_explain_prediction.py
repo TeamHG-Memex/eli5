@@ -46,7 +46,9 @@ from sklearn.linear_model import (
 from sklearn.svm import (
     LinearSVC,
     LinearSVR,
+    SVC,
     SVR,
+    NuSVC,
     NuSVR,
 )
 from sklearn.multiclass import OneVsRestClassifier
@@ -114,6 +116,23 @@ def assert_multiclass_linear_classifier_explained(newsgroups_train, clf,
     top_neg_targets_res = get_res(top_targets=-1)
     assert len(top_neg_targets_res.targets) == 1
     assert [t.target for t in top_neg_targets_res.targets] == sorted_targets[-1:]
+
+
+def assert_binary_linear_classifier_explained(newsgroups_train_binary, clf,
+                                              explain_prediction):
+    docs, y, target_names = newsgroups_train_binary
+    vec = TfidfVectorizer()
+
+    X = vec.fit_transform(docs)
+    clf.fit(X, y)
+
+    get_res = lambda **kwargs: explain_prediction(
+        clf, docs[2], vec=vec, target_names=target_names, top=20, **kwargs)
+    res = get_res()
+    pprint(res)
+    expl_text, expl_html = format_as_all(res, clf)
+    for expl in [expl_text, expl_html]:
+        assert 'software' in expl
 
 
 def assert_linear_regression_explained(boston_train, reg, explain_prediction,
@@ -265,6 +284,46 @@ def test_explain_linear(newsgroups_train, clf):
             newsgroups_train, clf, explain_prediction_sklearn)
 
 
+@pytest.mark.parametrize(['clf'], [
+    [LogisticRegression(random_state=42)],
+    [SGDClassifier(random_state=42)],
+    [SVC(kernel='linear', random_state=42)],
+    [SVC(kernel='linear', random_state=42, decision_function_shape='ovr')],
+    [SVC(kernel='linear', random_state=42, decision_function_shape='ovr',
+         probability=True)],
+    [SVC(kernel='linear', random_state=42, probability=True)],
+    [NuSVC(kernel='linear', random_state=42)],
+    [NuSVC(kernel='linear', random_state=42, decision_function_shape='ovr')],
+])
+def test_explain_linear_binary(newsgroups_train_binary, clf):
+    assert_binary_linear_classifier_explained(newsgroups_train_binary, clf,
+                                              explain_prediction)
+
+
+@pytest.mark.parametrize(['clf'], [
+    [SVR()],
+    [NuSVR()],
+])
+def test_explain_linear_classifiers_unsupported_kernels(clf, newsgroups_train_binary):
+    docs, y, target_names = newsgroups_train_binary
+    vec = TfidfVectorizer()
+    clf.fit(vec.fit_transform(docs), y)
+    res = explain_prediction(clf, docs[0], vec=vec)
+    assert 'supported' in res.error
+
+
+@pytest.mark.parametrize(['clf'], [
+    [SVC(kernel='linear')],
+    [NuSVC(kernel='linear')],
+])
+def test_explain_linear_unsupported_multiclass(clf, newsgroups_train):
+    docs, y, target_names = newsgroups_train
+    vec = TfidfVectorizer()
+    clf.fit(vec.fit_transform(docs), y)
+    expl = explain_prediction(clf, docs[0], vec=vec)
+    assert 'supported' in expl.error
+
+
 @pytest.mark.parametrize(['reg'], [
     [ElasticNet(random_state=42)],
     [ElasticNetCV(random_state=42)],
@@ -297,7 +356,7 @@ def test_explain_linear_regression(boston_train, reg):
     [SVR()],
     [NuSVR()],
 ])
-def test_explain_linear_unsupported_kernels(reg, boston_train):
+def test_explain_linear_regressors_unsupported_kernels(reg, boston_train):
     X, y, feature_names = boston_train
     reg.fit(X, y)
     res = explain_prediction(reg, X[0], feature_names=feature_names)

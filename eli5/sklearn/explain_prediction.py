@@ -38,7 +38,9 @@ from sklearn.linear_model import (  # type: ignore
 from sklearn.svm import (  # type: ignore
     LinearSVC,
     LinearSVR,
+    SVC,
     SVR,
+    NuSVC,
     NuSVR,
 )
 from sklearn.multiclass import OneVsRestClassifier  # type: ignore
@@ -204,6 +206,23 @@ def explain_prediction_linear_classifier(clf, doc,
         res.targets.append(target_expl)
 
     return res
+
+
+@register(NuSVC)
+@register(SVC)
+def test_explain_prediction_libsvm_linear(clf, doc, *args, **kwargs):
+    if clf.kernel != 'linear':
+        return Explanation(
+            estimator=repr(clf),
+            error="only kernel='linear' is currently supported for "
+                  "libsvm-based classifiers",
+        )
+    if len(clf.classes_) > 2:
+        return Explanation(
+            estimator=repr(clf),
+            error="only binary libsvm-based classifiers are supported",
+        )
+    return explain_prediction_linear_classifier(clf, doc, *args, **kwargs)
 
 
 @register(ElasticNet)
