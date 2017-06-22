@@ -5,6 +5,7 @@ import re
 
 import numpy as np
 import scipy.sparse as sp
+from eli5.sklearn.utils import has_intercept
 from sklearn.datasets import make_regression, make_multilabel_classification
 from sklearn.feature_extraction.text import (
     CountVectorizer,
@@ -38,7 +39,15 @@ from sklearn.linear_model import (
     SGDRegressor,
     TheilSenRegressor,
 )
-from sklearn.svm import LinearSVC, LinearSVR
+from sklearn.svm import (
+    LinearSVC,
+    LinearSVR,
+    SVC,
+    SVR,
+    NuSVC,
+    NuSVR,
+    OneClassSVM,
+)
 from sklearn.ensemble import (
     RandomForestClassifier,
     RandomForestRegressor,
@@ -63,7 +72,8 @@ from .utils import format_as_all, get_all_features, get_names_coefs
 
 
 def check_newsgroups_explanation_linear(
-        clf, vec, target_names, explain_weights=explain_weights, **kwargs):
+        clf, vec, target_names, explain_weights=explain_weights, binary=False,
+        **kwargs):
     def get_result():
         _kwargs = dict(vec=vec, target_names=target_names, top=20)
         _kwargs.update(kwargs)
@@ -72,29 +82,39 @@ def check_newsgroups_explanation_linear(
     res = get_result()
     expl_text, expl_html = format_as_all(res, clf)
 
-    assert [cl.target for cl in res.targets] == target_names
+    got_targets = [cl.target for cl in res.targets]
+    if binary:
+        assert got_targets == [target_names[1]]
+    else:
+        assert got_targets == target_names
 
     _top = partial(top_pos_neg, res)
-    pos, neg = _top('sci.space')
-    assert 'space' in pos
 
-    pos, neg = _top('alt.atheism')
-    assert 'atheists' in pos
+    pos, neg = _top('comp.graphics')
+    assert 'file' in pos or 'graphics' in pos
 
-    pos, neg = _top('talk.religion.misc')
-    assert 'jesus' in pos or 'christians' in pos
+    if not binary:
+        for expl in [expl_text, expl_html]:
+            assert 'comp.graphics' in expl
+            assert 'atheists' in expl
+            for label in target_names:
+                assert str(label) in expl
 
-    for expl in [expl_text, expl_html]:
-        assert 'space' in expl
-        assert 'atheists' in expl
-        for label in target_names:
-            assert str(label) in expl
+        pos, neg = _top('alt.atheism')
+        assert 'atheists' in pos
+
+        pos, neg = _top('sci.space')
+        assert 'space' in pos
+
+        pos, neg = _top('talk.religion.misc')
+        assert 'jesus' in pos or 'christians' in pos
 
     assert res == get_result()
 
 
 def assert_explained_weights_linear_classifier(
-        newsgroups_train, clf, add_bias=False, explain_weights=explain_weights):
+        newsgroups_train, clf, add_bias=False, explain_weights=explain_weights,
+        binary=False):
     docs, y, target_names = newsgroups_train
     vec = TfidfVectorizer()
     X = vec.fit_transform(docs)
@@ -108,6 +128,7 @@ def assert_explained_weights_linear_classifier(
     check_newsgroups_explanation_linear(clf, vec, target_names,
                                         feature_names=feature_names,
                                         explain_weights=explain_weights,
+                                        binary=binary,
                                         top=(20, 20))
 
 
@@ -151,6 +172,62 @@ def assert_explained_weights_linear_regressor(boston_train, reg, has_bias=True):
 ])
 def test_explain_linear(newsgroups_train, clf):
     assert_explained_weights_linear_classifier(newsgroups_train, clf)
+
+
+@pytest.mark.parametrize(['clf'], [
+    [LogisticRegression(random_state=42)],
+    [SGDClassifier(random_state=42)],
+    [SVC(kernel='linear', random_state=42)],
+    [NuSVC(kernel='linear', random_state=42)],
+])
+def test_explain_linear_binary(newsgroups_train_binary, clf):
+    assert_explained_weights_linear_classifier(newsgroups_train_binary, clf,
+                                               binary=True)
+
+
+@pytest.mark.parametrize(['clf'], [
+    [SVC()],
+    [NuSVC()],
+    [SVR()],
+    [NuSVR()],
+])
+def test_explain_linear_unsupported_kernels(clf):
+    res = explain_weights(clf)
+    assert 'supported' in res.error
+
+
+@pytest.mark.parametrize(['clf'], [
+    [SVC(kernel='linear')],
+    [NuSVC(kernel='linear')],
+])
+def test_explain_linear_unsupported_multiclass(clf, newsgroups_train):
+    docs, y, target_names = newsgroups_train
+    vec = TfidfVectorizer()
+    clf.fit(vec.fit_transform(docs), y)
+    expl = explain_weights(clf, vec=vec)
+    assert 'supported' in expl.error
+
+
+def test_explain_one_class_svm():
+    X = np.array([[0,0], [0, 1], [5, 3], [93, 94], [90, 91]])
+    clf = OneClassSVM(kernel='linear', random_state=42).fit(X)
+    res = explain_weights(clf)
+    assert len(res.targets) == 1
+    target = res.targets[0]
+    assert target.target == '1'
+    assert target.feature_weights.neg[0].feature == '<BIAS>'
+    assert {f.feature for f in target.feature_weights.pos} == {'x1', 'x0'}
+    for expl in format_as_all(res, clf):
+        assert 'x1' in expl
+        assert 'x0' in expl
+        assert 'BIAS' in expl
+
+
+def test_explain_one_class_svm_unsupported():
+    X = np.array([[0,0], [0, 1], [5, 3], [93, 94], [90, 91]])
+    clf = OneClassSVM().fit(X)
+    expl = explain_weights(clf)
+    assert 'supported' in expl.error
 
 
 @pytest.mark.parametrize(['clf'], [
@@ -419,6 +496,8 @@ def test_unsupported():
     [LinearRegression()],
     [LinearSVR(random_state=42)],
     [TheilSenRegressor(random_state=42)],
+    [SVR(kernel='linear')],
+    [NuSVR(kernel='linear')],
 ])
 def test_explain_linear_regression(boston_train, reg):
     assert_explained_weights_linear_regressor(boston_train, reg)
@@ -429,6 +508,7 @@ def test_explain_linear_regression(boston_train, reg):
     [Lasso(fit_intercept=False, random_state=42)],
     [LinearRegression()],
     [LinearRegression(fit_intercept=False)],
+    [SVR(kernel='linear')],
 ])
 def test_explain_linear_regression_one_feature(reg):
     xs, ys = make_regression(n_samples=10, n_features=1, bias=7.5,
@@ -440,7 +520,7 @@ def test_explain_linear_regression_one_feature(reg):
     for expl in [expl_text, expl_html]:
         assert 'x0' in expl
 
-    if reg.fit_intercept:
+    if has_intercept(reg):
         assert '<BIAS>' in expl_text
         assert '&lt;BIAS&gt;' in expl_html
 

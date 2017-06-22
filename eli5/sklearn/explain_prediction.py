@@ -35,7 +35,15 @@ from sklearn.linear_model import (  # type: ignore
     SGDRegressor,
     TheilSenRegressor,
 )
-from sklearn.svm import LinearSVC, LinearSVR  # type: ignore
+from sklearn.svm import (  # type: ignore
+    LinearSVC,
+    LinearSVR,
+    SVC,
+    SVR,
+    NuSVC,
+    NuSVR,
+    OneClassSVM,
+)
 from sklearn.multiclass import OneVsRestClassifier  # type: ignore
 from sklearn.tree import (   # type: ignore
     DecisionTreeClassifier,
@@ -175,7 +183,8 @@ def explain_prediction_linear_classifier(clf, doc,
     )
 
     _weights = _linear_weights(clf, x, top, feature_names, flt_indices)
-    display_names = get_target_display_names(clf.classes_, target_names,
+    classes = getattr(clf, "classes_", ["-1", "1"])  # OneClassSVM support
+    display_names = get_target_display_names(classes, target_names,
                                              targets, top_targets, score)
 
     if is_multiclass_classifier(clf):
@@ -201,6 +210,24 @@ def explain_prediction_linear_classifier(clf, doc,
     return res
 
 
+@register(NuSVC)
+@register(SVC)
+@register(OneClassSVM)
+def test_explain_prediction_libsvm_linear(clf, doc, *args, **kwargs):
+    if clf.kernel != 'linear':
+        return Explanation(
+            estimator=repr(clf),
+            error="only kernel='linear' is currently supported for "
+                  "libsvm-based classifiers",
+        )
+    if len(getattr(clf, 'classes_', [])) > 2:
+        return Explanation(
+            estimator=repr(clf),
+            error="only binary libsvm-based classifiers are supported",
+        )
+    return explain_prediction_linear_classifier(clf, doc, *args, **kwargs)
+
+
 @register(ElasticNet)
 @register(ElasticNetCV)
 @register(HuberRegressor)
@@ -215,6 +242,8 @@ def explain_prediction_linear_classifier(clf, doc,
 @register(RidgeCV)
 @register(SGDRegressor)
 @register(TheilSenRegressor)
+@register(SVR)
+@register(NuSVR)
 def explain_prediction_linear_regressor(reg, doc,
                                         vec=None,
                                         top=None,
@@ -242,6 +271,9 @@ def explain_prediction_linear_regressor(reg, doc,
     regressor ``reg``. Set it to True if you're passing ``vec``,
     but ``doc`` is already vectorized.
     """
+    if isinstance(reg, (SVR, NuSVR)) and reg.kernel != 'linear':
+        return explain_prediction_sklearn_not_supported(reg, doc)
+
     vec, feature_names = handle_vec(reg, doc, vec, vectorized, feature_names)
     X = get_X(doc, vec=vec, vectorized=vectorized, to_dense=True)
 

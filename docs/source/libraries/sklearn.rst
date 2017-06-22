@@ -75,6 +75,11 @@ Linear SVMs from ``sklearn.svm`` are also supported:
 
 * LinearSVC_
 * LinearSVR_
+* SVC_ (only with ``kernel='linear'``, only for binary classification)
+* SVR_ (only with ``kernel='linear'``)
+* NuSVC_ (only with ``kernel='linear'``, only for binary classification)
+* NuSVR_ (only with ``kernel='linear'``)
+* OneClassSVM_ (only with ``kernel='linear'``)
 
 For linear scikit-learn classifiers :func:`eli5.explain_weights` supports
 one more keyword argument, in addition to common argument and extra arguments
@@ -122,7 +127,11 @@ for all scikit-learn estimators:
 .. _TheilSenRegressor: http://scikit-learn.org/stable/modules/generated/sklearn.linear_model.TheilSenRegressor.html#sklearn.linear_model.TheilSenRegressor
 .. _LinearSVC: http://scikit-learn.org/stable/modules/generated/sklearn.svm.LinearSVC.html#sklearn.svm.LinearSVC
 .. _LinearSVR: http://scikit-learn.org/stable/modules/generated/sklearn.svm.LinearSVR.html#sklearn.svm.LinearSVR
-
+.. _SVC: http://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html#sklearn.svm.SVC
+.. _SVR: http://scikit-learn.org/stable/modules/generated/sklearn.svm.SVR.html#sklearn.svm.SVR
+.. _NuSVC: http://scikit-learn.org/stable/modules/generated/sklearn.svm.NuSVC.html#sklearn.svm.NuSVC
+.. _NuSVR: http://scikit-learn.org/stable/modules/generated/sklearn.svm.NuSVR.html#sklearn.svm.NuSVR
+.. _OneClassSVM: http://scikit-learn.org/stable/modules/generated/sklearn.svm.OneClassSVM.html#sklearn.svm.OneClassSVM
 
 Decision Trees, Ensembles
 -------------------------

@@ -153,13 +153,13 @@ def get_coef(clf, label_id, scale=None):
     """
     if len(clf.coef_.shape) == 2:
         # Most classifiers (even in binary case) and regressors
-        coef = clf.coef_[label_id]
+        coef = _dense_1d(clf.coef_[label_id])
     elif len(clf.coef_.shape) == 1:
         # SGDRegressor stores coefficients in a 1D array
         if label_id != 0:
             raise ValueError(
                 'Unexpected label_id %s for 1D coefficient' % label_id)
-        coef = clf.coef_
+        coef = _dense_1d(clf.coef_)
     elif len(clf.coef_.shape) == 0:
         # Lasso with one feature: 0D array
         coef = np.array([clf.coef_])
@@ -183,6 +183,12 @@ def get_coef(clf, label_id, scale=None):
     else:
         bias = clf.intercept_[label_id]
     return np.hstack([coef, bias])
+
+
+def _dense_1d(arr):
+    if not sp.issparse(arr):
+        return arr
+    return arr.toarray().reshape(-1)
 
 
 def get_num_features(estimator):
