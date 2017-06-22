@@ -7,15 +7,15 @@ ELI5
    :alt: PyPI Version
 
 .. image:: https://travis-ci.org/TeamHG-Memex/eli5.svg?branch=master
-   :target: http://travis-ci.org/TeamHG-Memex/eli5
+   :target: https://travis-ci.org/TeamHG-Memex/eli5
    :alt: Build Status
 
-.. image:: http://codecov.io/github/TeamHG-Memex/eli5/coverage.svg?branch=master
-   :target: http://codecov.io/github/TeamHG-Memex/eli5?branch=master
+.. image:: https://codecov.io/github/TeamHG-Memex/eli5/coverage.svg?branch=master
+   :target: https://codecov.io/github/TeamHG-Memex/eli5?branch=master
    :alt: Code Coverage
 
 .. image:: https://readthedocs.org/projects/eli5/badge/?version=latest
-   :target: http://eli5.readthedocs.io/en/latest/?badge=latest
+   :target: https://eli5.readthedocs.io/en/latest/?badge=latest
    :alt: Documentation
 
 
@@ -68,4 +68,4 @@ rendering and formatting on a client.
 
 License is MIT.
 
-Check `docs <http://eli5.readthedocs.io/>`_ for more.
+Check `docs <https://eli5.readthedocs.io/>`_ for more.
