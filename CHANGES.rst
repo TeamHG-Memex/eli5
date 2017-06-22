@@ -1,6 +1,13 @@
 Changelog
 =========
 
+0.6.4 (2017-06-22)
+------------------
+
+* Fixed :func:`eli5.explain_prediction` for recent LightGBM_ versions;
+* fixed Python 3 deprecation warning in formatters.html;
+* testing improvements.
+
 0.6.3 (2017-06-02)
 ------------------
 
