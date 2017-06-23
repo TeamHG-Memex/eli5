@@ -128,13 +128,23 @@ def assert_binary_linear_classifier_explained(newsgroups_train_binary, clf,
     X = vec.fit_transform(docs)
     clf.fit(X, y)
 
-    get_res = lambda **kwargs: explain_prediction(
-        clf, docs[2], vec=vec, target_names=target_names, top=20, **kwargs)
-    res = get_res()
-    pprint(res)
+    assert y[2] == 1
+    cg_document = docs[2]
+    res = explain_prediction(clf, cg_document, vec=vec,
+                             target_names=target_names, top=20)
     expl_text, expl_html = format_as_all(res, clf)
     for expl in [expl_text, expl_html]:
         assert 'software' in expl
+        assert target_names[1] in expl
+
+    assert y[15] == 0
+    atheism_document = docs[15]
+    res = explain_prediction(clf, atheism_document, vec=vec,
+                             target_names=target_names, top=20)
+    expl_text, expl_html = format_as_all(res, clf)
+    for expl in [expl_text, expl_html]:
+        assert 'god' in expl
+        assert target_names[0] in expl
 
 
 def assert_linear_regression_explained(boston_train, reg, explain_prediction,
@@ -288,6 +298,8 @@ def test_explain_linear(newsgroups_train, clf):
 
 @pytest.mark.parametrize(['clf'], [
     [LogisticRegression(random_state=42)],
+    [LogisticRegressionCV(random_state=42)],
+    [OneVsRestClassifier(LogisticRegression(random_state=42))],
     [SGDClassifier(random_state=42)],
     [SVC(kernel='linear', random_state=42)],
     [SVC(kernel='linear', random_state=42, decision_function_shape='ovr')],

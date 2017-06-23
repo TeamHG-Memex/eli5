@@ -198,11 +198,14 @@ def explain_prediction_linear_classifier(clf, doc,
             add_weighted_spans(doc, vec, vectorized, target_expl)
             res.targets.append(target_expl)
     else:
+        label_id = 1 if score > 0 else 0
+        scale = -1 if label_id == 0 else 1
+
         target_expl = TargetExplanation(
-            target=display_names[1][1],
-            feature_weights=_weights(0),
+            target=display_names[label_id][1],
+            feature_weights=_weights(0, scale=scale),
             score=score,
-            proba=proba[1] if proba is not None else None,
+            proba=proba[label_id] if proba is not None else None,
         )
         add_weighted_spans(doc, vec, vectorized, target_expl)
         res.targets.append(target_expl)
@@ -606,8 +609,8 @@ def _multiply(X, coef):
 def _linear_weights(clf, x, top, feature_names, flt_indices):
     """ Return top weights getter for label_id.
     """
-    def _weights(label_id):
-        coef = get_coef(clf, label_id)
+    def _weights(label_id, scale=1.0):
+        coef = get_coef(clf, label_id) * scale
         _x = x
         scores = _multiply(_x, coef)
         if flt_indices is not None:

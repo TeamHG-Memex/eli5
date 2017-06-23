@@ -18,15 +18,15 @@ from eli5.sklearn import invert_hashing_and_fit, InvertableHashingVectorizer
 from .utils import format_as_all, get_all_features, get_names_coefs, write_html
 
 
-def check_explain_linear_binary(res, clf):
+def check_explain_linear_binary(res, clf, target='alt.atheism'):
     expl_text, expl_html = format_as_all(res, clf)
     assert len(res.targets) == 1
     e = res.targets[0]
-    assert e.target == 'comp.graphics'
-    neg = get_all_features(e.feature_weights.neg)
-    assert 'objective' in neg
+    assert e.target == target
+    pos = get_all_features(e.feature_weights.pos)
+    assert 'objective' in pos
     for expl in [expl_text, expl_html]:
-        assert 'comp.graphics' in expl
+        assert target in expl
         assert 'objective' in expl
 
 
@@ -50,9 +50,9 @@ def test_explain_linear_binary(vec, newsgroups_train_binary):
         top=20, vectorized=True)
     if isinstance(vec, HashingVectorizer):
         # InvertableHashingVectorizer must be passed with vectorized=True
-        neg_weights = res_vectorized.targets[0].feature_weights.neg
-        neg_vectorized = get_all_features(neg_weights)
-        assert all(name.startswith('x') for name in neg_vectorized)
+        pos_weights = res_vectorized.targets[0].feature_weights.pos
+        pos_vectorized = get_all_features(pos_weights)
+        assert all(name.startswith('x') for name in pos_vectorized)
     else:
         assert res_vectorized == _without_weighted_spans(res)
 

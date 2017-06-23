@@ -43,7 +43,7 @@ def test_show_prediction():
     html = eli5.show_prediction(clf, doc)
     write_html(clf, html.data, '')
     assert isinstance(html, HTML)
-    assert 'y=b' in html.data
+    assert 'y=a' in html.data
     assert 'BIAS' in html.data
     assert 'x1' in html.data
 
@@ -56,6 +56,14 @@ def test_show_prediction():
     # format_as_html arguments are supported
     html = eli5.show_prediction(clf, doc, show=['method'])
     write_html(clf, html.data, '')
-    assert 'y=b' not in html.data
+    assert 'y=a' not in html.data
     assert 'BIAS' not in html.data
     assert 'Explained as' in html.data
+
+    # top target is used
+    html = eli5.show_prediction(clf, np.array([1, 1]))
+    write_html(clf, html.data, '')
+    assert 'y=b' in html.data
+    assert 'BIAS' in html.data
+    assert 'x1' in html.data
+
