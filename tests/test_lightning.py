@@ -16,6 +16,7 @@ from eli5 import (
 from .test_sklearn_explain_prediction import (
     assert_multiclass_linear_classifier_explained,
     assert_linear_regression_explained,
+    assert_binary_linear_classifier_explained,
     test_explain_prediction_pandas as _check_explain_prediction_pandas,
 )
 from .test_sklearn_explain_weights import (
@@ -32,6 +33,12 @@ def test_explain_predition_classifiers(newsgroups_train, clf):
     if _CLASSIFIERS.index(type(clf.estimator)) == 0:
         assert_multiclass_linear_classifier_explained(newsgroups_train, clf,
                                                       explain_prediction_lightning)
+
+
+@pytest.mark.parametrize(['clf'], [[clf()] for clf in _CLASSIFIERS])
+def test_explain_predition_classifiers_binary(newsgroups_train_binary, clf):
+    assert_binary_linear_classifier_explained(newsgroups_train_binary, clf,
+                                              explain_prediction)
 
 
 @pytest.mark.parametrize(['clf'], [[clf()] for clf in _CLASSIFIERS])

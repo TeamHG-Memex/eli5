@@ -134,7 +134,7 @@ def assert_binary_linear_classifier_explained(newsgroups_train_binary, clf,
                              target_names=target_names, top=20)
     expl_text, expl_html = format_as_all(res, clf)
     for expl in [expl_text, expl_html]:
-        assert 'software' in expl
+        assert 'software' in expl or 'thanks' in expl
         assert target_names[1] in expl
 
     assert y[15] == 0
