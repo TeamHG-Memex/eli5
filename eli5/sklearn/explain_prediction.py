@@ -198,11 +198,15 @@ def explain_prediction_linear_classifier(clf, doc,
             add_weighted_spans(doc, vec, vectorized, target_expl)
             res.targets.append(target_expl)
     else:
-        label_id = 1 if score > 0 else 0
+        if len(display_names) == 1:  # target is passed explicitly
+            label_id, target = display_names[0]
+        else:
+            label_id = 1 if score >= 0 else 0
+            target = display_names[label_id][1]
         scale = -1 if label_id == 0 else 1
 
         target_expl = TargetExplanation(
-            target=display_names[label_id][1],
+            target=target,
             feature_weights=_weights(0, scale=scale),
             score=score,
             proba=proba[label_id] if proba is not None else None,

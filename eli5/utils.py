@@ -104,6 +104,12 @@ def get_target_display_names(original_names=None, target_names=None,
     >>> get_target_display_names([0, 2], target_names=['foo', 'bar'], targets=[2])
     [(1, 'bar')]
 
+    >>> get_target_display_names([False, True], targets=[True])
+    [(1, True)]
+
+    >>> get_target_display_names([False, True], targets=[False])
+    [(0, False)]
+
     target_names can be a dictionary with {old_name: new_name} labels:
     >>> get_target_display_names(['x', 'y'], targets=['y', 'x'],
     ...                   target_names={'x': 'X'})
