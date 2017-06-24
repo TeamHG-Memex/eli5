@@ -614,11 +614,11 @@ def _linear_weights(clf, x, top, feature_names, flt_indices):
     """ Return top weights getter for label_id.
     """
     def _weights(label_id, scale=1.0):
-        coef = get_coef(clf, label_id) * scale
+        coef = get_coef(clf, label_id)
         _x = x
         scores = _multiply(_x, coef)
         if flt_indices is not None:
             scores = scores[flt_indices]
             _x = mask(_x, flt_indices)
-        return get_top_features(feature_names, scores, top, _x)
+        return get_top_features(feature_names, scores * scale, top, _x)
     return _weights
