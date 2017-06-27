@@ -244,7 +244,7 @@ def assert_feature_values_present(expl, feature_names, x):
     assert any_features
 
 
-def assert_tree_explain_prediction_single_target(clf, X, feature_names):
+def assert_explain_prediction_single_target(clf, X, feature_names):
     get_res = lambda _x, **kwargs: explain_prediction(
         clf, _x, feature_names=feature_names, **kwargs)
     res = get_res(X[0])
@@ -436,11 +436,16 @@ def test_explain_tree_clf_multiclass(clf, iris_train):
     [ExtraTreesClassifier(random_state=42)],
     [GradientBoostingClassifier(learning_rate=0.075, random_state=42)],
     [RandomForestClassifier(random_state=42)],
+    [LogisticRegression(random_state=42)],
+    [OneVsRestClassifier(LogisticRegression(random_state=42))],
+    [SGDClassifier(random_state=42)],
+    [SVC(kernel='linear', random_state=42)],
+    [NuSVC(kernel='linear', random_state=42)],
 ])
-def test_explain_tree_clf_binary(clf, iris_train_binary):
+def test_explain_clf_binary_iris(clf, iris_train_binary):
     X, y, feature_names = iris_train_binary
     clf.fit(X, y)
-    assert_tree_explain_prediction_single_target(clf, X, feature_names)
+    assert_explain_prediction_single_target(clf, X, feature_names)
 
 
 @pytest.mark.parametrize(['reg'], [
@@ -473,7 +478,7 @@ def test_explain_tree_regressor_multitarget(reg):
 def test_explain_tree_regressor(reg, boston_train):
     X, y, feature_names = boston_train
     reg.fit(X, y)
-    assert_tree_explain_prediction_single_target(reg, X, feature_names)
+    assert_explain_prediction_single_target(reg, X, feature_names)
 
 
 @pytest.mark.parametrize(['clf'], [
