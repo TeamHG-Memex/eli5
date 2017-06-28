@@ -3,6 +3,7 @@ from __future__ import absolute_import
 from functools import partial
 from pprint import pprint
 import re
+from typing import List
 
 import pytest
 import numpy as np
@@ -57,6 +58,7 @@ from sklearn.multiclass import OneVsRestClassifier
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 
 from eli5 import explain_prediction, explain_prediction_sklearn
+from eli5.base import Explanation
 from eli5.formatters import format_as_text, fields
 from eli5.sklearn.utils import has_intercept
 from .utils import (
@@ -146,6 +148,8 @@ def assert_binary_linear_classifier_explained(newsgroups_train_binary, clf,
         assert 'god' in expl
         assert target_names[0] in expl
 
+    assert_correct_class_explained_binary(clf, X[::10])
+
 
 def assert_linear_regression_explained(boston_train, reg, explain_prediction,
                                        atol=1e-8, reg_has_intercept=None):
@@ -234,6 +238,47 @@ def assert_multitarget_linear_regression_explained(reg, explain_prediction):
     assert len(top_targets_res.targets) == 1
 
 
+def assert_correct_class_explained_binary(clf, X):
+    size = X.shape[0]
+    expl_predicted = assert_predicted_class_used(clf, X)
+    expl_target0 = assert_class_used(clf, X, np.zeros(size), targets=[0])
+    expl_target1 = assert_class_used(clf, X, np.ones(size), targets=[1])
+
+    get_fw = lambda expl: expl.targets[0].feature_weights
+    for pred, t0, t1 in zip(expl_predicted, expl_target0, expl_target1):
+        # sanity check
+        assert get_fw(pred).pos == get_fw(pred).pos
+
+        # explanation for the predicted class should be the same as either
+        # positive or negative class explanation
+        assert get_fw(pred).pos == get_fw(t0).pos or get_fw(pred).pos == get_fw(t1).pos
+        assert get_fw(pred).neg == get_fw(t0).neg or get_fw(pred).neg == get_fw(t1).neg
+
+        # explanations shouldn't be the same for positive and negative classes
+        assert get_fw(t0).pos != get_fw(t1).pos
+        assert get_fw(t0).neg != get_fw(t1).neg
+
+
+def assert_predicted_class_used(clf, X):
+    """ Check that predicted classes are used for explanations
+    of X predictions """
+    y_pred = clf.predict(X)
+    return assert_class_used(clf, X, y_pred)
+
+
+def assert_class_used(clf, X, y, **explain_kwargs):
+    # type: (...) -> List[Explanation]
+    """ Check that classes y are used for explanations of X predictions """
+    explanations = []
+    for x, pred_target in zip(X, y):
+        res = explain_prediction(clf, x, **explain_kwargs)  # type: Explanation
+        explanations.append(res)
+        assert len(res.targets) == 1
+        if res.targets[0].score != 0:
+            assert res.targets[0].target == pred_target
+    return explanations
+
+
 def assert_feature_values_present(expl, feature_names, x):
     assert 'Value' in expl
     any_features = False
@@ -244,13 +289,17 @@ def assert_feature_values_present(expl, feature_names, x):
     assert any_features
 
 
-def assert_explain_prediction_single_target(clf, X, feature_names):
+def assert_explain_prediction_single_target(estimator, X, feature_names):
     get_res = lambda _x, **kwargs: explain_prediction(
-        clf, _x, feature_names=feature_names, **kwargs)
+        estimator, _x, feature_names=feature_names, **kwargs)
     res = get_res(X[0])
-    for expl in format_as_all(res, clf):
+    for expl in format_as_all(res, estimator):
         assert_feature_values_present(expl, feature_names, X[0])
 
+    # take first elements in the dataset; check that
+    # 1. <BIAS> feature is present;
+    # 2. scores have correct absolute values;
+    # 3. feature filter function works.
     checked_flt = False
     all_expls = []
     for x in X[:5]:
@@ -260,18 +309,23 @@ def assert_explain_prediction_single_target(clf, X, feature_names):
         assert '<BIAS>' in text_expl
         check_targets_scores(res)
         all_expls.append(text_expl)
-
-        get_all = lambda fw: get_all_features(fw.pos) | get_all_features(fw.neg)
-        all_features = get_all(res.targets[0].feature_weights)
-        if len(all_features) > 1:
-            f = list(all_features - {'<BIAS>'})[0]
-            flt_res = get_res(x, feature_filter=lambda name, _: name != f)
-            flt_features = get_all(flt_res.targets[0].feature_weights)
-            assert flt_features == (all_features - {f})
-            checked_flt = True
+        checked_flt = checked_flt or _assert_feature_filter_works(get_res, x)
 
     assert checked_flt
     assert any(f in ''.join(all_expls) for f in feature_names)
+
+
+def _assert_feature_filter_works(get_res, x):
+    res = get_res(x)
+    get_all = lambda fw: get_all_features(fw.pos) | get_all_features(fw.neg)
+    all_features = get_all(res.targets[0].feature_weights)
+    if len(all_features) > 1:
+        f = list(all_features - {'<BIAS>'})[0]
+        flt_res = get_res(x, feature_filter=lambda name, _: name != f)
+        flt_features = get_all(flt_res.targets[0].feature_weights)
+        assert flt_features == (all_features - {f})
+        return True
+    return False
 
 
 @pytest.mark.parametrize(['clf'], [
@@ -389,7 +443,7 @@ def test_explain_linear_regression(boston_train, reg):
     [SVR()],
     [NuSVR()],
 ])
-def test_explain_linear_regressors_unsupported_kernels(reg, boston_train):
+def test_explain_libsvm_linear_regressors_unsupported_kernels(reg, boston_train):
     X, y, feature_names = boston_train
     reg.fit(X, y)
     res = explain_prediction(reg, X[0], feature_names=feature_names)
@@ -446,6 +500,7 @@ def test_explain_clf_binary_iris(clf, iris_train_binary):
     X, y, feature_names = iris_train_binary
     clf.fit(X, y)
     assert_explain_prediction_single_target(clf, X, feature_names)
+    assert_correct_class_explained_binary(clf, X)
 
 
 @pytest.mark.parametrize(['reg'], [

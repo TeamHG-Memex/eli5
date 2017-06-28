@@ -446,7 +446,9 @@ def explain_prediction_tree_classifier(
             label_id = 1 if score >= 0 else 0
             scale = -1 if label_id == 0 else 1
         else:
-            # Only probability is available.
+            # Only probability is available - this is the case for
+            # DecisionTreeClassifier. As contributions sum to the probability
+            # (not to the score), they shouldn't be inverted.
             label_id = 1 if proba[1] >= 0.5 else 0
             scale = 1
 
