@@ -21,9 +21,8 @@ from eli5.sklearn.utils import (
     handle_vec,
     predict_proba
 )
-from eli5.utils import mask, is_sparse_vector
+from eli5.utils import is_sparse_vector
 from eli5._decision_path import get_decision_path_explanation
-from eli5._feature_weights import get_top_features
 from eli5._feature_importances import get_feature_importance_explanation
 
 
@@ -184,14 +183,6 @@ def explain_prediction_xgboost(
         proba = predict_proba(xgb, X)
         n_targets = _xgb_n_targets(xgb)
 
-    scores_weights = _prediction_feature_weights(
-        booster, dmatrix, n_targets, feature_names, xgb_feature_names)
-
-    x = get_X0(add_intercept(X))
-    x = _missing_values_set_to_nan(x, missing, sparse_missing=True)
-    feature_names, flt_indices = feature_names.handle_filter(
-        feature_filter, feature_re, x)
-
     if is_regression:
         names = ['y']
     elif isinstance(xgb, Booster):
@@ -199,17 +190,19 @@ def explain_prediction_xgboost(
     else:
         names = xgb.classes_
 
-    def get_score_feature_weights(_label_id):
-        _score, _feature_weights = scores_weights[_label_id]
-        _x = x
-        if flt_indices is not None:
-            _x = mask(_x, flt_indices)
-            _feature_weights = mask(_feature_weights, flt_indices)
-        return _score, get_top_features(
-            feature_names, _feature_weights, top, _x)
+    scores_weights = _prediction_feature_weights(
+        booster, dmatrix, n_targets, feature_names, xgb_feature_names)
+
+    x = get_X0(add_intercept(X))
+    x = _missing_values_set_to_nan(x, missing, sparse_missing=True)
 
     return get_decision_path_explanation(
         xgb, doc, vec,
+        x=x,
+        feature_names=feature_names,
+        feature_filter=feature_filter,
+        feature_re=feature_re,
+        top=top,
         vectorized=vectorized,
         original_display_names=names,
         target_names=target_names,
@@ -218,7 +211,7 @@ def explain_prediction_xgboost(
         is_regression=is_regression,
         is_multiclass=n_targets > 1,
         proba=proba,
-        get_score_feature_weights=get_score_feature_weights,
+        get_score_weights=lambda label_id: scores_weights[label_id],
      )
 
 
