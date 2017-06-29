@@ -6,11 +6,9 @@ from typing import DefaultDict
 import numpy as np  # type: ignore
 import lightgbm  # type: ignore
 
-from eli5._feature_weights import get_top_features
 from eli5.explain import explain_weights, explain_prediction
 from eli5._feature_importances import get_feature_importance_explanation
 from eli5.sklearn.utils import handle_vec, get_X, get_X0, add_intercept, predict_proba
-from eli5.utils import mask
 from eli5._decision_path import get_decision_path_explanation
 
 
@@ -120,28 +118,27 @@ def explain_prediction_lightgbm(
     proba = predict_proba(lgb, X)
     weight_dicts = _get_prediction_feature_weights(lgb, X, _lgb_n_targets(lgb))
     x = get_X0(add_intercept(X))
-    flt_feature_names, flt_indices = feature_names.handle_filter(
-        feature_filter, feature_re, x)
 
     is_regression = isinstance(lgb, lightgbm.LGBMRegressor)
     is_multiclass = _lgb_n_targets(lgb) > 2
     names = lgb.classes_ if not is_regression else ['y']
 
-    def get_score_feature_weights(_label_id):
+    def get_score_weights(_label_id):
         _weights = _target_feature_weights(
             weight_dicts[_label_id],
             num_features=len(feature_names),
             bias_idx=feature_names.bias_idx,
         )
         _score = _get_score(weight_dicts[_label_id])
-        _x = x
-        if flt_indices is not None:
-            _x = mask(_x, flt_indices)
-            _weights = mask(_weights, flt_indices)
-        return _score, get_top_features(flt_feature_names, _weights, top, _x)
+        return _score, _weights
 
     return get_decision_path_explanation(
         lgb, doc, vec,
+        x=x,
+        feature_names=feature_names,
+        feature_filter=feature_filter,
+        feature_re=feature_re,
+        top=top,
         vectorized=vectorized,
         original_display_names=names,
         target_names=target_names,
@@ -150,7 +147,7 @@ def explain_prediction_lightgbm(
         is_regression=is_regression,
         is_multiclass=is_multiclass,
         proba=proba,
-        get_score_feature_weights=get_score_feature_weights,
+        get_score_weights=get_score_weights,
      )
 
 

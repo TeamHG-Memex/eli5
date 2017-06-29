@@ -2,9 +2,13 @@
 # http://blog.datadive.net/interpreting-random-forests/.
 # Implementations are in eli5.xgboost, eli5.lightgbm and
 # eli5.sklearn.explain_prediction.
+from eli5._feature_weights import get_top_features_filtered
 from eli5.base import Explanation, TargetExplanation
 from eli5.sklearn.text import add_weighted_spans
-from eli5.utils import get_target_display_names
+from eli5.utils import (
+    get_target_display_names,
+    get_binary_target_scale_label_id
+)
 
 DECISION_PATHS_DESCRIPTION = """
 Feature weights are calculated by following decision paths in trees
@@ -48,13 +52,21 @@ DESCRIPTION_REGRESSION = DESCRIPTION_CLF_BINARY
 
 
 def get_decision_path_explanation(estimator, doc, vec, vectorized,
+                                  x, feature_names,
+                                  feature_filter, feature_re, top,
                                   original_display_names,
                                   target_names, targets, top_targets,
                                   is_regression, is_multiclass, proba,
-                                  get_score_feature_weights):
+                                  get_score_weights):
 
     display_names = get_target_display_names(
         original_display_names, target_names, targets, top_targets, proba)
+    flt_feature_names, flt_indices = feature_names.handle_filter(
+        feature_filter, feature_re, x)
+
+    def get_top_features(weights, scale=1.0):
+        return get_top_features_filtered(x, flt_feature_names, flt_indices,
+                                         weights, top, scale)
 
     explanation = Explanation(
         estimator=repr(estimator),
@@ -70,24 +82,31 @@ def get_decision_path_explanation(estimator, doc, vec, vectorized,
 
     if is_multiclass:
         for label_id, label in display_names:
-            score, feature_weights = get_score_feature_weights(label_id)
+            score, all_feature_weights = get_score_weights(label_id)
             target_expl = TargetExplanation(
                 target=label,
-                feature_weights=feature_weights,
+                feature_weights=get_top_features(all_feature_weights),
                 score=score,
                 proba=proba[label_id] if proba is not None else None,
             )
             add_weighted_spans(doc, vec, vectorized, target_expl)
             explanation.targets.append(target_expl)
     else:
-        score, feature_weights = get_score_feature_weights(0)
+        score, all_feature_weights = get_score_weights(0)
+        if is_regression:
+            target, scale, label_id = display_names[-1][1], 1.0, 1
+        else:
+            target, scale, label_id = get_binary_target_scale_label_id(
+                score, display_names, proba)
+
         target_expl = TargetExplanation(
-            target=display_names[-1][1],
-            feature_weights=feature_weights,
+            target=target,
+            feature_weights=get_top_features(all_feature_weights, scale),
             score=score,
-            proba=proba[1] if proba is not None else None,
+            proba=proba[label_id] if proba is not None else None,
         )
         add_weighted_spans(doc, vec, vectorized, target_expl)
         explanation.targets.append(target_expl)
 
     return explanation
+

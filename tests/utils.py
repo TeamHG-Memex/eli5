@@ -98,14 +98,15 @@ def check_targets_scores(explanation, atol=1e-8):
         weights_sum = (sum(fw.weight for fw in weights.pos) +
                        sum(fw.weight for fw in weights.neg))
         expected = target.score if target.score is not None else target.proba
-        assert np.isclose(expected, weights_sum, atol=atol), \
+        assert np.isclose(abs(expected), abs(weights_sum), atol=atol), \
             (expected, weights_sum)
     if any(t.score is not None for t in targets):
         if len(targets) == 1 and targets[0].proba is not None:
             target = targets[0]
             # one target with proba => assume sigmoid
-            assert np.isclose(target.proba, 1. / (1 + np.exp(-target.score)),
-                              atol=atol)
+            proba = 1. / (1 + np.exp(-target.score))
+            assert np.isclose(target.proba, proba, atol=atol) or \
+                   np.isclose(target.proba, 1-proba, atol=atol)
         elif any(t.proba is not None for t in targets):
             # many targets with proba => assume softmax
             norm = np.sum(np.exp([t.score for t in targets]))

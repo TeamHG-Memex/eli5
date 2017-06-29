@@ -26,7 +26,10 @@ from .test_sklearn_explain_weights import (
     assert_tree_classifier_explained,
 )
 from .test_sklearn_explain_prediction import (
-    assert_linear_regression_explained, assert_trained_linear_regression_explained,
+    assert_linear_regression_explained,
+    assert_trained_linear_regression_explained,
+    assert_explain_prediction_single_target,
+    test_explain_clf_binary_iris as _check_binary_classifier,
     test_explain_prediction_pandas as _check_explain_prediction_pandas,
 )
 
@@ -125,6 +128,20 @@ def test_explain_prediction_clf_binary(
     flt_value_res = get_res(feature_filter=lambda _, v: not np.isnan(v))
     for expl in format_as_all(flt_value_res, clf, show_feature_values=True):
         assert 'Missing' not in expl
+
+@pytest.mark.parametrize(['clf'], [
+    [XGBClassifier(n_estimators=50)],
+    [XGBRegressor(n_estimators=50)],
+])
+def test_explain_prediction_xgboost_binary_iris(clf, iris_train_binary):
+    X, y, feature_names = iris_train_binary
+    clf.fit(X, y)
+    assert_explain_prediction_single_target(clf, X, feature_names)
+
+
+def test_explain_prediction_xgboost_clf_binary_iris(iris_train_binary):
+    clf = XGBClassifier(n_estimators=50)
+    _check_binary_classifier(clf, iris_train_binary)
 
 
 @pytest.mark.parametrize(
