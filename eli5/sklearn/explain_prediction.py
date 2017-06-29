@@ -67,7 +67,7 @@ from eli5.sklearn.utils import (
 from eli5.sklearn.text import add_weighted_spans
 from eli5.explain import explain_prediction
 from eli5._decision_path import DECISION_PATHS_CAVEATS
-from eli5._feature_weights import get_top_features
+from eli5._feature_weights import get_top_features_filtered
 
 
 @singledispatch
@@ -408,16 +408,13 @@ def explain_prediction_tree_classifier(
     feature_weights = _trees_feature_weights(
         clf, X, feature_names, clf.n_classes_)
     x = get_X0(add_intercept(X))
-    feature_names, flt_indices = feature_names.handle_filter(
+    flt_feature_names, flt_indices = feature_names.handle_filter(
         feature_filter, feature_re, x)
 
     def _weights(label_id, scale=1.0):
-        scores = feature_weights[:, label_id]
-        _x = x
-        if flt_indices is not None:
-            scores = scores[flt_indices]
-            _x = mask(_x, flt_indices)
-        return get_top_features(feature_names, scores * scale, top, _x)
+        weights = feature_weights[:, label_id]
+        return get_top_features_filtered(x, flt_feature_names, flt_indices,
+                                         weights, top, scale)
 
     res = Explanation(
         estimator=repr(clf),
@@ -523,16 +520,13 @@ def explain_prediction_tree_regressor(
     is_multitarget = num_targets > 1
     feature_weights = _trees_feature_weights(reg, X, feature_names, num_targets)
     x = get_X0(add_intercept(X))
-    feature_names, flt_indices = feature_names.handle_filter(
+    flt_feature_names, flt_indices = feature_names.handle_filter(
         feature_filter, feature_re, x)
 
-    def _weights(label_id):
-        scores = feature_weights[:, label_id]
-        _x = x
-        if flt_indices is not None:
-            scores = scores[flt_indices]
-            _x = mask(_x, flt_indices)
-        return get_top_features(feature_names, scores, top, _x)
+    def _weights(label_id, scale=1.0):
+        weights = feature_weights[:, label_id]
+        return get_top_features_filtered(x, flt_feature_names, flt_indices,
+                                         weights, top, scale)
 
     res = Explanation(
         estimator=repr(reg),
@@ -629,15 +623,12 @@ def _multiply(X, coef):
         return np.multiply(X, coef)
 
 
-def _linear_weights(clf, x, top, feature_names, flt_indices):
+def _linear_weights(clf, x, top, flt_feature_names, flt_indices):
     """ Return top weights getter for label_id.
     """
     def _weights(label_id, scale=1.0):
         coef = get_coef(clf, label_id)
-        _x = x
-        scores = _multiply(_x, coef)
-        if flt_indices is not None:
-            scores = scores[flt_indices]
-            _x = mask(_x, flt_indices)
-        return get_top_features(feature_names, scores * scale, top, _x)
+        scores = _multiply(x, coef)
+        return get_top_features_filtered(x, flt_feature_names, flt_indices,
+                                         scores, top, scale)
     return _weights

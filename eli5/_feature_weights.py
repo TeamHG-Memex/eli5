@@ -51,6 +51,16 @@ def get_top_features(feature_names, coef, top, x=None):
     )
 
 
+def get_top_features_filtered(x, flt_feature_names, flt_indices,
+                              weights, top, scale=1.0):
+    if flt_indices is not None:
+        _x = mask(x, flt_indices)
+        weights = mask(weights, flt_indices)
+    else:
+        _x = x
+    return get_top_features(flt_feature_names, weights * scale, top, _x)
+
+
 def _get_top_abs_features(feature_names, coef, k, x):
     indices = argsort_k_largest_positive(np.abs(coef), k)
     features = _features(indices, feature_names, coef, x)
