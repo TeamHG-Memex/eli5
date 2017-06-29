@@ -5,7 +5,10 @@
 from eli5._feature_weights import get_top_features_filtered
 from eli5.base import Explanation, TargetExplanation
 from eli5.sklearn.text import add_weighted_spans
-from eli5.utils import get_target_display_names
+from eli5.utils import (
+    get_target_display_names,
+    get_binary_target_scale_label_id
+)
 
 DECISION_PATHS_DESCRIPTION = """
 Feature weights are calculated by following decision paths in trees
@@ -91,19 +94,10 @@ def get_decision_path_explanation(estimator, doc, vec, vectorized,
     else:
         score, all_feature_weights = get_score_weights(0)
         if is_regression:
-            target = display_names[-1][1]
-            label_id = 1
-            scale = 1
+            target, scale, label_id = display_names[-1][1], 1.0, 1
         else:
-            label_id = 1 if score >= 0 else 0
-            scale = -1 if label_id == 0 else 1
-
-            if len(display_names) == 1:  # target is passed explicitly
-                predicted_label_id = label_id
-                label_id, target = display_names[0]
-                scale *= -1 if label_id != predicted_label_id else 1
-            else:
-                target = display_names[label_id][1]
+            target, scale, label_id = get_binary_target_scale_label_id(
+                score, display_names, proba)
 
         target_expl = TargetExplanation(
             target=target,
@@ -115,3 +109,4 @@ def get_decision_path_explanation(estimator, doc, vec, vectorized,
         explanation.targets.append(target_expl)
 
     return explanation
+

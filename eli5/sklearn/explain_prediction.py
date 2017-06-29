@@ -51,7 +51,10 @@ from sklearn.tree import (   # type: ignore
 )
 
 from eli5.base import Explanation, TargetExplanation
-from eli5.utils import get_target_display_names, mask
+from eli5.utils import (
+    get_target_display_names,
+    get_binary_target_scale_label_id
+)
 from eli5.sklearn.utils import (
     add_intercept,
     get_coef,
@@ -439,23 +442,8 @@ def explain_prediction_tree_classifier(
             add_weighted_spans(doc, vec, vectorized, target_expl)
             res.targets.append(target_expl)
     else:
-        if score is not None:
-            label_id = 1 if score >= 0 else 0
-            scale = -1 if label_id == 0 else 1
-        else:
-            # Only probability is available - this is the case for
-            # DecisionTreeClassifier. As contributions sum to the probability
-            # (not to the score), they shouldn't be inverted.
-            label_id = 1 if proba[1] >= 0.5 else 0
-            scale = 1
-
-        if len(display_names) == 1:  # target is passed explicitly
-            predicted_label_id = label_id
-            label_id, target = display_names[0]
-            scale *= -1 if label_id != predicted_label_id else 1
-        else:
-            target = display_names[label_id][1]
-
+        target, scale, label_id = get_binary_target_scale_label_id(
+            score, display_names, proba)
         target_expl = TargetExplanation(
             target=target,
             feature_weights=_weights(label_id, scale=scale),

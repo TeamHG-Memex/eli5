@@ -86,6 +86,10 @@ def get_target_display_names(original_names=None, target_names=None,
     """
     Return a list of (target_id, display_name) tuples.
 
+    By default original names are passed as-is, only indices are added:
+    >>> get_target_display_names(['x', 'y'])
+    [(0, 'x'), (1, 'y')]
+
     ``targets`` can be written using both names from ``target_names` and
     from ``original_names``:
     >>> get_target_display_names(['x', 'y'], targets=['y', 'X'],
@@ -171,6 +175,39 @@ def get_target_display_names(original_names=None, target_names=None,
     target_indices = _get_value_indices(original_names, display_names, targets)
     names = [display_names[i] for i in target_indices]
     return list(zip(target_indices, names))
+
+
+def get_binary_target_scale_label_id(score, display_names, proba=None):
+    """
+    Return (target_name, scale, label_id) tuple for a binary classifier.
+
+    >>> get_binary_target_scale_label_id(+5.0, get_target_display_names([False, True]))
+    (True, 1, 1)
+    >>> get_binary_target_scale_label_id(-5.0, get_target_display_names([False, True]))
+    (False, -1, 0)
+    >>> get_binary_target_scale_label_id(-5.0, get_target_display_names([False, True], targets=[True]))
+    (True, 1, 1)
+    >>> get_binary_target_scale_label_id(-5.0, get_target_display_names([False, True], targets=[False]))
+    (False, -1, 0)
+    """
+    if score is not None:
+        label_id = 1 if score >= 0 else 0
+        scale = -1 if label_id == 0 else 1
+    else:
+        # Only probability is available - this is the case for
+        # DecisionTreeClassifier. As contributions sum to the probability
+        # (not to the score), they shouldn't be inverted.
+        label_id = 1 if proba[1] >= 0.5 else 0
+        scale = 1
+
+    if len(display_names) == 1:  # target is passed explicitly
+        predicted_label_id = label_id
+        label_id, target = display_names[0]
+        scale *= -1 if label_id != predicted_label_id else 1
+    else:
+        target = display_names[label_id][1]
+
+    return target, scale, label_id
 
 
 def _get_value_indices(names1, names2, lookups):
