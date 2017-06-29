@@ -248,11 +248,19 @@ def assert_correct_class_explained_binary(clf, X):
     for pred, t0, t1 in zip(expl_predicted, expl_target0, expl_target1):
         # sanity check
         assert get_fw(pred).pos == get_fw(pred).pos
+        y_pred = pred.targets[0].target
+        y_1 = t1.targets[0].target
 
-        # explanation for the predicted class should be the same as either
-        # positive or negative class explanation
-        assert get_fw(pred).pos == get_fw(t0).pos or get_fw(pred).pos == get_fw(t1).pos
-        assert get_fw(pred).neg == get_fw(t0).neg or get_fw(pred).neg == get_fw(t1).neg
+        if y_pred == y_1:
+            # targets=[True] result is the same as for the predicted class
+            # if predicted class is True
+            assert get_fw(pred).pos == get_fw(t1).pos
+            assert get_fw(pred).neg == get_fw(t1).neg
+        else:
+            # targets=[False] result is the same as for the predicted class
+            # if predicted class is False
+            assert get_fw(pred).pos == get_fw(t0).pos
+            assert get_fw(pred).neg == get_fw(t0).neg
 
         # explanations shouldn't be the same for positive and negative classes
         assert get_fw(t0).pos != get_fw(t1).pos

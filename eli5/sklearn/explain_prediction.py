@@ -452,7 +452,7 @@ def explain_prediction_tree_classifier(
         if len(display_names) == 1:  # target is passed explicitly
             predicted_label_id = label_id
             label_id, target = display_names[0]
-            scale = -1 if label_id != predicted_label_id else 1
+            scale *= -1 if label_id != predicted_label_id else 1
         else:
             target = display_names[label_id][1]
 
