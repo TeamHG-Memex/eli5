@@ -8,8 +8,10 @@ from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import ExtraTreesRegressor
 
 from eli5 import (
-    format_as_dataframes, format_as_dataframe, format_as_text,
-    explain_weights, explain_prediction,
+    format_as_dataframes, format_as_dataframe,
+    explain_weights_df, explain_weights_dfs,
+    explain_prediction_df, explain_prediction_dfs,
+    format_as_text, explain_weights, explain_prediction,
 )
 from eli5.base import (
     Explanation, TargetExplanation, FeatureWeight, FeatureWeights,
@@ -24,6 +26,10 @@ def test_explain_weights(boston_train):
     expl = explain_weights(reg)
     df = format_as_dataframe(expl)
     check_targets_dataframe(df, expl)
+    check_targets_dataframe(explain_weights_df(reg), expl)
+    df_dict = explain_weights_dfs(reg)
+    assert set(df_dict.keys()) == {'targets'}
+    check_targets_dataframe(df_dict['targets'], expl)
 
 
 def check_targets_dataframe(df, expl):
@@ -53,6 +59,14 @@ def test_explain_prediction(boston_train):
     reg.fit(X, y)
     expl = explain_prediction(reg, X[0])
     df = format_as_dataframe(expl)
+    check_prediction_df(df, expl)
+    check_prediction_df(explain_prediction_df(reg, X[0]), expl)
+    df_dict = explain_prediction_dfs(reg, X[0])
+    assert set(df_dict.keys()) == {'targets'}
+    check_prediction_df(df_dict['targets'], expl)
+
+
+def check_prediction_df(df, expl):
     assert list(df.columns) == ['weight', 'value']
     target = expl.targets[0].target
     feature_weights = expl.targets[0].feature_weights

@@ -5,9 +5,60 @@ import warnings
 
 import pandas as pd  # type: ignore
 
+from eli5 import explain_weights, explain_prediction
 from eli5.base import (
     Explanation, FeatureImportances, TargetExplanation, TransitionFeatureWeights,
 )
+
+
+def explain_weights_df(estimator, **kwargs):
+    # type: (...) -> pd.DataFrame
+    """ Explain weights and export them to ``pandas.DataFrame``.
+    All keyword arguments are passed to :func:`eli5.explain_weights`.
+    Weights of all features are exported by default.
+    """
+    kwargs = _set_defaults(kwargs)
+    return format_as_dataframe(explain_weights(estimator, **kwargs))
+
+
+def explain_weights_dfs(estimator, **kwargs):
+    # type: (...) -> Dict[str, pd.DataFrame]
+    """ Explain weights and export them to a dict with ``pandas.DataFrame``
+    values (as :func:`format_as_dataframes` does).
+    All keyword arguments are passed to :func:`eli5.explain_weights`.
+    Weights of all features are exported by default.
+    """
+    kwargs = _set_defaults(kwargs)
+    return format_as_dataframes(explain_weights(estimator, **kwargs))
+
+
+def explain_prediction_df(estimator, doc, **kwargs):
+    # type: (...) -> pd.DataFrame
+    """ Explain prediction and export explanation to ``pandas.DataFrame``
+    All keyword arguments are passed to :func:`eli5.explain_prediction`.
+    Weights of all features are exported by default.
+    """
+    kwargs = _set_defaults(kwargs)
+    return format_as_dataframe(explain_prediction(estimator, doc, **kwargs))
+
+
+def explain_prediction_dfs(estimator, doc, **kwargs):
+    # type: (...) -> Dict[str, pd.DataFrame]
+    """ Explain prediction and export explanation
+    to a dict with ``pandas.DataFrame`` values
+    (as :func:`format_as_dataframes` does).
+    All keyword arguments are passed to :func:`eli5.explain_prediction`.
+    Weights of all features are exported by default.
+    """
+    kwargs = _set_defaults(kwargs)
+    return format_as_dataframes(explain_prediction(estimator, doc, **kwargs))
+
+
+def _set_defaults(kwargs):
+    if 'top' not in kwargs:
+        # No limit on number of features by default.
+        kwargs['top'] = None
+    return kwargs
 
 
 _EXPORTED_ATTRIBUTES = ['transition_features', 'targets', 'feature_importances']

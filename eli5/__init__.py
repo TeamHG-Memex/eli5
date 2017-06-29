@@ -21,7 +21,11 @@ except ImportError:
 
 
 try:
-    from .formatters.as_dataframe import format_as_dataframe, format_as_dataframes
+    from .formatters.as_dataframe import (
+        explain_weights_df, explain_weights_dfs,
+        explain_prediction_df, explain_prediction_dfs,
+        format_as_dataframe, format_as_dataframes,
+    )
 except ImportError:
     pass  # pandas not available
 
