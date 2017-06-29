@@ -4,6 +4,11 @@ Changelog
 TBA
 ---
 
+* :func:`eli5.explain_prediction` now shows predicted class for binary
+  classifiers (previously it was always showing positive class);
+* :func:`eli5.explain_prediction` supports ``targets=[<class>]`` now
+  for binary classifiers; e.g. to show result as seen for negative class,
+  you can use ``eli5.explain_prediction(..., targets=[False])``;
 * support :func:`eli5.explain_prediction` and :func:`eli5.explain_weights`
   for libsvm-based linear estimators from sklearn.svm: ``SVC(kernel='linear')``
   (only binary classification), ``NuSVC(kernel='linear')`` (only
