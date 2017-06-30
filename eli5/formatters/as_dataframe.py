@@ -5,9 +5,10 @@ import warnings
 
 import pandas as pd  # type: ignore
 
-from eli5 import explain_weights, explain_prediction
+import eli5
 from eli5.base import (
-    Explanation, FeatureImportances, TargetExplanation, TransitionFeatureWeights,
+    Explanation, FeatureImportances, TargetExplanation,
+    TransitionFeatureWeights,
 )
 
 
@@ -18,7 +19,8 @@ def explain_weights_df(estimator, **kwargs):
     Weights of all features are exported by default.
     """
     kwargs = _set_defaults(kwargs)
-    return format_as_dataframe(explain_weights(estimator, **kwargs))
+    return format_as_dataframe(
+        eli5.explain_weights(estimator, **kwargs))
 
 
 def explain_weights_dfs(estimator, **kwargs):
@@ -29,7 +31,8 @@ def explain_weights_dfs(estimator, **kwargs):
     Weights of all features are exported by default.
     """
     kwargs = _set_defaults(kwargs)
-    return format_as_dataframes(explain_weights(estimator, **kwargs))
+    return format_as_dataframes(
+        eli5.explain_weights(estimator, **kwargs))
 
 
 def explain_prediction_df(estimator, doc, **kwargs):
@@ -39,7 +42,8 @@ def explain_prediction_df(estimator, doc, **kwargs):
     Weights of all features are exported by default.
     """
     kwargs = _set_defaults(kwargs)
-    return format_as_dataframe(explain_prediction(estimator, doc, **kwargs))
+    return format_as_dataframe(
+        eli5.explain_prediction(estimator, doc, **kwargs))
 
 
 def explain_prediction_dfs(estimator, doc, **kwargs):
@@ -51,7 +55,8 @@ def explain_prediction_dfs(estimator, doc, **kwargs):
     Weights of all features are exported by default.
     """
     kwargs = _set_defaults(kwargs)
-    return format_as_dataframes(explain_prediction(estimator, doc, **kwargs))
+    return format_as_dataframes(
+        eli5.explain_prediction(estimator, doc, **kwargs))
 
 
 def _set_defaults(kwargs):
