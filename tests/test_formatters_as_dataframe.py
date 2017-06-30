@@ -27,9 +27,14 @@ def test_explain_weights(boston_train):
     df = format_as_dataframe(expl)
     check_targets_dataframe(df, expl)
     check_targets_dataframe(explain_weights_df(reg), expl)
+
     df_dict = explain_weights_dfs(reg)
     assert set(df_dict.keys()) == {'targets'}
     check_targets_dataframe(df_dict['targets'], expl)
+
+    expl_top_2 = explain_weights(reg, top=2)
+    with pytest.warns(UserWarning):
+        format_as_dataframe(expl_top_2)
 
 
 def check_targets_dataframe(df, expl):
@@ -51,6 +56,10 @@ def test_explain_weights_fi(boston_train):
         df_fw = df.loc[fw.feature]
         assert np.isclose(df_fw['weight'], fw.weight)
         assert np.isclose(df_fw['std'], fw.std)
+
+    expl_top_2 = explain_weights(reg, top=2)
+    with pytest.warns(UserWarning):
+        format_as_dataframe(expl_top_2)
 
 
 def test_explain_prediction(boston_train):
