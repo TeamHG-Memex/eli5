@@ -12,6 +12,10 @@ also available in ``eli5`` namespace (e.g. ``eli5.formas_as_html``):
 * :func:`eli5.formatters.html.format_html_styles`
 * :func:`eli5.formatters.text.format_as_text`
 * :func:`eli5.formatters.as_dict.format_as_dict`
+* :func:`eli5.formatters.as_dataframe.explain_weights_df`
+* :func:`eli5.formatters.as_dataframe.explain_weights_dfs`
+* :func:`eli5.formatters.as_dataframe.explain_prediction_df`
+* :func:`eli5.formatters.as_dataframe.explain_prediction_dfs`
 * :func:`eli5.formatters.as_dataframe.format_as_dataframe`
 * :func:`eli5.formatters.as_dataframe.format_as_dataframes`
 
