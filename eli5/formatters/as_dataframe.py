@@ -109,9 +109,11 @@ def format_as_dataframe(explanation):
             other_attrs = [a for a in _EXPORTED_ATTRIBUTES
                            if getattr(explanation, a) and a != attr]
             if other_attrs:
-                warnings.warn('Exporting {} to DataFrame, but also {} could be '
-                              'exported. Consider using eli5.format_as_dataframes.'
-                              .format(attr, ', '.join(other_attrs)))
+                warnings.warn(
+                    'Exporting {} to DataFrame, but also {} could be '
+                    'exported. Consider using eli5.format_as_dataframes'
+                    'or eli5.explain_weights_dfs/eli5.explain_prediction_dfs.'
+                    .format(attr, ', '.join(other_attrs)))
             return format_as_dataframe(value)
 
 
@@ -119,6 +121,12 @@ def format_as_dataframe(explanation):
 def _feature_importances_to_df(feature_importances):
     # type: (FeatureImportances) -> pd.DataFrame
     weights = feature_importances.importances
+    if feature_importances.remaining:
+        warnings.warn(
+            '{} remaining feature importances not exported to DataFrame. '
+            'Pass top=None to eli5.explain_weights, '
+            'or use eli5.explain_weights_df/eli5.explain_weights_dfs'
+            .format(feature_importances.remaining))
     df = pd.DataFrame({'weight': [fw.weight for fw in weights]},
                       index=[fw.feature for fw in weights])
     if any(fw.std is not None for fw in weights):
@@ -135,6 +143,14 @@ def _targets_to_df(targets):
         raise ValueError('Only lists of TargetExplanation are supported')
     index, weights, stds, values = [], [], [], []
     for target in targets:
+        remaining = (target.feature_weights.pos_remaining +
+                     target.feature_weights.neg_remaining)
+        if remaining:
+            warnings.warn(
+                '{} remaining feature weights not exported to DataFrame. '
+                'Pass top=None to eli5.explain_weights, '
+                'or use eli5.explain_weights_df/eli5.explain_weights_dfs'
+                .format(remaining))
         for fw in chain(target.feature_weights.pos,
                         reversed(target.feature_weights.neg)):
             index.append((target.target, fw.feature))
