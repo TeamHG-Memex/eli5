@@ -4,6 +4,12 @@ Changelog
 TBA
 ---
 
+* better pandas.DataFrame integration: :func:`eli5.explain_weights_df`,
+  :func:`eli5.explain_weights_dfs`, :func:`eli5.explain_prediction_df`,
+  :func:`eli5.explain_prediction_dfs`,
+  :func:`eli5.format_as_dataframe <eli5.formatters.as_dataframe.format_as_dataframe>`
+  and :func:`eli5.format_as_dataframes <eli5.formatters.as_dataframe.format_as_dataframes>`
+  functions allow to export explanations to pandas.DataFrames;
 * :func:`eli5.explain_prediction` now shows predicted class for binary
   classifiers (previously it was always showing positive class);
 * :func:`eli5.explain_prediction` supports ``targets=[<class>]`` now

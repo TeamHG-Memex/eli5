@@ -26,7 +26,7 @@ def explain_weights_df(estimator, **kwargs):
 def explain_weights_dfs(estimator, **kwargs):
     # type: (...) -> Dict[str, pd.DataFrame]
     """ Explain weights and export them to a dict with ``pandas.DataFrame``
-    values (as :func:`format_as_dataframes` does).
+    values (as :func:`eli5.formatters.as_dataframe.format_as_dataframes` does).
     All keyword arguments are passed to :func:`eli5.explain_weights`.
     Weights of all features are exported by default.
     """
@@ -50,7 +50,7 @@ def explain_prediction_dfs(estimator, doc, **kwargs):
     # type: (...) -> Dict[str, pd.DataFrame]
     """ Explain prediction and export explanation
     to a dict with ``pandas.DataFrame`` values
-    (as :func:`format_as_dataframes` does).
+    (as :func:`eli5.formatters.as_dataframe.format_as_dataframes` does).
     All keyword arguments are passed to :func:`eli5.explain_prediction`.
     Weights of all features are exported by default.
     """
