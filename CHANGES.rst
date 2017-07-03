@@ -1,8 +1,8 @@
 Changelog
 =========
 
-TBA
----
+0.7 (2017-07-03)
+----------------
 
 * better pandas.DataFrame integration: :func:`eli5.explain_weights_df`,
   :func:`eli5.explain_weights_dfs`, :func:`eli5.explain_prediction_df`,
