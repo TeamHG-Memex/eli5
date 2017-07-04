@@ -55,8 +55,9 @@ classifiers as well, but this feature is currently experimental.
 
 Explanation and formatting are separated; you can get text-based explanation
 to display in console, HTML version embeddable in an IPython notebook
-or web dashboards, or JSON version which allows to implement custom
-rendering and formatting on a client.
+or web dashboards, a ``pandas.DataFrame`` object if you want to process
+results further, or JSON version which allows to implement custom rendering
+and formatting on a client.
 
 .. _lightning: https://github.com/scikit-learn-contrib/lightning
 .. _scikit-learn: https://github.com/scikit-learn/scikit-learn
