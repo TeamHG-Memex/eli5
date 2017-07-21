@@ -113,6 +113,7 @@ def format_as_dataframe(explanation):
                               'exported. Consider using eli5.format_as_dataframes.'
                               .format(attr, ', '.join(other_attrs)))
             return format_as_dataframe(value)
+    return None
 
 
 @format_as_dataframe.register(FeatureImportances)
