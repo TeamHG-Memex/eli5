@@ -55,7 +55,7 @@ def fix_multiclass_predict_proba(y_proba,          # type: np.ndarray
     """
     Add missing columns to predict_proba result.
 
-    When a multiclass classifier is fit on a dataset which onlly contains
+    When a multiclass classifier is fit on a dataset which only contains
     a subset of possible classes its predict_proba result only has columns
     corresponding to seen classes. This function adds missing columns.
     """
