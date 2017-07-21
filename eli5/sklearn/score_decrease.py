@@ -40,7 +40,7 @@ class ScoreDecreaseFeatureImportances(BaseEstimator, MetaEstimatorMixin):
     2. prefit=False, cv=None. In this case ``fit`` method fits
        the estimator and computes feature importances on the same data,
        i.e. feature importances don't reflect importance of features
-       for generalization.s
+       for generalization.
     3. prefit=False, cv is not None. ``fit`` method fits the estimator, but
        instead of computing feature importances for the concrete estimator
        which is fit, importances are computed for a sequence of estimators
