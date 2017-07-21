@@ -3,10 +3,11 @@ A sklearn-compatible object for computing score decrease-based
 feature importances.
 """
 from functools import partial
+from typing import List
 
 import numpy as np  # type: ignore
 
-from sklearn.model_selection import check_cv, cross_val_predict
+from sklearn.model_selection import check_cv  # type: ignore
 from sklearn.utils.metaestimators import if_delegate_has_method  # type: ignore
 from sklearn.utils import check_array, check_random_state  # type: ignore
 from sklearn.base import (  # type: ignore
@@ -166,7 +167,7 @@ class ScoreDecreaseFeatureImportances(BaseEstimator, MetaEstimatorMixin):
     def _cv_feature_importances(self, X, y, groups=None, **fit_params):
         assert self.cv is not None
         cv = check_cv(self.cv, y, is_classifier(self.estimator))
-        feature_importances = []
+        feature_importances = []  # type: List
         for train, test in cv.split(X, y, groups):
             est = clone(self.estimator).fit(X[train], y[train], **fit_params)
             score_func = partial(self.scorer_, est)
