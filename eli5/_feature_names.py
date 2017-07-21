@@ -1,20 +1,28 @@
 import re
 import six
-from typing import Any, Iterable, Tuple, Sized, List
+from typing import (
+    Any, Iterable, Iterator, Tuple, Sized, List, Optional, Dict,
+    Union, Callable, Pattern
+)
 
 import numpy as np  # type: ignore
 import scipy.sparse as sp  # type: ignore
 
 
-class FeatureNames(Sized):
+class FeatureNames(Sized, Iterable):
     """
     A list-like object with feature names. It allows
     feature names for unknown features to be generated using
     a provided template, and to avoid making copies of large objects
     in get_feature_names.
     """
-    def __init__(self, feature_names=None, bias_name=None,
-                 unkn_template=None, n_features=None):
+    def __init__(self,
+                 feature_names=None,
+                 bias_name=None,  # type: str
+                 unkn_template=None,  # type: str
+                 n_features=None,  # type: int
+                 ):
+        # type: (...) -> None
         if not (feature_names is not None or
                     (unkn_template is not None and n_features)):
             raise ValueError(
@@ -31,15 +39,21 @@ class FeatureNames(Sized):
                         'unkn_template should be set for sparse features')
         self.feature_names = feature_names
         self.unkn_template = unkn_template
-        self.n_features = n_features or len(feature_names)
+        self.n_features = n_features or len(feature_names)  # type: int
         self.bias_name = bias_name
 
     def __repr__(self):
+        # type: () -> str
         return '<FeatureNames: {} features {} bias>'.format(
             self.n_features, 'with' if self.has_bias else 'without')
 
     def __len__(self):
+        # type: () -> int
         return self.n_features + int(self.has_bias)
+
+    def __iter__(self):
+        # type: () -> Iterator[str]
+        return (self[i] for i in range(len(self)))
 
     def __getitem__(self, idx):
         if isinstance(idx, slice):
@@ -71,15 +85,18 @@ class FeatureNames(Sized):
 
     @property
     def has_bias(self):
+        # type: () -> bool
         return self.bias_name is not None
 
     @property
     def bias_idx(self):
+        # type: () -> Optional[int]
         if self.has_bias:
             return self.n_features
+        return None
 
     def filtered(self, feature_filter, x=None):
-        # type: (Any, Any) -> Tuple[FeatureNames, List[int]]
+        # type: (Callable, Any) -> Tuple[FeatureNames, List[int]]
         """ Return feature names filtered by a regular expression 
         ``feature_re``, and indices of filtered elements.
         """
@@ -120,7 +137,12 @@ class FeatureNames(Sized):
             ),
             indices)
 
-    def handle_filter(self, feature_filter, feature_re, x=None):
+    def handle_filter(self,
+                      feature_filter,
+                      feature_re,  # type: Pattern[str]
+                      x=None,  # type: Any
+                      ):
+        # type: (...) -> Tuple[FeatureNames, Union[List[int], None]]
         if feature_re is not None and feature_filter:
             raise ValueError('pass either feature_filter or feature_re')
         if feature_re is not None:
@@ -156,6 +178,7 @@ class FeatureNames(Sized):
 
 
 def _all_feature_names(name):
+    # type: (Union[str, bytes, List[Dict]]) -> List[str]
     """ All feature names for a feature: usually just the feature itself,
     but can be several features for unhashed features with collisions.
     """

@@ -1,7 +1,9 @@
+from __future__ import absolute_import
 from itertools import chain
 import re
 import six
-from typing import Any, Union, List, Dict
+from numbers import Real
+from typing import Any, Union, List, Dict, Callable, Match, Optional
 
 import numpy as np  # type: ignore
 
@@ -10,6 +12,7 @@ from .features import FormattedFeatureName
 
 
 def replace_spaces(s, replacer):
+    # type: (str, Callable[[int, str], str]) -> str
     """
     >>> replace_spaces('ab', lambda n, l: '_' * n)
     'ab'
@@ -23,6 +26,7 @@ def replace_spaces(s, replacer):
     '0 0a0 0b0 00 0'
     """
     def replace(m):
+        # type: (Match[str]) -> str
         if m.start() == 0:
             side = 'left'
         elif m.end() == len(s):
@@ -34,7 +38,11 @@ def replace_spaces(s, replacer):
     return re.sub(r'[ ]+', replace, s)
 
 
-def format_signed(feature, formatter=None, **kwargs):
+def format_signed(feature,  # type: Dict[str, Any]
+                  formatter=None,  # type: Callable[..., str]
+                  **kwargs
+                  ):
+    # type: (...) -> str
     """
     Format unhashed feature with sign.
 
@@ -46,7 +54,7 @@ def format_signed(feature, formatter=None, **kwargs):
     '(-)" foo"'
     """
     txt = '' if feature['sign'] > 0 else '(-)'
-    name = feature['name']
+    name = feature['name']  # type: str
     if formatter is not None:
         name = formatter(name, **kwargs)
     return '{}{}'.format(txt, name)
@@ -129,10 +137,12 @@ def tabulate(data,  # type: List[List[Any]]
 
 
 def format_weight(value):
+    # type: (Real) -> str
     return '{:+.3f}'.format(value)
 
 
 def format_value(value):
+    # type: (Optional[Real]) -> str
     if value is None:
         return ''
     elif np.isnan(value):

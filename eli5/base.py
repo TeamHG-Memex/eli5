@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from typing import Any, List, Tuple, Union
+from typing import Any, List, Tuple, Union, Optional
 
 from .base_utils import attrs
 from .formatters.features import FormattedFeatureName
@@ -23,7 +23,7 @@ class Explanation(object):
                  targets=None,  # type: List[TargetExplanation]
                  feature_importances=None,  # type: FeatureImportances
                  decision_tree=None,  # type: TreeInfo
-                 highlight_spaces=None,
+                 highlight_spaces=None,  # type: Optional[bool]
                  transition_features=None,  # type: TransitionFeatureWeights
                  ):
         # type: (...) -> None

@@ -58,6 +58,7 @@ def get_decision_path_explanation(estimator, doc, vec, vectorized,
                                   target_names, targets, top_targets,
                                   is_regression, is_multiclass, proba,
                                   get_score_weights):
+    # type: (...) -> Explanation
 
     display_names = get_target_display_names(
         original_display_names, target_names, targets, top_targets, proba)

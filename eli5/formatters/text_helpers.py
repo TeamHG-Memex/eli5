@@ -1,5 +1,5 @@
 from collections import Counter
-from typing import List
+from typing import List, Optional
 
 import numpy as np  # type: ignore
 
@@ -9,7 +9,7 @@ from eli5.utils import max_or_0
 
 
 def get_char_weights(doc_weighted_spans, preserve_density=None):
-    # type: (DocWeightedSpans, bool) -> np.ndarray
+    # type: (DocWeightedSpans, Optional[bool]) -> np.ndarray
     """ Return character weights for a text document with highlighted features.
     If preserve_density is True, then color for longer fragments will be
     less intensive than for shorter fragments, so that "sum" of intensities
@@ -55,8 +55,10 @@ class PreparedWeightedSpans(object):
         return False
 
 
-def prepare_weighted_spans(targets, preserve_density=None):
-    # type: (List[TargetExplanation], bool) -> List[List[PreparedWeightedSpans]]
+def prepare_weighted_spans(targets,  # type: List[TargetExplanation]
+                           preserve_density=None,  # type: Optional[bool]
+                           ):
+    # type: (...) -> List[List[PreparedWeightedSpans]]
     """ Return weighted spans prepared for rendering.
     Calculate a separate weight range for each different weighted
     span (for each different index): each target has the same number

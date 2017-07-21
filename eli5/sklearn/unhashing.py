@@ -50,7 +50,7 @@ class InvertableHashingVectorizer(BaseEstimator, TransformerMixin):
             hasher=vec._get_hasher(),
             unkn_template=unkn_template,
         )
-        self.n_features = vec.n_features
+        self.n_features = vec.n_features  # type: int
 
     def fit(self, X, y=None):
         """ Extract possible terms from documents """
@@ -65,6 +65,7 @@ class InvertableHashingVectorizer(BaseEstimator, TransformerMixin):
         return self.vec.transform(X, y)
 
     def get_feature_names(self, always_signed=True):
+        # type: (bool) -> FeatureNames
         """
         Return feature names.
         This is a best-effort function which tries to reconstruct feature
@@ -105,6 +106,7 @@ class InvertableHashingVectorizer(BaseEstimator, TransformerMixin):
         return self.unhasher.column_signs_
 
     def _always_positive(self):
+        # type: () -> bool
         return self.vec.binary or self.vec.non_negative
 
 
@@ -118,7 +120,7 @@ class FeatureUnhasher(BaseEstimator):
             raise ValueError("FeatureUnhasher only supports hashers with "
                              "input_type 'string', got %r." % hasher.input_type)
         self.hasher = hasher
-        self.n_features = self.hasher.n_features
+        self.n_features = self.hasher.n_features  # type: int
         self.unkn_template = unkn_template
         self._attributes_dirty = True
         self._term_counts = Counter()  # type: Counter
@@ -137,6 +139,7 @@ class FeatureUnhasher(BaseEstimator):
         return self
 
     def get_feature_names(self, always_signed=True, always_positive=False):
+        # type: (bool, bool) -> FeatureNames
         self.recalculate_attributes()
 
         # lists of names with signs of known features
@@ -157,6 +160,7 @@ class FeatureUnhasher(BaseEstimator):
             unkn_template=self.unkn_template)
 
     def recalculate_attributes(self, force=False):
+        # type: (bool) -> None
         """
         Update all computed attributes. It is only needed if you need to access
         computed attributes after :meth:`patrial_fit` was called.
@@ -172,7 +176,7 @@ class FeatureUnhasher(BaseEstimator):
             indices, signs = _get_indices_and_signs(self.hasher, terms)
         else:
             indices, signs = np.array([]), np.array([])
-        self.terms_ = terms
+        self.terms_ = terms  # type: np.ndarray
         self.term_columns_ = indices
         self.term_signs_ = signs
         self.collisions_ = _get_collisions(indices)
@@ -190,6 +194,7 @@ class FeatureUnhasher(BaseEstimator):
         return colums_signs
 
     def _get_collision_info(self):
+        # type: () -> Tuple[List[int], List[np.ndarray], List[np.ndarray]]
         column_ids, term_names, term_signs = [], [], []
         for column_id, _term_ids in self.collisions_.items():
             column_ids.append(column_id)
@@ -199,6 +204,7 @@ class FeatureUnhasher(BaseEstimator):
 
 
 def _get_collisions(indices):
+    # type: (...) -> Dict[int, List[int]]
     """
     Return a dict ``{column_id: [possible term ids]}``
     with collision information.

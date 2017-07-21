@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
+from typing import Any, Dict, Tuple
 
 from IPython.display import HTML  # type: ignore
 
@@ -272,6 +273,7 @@ def show_prediction(estimator, doc, **kwargs):
 
 
 def _split_kwargs(kwargs):
+    # type: (Dict[str, Any]) -> Tuple[Dict[str, Any], Dict[str, Any]]
     format_kwargs = {k: v for k, v in kwargs.items() if k in FORMAT_KWARGS}
     format_kwargs.setdefault('show', fields.WEIGHTS)
     format_kwargs.setdefault('force_weights', False)

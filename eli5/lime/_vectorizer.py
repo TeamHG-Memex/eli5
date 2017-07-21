@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
-from typing import Tuple, Callable, Dict
+from typing import Tuple, Callable, Dict, Optional, List
 
 import numpy as np  # type: ignore
 from sklearn.base import BaseEstimator, TransformerMixin  # type: ignore
@@ -14,6 +14,7 @@ class SingleDocumentVectorizer(BaseEstimator, TransformerMixin):
     """ Fake vectorizer which converts document just to a vector of ones """
 
     def __init__(self, token_pattern=None):
+        # type: (Optional[str]) -> None
         self.token_pattern = token_pattern
 
     def fit(self, X, y=None):
@@ -53,8 +54,10 @@ class SingleDocumentVectorizer(BaseEstimator, TransformerMixin):
         return found_features, doc_weighted_spans
 
     def _featname(self, idx, token):
+        # type: (int, str) -> str
         return "[{}] {}".format(idx, token)
 
     def get_feature_names(self):
+        # type: () -> List[str]
         return [self._featname(idx, token)
                 for idx, token in enumerate(self.text_.tokens)]

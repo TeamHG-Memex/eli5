@@ -7,6 +7,7 @@ from eli5.utils import argsort_k_largest_positive
 
 def get_feature_importances_filtered(coef, feature_names, flt_indices, top,
                                      coef_std=None):
+    # type: (...) -> FeatureImportances
     if flt_indices is not None:
         coef = coef[flt_indices]
         if coef_std is not None:
@@ -27,6 +28,7 @@ def get_feature_importance_explanation(estimator, vec, coef, feature_names,
                                        estimator_feature_names=None,
                                        num_features=None,
                                        coef_std=None):
+    # type: (...) -> Explanation
     feature_names, flt_indices = get_feature_names_filtered(
         estimator, vec,
         feature_names=feature_names,

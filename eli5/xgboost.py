@@ -2,7 +2,7 @@
 from __future__ import absolute_import
 from functools import partial
 import re
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Tuple, Optional, Pattern
 
 import numpy as np  # type: ignore
 import scipy.sparse as sp  # type: ignore
@@ -41,7 +41,7 @@ def explain_weights_xgboost(xgb,
                             target_names=None,  # ignored
                             targets=None,  # ignored
                             feature_names=None,
-                            feature_re=None,
+                            feature_re=None,  # type: Pattern[str]
                             feature_filter=None,
                             importance_type='gain',
                             ):
@@ -94,11 +94,11 @@ def explain_prediction_xgboost(
         target_names=None,
         targets=None,
         feature_names=None,
-        feature_re=None,
+        feature_re=None,  # type: Pattern[str]
         feature_filter=None,
-        vectorized=False,
-        is_regression=None,
-        missing=None,
+        vectorized=False,  # type: bool
+        is_regression=None,  # type: bool
+        missing=None,  # type: bool
         ):
     """ Return an explanation of XGBoost prediction (via scikit-learn wrapper
     XGBClassifier or XGBRegressor, or via xgboost.Booster) as feature weights.
@@ -165,7 +165,7 @@ def explain_prediction_xgboost(
 
     if isinstance(xgb, Booster):
         prediction = xgb.predict(dmatrix)
-        n_targets = prediction.shape[-1]
+        n_targets = prediction.shape[-1]  # type: int
         if is_regression is None:
             # When n_targets is 1, this can be classification too,
             # but it's safer to assume regression.
@@ -216,6 +216,7 @@ def explain_prediction_xgboost(
 
 
 def _check_booster_args(xgb, is_regression=None):
+    # type: (Any, bool) -> Tuple[Booster, bool]
     if isinstance(xgb, Booster):
         booster = xgb
     else:
@@ -258,7 +259,8 @@ def _prediction_feature_weights(booster, dmatrix, n_targets,
     return scores_weights
 
 
-def _target_feature_weights(leaf_ids, tree_dumps, feature_names, xgb_feature_names):
+def _target_feature_weights(leaf_ids, tree_dumps, feature_names,
+                            xgb_feature_names):
     feature_weights = np.zeros(len(feature_names))
     # All trees in XGBoost give equal contribution to the prediction:
     # it is equal to sum of "leaf" values in leafs
@@ -299,6 +301,7 @@ def _indexed_leafs(parent):
 
 
 def _parent_value(children):
+    # type: (...) -> int
     """ Value of the parent node: a weighted sum of child values.
     """
     covers = np.array([child['cover'] for child in children])
@@ -308,6 +311,7 @@ def _parent_value(children):
 
 
 def _xgb_n_targets(xgb):
+    # type: (...) -> int
     if isinstance(xgb, XGBClassifier):
         return 1 if xgb.n_classes_ == 2 else xgb.n_classes_
     elif isinstance(xgb, XGBRegressor):
@@ -324,6 +328,7 @@ def _xgb_feature_importances(booster, importance_type):
 
 
 def _parse_tree_dump(text_dump):
+    # type: (str) -> Optional[Dict[str, Any]]
     """ Parse text tree dump (one item of a list returned by Booster.get_dump())
     into json format that will be used by next XGBoost release.
     """
