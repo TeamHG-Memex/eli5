@@ -48,10 +48,15 @@ It provides support for the following machine learning frameworks and packages:
 * sklearn-crfsuite_. ELI5 allows to check weights of sklearn_crfsuite.CRF
   models.
 
-ELI5 also provides TextExplainer_ which allows to explain predictions
-of any text classifier using LIME_ algorithm (Ribeiro et al., 2016).
-There are utilities for using LIME with non-text data and arbitrary black-box
-classifiers as well, but this feature is currently experimental.
+ELI5 also implements several algorithms for inspecting black-box models
+(see `Inspecting Black-Box Estimators`_):
+
+* TextExplainer_ allows to explain predictions
+  of any text classifier using LIME_ algorithm (Ribeiro et al., 2016).
+  There are utilities for using LIME with non-text data and arbitrary black-box
+  classifiers as well, but this feature is currently experimental.
+* `Decrease in Score`_ method can be used to compute feature importances
+  for black box estimators.
 
 Explanation and formatting are separated; you can get text-based explanation
 to display in console, HTML version embeddable in an IPython notebook
@@ -62,10 +67,12 @@ and formatting on a client.
 .. _lightning: https://github.com/scikit-learn-contrib/lightning
 .. _scikit-learn: https://github.com/scikit-learn/scikit-learn
 .. _sklearn-crfsuite: https://github.com/TeamHG-Memex/sklearn-crfsuite
-.. _LIME: http://eli5.readthedocs.io/en/latest/lime.html
-.. _TextExplainer: http://eli5.readthedocs.io/en/latest/tutorials/black-box-text-classifiers.html
+.. _LIME: https://eli5.readthedocs.io/en/latest/blackbox/lime.html
+.. _TextExplainer: https://eli5.readthedocs.io/en/latest/tutorials/black-box-text-classifiers.html
 .. _xgboost: https://github.com/dmlc/xgboost
 .. _LightGBM: https://github.com/Microsoft/LightGBM
+.. _Decrease in Score: https://eli5.readthedocs.io/en/latest/blackbox/score_decrease.html
+.. _Inspecting Black-Box Estimators: https://eli5.readthedocs.io/en/latest/blackbox/index.html
 
 License is MIT.
 

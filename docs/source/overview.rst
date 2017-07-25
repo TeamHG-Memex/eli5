@@ -39,11 +39,16 @@ following machine learning frameworks and packages:
 * :ref:`library-sklearn-crfsuite`. ELI5 allows to check weights of
   sklearn_crfsuite.CRF models.
 
-ELI5 also provides :ref:`TextExplainer <lime-tutorial>` which allows to
-explain predictions of any text classifier using :ref:`LIME <eli5-lime>`
-algorithm (Ribeiro et al., 2016). There are utilities for using LIME with
-non-text data and arbitrary black-box classifiers as well, but this feature
-is currently experimental.
+ELI5 also implements several algorithms for inspecting black-box models
+(see :ref:`eli5-black-box`):
+
+* :ref:`TextExplainer <lime-tutorial>` allows to explain predictions
+  of any text classifier using :ref:`LIME <eli5-lime>` algorithm
+  (Ribeiro et al., 2016). There are utilities for using LIME with non-text
+  data and arbitrary black-box classifiers as well, but this feature is
+  currently experimental.
+* :ref:`eli5-decrease-in-score` method can be used to compute feature
+  importances for black box estimators.
 
 Explanation and formatting are separated; you can get text-based explanation
 to display in console, HTML version embeddable in an IPython notebook

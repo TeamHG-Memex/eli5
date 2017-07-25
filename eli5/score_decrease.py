@@ -13,8 +13,8 @@ import numpy as np  # type: ignore
 from sklearn.utils import check_random_state  # type: ignore
 
 
-def _iter_shuffled(X, columns_to_shuffle=None, pre_shuffle=False,
-                   random_state=None):
+def iter_shuffled(X, columns_to_shuffle=None, pre_shuffle=False,
+                  random_state=None):
     """
     Return an iterator of X matrices which have one or more columns shuffled.
     After each iteration yielded matrix is mutated inplace, so
@@ -50,8 +50,10 @@ def _iter_shuffled(X, columns_to_shuffle=None, pre_shuffle=False,
 
 def get_feature_importances(score_func, X, y, columns_to_shuffle=None,
                             random_state=None):
+    """ Return feature importances computed as score decrease when a feature
+    is not available. """
     score_base = score_func(X, y)
-    Xs = _iter_shuffled(X, columns_to_shuffle, random_state=random_state)
+    Xs = iter_shuffled(X, columns_to_shuffle, random_state=random_state)
     return np.array([
         score_base - score_func(X_shuffled, y)
         for X_shuffled in Xs

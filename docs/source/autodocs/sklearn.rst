@@ -20,3 +20,10 @@ eli5.sklearn.unhashing
 
 .. automodule:: eli5.sklearn.unhashing
     :members:
+
+
+eli5.sklearn.score_decrease
+---------------------------
+
+.. automodule:: eli5.sklearn.score_decrease
+    :members:

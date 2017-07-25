@@ -41,7 +41,7 @@ dataset if you want generalization feature importances.
 
 
 class ScoreDecreaseFeatureImportances(BaseEstimator, MetaEstimatorMixin):
-    """Meta-transformer which exposes feature_importances_ attribute
+    """Meta-transformer which exposes ``feature_importances_`` attribute
     based on average score decrease.
 
     ScoreDecreaseFeatureImportances instance can be used instead of

@@ -3,12 +3,12 @@ from __future__ import absolute_import
 import numpy as np
 from sklearn.svm import SVR
 
-from eli5.score_decrease import _iter_shuffled, get_feature_importances
+from eli5.score_decrease import iter_shuffled, get_feature_importances
 
 
 def assert_column_mean_unchanged(X, **kwargs):
     mean = X.mean(axis=0)
-    for X_sh in _iter_shuffled(X, **kwargs):
+    for X_sh in iter_shuffled(X, **kwargs):
         assert np.allclose(mean, X_sh.mean(axis=0))
 
 
@@ -24,7 +24,7 @@ def test_iter_shuffled_columns():
     X = np.arange(10 * 5).reshape(10, 5)
 
     Xs = [X_sh.copy() for X_sh in
-          _iter_shuffled(X, columns_to_shuffle=[2, 3], random_state=42)]
+          iter_shuffled(X, columns_to_shuffle=[2, 3], random_state=42)]
     assert len(Xs) == 2
 
     def is_shuffled(X, X_sh, col):
