@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 import numpy as np
-import pytest
 from sklearn.svm import SVR
 
 from eli5.score_decrease import _iter_shuffled, get_feature_importances
