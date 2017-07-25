@@ -20,6 +20,26 @@ from sklearn.metrics.scorer import check_scoring  # type: ignore
 from eli5 import score_decrease
 
 
+CAVEATS_CV_NONE = """
+Feature importances are computed on the same data as used for training, 
+i.e. feature importances don't reflect importance of features for 
+generalization.
+"""
+
+CAVEATS_CV = """
+Feature importances are not computed for the final estimator; 
+they are computed for a sequence of estimators trained and evaluated 
+on train/test splits. So they tell you about importances of features 
+for generalization, but not feature importances of a particular trained model.
+"""
+
+CAVEATS_PREFIT = """
+If feature importances are computed on the same data as used for training, 
+they don't reflect importance of features for generalization. Use a held-out
+dataset if you want generalization feature importances.
+"""
+
+
 class ScoreDecreaseFeatureImportances(BaseEstimator, MetaEstimatorMixin):
     """Meta-transformer which exposes feature_importances_ attribute
     based on average score decrease.
@@ -188,6 +208,14 @@ class ScoreDecreaseFeatureImportances(BaseEstimator, MetaEstimatorMixin):
         for i in range(self.n_iter):
             yield score_decrease.get_feature_importances(
                 score_func, X, y, random_state=self.rng_)
+
+    @property
+    def caveats_(self):
+        if self.cv == 'prefit':
+            return CAVEATS_PREFIT
+        elif self.cv is None:
+            return CAVEATS_CV_NONE
+        return CAVEATS_CV
 
     # ============= Exposed methods of a wrapped estimator:
 

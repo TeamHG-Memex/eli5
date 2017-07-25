@@ -511,6 +511,6 @@ def explain_score_decrease_feature_importance(estimator,
         feature_filter=feature_filter,
         feature_re=feature_re,
         top=top,
-        description=DESCRIPTION_SCORE_DECREASE,
+        description=DESCRIPTION_SCORE_DECREASE + estimator.caveats_,
         is_regression=isinstance(estimator.wrapped_estimator_, RegressorMixin),
     )
