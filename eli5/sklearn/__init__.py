@@ -17,4 +17,5 @@ from .unhashing import (
     FeatureUnhasher,
     invert_hashing_and_fit,
 )
+from .score_decrease import ScoreDecreaseFeatureImportances
 from . import transform as _
