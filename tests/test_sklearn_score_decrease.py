@@ -3,14 +3,16 @@
 import pytest
 import numpy as np
 from sklearn.base import is_classifier, is_regressor
-from sklearn.svm import SVR
+from sklearn.svm import SVR, SVC
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.pipeline import make_pipeline
 from sklearn.feature_selection import SelectFromModel
 from sklearn.linear_model import LogisticRegression
 
+import eli5
 from eli5.sklearn.score_decrease import ScoreDecreaseFeatureImportances
+from .utils import format_as_all
 
 
 def _boston_with_leak(X, y, feat_names, noise_scale=10.0, noise_ratio=0.25):
@@ -137,3 +139,26 @@ def test_feature_selection(boston_train):
     sel.fit(X, y)
     selected = {feature_names[idx] for idx in sel.get_support(indices=True)}
     assert selected == {'LSTAT', 'RM'}
+
+
+def test_explain_weights(iris_train):
+    X, y, feature_names, target_names = iris_train
+    kwargs = dict(n_iter=20, random_state=42)
+    for sd in [
+        ScoreDecreaseFeatureImportances(SVC(C=10).fit(X, y), **kwargs),
+        ScoreDecreaseFeatureImportances(SVC(C=10), cv=None, **kwargs),
+        ScoreDecreaseFeatureImportances(SVC(C=10), cv=3, **kwargs),
+    ]:
+        sd.fit(X, y)
+        print(sd.score(X, y))
+        expl = eli5.explain_weights(sd, target_names=target_names,
+                                    feature_names=feature_names)
+        assert "generalization" in expl.description
+        imp = expl.feature_importances.importances
+        assert len(imp) == 4
+        assert [n.feature.startswith("petal") for n in imp[:2]]
+        assert [n.feature.startswith("sepal") for n in imp[2:]]
+
+        res = format_as_all(expl, sd.wrapped_estimator_)
+        for _expl in res:
+            assert "petal width (cm)" in _expl
