@@ -219,14 +219,6 @@ class ScoreDecreaseFeatureImportances(BaseEstimator, MetaEstimatorMixin):
 
     # ============= Exposed methods of a wrapped estimator:
 
-    def fit_transform(self, X, y, groups=None, **fit_params):
-        self.fit(X, y, groups=groups, **fit_params)
-        return self.transform(X)
-
-    @if_delegate_has_method(delegate='wrapped_estimator_')
-    def transform(self, X):
-        return self.wrapped_estimator_.transform(X)
-
     @if_delegate_has_method(delegate='wrapped_estimator_')
     def score(self, X, y=None, *args, **kwargs):
         return self.wrapped_estimator_.score(X, y, *args, **kwargs)
