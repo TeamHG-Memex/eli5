@@ -125,7 +125,7 @@ def test_feature_selection(boston_train):
 
     sel = SelectFromModel(
         ScoreDecreaseFeatureImportances(
-            RandomForestRegressor(n_estimators=20),
+            RandomForestRegressor(n_estimators=20, random_state=42),
             cv=3, random_state=42, refit=False
         ),
         threshold=0.1,
