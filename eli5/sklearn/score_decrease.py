@@ -177,7 +177,7 @@ class ScoreDecreaseFeatureImportances(BaseEstimator, MetaEstimatorMixin):
         return feature_importances
 
     def _non_cv_feature_importances(self, X, y):
-        score_func = partial(self.scorer_, self._fit_estimator)
+        score_func = partial(self.scorer_, self.wrapped_estimator_)
         return list(self._iter_feature_importances(score_func, X, y))
 
     def _iter_feature_importances(self, score_func, X, y):
@@ -191,33 +191,33 @@ class ScoreDecreaseFeatureImportances(BaseEstimator, MetaEstimatorMixin):
         self.fit(X, y, groups=groups, **fit_params)
         return self.transform(X)
 
-    @if_delegate_has_method(delegate='_fit_estimator')
+    @if_delegate_has_method(delegate='wrapped_estimator_')
     def transform(self, X):
-        return self._fit_estimator.transform(X)
+        return self.wrapped_estimator_.transform(X)
 
-    @if_delegate_has_method(delegate='_fit_estimator')
+    @if_delegate_has_method(delegate='wrapped_estimator_')
     def score(self, X, y=None, *args, **kwargs):
-        return self._fit_estimator.score(X, y, *args, **kwargs)
+        return self.wrapped_estimator_.score(X, y, *args, **kwargs)
 
-    @if_delegate_has_method(delegate='_fit_estimator')
+    @if_delegate_has_method(delegate='wrapped_estimator_')
     def predict(self, X):
-        return self._fit_estimator.predict(X)
+        return self.wrapped_estimator_.predict(X)
 
-    @if_delegate_has_method(delegate='_fit_estimator')
+    @if_delegate_has_method(delegate='wrapped_estimator_')
     def predict_proba(self, X):
-        return self._fit_estimator.predict_proba(X)
+        return self.wrapped_estimator_.predict_proba(X)
 
-    @if_delegate_has_method(delegate='_fit_estimator')
+    @if_delegate_has_method(delegate='wrapped_estimator_')
     def predict_log_proba(self, X):
-        return self._fit_estimator.predict_log_proba(X)
+        return self.wrapped_estimator_.predict_log_proba(X)
 
-    @if_delegate_has_method(delegate='_fit_estimator')
+    @if_delegate_has_method(delegate='wrapped_estimator_')
     def decision_function(self, X):
-        return self._fit_estimator.decision_function(X)
+        return self.wrapped_estimator_.decision_function(X)
 
     @property
-    def _fit_estimator(self):
-        if self.prefit:
+    def wrapped_estimator_(self):
+        if self.cv == "prefit" or not self.refit:
             return self.estimator
         return self.estimator_
 
@@ -227,4 +227,4 @@ class ScoreDecreaseFeatureImportances(BaseEstimator, MetaEstimatorMixin):
 
     @property
     def classes_(self):
-        return self._fit_estimator.classes_
+        return self.wrapped_estimator_.classes_
