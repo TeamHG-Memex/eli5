@@ -6,7 +6,6 @@ from functools import partial
 from typing import List
 
 import numpy as np  # type: ignore
-
 from sklearn.model_selection import check_cv  # type: ignore
 from sklearn.utils.metaestimators import if_delegate_has_method  # type: ignore
 from sklearn.utils import check_array, check_random_state  # type: ignore
@@ -31,17 +30,19 @@ class ScoreDecreaseFeatureImportances(BaseEstimator, MetaEstimatorMixin):
 
     There are 3 main modes of operation:
 
-    1. prefit=True (pre-fit estimator is passed). You can call
+    1. cv="prefit" (pre-fit estimator is passed). You can call
        ScoreDecreaseFeatureImportances.fit either with training data, or
        with a held-out dataset (in the latter case ``feature_importances_``
        would be importances of features for generalization). After the fitting
        ``feature_importances_`` attribute becomes available, but the estimator
-       itself is not fit again.
-    2. prefit=False, cv=None. In this case ``fit`` method fits
-       the estimator and computes feature importances on the same data,
-       i.e. feature importances don't reflect importance of features
-       for generalization.
-    3. prefit=False, cv is not None. ``fit`` method fits the estimator, but
+       itself is not fit again. When cv="prefit", ``fit`` must be called
+       directly, and ScoreDecreaseFeatureImportances cannot be used with
+       ``cross_val_score``, ``GridSearchCV`` and similar utilities that clone
+       the estimator.
+    2. cv=None. In this case ``fit`` method fits the estimator and computes
+       feature importances on the same data, i.e. feature importances
+       don't reflect importance of features for generalization.
+    3. all other ``cv`` values. ``fit`` method fits the estimator, but
        instead of computing feature importances for the concrete estimator
        which is fit, importances are computed for a sequence of estimators
        trained and evaluated on train/test splits according to ``cv``, and
@@ -60,13 +61,6 @@ class ScoreDecreaseFeatureImportances(BaseEstimator, MetaEstimatorMixin):
         The base estimator. This can be both a fitted
         (if ``prefit`` is set to True) or a non-fitted estimator.
 
-    prefit : bool, default True
-        Whether a prefit model is expected to be passed into the constructor
-        directly or not. If True, ``fit`` must be called directly
-        and ScoreDecreaseFeatureImportances cannot be used with
-        ``cross_val_score``, ``GridSearchCV`` and similar utilities that clone
-        the estimator.
-
     scoring : string, callable or None, default=None
         Scoring function to use for computing feature importances.
         A string with scoring name (see scikit-learn docs) or
@@ -81,16 +75,23 @@ class ScoreDecreaseFeatureImportances(BaseEstimator, MetaEstimatorMixin):
     random_state : integer or numpy.random.RandomState, optional
         random state
 
-    cv : int, cross-validation generator or an iterable, optional
+    cv : int, cross-validation generator, iterable or "prefit"
         Determines the cross-validation splitting strategy.
         Possible inputs for cv are:
 
-        - None, to disable cross-validation,
-        - integer, to specify the number of folds.
-        - An object to be used as a cross-validation generator.
-        - An iterable yielding train/test splits.
+            - None, to disable cross-validation and compute feature importances
+              on the same data as used for training.
+            - integer, to specify the number of folds.
+            - An object to be used as a cross-validation generator.
+            - An iterable yielding train/test splits.
+            - "prefit" string constant (default).
 
-        ``cv`` must be None if ``prefit`` is True.
+        If "prefit" is passed, it is assumed that ``estimator`` has been
+        fitted already and all data is used for computing feature importances.
+
+    refit : bool
+        Whether to fit the estimator on the whole data if cross-validation
+        is used (default is False).
 
     Attributes
     ----------
@@ -111,12 +112,13 @@ class ScoreDecreaseFeatureImportances(BaseEstimator, MetaEstimatorMixin):
     rng_ : numpy.random.RandomState
         random state
     """
-    def __init__(self, estimator, prefit=True, scoring=None, n_iter=5,
-                 random_state=None, cv=None):
-        if prefit and cv is not None:
-            raise ValueError("cv must be None when prefit is True")
+    def __init__(self, estimator, scoring=None, n_iter=5, random_state=None,
+                 cv='prefit', refit=True):
+        # type: (...) -> None
+        if isinstance(cv, str) and cv != "prefit":
+            raise ValueError("Invalid cv value: {!r}".format(cv))
+        self.refit = refit
         self.estimator = estimator
-        self.prefit = prefit
         self.scoring = scoring
         self.n_iter = n_iter
         self.random_state = random_state
@@ -124,7 +126,9 @@ class ScoreDecreaseFeatureImportances(BaseEstimator, MetaEstimatorMixin):
         self.rng_ = check_random_state(random_state)
 
     def fit(self, X, y, groups=None, **fit_params):
-        """Compute ``feature_importances_`` attribute.
+        # type: (...) -> ScoreDecreaseFeatureImportances
+        """Compute ``feature_importances_`` attribute and optionally
+        fit the base estimator.
 
         Parameters
         ----------
@@ -148,13 +152,13 @@ class ScoreDecreaseFeatureImportances(BaseEstimator, MetaEstimatorMixin):
         """
         self.scorer_ = check_scoring(self.estimator, scoring=self.scoring)
 
-        if not self.prefit:
+        if self.cv != "prefit" and self.refit:
             self.estimator_ = clone(self.estimator)
             self.estimator_.fit(X, y, **fit_params)
 
         X = check_array(X)
 
-        if self.cv is not None:
+        if self.cv not in (None, "prefit"):
             self.results_ = self._cv_feature_importances(
                 X, y, groups=groups, **fit_params)
         else:
