@@ -12,6 +12,9 @@ A similar method is described in Breiman, "Random Forests", Machine Learning,
 45(1), 5-32, 2001 (available online at
 https://www.stat.berkeley.edu/%7Ebreiman/randomforest2001.pdf).
 
+Algorithm
+---------
+
 The idea is the following: feature importance can be measured by looking at
 how much the score (accuracy, F1, R^2, etc. - any score we're interested in)
 decreases when a feature is not available. To do that one can remove feature
@@ -28,7 +31,10 @@ information. This method works if noise is drawn from the same
 distribution as original feature values (as otherwise estimator may
 fail). The simplest way to get such noise is to shuffle values
 for a feature, i.e. use other example's feature value - this is how
-permutation importance computed.
+permutation importance is computed.
+
+Model Inspection
+----------------
 
 For sklearn-compatible estimators eli5 provides
 :class:`~.PermutationImportance` wrapper; if you want to use this
@@ -55,11 +61,14 @@ If you don't have a separate held-out dataset, you can fit
 training; this still allows to inspect the model, but doesn't show which
 features are important for generalization.
 
+Feature Selection
+-----------------
+
 This method can be useful not only for introspection, but also for
-model selection - one can compute feature importances using
+feature selection - one can compute feature importances using
 :class:`~.PermutationImportance`, then drop unimportant features
-using e.g. sklearn's SelectFromModel_. In this case estimator passed to
-:class:`~.PermutationImportance` doesn't have to be fit; feature
+using e.g. sklearn's SelectFromModel_ or RFE_. In this case estimator passed
+to :class:`~.PermutationImportance` doesn't have to be fit; feature
 importances can be computed for several train/test splits and then averaged::
 
     import eli5
@@ -89,4 +98,18 @@ importances can be computed for several train/test splits and then averaged::
 
 See :class:`~.PermutationImportance` docs for more.
 
+Note that permutation importance should be used for feature selection with
+care. For example, if several features are correlated, and the estimator
+uses them all equally, permutation importance can be low for all of these
+features: dropping one of the features may not affect the result, as estimator
+still has an access to the same information from other features. So if features
+are dropped based on importance threshold, such correlated features could
+be dropped all at the same time, regardless of their usefulness.
+
 .. _SelectFromModel: http://scikit-learn.org/stable/modules/generated/sklearn.feature_selection.SelectFromModel.html#sklearn.feature_selection.SelectFromModel
+.. _RFE: http://scikit-learn.org/stable/modules/generated/sklearn.feature_selection.RFE.html#sklearn-feature-selection-rfe
+
+Shortcomings
+------------
+
+TODO
