@@ -55,7 +55,7 @@ ELI5 also implements several algorithms for inspecting black-box models
   of any text classifier using LIME_ algorithm (Ribeiro et al., 2016).
   There are utilities for using LIME with non-text data and arbitrary black-box
   classifiers as well, but this feature is currently experimental.
-* `Decrease in Score`_ method can be used to compute feature importances
+* `Permutation importance`_ method can be used to compute feature importances
   for black box estimators.
 
 Explanation and formatting are separated; you can get text-based explanation
@@ -71,7 +71,7 @@ and formatting on a client.
 .. _TextExplainer: https://eli5.readthedocs.io/en/latest/tutorials/black-box-text-classifiers.html
 .. _xgboost: https://github.com/dmlc/xgboost
 .. _LightGBM: https://github.com/Microsoft/LightGBM
-.. _Decrease in Score: https://eli5.readthedocs.io/en/latest/blackbox/score_decrease.html
+.. _Permutation importance: https://eli5.readthedocs.io/en/latest/blackbox/permutation_importance.html
 .. _Inspecting Black-Box Estimators: https://eli5.readthedocs.io/en/latest/blackbox/index.html
 
 License is MIT.

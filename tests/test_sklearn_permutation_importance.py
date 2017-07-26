@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 import pytest
 import numpy as np
 from sklearn.base import is_classifier, is_regressor
@@ -11,7 +10,7 @@ from sklearn.feature_selection import SelectFromModel
 from sklearn.linear_model import LogisticRegression
 
 import eli5
-from eli5.sklearn.score_decrease import ScoreDecreaseFeatureImportances
+from eli5.sklearn import PermutationImportance
 from .utils import format_as_all
 
 
@@ -30,25 +29,25 @@ def _boston_with_leak(X, y, feat_names, noise_scale=10.0, noise_ratio=0.25):
     return X_train, X_test, y_train, y_test, feat_names
 
 
-def _assert_importances_good(sd, feat_names):
-    importances = dict(zip(feat_names, sd.feature_importances_))
+def _assert_importances_good(perm, feat_names):
+    importances = dict(zip(feat_names, perm.feature_importances_))
     print(importances)
     assert importances['LSTAT'] > importances['NOX']
     assert importances['B'] > importances['CHAS']
     return importances
 
 
-def _assert_importances_not_overfit(sd, feat_names):
-    importances = _assert_importances_good(sd, feat_names)
+def _assert_importances_not_overfit(perm, feat_names):
+    importances = _assert_importances_good(perm, feat_names)
     assert importances['LSTAT'] > importances['DATALEAK']
 
 
-def _assert_importances_overfit(sd, feat_names):
-    importances = _assert_importances_good(sd, feat_names)
+def _assert_importances_overfit(perm, feat_names):
+    importances = _assert_importances_good(perm, feat_names)
     assert importances['LSTAT'] < importances['DATALEAK']
 
 
-def test_score_decrease_prefit(boston_train):
+def test_prefit(boston_train):
     X_train, X_test, y_train, y_test, feat_names = _boston_with_leak(
         *boston_train)
 
@@ -56,22 +55,22 @@ def test_score_decrease_prefit(boston_train):
     reg = RandomForestRegressor(n_estimators=50, random_state=42).fit(X_train, y_train)
     print(reg.score(X_test, y_test), reg.score(X_train, y_train))
     print(X_train[:,-1], y_train)
-    sd_prefit = ScoreDecreaseFeatureImportances(reg, random_state=42, n_iter=10).fit(X_train, y_train)
-    assert not hasattr(sd_prefit, "estimator_")
-    assert sd_prefit.wrapped_estimator_ is reg
-    _assert_importances_overfit(sd_prefit, feat_names)
+    perm_prefit = PermutationImportance(reg, random_state=42, n_iter=10).fit(X_train, y_train)
+    assert not hasattr(perm_prefit, "estimator_")
+    assert perm_prefit.wrapped_estimator_ is reg
+    _assert_importances_overfit(perm_prefit, feat_names)
 
     # prefit estimator, fit on test part
-    sd_prefit2 = ScoreDecreaseFeatureImportances(reg, random_state=42, n_iter=10).fit(X_test, y_test)
-    _assert_importances_not_overfit(sd_prefit2, feat_names)
+    perm_prefit2 = PermutationImportance(reg, random_state=42, n_iter=10).fit(X_test, y_test)
+    _assert_importances_not_overfit(perm_prefit2, feat_names)
 
 
-def test_score_decrease_cv(boston_train):
+def test_cv(boston_train):
     # noise feature can be important if no cv is used, but not if cv is used
     X_train, X_test, y_train, y_test, feat_names = _boston_with_leak(
         *boston_train, noise_ratio=0.99)
 
-    reg = ScoreDecreaseFeatureImportances(
+    reg = PermutationImportance(
         SVR(C=100),
         random_state=42,
         cv=None
@@ -83,7 +82,7 @@ def test_score_decrease_cv(boston_train):
     imp_nocv = _assert_importances_good(reg, feat_names)
 
     # CV feature importances
-    reg = ScoreDecreaseFeatureImportances(
+    reg = PermutationImportance(
         SVR(C=100),
         random_state=42,
         cv=10,
@@ -94,37 +93,37 @@ def test_score_decrease_cv(boston_train):
     assert imp_cv['DATALEAK'] < imp_nocv['DATALEAK']
 
 
-def test_score_decrease_params():
+def test_invalid_params():
     with pytest.raises(ValueError):
-        reg = ScoreDecreaseFeatureImportances(SVR(), cv="hello")
+        reg = PermutationImportance(SVR(), cv="hello")
 
 
-def test_score_decrease_classifier(iris_train):
+def test_classifier(iris_train):
     X, y, feature_names, target_names = iris_train
     clf = LogisticRegression().fit(X, y)
     assert is_classifier(clf)
-    sd = ScoreDecreaseFeatureImportances(clf, random_state=42).fit(X, y)
-    assert is_classifier(sd)
-    assert (sd.classes_ == [0, 1, 2]).all()
-    assert np.allclose(clf.predict(X), sd.predict(X))
-    assert np.allclose(clf.predict_proba(X), sd.predict_proba(X))
-    assert np.allclose(clf.predict_log_proba(X), sd.predict_log_proba(X))
-    assert np.allclose(clf.decision_function(X), sd.decision_function(X))
+    perm = PermutationImportance(clf, random_state=42).fit(X, y)
+    assert is_classifier(perm)
+    assert (perm.classes_ == [0, 1, 2]).all()
+    assert np.allclose(clf.predict(X), perm.predict(X))
+    assert np.allclose(clf.predict_proba(X), perm.predict_proba(X))
+    assert np.allclose(clf.predict_log_proba(X), perm.predict_log_proba(X))
+    assert np.allclose(clf.decision_function(X), perm.decision_function(X))
 
 
-def test_score_decrease_type():
-    sd = ScoreDecreaseFeatureImportances(LogisticRegression(), cv=3)
-    assert is_classifier(sd)
+def test_estimator_type():
+    perm = PermutationImportance(LogisticRegression(), cv=3)
+    assert is_classifier(perm)
 
-    sd = ScoreDecreaseFeatureImportances(RandomForestRegressor(), cv=3)
-    assert is_regressor(sd)
+    perm = PermutationImportance(RandomForestRegressor(), cv=3)
+    assert is_regressor(perm)
 
 
 def test_feature_selection(boston_train):
     X, y, feature_names = boston_train
 
     sel = SelectFromModel(
-        ScoreDecreaseFeatureImportances(
+        PermutationImportance(
             RandomForestRegressor(n_estimators=20, random_state=42),
             cv=3, random_state=42, refit=False
         ),
@@ -144,14 +143,14 @@ def test_feature_selection(boston_train):
 def test_explain_weights(iris_train):
     X, y, feature_names, target_names = iris_train
     kwargs = dict(n_iter=20, random_state=42)
-    for sd in [
-        ScoreDecreaseFeatureImportances(SVC(C=10).fit(X, y), **kwargs),
-        ScoreDecreaseFeatureImportances(SVC(C=10), cv=None, **kwargs),
-        ScoreDecreaseFeatureImportances(SVC(C=10), cv=3, **kwargs),
+    for perm in [
+        PermutationImportance(SVC(C=10).fit(X, y), **kwargs),
+        PermutationImportance(SVC(C=10), cv=None, **kwargs),
+        PermutationImportance(SVC(C=10), cv=3, **kwargs),
     ]:
-        sd.fit(X, y)
-        print(sd.score(X, y))
-        expl = eli5.explain_weights(sd, target_names=target_names,
+        perm.fit(X, y)
+        print(perm.score(X, y))
+        expl = eli5.explain_weights(perm, target_names=target_names,
                                     feature_names=feature_names)
         assert "generalization" in expl.description
         imp = expl.feature_importances.importances
@@ -159,6 +158,6 @@ def test_explain_weights(iris_train):
         assert [n.feature.startswith("petal") for n in imp[:2]]
         assert [n.feature.startswith("sepal") for n in imp[2:]]
 
-        res = format_as_all(expl, sd.wrapped_estimator_)
+        res = format_as_all(expl, perm.wrapped_estimator_)
         for _expl in res:
             assert "petal width (cm)" in _expl

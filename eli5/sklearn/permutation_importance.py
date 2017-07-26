@@ -1,7 +1,4 @@
-"""
-A sklearn-compatible object for computing score decrease-based
-feature importances.
-"""
+# -*- coding: utf-8 -*-
 from functools import partial
 from typing import List
 
@@ -17,7 +14,7 @@ from sklearn.base import (  # type: ignore
 )
 from sklearn.metrics.scorer import check_scoring  # type: ignore
 
-from eli5 import score_decrease
+from eli5 import permutation_importance
 
 
 CAVEATS_CV_NONE = """
@@ -40,23 +37,23 @@ dataset if you want generalization feature importances.
 """
 
 
-class ScoreDecreaseFeatureImportances(BaseEstimator, MetaEstimatorMixin):
-    """Meta-transformer which exposes ``feature_importances_`` attribute
-    based on average score decrease.
+class PermutationImportance(BaseEstimator, MetaEstimatorMixin):
+    """Meta-estimator which computes ``feature_importances_`` attribute
+    based on permutation importance (also known as mean score decrease).
 
-    ScoreDecreaseFeatureImportances instance can be used instead of
+    PermutationImportance instance can be used instead of
     its wrapped estimator, as it exposes all estimator's common methods like
     ``predict``.
 
     There are 3 main modes of operation:
 
     1. cv="prefit" (pre-fit estimator is passed). You can call
-       ScoreDecreaseFeatureImportances.fit either with training data, or
+       PermutationImportance.fit either with training data, or
        with a held-out dataset (in the latter case ``feature_importances_``
        would be importances of features for generalization). After the fitting
        ``feature_importances_`` attribute becomes available, but the estimator
        itself is not fit again. When cv="prefit", ``fit`` must be called
-       directly, and ScoreDecreaseFeatureImportances cannot be used with
+       directly, and PermutationImportance cannot be used with
        ``cross_val_score``, ``GridSearchCV`` and similar utilities that clone
        the estimator.
     2. cv=None. In this case ``fit`` method fits the estimator and computes
@@ -116,7 +113,8 @@ class ScoreDecreaseFeatureImportances(BaseEstimator, MetaEstimatorMixin):
     Attributes
     ----------
     feature_importances_ : array
-        Feature importances, computed as mean decrease of the score.
+        Feature importances, computed as mean decrease of the score when
+        a feature is permuted (i.e. becomes noise).
 
     feature_importances_std_ : array
         Standard deviations of feature importances.
@@ -127,7 +125,7 @@ class ScoreDecreaseFeatureImportances(BaseEstimator, MetaEstimatorMixin):
     estimator_ : an estimator
         The base estimator from which the transformer is built.
         This is stored only when a non-fitted estimator is passed to the
-        ``ScoreDecreaseFeatureImportances``, i.e when prefit is False.
+        ``PermutationImportance``, i.e when prefit is False.
 
     rng_ : numpy.random.RandomState
         random state
@@ -146,7 +144,7 @@ class ScoreDecreaseFeatureImportances(BaseEstimator, MetaEstimatorMixin):
         self.rng_ = check_random_state(random_state)
 
     def fit(self, X, y, groups=None, **fit_params):
-        # type: (...) -> ScoreDecreaseFeatureImportances
+        # type: (...) -> PermutationImportance
         """Compute ``feature_importances_`` attribute and optionally
         fit the base estimator.
 
@@ -206,7 +204,7 @@ class ScoreDecreaseFeatureImportances(BaseEstimator, MetaEstimatorMixin):
 
     def _iter_feature_importances(self, score_func, X, y):
         for i in range(self.n_iter):
-            yield score_decrease.get_feature_importances(
+            yield permutation_importance.get_feature_importances(
                 score_func, X, y, random_state=self.rng_)
 
     @property

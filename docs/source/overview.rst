@@ -47,7 +47,7 @@ ELI5 also implements several algorithms for inspecting black-box models
   (Ribeiro et al., 2016). There are utilities for using LIME with non-text
   data and arbitrary black-box classifiers as well, but this feature is
   currently experimental.
-* :ref:`eli5-decrease-in-score` method can be used to compute feature
+* :ref:`eli5-permutation-importance` method can be used to compute feature
   importances for black box estimators.
 
 Explanation and formatting are separated; you can get text-based explanation

@@ -75,7 +75,7 @@ from eli5._feature_importances import (
     get_feature_importances_filtered,
     get_feature_importance_explanation,
 )
-from .score_decrease import ScoreDecreaseFeatureImportances
+from .permutation_importance import PermutationImportance
 
 
 LINEAR_CAVEATS = """
@@ -125,7 +125,8 @@ all values sum to 1.
 
 DESCRIPTION_SCORE_DECREASE = """
 Feature importances, computed as a decrease in score when feature
-values are incorrect (random, shuffled).
+values are permuted (i.e. become noise). This is also known as 
+permutation importance.
 """
 
 _TOP = 20
@@ -480,18 +481,18 @@ def explain_weights_pipeline(estimator, feature_names=None, **kwargs):
     return out
 
 
-@register(ScoreDecreaseFeatureImportances)
-def explain_score_decrease_feature_importance(estimator,
-                                              vec=None,
-                                              top=_TOP,
-                                              target_names=None,  # ignored
-                                              targets=None,  # ignored
-                                              feature_names=None,
-                                              feature_re=None,
-                                              feature_filter=None,
-                                              ):
+@register(PermutationImportance)
+def explain_permutation_importance(estimator,
+                                   vec=None,
+                                   top=_TOP,
+                                   target_names=None,  # ignored
+                                   targets=None,  # ignored
+                                   feature_names=None,
+                                   feature_re=None,
+                                   feature_filter=None,
+                                   ):
     """
-    Return an explanation of ScoreDecreaseFeatureImportances.
+    Return an explanation of PermutationImportance.
 
     See :func:`eli5.explain_weights` for description of
     ``top``, ``feature_names``, ``feature_re`` and ``feature_filter``

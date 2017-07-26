@@ -3,7 +3,7 @@ from __future__ import absolute_import
 import numpy as np
 from sklearn.svm import SVR
 
-from eli5.score_decrease import iter_shuffled, get_feature_importances
+from eli5.permutation_importance import iter_shuffled, get_feature_importances
 
 
 def assert_column_mean_unchanged(X, **kwargs):

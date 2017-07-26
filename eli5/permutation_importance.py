@@ -4,8 +4,9 @@ when a feature is not available.
 
 A similar method is described in Breiman, "Random Forests", Machine Learning,
 45(1), 5-32, 2001 (available online at
-https://www.stat.berkeley.edu/%7Ebreiman/randomforest2001.pdf) as
-"mean decrease in accuracy".
+https://www.stat.berkeley.edu/%7Ebreiman/randomforest2001.pdf), with an
+application to random forests. It is known in literature as
+"Mean Decrease Accuracy (MDA)" or "permutation importance".
 """
 from __future__ import absolute_import
 
