@@ -28,13 +28,13 @@ class InvertableHashingVectorizer(BaseEstimator, TransformerMixin):
         vec = InvertableHashingVectorizer(my_hashing_vectorizer)
 
     Unlike HashingVectorizer it can be fit. During fitting
-    InvertableHashingVectorizer learns which input terms map to which
-    feature columns/signs; this allows to provide more meaningful
+    :class:`~.InvertableHashingVectorizer` learns which input terms map to
+    which feature columns/signs; this allows to provide more meaningful
     :meth:`get_feature_names`. The cost is that it is no longer stateless.
 
-    You can fit InvertableHashingVectorizer on a random sample of documents
-    (not necessarily on the whole training and testing data), and use it
-    to inspect an existing HashingVectorizer instance.
+    You can fit :class:`~.InvertableHashingVectorizer` on a random sample
+    of documents (not necessarily on the whole training and testing data),
+    and use it to inspect an existing HashingVectorizer instance.
 
     If several features hash to the same value, they are ordered by
     their frequency in documents that were used to fit the vectorizer.
@@ -69,7 +69,7 @@ class InvertableHashingVectorizer(BaseEstimator, TransformerMixin):
         """
         Return feature names.
         This is a best-effort function which tries to reconstruct feature
-        names based on what it have seen so far.
+        names based on what it has seen so far.
 
         HashingVectorizer uses a signed hash function. If always_signed is True,
         each term in feature names is prepended with its sign. If it is False,
@@ -303,10 +303,10 @@ def invert_hashing_and_fit(
         docs
     ):
     # type: (...) -> Union[FeatureUnion, InvertableHashingVectorizer]
-    """ Create an InvertableHashingVectorizer from hashing vectorizer vec
-    and fit it on docs. If vec is a FeatureUnion, do it for all
+    """ Create an :class:`~.InvertableHashingVectorizer` from hashing
+    vectorizer vec and fit it on docs. If vec is a FeatureUnion, do it for all
     hashing vectorizers in the union.
-    Return an InvertableHashingVectorizer, or a FeatureUnion,
+    Return an :class:`~.InvertableHashingVectorizer`, or a FeatureUnion,
     or an unchanged vectorizer.
     """
     if isinstance(vec, HashingVectorizer):
