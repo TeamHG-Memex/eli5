@@ -8,7 +8,7 @@ from sklearn.linear_model import (  # type: ignore
     RandomizedLogisticRegression,
     RandomizedLasso,
 )
-from sklearn.preprocessing import (
+from sklearn.preprocessing import (  # type: ignore
     MinMaxScaler,
     StandardScaler,
     MaxAbsScaler,
