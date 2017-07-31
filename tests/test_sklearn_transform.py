@@ -78,10 +78,10 @@ def selection_score_func(X, y):
      ['<NAME0>', '<NAME2>']),
     (SelectFromModel(
         PermutationImportance(
-            LogisticRegression(C=10, random_state=42),
-            cv=3, random_state=42, refit=False,
+            LogisticRegression(random_state=42),
+            cv=5, random_state=42, refit=False,
         ),
-        threshold=0.04,
+        threshold=0.1,
      ),
      ['<NAME2>', '<NAME3>']),
     (RFE(LogisticRegression(random_state=42), 2),
