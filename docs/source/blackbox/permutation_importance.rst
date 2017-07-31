@@ -17,10 +17,13 @@ Algorithm
 
 The idea is the following: feature importance can be measured by looking at
 how much the score (accuracy, F1, R^2, etc. - any score we're interested in)
-decreases when a feature is not available. To do that one can remove feature
-from the dataset, re-train the estimator and check the score. But it requires
-re-training an estimator for each feature, which can be computationally
-intensive.
+decreases when a feature is not available.
+
+To do that one can remove feature from the dataset, re-train the estimator
+and check the score. But it requires re-training an estimator for each
+feature, which can be computationally intensive. Also, it shows what may be
+important within a dataset, not what is important within a concrete
+trained model.
 
 To avoid re-training the estimator we can remove a feature only from the
 test part of the dataset, and compute score without using this
@@ -30,7 +33,7 @@ noise - feature column is still there, but it no longer contains useful
 information. This method works if noise is drawn from the same
 distribution as original feature values (as otherwise estimator may
 fail). The simplest way to get such noise is to shuffle values
-for a feature, i.e. use other example's feature value - this is how
+for a feature, i.e. use other examples' feature values - this is how
 permutation importance is computed.
 
 Model Inspection
