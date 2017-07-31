@@ -23,3 +23,13 @@ The following functions are exposed to a top level, e.g.
 .. autofunction:: eli5.explain_prediction_df
 
 .. autofunction:: eli5.explain_prediction_dfs
+
+.. autofunction:: eli5.format_as_text
+
+.. autofunction:: eli5.format_as_html
+
+.. autofunction:: eli5.format_as_dataframe
+
+.. autofunction:: eli5.format_as_dataframes
+
+.. autofunction:: eli5.format_as_dict
