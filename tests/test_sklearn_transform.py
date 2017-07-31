@@ -48,6 +48,7 @@ def selection_score_func(X, y):
 
 @pytest.mark.parametrize('transformer,expected', [
     (MyFeatureExtractor(), ['f1', 'f2', 'f3']),
+
     (make_pipeline(StandardScaler(), MyFeatureExtractor()),
      ['f1', 'f2', 'f3']),
     (make_pipeline(MinMaxScaler(), MyFeatureExtractor()),
@@ -56,6 +57,11 @@ def selection_score_func(X, y):
      ['f1', 'f2', 'f3']),
     (make_pipeline(RobustScaler(), MyFeatureExtractor()),
      ['f1', 'f2', 'f3']),
+    (StandardScaler(), ['<NAME0>', '<NAME1>', '<NAME2>', '<NAME3>']),
+    (MinMaxScaler(), ['<NAME0>', '<NAME1>', '<NAME2>', '<NAME3>']),
+    (MaxAbsScaler(), ['<NAME0>', '<NAME1>', '<NAME2>', '<NAME3>']),
+    (RobustScaler(), ['<NAME0>', '<NAME1>', '<NAME2>', '<NAME3>']),
+
     (SelectKBest(selection_score_func, k=1),
      ['<NAME3>']),
     (SelectKBest(selection_score_func, k=2),
