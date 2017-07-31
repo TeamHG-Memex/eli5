@@ -40,8 +40,10 @@ Model Inspection
 ----------------
 
 For sklearn-compatible estimators eli5 provides
-:class:`~.PermutationImportance` wrapper; if you want to use this
-method for other estimators there is :mod:`eli5.permutation_importance` module.
+:class:`~.PermutationImportance` wrapper. If you want to use this
+method for other estimators you can either wrap them in sklearn-compatible
+objects, or use :mod:`eli5.permutation_importance` module which has basic
+building blocks.
 
 For example, this is how you can check feature importances of
 `sklearn.svm.SVC`_ classifier, which is not supported by eli5 directly
@@ -63,6 +65,21 @@ If you don't have a separate held-out dataset, you can fit
 :class:`~.PermutationImportance` on the same data as used for
 training; this still allows to inspect the model, but doesn't show which
 features are important for generalization.
+
+For non-sklearn models you can use
+:func:`eli5.permutation_importance.get_score_importances`::
+
+    import numpy as np
+    from eli5.permutation_importance import get_score_importances
+
+    # ... load data, define score function
+    def score(X, y):
+        y_pred = predict(X)
+        return accuracy(y, y_pred)
+
+    base_score, score_decreases = get_score_importances(score_func, X, y)
+    feature_importances = np.mean(score_decreases, axis=0)
+
 
 Feature Selection
 -----------------
@@ -102,17 +119,15 @@ importances can be computed for several train/test splits and then averaged::
 See :class:`~.PermutationImportance` docs for more.
 
 Note that permutation importance should be used for feature selection with
-care. For example, if several features are correlated, and the estimator
-uses them all equally, permutation importance can be low for all of these
-features: dropping one of the features may not affect the result, as estimator
-still has an access to the same information from other features. So if features
-are dropped based on importance threshold, such correlated features could
-be dropped all at the same time, regardless of their usefulness.
+care (like many other feature importance measures). For example,
+if several features are correlated, and the estimator uses them all equally,
+permutation importance can be low for all of these features: dropping one
+of the features may not affect the result, as estimator still has an access
+to the same information from other features. So if features are dropped
+based on importance threshold, such correlated features could
+be dropped all at the same time, regardless of their usefulness. RFE_ and
+alike methods (as opposed to single-stage feature selection)
+can help with this problem to an extent.
 
 .. _SelectFromModel: http://scikit-learn.org/stable/modules/generated/sklearn.feature_selection.SelectFromModel.html#sklearn.feature_selection.SelectFromModel
 .. _RFE: http://scikit-learn.org/stable/modules/generated/sklearn.feature_selection.RFE.html#sklearn-feature-selection-rfe
-
-Shortcomings
-------------
-
-TODO

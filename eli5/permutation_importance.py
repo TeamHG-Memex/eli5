@@ -1,6 +1,8 @@
 """
 A module for computing feature importances by measuring how score decreases
-when a feature is not available.
+when a feature is not available. It contains basic building blocks;
+there is a full-featured sklearn-compatible implementation
+in :class:`~.PermutationImportance`.
 
 A similar method is described in Breiman, "Random Forests", Machine Learning,
 45(1), 5-32, 2001 (available online at
@@ -9,6 +11,7 @@ application to random forests. It is known in literature as
 "Mean Decrease Accuracy (MDA)" or "permutation importance".
 """
 from __future__ import absolute_import
+from typing import Tuple, List
 
 import numpy as np  # type: ignore
 from sklearn.utils import check_random_state  # type: ignore
@@ -49,13 +52,43 @@ def iter_shuffled(X, columns_to_shuffle=None, pre_shuffle=False,
         X_res[:, columns] = X[:, columns]
 
 
-def get_feature_importances(score_func, X, y, columns_to_shuffle=None,
-                            random_state=None):
-    """ Return feature importances computed as score decrease when a feature
-    is not available. """
-    score_base = score_func(X, y)
+def get_score_importances(score_func, X, y, n_iter=5,
+                          columns_to_shuffle=None, random_state=None):
+    # type: (...) -> Tuple[np.ndarray, List[np.ndarray]]
+    """
+    Return ``(base_score, score_decreases)`` tuple with the base score and
+    score decreases when a feature is not available.
+
+    ``base_score`` is ``score_func(X, y)``; ``score_decreases``
+    is a list of length ``n_iter`` with feature importance arrays
+    (each array is of shape ``n_features``); feature importances are computed
+    as score decrease when a feature is not available.
+
+    ``n_iter`` iterations of the basic algorithm is done, each iteration
+    starting from a different random seed.
+
+    If you just want feature importances, you can take a mean of the result::
+
+        import numpy as np
+        from eli5.permutation_importance import get_scores_importances
+
+        base_score, score_decreases = get_score_importances(score_func, X, y)
+        feature_importances = np.mean(score_decreases, axis=0)
+
+    """
+    rng = check_random_state(random_state)
+    base_score = score_func(X, y)
+    scores_decreases = []
+    for i in range(n_iter):
+        scores_shuffled = _get_scores_shufled(
+            score_func, X, y, columns_to_shuffle=columns_to_shuffle,
+            random_state=rng
+        )
+        scores_decreases.append(-scores_shuffled + base_score)
+    return base_score, scores_decreases
+
+
+def _get_scores_shufled(score_func, X, y, columns_to_shuffle=None,
+                        random_state=None):
     Xs = iter_shuffled(X, columns_to_shuffle, random_state=random_state)
-    return np.array([
-        score_base - score_func(X_shuffled, y)
-        for X_shuffled in Xs
-    ])
+    return np.array([score_func(X_shuffled, y) for X_shuffled in Xs])

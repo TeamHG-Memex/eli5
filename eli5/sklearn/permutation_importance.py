@@ -14,7 +14,7 @@ from sklearn.base import (  # type: ignore
 )
 from sklearn.metrics.scorer import check_scoring  # type: ignore
 
-from eli5 import permutation_importance
+from eli5.permutation_importance import get_score_importances
 
 
 CAVEATS_CV_NONE = """
@@ -41,7 +41,7 @@ class PermutationImportance(BaseEstimator, MetaEstimatorMixin):
     """Meta-estimator which computes ``feature_importances_`` attribute
     based on permutation importance (also known as mean score decrease).
 
-    PermutationImportance instance can be used instead of
+    :class:`~PermutationImportance` instance can be used instead of
     its wrapped estimator, as it exposes all estimator's common methods like
     ``predict``.
 
@@ -52,25 +52,27 @@ class PermutationImportance(BaseEstimator, MetaEstimatorMixin):
        with a held-out dataset (in the latter case ``feature_importances_``
        would be importances of features for generalization). After the fitting
        ``feature_importances_`` attribute becomes available, but the estimator
-       itself is not fit again. When cv="prefit", ``fit`` must be called
-       directly, and PermutationImportance cannot be used with
+       itself is not fit again. When cv="prefit",
+       :meth:`~PermutationImportance.fit` must be called
+       directly, and :class:`~PermutationImportance` cannot be used with
        ``cross_val_score``, ``GridSearchCV`` and similar utilities that clone
        the estimator.
-    2. cv=None. In this case ``fit`` method fits the estimator and computes
-       feature importances on the same data, i.e. feature importances
-       don't reflect importance of features for generalization.
-    3. all other ``cv`` values. ``fit`` method fits the estimator, but
-       instead of computing feature importances for the concrete estimator
-       which is fit, importances are computed for a sequence of estimators
-       trained and evaluated on train/test splits according to ``cv``, and
-       then averaged. This is more resource-intensive (estimators are fit
-       multiple times), and importances are not computed for the final
-       estimator, but ``feature_importances_`` show importances of features
-       for generalization.
+    2. cv=None. In this case :meth:`~PermutationImportance.fit` method fits
+       the estimator and computes feature importances on the same data, i.e.
+       feature importances don't reflect importance of features for
+       generalization.
+    3. all other ``cv`` values. :meth:`~PermutationImportance.fit` method
+       fits the estimator, but instead of computing feature importances for
+       the concrete estimator which is fit, importances are computed for
+       a sequence of estimators trained and evaluated on train/test splits
+       according to ``cv``, and then averaged. This is more resource-intensive
+       (estimators are fit multiple times), and importances are not computed
+       for the final estimator, but ``feature_importances_`` show importances
+       of features for generalization.
 
     Mode (1) is most useful for inspecting an existing estimator; modes
-    (2) and (3) can be also used for feature selection, together with
-    sklearn's SelectFromModel.
+    (2) and (3) can be also used for feature selection, e.g. together with
+    sklearn's SelectFromModel or RFE.
 
     Parameters
     ----------
@@ -122,10 +124,14 @@ class PermutationImportance(BaseEstimator, MetaEstimatorMixin):
     results_ : list of arrays
         A list of score decreases for all experiments.
 
+    scores_ : array of float
+        A list of base scores for all experiments (with no features permuted).
+
     estimator_ : an estimator
-        The base estimator from which the transformer is built.
-        This is stored only when a non-fitted estimator is passed to the
-        ``PermutationImportance``, i.e when prefit is False.
+        The base estimator from which the :class:`~PermutationImportance`
+        instance  is built. This is stored only when a non-fitted estimator
+        is passed to the :class:`~PermutationImportance`, i.e when ``prefit``
+        is False.
 
     rng_ : numpy.random.RandomState
         random state
@@ -177,35 +183,38 @@ class PermutationImportance(BaseEstimator, MetaEstimatorMixin):
         X = check_array(X)
 
         if self.cv not in (None, "prefit"):
-            self.results_ = self._cv_feature_importances(
-                X, y, groups=groups, **fit_params)
+            si = self._cv_scores_importances(X, y, groups=groups, **fit_params)
         else:
-            self.results_ = self._non_cv_feature_importances(X, y)
-
-        self.feature_importances_ = np.std(self.results_, axis=0)
-        self.feature_importances_std_ = np.std(self.results_, axis=0)
+            si = self._non_cv_scores_importances(X, y)
+        scores, results = si
+        self.scores_ = np.array(scores)
+        self.results_ = results
+        self.feature_importances_ = np.mean(results, axis=0)
+        self.feature_importances_std_ = np.std(results, axis=0)
         return self
 
-    def _cv_feature_importances(self, X, y, groups=None, **fit_params):
+    def _cv_scores_importances(self, X, y, groups=None, **fit_params):
         assert self.cv is not None
         cv = check_cv(self.cv, y, is_classifier(self.estimator))
         feature_importances = []  # type: List
+        base_scores = []  # type: List[float]
         for train, test in cv.split(X, y, groups):
             est = clone(self.estimator).fit(X[train], y[train], **fit_params)
             score_func = partial(self.scorer_, est)
-            feature_importances.extend(
-                self._iter_feature_importances(score_func, X[test], y[test])
-            )
-        return feature_importances
+            _base_score, _importances = self._get_score_importances(
+                score_func, X[test], y[test])
+            base_scores.extend([_base_score] * len(_importances))
+            feature_importances.extend(_importances)
+        return base_scores, feature_importances
 
-    def _non_cv_feature_importances(self, X, y):
+    def _non_cv_scores_importances(self, X, y):
         score_func = partial(self.scorer_, self.wrapped_estimator_)
-        return list(self._iter_feature_importances(score_func, X, y))
+        base_score, importances = self._get_score_importances(score_func, X, y)
+        return [base_score] * len(importances), importances
 
-    def _iter_feature_importances(self, score_func, X, y):
-        for i in range(self.n_iter):
-            yield permutation_importance.get_feature_importances(
-                score_func, X, y, random_state=self.rng_)
+    def _get_score_importances(self, score_func, X, y):
+        return get_score_importances(score_func, X, y, n_iter=self.n_iter,
+                                     random_state=self.rng_)
 
     @property
     def caveats_(self):

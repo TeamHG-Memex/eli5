@@ -3,7 +3,7 @@ from __future__ import absolute_import
 import numpy as np
 from sklearn.svm import SVR
 
-from eli5.permutation_importance import iter_shuffled, get_feature_importances
+from eli5.permutation_importance import iter_shuffled, get_score_importances
 
 
 def assert_column_mean_unchanged(X, **kwargs):
@@ -41,9 +41,11 @@ def test_iter_shuffled_columns():
 
 def test_get_feature_importances(boston_train):
     X, y, feat_names = boston_train
-    svr = SVR().fit(X, y)
-    importances = get_feature_importances(svr.score, X, y)
-    importances = dict(zip(feat_names, importances))
+    svr = SVR(C=20).fit(X, y)
+    score, importances = get_score_importances(svr.score, X, y)
+    assert score > 0.7
+    importances = dict(zip(feat_names, np.mean(importances, axis=0)))
+    print(score)
     print(importances)
     assert importances['AGE'] > importances['NOX']
     assert importances['B'] > importances['CHAS']

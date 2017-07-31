@@ -22,6 +22,7 @@ def _boston_with_leak(X, y, feat_names, noise_scale=10.0, noise_ratio=0.25):
      noise_train, noise_test) = train_test_split(X, y, noise, random_state=42,
                                                  test_size=noise_ratio)
 
+    # noise correlates with y in train, but not in test
     X_train = np.hstack([X_train, noise_train + y_train.reshape(-1, 1)])
     X_test = np.hstack([X_test, noise_test])
 
@@ -31,9 +32,9 @@ def _boston_with_leak(X, y, feat_names, noise_scale=10.0, noise_ratio=0.25):
 
 def _assert_importances_good(perm, feat_names):
     importances = dict(zip(feat_names, perm.feature_importances_))
+    print(perm.scores_)
     print(importances)
     assert importances['LSTAT'] > importances['NOX']
-    assert importances['B'] > importances['CHAS']
     return importances
 
 
@@ -54,7 +55,7 @@ def test_prefit(boston_train):
     # prefit estimator, fit on train part
     reg = RandomForestRegressor(n_estimators=50, random_state=42).fit(X_train, y_train)
     print(reg.score(X_test, y_test), reg.score(X_train, y_train))
-    print(X_train[:,-1], y_train)
+    print(X_train[:, -1], y_train)
     perm_prefit = PermutationImportance(reg, random_state=42, n_iter=10).fit(X_train, y_train)
     assert not hasattr(perm_prefit, "estimator_")
     assert perm_prefit.wrapped_estimator_ is reg
@@ -67,13 +68,15 @@ def test_prefit(boston_train):
 
 def test_cv(boston_train):
     # noise feature can be important if no cv is used, but not if cv is used
+    # X_train, y_train are almost empty; we're using test part of the dataset
     X_train, X_test, y_train, y_test, feat_names = _boston_with_leak(
         *boston_train, noise_ratio=0.99)
 
     reg = PermutationImportance(
         SVR(C=100),
         random_state=42,
-        cv=None
+        cv=None,
+        n_iter=50,  # use the same number of experiments as with cv=10
     ).fit(X_test, y_test)
 
     assert reg.score(X_test, y_test) > 0
@@ -90,7 +93,7 @@ def test_cv(boston_train):
     imp_cv = _assert_importances_good(reg, feat_names)
     assert reg.score(X_test, y_test) > 0
 
-    assert imp_cv['DATALEAK'] < imp_nocv['DATALEAK']
+    assert imp_cv['DATALEAK'] * 10 < imp_nocv['DATALEAK']
 
 
 def test_invalid_params():
