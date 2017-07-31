@@ -77,7 +77,7 @@ For non-sklearn models you can use
         y_pred = predict(X)
         return accuracy(y, y_pred)
 
-    base_score, score_decreases = get_score_importances(score_func, X, y)
+    base_score, score_decreases = get_score_importances(score, X, y)
     feature_importances = np.mean(score_decreases, axis=0)
 
 
