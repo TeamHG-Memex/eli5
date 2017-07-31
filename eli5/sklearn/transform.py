@@ -8,6 +8,12 @@ from sklearn.linear_model import (  # type: ignore
     RandomizedLogisticRegression,
     RandomizedLasso,
 )
+from sklearn.preprocessing import (
+    MinMaxScaler,
+    StandardScaler,
+    MaxAbsScaler,
+    RobustScaler,
+)
 
 from eli5.transform import transform_feature_names
 from eli5.sklearn.utils import get_feature_names as _get_feature_names
@@ -23,6 +29,17 @@ def _select_names(est, in_names=None):
     in_names = _get_feature_names(est, feature_names=in_names,
                                   num_features=len(mask))
     return [in_names[i] for i in np.flatnonzero(mask)]
+
+
+# Scaling
+
+@transform_feature_names.register(MinMaxScaler)
+@transform_feature_names.register(StandardScaler)
+@transform_feature_names.register(MaxAbsScaler)
+@transform_feature_names.register(RobustScaler)
+def _select_scaling(est, in_names=None):
+    return _get_feature_names(est, feature_names=in_names,
+                              num_features=est.scale_.shape[0])
 
 
 # Pipelines

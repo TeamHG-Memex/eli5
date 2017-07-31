@@ -20,7 +20,14 @@ from sklearn.linear_model import (
     RandomizedLogisticRegression,
     RandomizedLasso,  # TODO: add tests and document
 )
-from sklearn.pipeline import FeatureUnion
+from sklearn.preprocessing import (
+    MinMaxScaler,
+    StandardScaler,
+    MaxAbsScaler,
+    RobustScaler,
+)
+from sklearn.pipeline import FeatureUnion, make_pipeline
+
 from eli5 import transform_feature_names
 
 
@@ -41,6 +48,14 @@ def selection_score_func(X, y):
 
 @pytest.mark.parametrize('transformer,expected', [
     (MyFeatureExtractor(), ['f1', 'f2', 'f3']),
+    (make_pipeline(StandardScaler(), MyFeatureExtractor()),
+     ['f1', 'f2', 'f3']),
+    (make_pipeline(MinMaxScaler(), MyFeatureExtractor()),
+     ['f1', 'f2', 'f3']),
+    (make_pipeline(MaxAbsScaler(), MyFeatureExtractor()),
+     ['f1', 'f2', 'f3']),
+    (make_pipeline(RobustScaler(), MyFeatureExtractor()),
+     ['f1', 'f2', 'f3']),
     (SelectKBest(selection_score_func, k=1),
      ['<NAME3>']),
     (SelectKBest(selection_score_func, k=2),
