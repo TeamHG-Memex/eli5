@@ -37,7 +37,7 @@ def _select_names(est, in_names=None):
 @transform_feature_names.register(StandardScaler)
 @transform_feature_names.register(MaxAbsScaler)
 @transform_feature_names.register(RobustScaler)
-def _select_scaling(est, in_names=None):
+def _transform_scaling(est, in_names=None):
     if in_names is None:
         in_names = _get_feature_names(est, feature_names=in_names,
                                       num_features=est.scale_.shape[0])
