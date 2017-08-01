@@ -260,8 +260,14 @@ Currently the following transformers are supported out of the box:
 * nested FeatureUnions and Pipelines;
 * SelectorMixin-based transformers: SelectPercentile_,
   SelectKBest_, GenericUnivariateSelect_, VarianceThreshold_,
-  RFE_, RFECV_, SelectFromModel_, RandomizedLogisticRegression_.
+  RFE_, RFECV_, SelectFromModel_, RandomizedLogisticRegression_;
+* scalers from sklearn.preprocessing: MinMaxScaler_, StandardScaler_,
+  MaxAbsScaler_, RobustScaler_.
 
+.. _MinMaxScaler: http://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.MinMaxScaler.html
+.. _StandardScaler: http://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html#sklearn.preprocessing.StandardScaler
+.. _MaxAbsScaler: http://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.MaxAbsScaler.html#sklearn.preprocessing.MaxAbsScaler
+.. _RobustScaler: http://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.RobustScaler.html#sklearn.preprocessing.RobustScaler
 .. _GenericUnivariateSelect: http://scikit-learn.org/stable/modules/generated/sklearn.feature_selection.GenericUnivariateSelect.html
 .. _SelectPercentile: http://scikit-learn.org/stable/modules/generated/sklearn.feature_selection.SelectPercentile.html
 .. _SelectKBest: http://scikit-learn.org/stable/modules/generated/sklearn.feature_selection.SelectKBest.html
@@ -272,6 +278,7 @@ Currently the following transformers are supported out of the box:
 .. _RandomizedLogisticRegression: http://scikit-learn.org/stable/modules/generated/sklearn.linear_model.RandomizedLogisticRegression.html
 .. _Pipeline: http://scikit-learn.org/stable/modules/generated/sklearn.pipeline.Pipeline.html#sklearn.pipeline.Pipeline
 .. _singledispatch: https://pypi.python.org/pypi/singledispatch
+
 
 .. _sklearn-unhashing:
 
