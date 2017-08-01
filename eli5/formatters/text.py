@@ -129,12 +129,16 @@ def _fi_lines(feature_importances, hl_spaces):
     # type: (FeatureImportances, Optional[bool]) -> Iterator[str]
     for fw in feature_importances.importances:
         featname = _format_feature(fw.feature, hl_spaces)
-        if fw.std is None:
-            yield u'{w:0.4f}  {feature}'.format(feature=featname, w=fw.weight)
+        if fw.std or fw.weight:
+            w = u'{:0.4f}'.format(fw.weight)
         else:
-            yield u'{w:0.4f} {plus} {std:0.4f}  {feature}'.format(
+            w = u"0".rjust(6)
+        if fw.std is None:
+            yield u'{w}  {feature}'.format(feature=featname, w=w)
+        else:
+            yield u'{w} {plus} {std:0.4f}  {feature}'.format(
                 feature=featname,
-                w=fw.weight,
+                w=w,
                 plus=_PLUS_MINUS,
                 std=2 * fw.std,
             )

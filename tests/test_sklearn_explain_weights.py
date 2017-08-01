@@ -580,8 +580,7 @@ def test_explain_decision_tree_regressor_multitarget():
     [ExtraTreesClassifier()],
 ])
 def test_feature_importances_no_remaining(clf):
-    """ Check that number of remaining features is not shown if it is zero,
-    and that features with zero importance are not shown either.
+    """ Check that number of remaining features is shown if it is zero.
     """
     n = 100
     clf.fit(np.array([[i % 2 + 0.1 * np.random.random(), 0] for i in range(n)]),
@@ -589,7 +588,6 @@ def test_feature_importances_no_remaining(clf):
     res = explain_weights(clf)
     for expl in format_as_all(res, clf):
         assert 'more features' not in expl and 'more &hellip;' not in expl
-        assert 'x1' not in expl  # it has zero importance
 
 
 @pytest.mark.parametrize(['transformer', 'X', 'feature_names',

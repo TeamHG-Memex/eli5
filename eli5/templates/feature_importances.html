@@ -1,0 +1,32 @@
+<table class="eli5-weights eli5-feature-importances" style="{{ target_table_styles }}">
+    <thead>
+    <tr style="{{ tr_styles }}">
+        <th style="{{ td1_styles }}">Weight</th>
+        <th style="{{ td2_styles }}">Feature</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for fw in expl.feature_importances.importances %}
+        <tr style="background-color: {{ fw.weight|weight_color(feat_imp_weight_range) }}; {{ tr_styles }}">
+            <td style="{{ td1_styles }}">
+                {% if fw.weight or fw.std %}{{ "%0.4f"|format(fw.weight) }}{% else %}0{% endif %}
+                {% if not fw.std is none %}
+                    &plusmn; {{ "%0.4f"|format(2 * fw.std) }}
+                {% endif %}
+            </td>
+            <td style="{{ td2_styles }}">
+                {{ fw.feature|format_feature(fw.weight, hl_spaces) }}
+            </td>
+        </tr>
+    {% endfor %}
+    {% if expl.feature_importances.remaining %}
+        {% with fw = expl.feature_importances.importances|last %}
+            <tr style="background-color: {{ fw.weight|weight_color(feat_imp_weight_range) }}; {{ tr_styles }}">
+                <td colspan="2" style="{{ tdm_styles }}">
+                    <i>&hellip; {{ expl.feature_importances.remaining }} more &hellip;</i>
+                </td>
+            </tr>
+        {% endwith %}
+    {% endif %}
+    </tbody>
+</table>
