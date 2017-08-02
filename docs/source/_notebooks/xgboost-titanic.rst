@@ -251,137 +251,225 @@ Let's check feature importances with :func:`eli5.show_weights`:
     
         
             <table class="eli5-weights eli5-feature-importances" style="border-collapse: collapse; border: none; margin-top: 0em; table-layout: auto;">
-                <thead>
-                <tr style="border: none;">
-                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
-                    <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+        <thead>
+        <tr style="border: none;">
+            <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
+            <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+        </tr>
+        </thead>
+        <tbody>
+        
+            <tr style="background-color: hsl(120, 100.00%, 80.00%); border: none;">
+                <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                    0.4278
+                    
+                </td>
+                <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                    Sex=female
+                </td>
+            </tr>
+        
+            <tr style="background-color: hsl(120, 100.00%, 88.46%); border: none;">
+                <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                    0.1949
+                    
+                </td>
+                <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                    Pclass=3
+                </td>
+            </tr>
+        
+            <tr style="background-color: hsl(120, 100.00%, 94.57%); border: none;">
+                <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                    0.0665
+                    
+                </td>
+                <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                    Embarked=S
+                </td>
+            </tr>
+        
+            <tr style="background-color: hsl(120, 100.00%, 95.49%); border: none;">
+                <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                    0.0510
+                    
+                </td>
+                <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                    Pclass=2
+                </td>
+            </tr>
+        
+            <tr style="background-color: hsl(120, 100.00%, 96.06%); border: none;">
+                <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                    0.0420
+                    
+                </td>
+                <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                    SibSp
+                </td>
+            </tr>
+        
+            <tr style="background-color: hsl(120, 100.00%, 96.08%); border: none;">
+                <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                    0.0417
+                    
+                </td>
+                <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                    Cabin=
+                </td>
+            </tr>
+        
+            <tr style="background-color: hsl(120, 100.00%, 96.29%); border: none;">
+                <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                    0.0385
+                    
+                </td>
+                <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                    Embarked=C
+                </td>
+            </tr>
+        
+            <tr style="background-color: hsl(120, 100.00%, 96.47%); border: none;">
+                <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                    0.0358
+                    
+                </td>
+                <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                    Ticket=1601
+                </td>
+            </tr>
+        
+            <tr style="background-color: hsl(120, 100.00%, 96.66%); border: none;">
+                <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                    0.0331
+                    
+                </td>
+                <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                    Age
+                </td>
+            </tr>
+        
+            <tr style="background-color: hsl(120, 100.00%, 96.72%); border: none;">
+                <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                    0.0323
+                    
+                </td>
+                <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                    Fare
+                </td>
+            </tr>
+        
+            <tr style="background-color: hsl(120, 100.00%, 97.49%); border: none;">
+                <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                    0.0220
+                    
+                </td>
+                <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                    Pclass=1
+                </td>
+            </tr>
+        
+            <tr style="background-color: hsl(120, 100.00%, 98.15%); border: none;">
+                <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                    0.0143
+                    
+                </td>
+                <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                    Parch
+                </td>
+            </tr>
+        
+            <tr style="background-color: hsl(0, 100.00%, 100.00%); border: none;">
+                <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                    0
+                    
+                </td>
+                <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                    Name=Rothes, the Countess. of (Lucy Noel Martha Dyer-Edwards)
+                </td>
+            </tr>
+        
+            <tr style="background-color: hsl(0, 100.00%, 100.00%); border: none;">
+                <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                    0
+                    
+                </td>
+                <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                    Name=Roebling, Mr. Washington Augustus II
+                </td>
+            </tr>
+        
+            <tr style="background-color: hsl(0, 100.00%, 100.00%); border: none;">
+                <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                    0
+                    
+                </td>
+                <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                    Name=Rosblom, Mr. Viktor Richard
+                </td>
+            </tr>
+        
+            <tr style="background-color: hsl(0, 100.00%, 100.00%); border: none;">
+                <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                    0
+                    
+                </td>
+                <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                    Name=Ross, Mr. John Hugo
+                </td>
+            </tr>
+        
+            <tr style="background-color: hsl(0, 100.00%, 100.00%); border: none;">
+                <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                    0
+                    
+                </td>
+                <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                    Name=Rush, Mr. Alfred George John
+                </td>
+            </tr>
+        
+            <tr style="background-color: hsl(0, 100.00%, 100.00%); border: none;">
+                <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                    0
+                    
+                </td>
+                <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                    Name=Rouse, Mr. Richard Henry
+                </td>
+            </tr>
+        
+            <tr style="background-color: hsl(0, 100.00%, 100.00%); border: none;">
+                <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                    0
+                    
+                </td>
+                <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                    Name=Ryerson, Miss. Emily Borie
+                </td>
+            </tr>
+        
+            <tr style="background-color: hsl(0, 100.00%, 100.00%); border: none;">
+                <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                    0
+                    
+                </td>
+                <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                    Name=Ryerson, Miss. Susan Parker &quot;Suzette&quot;
+                </td>
+            </tr>
+        
+        
+            
+                <tr style="background-color: hsl(0, 100.00%, 100.00%); border: none;">
+                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none; white-space: nowrap;">
+                        <i>&hellip; 1972 more &hellip;</i>
+                    </td>
                 </tr>
-                </thead>
-                <tbody>
-                
-                    <tr style="background-color: hsl(120, 100.00%, 80.00%); border: none;">
-                        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-                            0.4278
-                            
-                        </td>
-                        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-                            Sex=female
-                        </td>
-                    </tr>
-                
-                    <tr style="background-color: hsl(120, 100.00%, 88.46%); border: none;">
-                        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-                            0.1949
-                            
-                        </td>
-                        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-                            Pclass=3
-                        </td>
-                    </tr>
-                
-                    <tr style="background-color: hsl(120, 100.00%, 94.57%); border: none;">
-                        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-                            0.0665
-                            
-                        </td>
-                        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-                            Embarked=S
-                        </td>
-                    </tr>
-                
-                    <tr style="background-color: hsl(120, 100.00%, 95.49%); border: none;">
-                        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-                            0.0510
-                            
-                        </td>
-                        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-                            Pclass=2
-                        </td>
-                    </tr>
-                
-                    <tr style="background-color: hsl(120, 100.00%, 96.06%); border: none;">
-                        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-                            0.0420
-                            
-                        </td>
-                        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-                            SibSp
-                        </td>
-                    </tr>
-                
-                    <tr style="background-color: hsl(120, 100.00%, 96.08%); border: none;">
-                        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-                            0.0417
-                            
-                        </td>
-                        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-                            Cabin=
-                        </td>
-                    </tr>
-                
-                    <tr style="background-color: hsl(120, 100.00%, 96.29%); border: none;">
-                        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-                            0.0385
-                            
-                        </td>
-                        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-                            Embarked=C
-                        </td>
-                    </tr>
-                
-                    <tr style="background-color: hsl(120, 100.00%, 96.47%); border: none;">
-                        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-                            0.0358
-                            
-                        </td>
-                        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-                            Ticket=1601
-                        </td>
-                    </tr>
-                
-                    <tr style="background-color: hsl(120, 100.00%, 96.66%); border: none;">
-                        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-                            0.0331
-                            
-                        </td>
-                        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-                            Age
-                        </td>
-                    </tr>
-                
-                    <tr style="background-color: hsl(120, 100.00%, 96.72%); border: none;">
-                        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-                            0.0323
-                            
-                        </td>
-                        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-                            Fare
-                        </td>
-                    </tr>
-                
-                    <tr style="background-color: hsl(120, 100.00%, 97.49%); border: none;">
-                        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-                            0.0220
-                            
-                        </td>
-                        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-                            Pclass=1
-                        </td>
-                    </tr>
-                
-                    <tr style="background-color: hsl(120, 100.00%, 98.15%); border: none;">
-                        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-                            0.0143
-                            
-                        </td>
-                        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-                            Parch
-                        </td>
-                    </tr>
-                
-                
-                </tbody>
-            </table>
+            
+        
+        </tbody>
+    </table>
         
     
         
@@ -1092,225 +1180,225 @@ importances:
     
         
             <table class="eli5-weights eli5-feature-importances" style="border-collapse: collapse; border: none; margin-top: 0em; table-layout: auto;">
-                <thead>
-                <tr style="border: none;">
-                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
-                    <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+        <thead>
+        <tr style="border: none;">
+            <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;">Weight</th>
+            <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+        </tr>
+        </thead>
+        <tbody>
+        
+            <tr style="background-color: hsl(120, 100.00%, 80.00%); border: none;">
+                <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                    0.3138
+                    
+                </td>
+                <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                    Name__<span style="background-color: hsl(120, 80%, 70%); margin: 0 0.1em 0 0.1em" title="A space symbol">&emsp;</span>Mr.
+                </td>
+            </tr>
+        
+            <tr style="background-color: hsl(120, 100.00%, 92.18%); border: none;">
+                <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                    0.0821
+                    
+                </td>
+                <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                    All__Pclass=3
+                </td>
+            </tr>
+        
+            <tr style="background-color: hsl(120, 100.00%, 94.92%); border: none;">
+                <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                    0.0443
+                    
+                </td>
+                <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                    Name__sso
+                </td>
+            </tr>
+        
+            <tr style="background-color: hsl(120, 100.00%, 96.18%); border: none;">
+                <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                    0.0294
+                    
+                </td>
+                <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                    All__Sex=female
+                </td>
+            </tr>
+        
+            <tr style="background-color: hsl(120, 100.00%, 96.97%); border: none;">
+                <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                    0.0212
+                    
+                </td>
+                <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                    Name__lia
+                </td>
+            </tr>
+        
+            <tr style="background-color: hsl(120, 100.00%, 97.04%); border: none;">
+                <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                    0.0205
+                    
+                </td>
+                <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                    All__Fare
+                </td>
+            </tr>
+        
+            <tr style="background-color: hsl(120, 100.00%, 97.06%); border: none;">
+                <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                    0.0203
+                    
+                </td>
+                <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                    All__Ticket=1601
+                </td>
+            </tr>
+        
+            <tr style="background-color: hsl(120, 100.00%, 97.12%); border: none;">
+                <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                    0.0197
+                    
+                </td>
+                <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                    All__Embarked=S
+                </td>
+            </tr>
+        
+            <tr style="background-color: hsl(120, 100.00%, 97.23%); border: none;">
+                <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                    0.0187
+                    
+                </td>
+                <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                    Name__<span style="background-color: hsl(120, 80%, 70%); margin: 0 0.1em 0 0.1em" title="A space symbol">&emsp;</span>Ma
+                </td>
+            </tr>
+        
+            <tr style="background-color: hsl(120, 100.00%, 97.33%); border: none;">
+                <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                    0.0177
+                    
+                </td>
+                <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                    All__Cabin=
+                </td>
+            </tr>
+        
+            <tr style="background-color: hsl(120, 100.00%, 97.38%); border: none;">
+                <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                    0.0172
+                    
+                </td>
+                <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                    Name__<span style="background-color: hsl(120, 80%, 70%); margin: 0 0.1em 0 0.1em" title="A space symbol">&emsp;</span>Mar
+                </td>
+            </tr>
+        
+            <tr style="background-color: hsl(120, 100.00%, 97.42%); border: none;">
+                <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                    0.0168
+                    
+                </td>
+                <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                    Name__s,<span style="background-color: hsl(120, 80%, 70%); margin: 0 0 0 0.1em" title="A space symbol">&emsp;</span>
+                </td>
+            </tr>
+        
+            <tr style="background-color: hsl(120, 100.00%, 97.51%); border: none;">
+                <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                    0.0160
+                    
+                </td>
+                <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                    Name__<span style="background-color: hsl(120, 80%, 70%); margin: 0 0.1em 0 0.1em" title="A space symbol">&emsp;</span>Mr
+                </td>
+            </tr>
+        
+            <tr style="background-color: hsl(120, 100.00%, 97.54%); border: none;">
+                <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                    0.0157
+                    
+                </td>
+                <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                    Name__son
+                </td>
+            </tr>
+        
+            <tr style="background-color: hsl(120, 100.00%, 97.76%); border: none;">
+                <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                    0.0138
+                    
+                </td>
+                <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                    Name__ne<span style="background-color: hsl(120, 80%, 70%); margin: 0 0 0 0.1em" title="A space symbol">&emsp;</span>
+                </td>
+            </tr>
+        
+            <tr style="background-color: hsl(120, 100.00%, 97.76%); border: none;">
+                <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                    0.0137
+                    
+                </td>
+                <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                    Name__ber
+                </td>
+            </tr>
+        
+            <tr style="background-color: hsl(120, 100.00%, 97.77%); border: none;">
+                <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                    0.0136
+                    
+                </td>
+                <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                    All__SibSp
+                </td>
+            </tr>
+        
+            <tr style="background-color: hsl(120, 100.00%, 97.78%); border: none;">
+                <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                    0.0136
+                    
+                </td>
+                <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                    Name__e,<span style="background-color: hsl(120, 80%, 70%); margin: 0 0 0 0.1em" title="A space symbol">&emsp;</span>
+                </td>
+            </tr>
+        
+            <tr style="background-color: hsl(120, 100.00%, 97.80%); border: none;">
+                <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                    0.0134
+                    
+                </td>
+                <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                    All__Pclass=1
+                </td>
+            </tr>
+        
+            <tr style="background-color: hsl(120, 100.00%, 97.91%); border: none;">
+                <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+                    0.0125
+                    
+                </td>
+                <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+                    All__Embarked=C
+                </td>
+            </tr>
+        
+        
+            
+                <tr style="background-color: hsl(120, 100.00%, 97.91%); border: none;">
+                    <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none; white-space: nowrap;">
+                        <i>&hellip; 2072 more &hellip;</i>
+                    </td>
                 </tr>
-                </thead>
-                <tbody>
-                
-                    <tr style="background-color: hsl(120, 100.00%, 80.00%); border: none;">
-                        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-                            0.3138
-                            
-                        </td>
-                        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-                            Name__<span style="background-color: hsl(120, 80%, 70%); margin: 0 0.1em 0 0.1em" title="A space symbol">&emsp;</span>Mr.
-                        </td>
-                    </tr>
-                
-                    <tr style="background-color: hsl(120, 100.00%, 92.18%); border: none;">
-                        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-                            0.0821
-                            
-                        </td>
-                        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-                            All__Pclass=3
-                        </td>
-                    </tr>
-                
-                    <tr style="background-color: hsl(120, 100.00%, 94.92%); border: none;">
-                        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-                            0.0443
-                            
-                        </td>
-                        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-                            Name__sso
-                        </td>
-                    </tr>
-                
-                    <tr style="background-color: hsl(120, 100.00%, 96.18%); border: none;">
-                        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-                            0.0294
-                            
-                        </td>
-                        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-                            All__Sex=female
-                        </td>
-                    </tr>
-                
-                    <tr style="background-color: hsl(120, 100.00%, 96.97%); border: none;">
-                        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-                            0.0212
-                            
-                        </td>
-                        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-                            Name__lia
-                        </td>
-                    </tr>
-                
-                    <tr style="background-color: hsl(120, 100.00%, 97.04%); border: none;">
-                        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-                            0.0205
-                            
-                        </td>
-                        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-                            All__Fare
-                        </td>
-                    </tr>
-                
-                    <tr style="background-color: hsl(120, 100.00%, 97.06%); border: none;">
-                        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-                            0.0203
-                            
-                        </td>
-                        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-                            All__Ticket=1601
-                        </td>
-                    </tr>
-                
-                    <tr style="background-color: hsl(120, 100.00%, 97.12%); border: none;">
-                        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-                            0.0197
-                            
-                        </td>
-                        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-                            All__Embarked=S
-                        </td>
-                    </tr>
-                
-                    <tr style="background-color: hsl(120, 100.00%, 97.23%); border: none;">
-                        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-                            0.0187
-                            
-                        </td>
-                        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-                            Name__<span style="background-color: hsl(120, 80%, 70%); margin: 0 0.1em 0 0.1em" title="A space symbol">&emsp;</span>Ma
-                        </td>
-                    </tr>
-                
-                    <tr style="background-color: hsl(120, 100.00%, 97.33%); border: none;">
-                        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-                            0.0177
-                            
-                        </td>
-                        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-                            All__Cabin=
-                        </td>
-                    </tr>
-                
-                    <tr style="background-color: hsl(120, 100.00%, 97.38%); border: none;">
-                        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-                            0.0172
-                            
-                        </td>
-                        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-                            Name__<span style="background-color: hsl(120, 80%, 70%); margin: 0 0.1em 0 0.1em" title="A space symbol">&emsp;</span>Mar
-                        </td>
-                    </tr>
-                
-                    <tr style="background-color: hsl(120, 100.00%, 97.42%); border: none;">
-                        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-                            0.0168
-                            
-                        </td>
-                        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-                            Name__s,<span style="background-color: hsl(120, 80%, 70%); margin: 0 0 0 0.1em" title="A space symbol">&emsp;</span>
-                        </td>
-                    </tr>
-                
-                    <tr style="background-color: hsl(120, 100.00%, 97.51%); border: none;">
-                        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-                            0.0160
-                            
-                        </td>
-                        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-                            Name__<span style="background-color: hsl(120, 80%, 70%); margin: 0 0.1em 0 0.1em" title="A space symbol">&emsp;</span>Mr
-                        </td>
-                    </tr>
-                
-                    <tr style="background-color: hsl(120, 100.00%, 97.54%); border: none;">
-                        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-                            0.0157
-                            
-                        </td>
-                        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-                            Name__son
-                        </td>
-                    </tr>
-                
-                    <tr style="background-color: hsl(120, 100.00%, 97.76%); border: none;">
-                        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-                            0.0138
-                            
-                        </td>
-                        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-                            Name__ne<span style="background-color: hsl(120, 80%, 70%); margin: 0 0 0 0.1em" title="A space symbol">&emsp;</span>
-                        </td>
-                    </tr>
-                
-                    <tr style="background-color: hsl(120, 100.00%, 97.76%); border: none;">
-                        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-                            0.0137
-                            
-                        </td>
-                        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-                            Name__ber
-                        </td>
-                    </tr>
-                
-                    <tr style="background-color: hsl(120, 100.00%, 97.77%); border: none;">
-                        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-                            0.0136
-                            
-                        </td>
-                        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-                            All__SibSp
-                        </td>
-                    </tr>
-                
-                    <tr style="background-color: hsl(120, 100.00%, 97.78%); border: none;">
-                        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-                            0.0136
-                            
-                        </td>
-                        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-                            Name__e,<span style="background-color: hsl(120, 80%, 70%); margin: 0 0 0 0.1em" title="A space symbol">&emsp;</span>
-                        </td>
-                    </tr>
-                
-                    <tr style="background-color: hsl(120, 100.00%, 97.80%); border: none;">
-                        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-                            0.0134
-                            
-                        </td>
-                        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-                            All__Pclass=1
-                        </td>
-                    </tr>
-                
-                    <tr style="background-color: hsl(120, 100.00%, 97.91%); border: none;">
-                        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-                            0.0125
-                            
-                        </td>
-                        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-                            All__Embarked=C
-                        </td>
-                    </tr>
-                
-                
-                    
-                        <tr style="background-color: hsl(120, 100.00%, 97.91%); border: none;">
-                            <td colspan="2" style="padding: 0 0.5em 0 0.5em; text-align: center; border: none; white-space: nowrap;">
-                                <i>&hellip; 34 more &hellip;</i>
-                            </td>
-                        </tr>
-                    
-                
-                </tbody>
-            </table>
+            
+        
+        </tbody>
+    </table>
         
     
         
