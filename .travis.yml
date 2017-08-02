@@ -52,3 +52,4 @@ after_success:
 cache:
     directories:
         - $HOME/.cache/pip
+        - $HOME/scikit_learn_data
