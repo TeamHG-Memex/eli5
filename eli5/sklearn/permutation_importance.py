@@ -218,6 +218,7 @@ class PermutationImportance(BaseEstimator, MetaEstimatorMixin):
 
     @property
     def caveats_(self):
+        # type: () -> str
         if self.cv == 'prefit':
             return CAVEATS_PREFIT
         elif self.cv is None:

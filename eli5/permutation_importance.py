@@ -11,7 +11,7 @@ application to random forests. It is known in literature as
 "Mean Decrease Accuracy (MDA)" or "permutation importance".
 """
 from __future__ import absolute_import
-from typing import Tuple, List
+from typing import Tuple, List, Callable, Any
 
 import numpy as np  # type: ignore
 from sklearn.utils import check_random_state  # type: ignore
@@ -52,9 +52,15 @@ def iter_shuffled(X, columns_to_shuffle=None, pre_shuffle=False,
         X_res[:, columns] = X[:, columns]
 
 
-def get_score_importances(score_func, X, y, n_iter=5,
-                          columns_to_shuffle=None, random_state=None):
-    # type: (...) -> Tuple[np.ndarray, List[np.ndarray]]
+def get_score_importances(
+        score_func,  # type: Callable[[Any, Any], float]
+        X,
+        y,
+        n_iter=5,  # type: int
+        columns_to_shuffle=None,
+        random_state=None
+    ):
+    # type: (...) -> Tuple[float, List[np.ndarray]]
     """
     Return ``(base_score, score_decreases)`` tuple with the base score and
     score decreases when a feature is not available.
