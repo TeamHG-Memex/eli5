@@ -36,6 +36,10 @@ fail). The simplest way to get such noise is to shuffle values
 for a feature, i.e. use other examples' feature values - this is how
 permutation importance is computed.
 
+The method is most suitable for computing feature importances when
+a number of columns (features) is not huge; it can be resource-intensive
+otherwise.
+
 Model Inspection
 ----------------
 

@@ -74,6 +74,8 @@ class PermutationImportance(BaseEstimator, MetaEstimatorMixin):
     (2) and (3) can be also used for feature selection, e.g. together with
     sklearn's SelectFromModel or RFE.
 
+    Currently :class:`~PermutationImportance` works with dense data.
+
     Parameters
     ----------
     estimator : object
