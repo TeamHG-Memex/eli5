@@ -1,6 +1,6 @@
 from itertools import chain
 from singledispatch import singledispatch
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 import warnings
 
 import pandas as pd  # type: ignore
@@ -120,8 +120,11 @@ def format_as_dataframe(explanation):
 def _feature_importances_to_df(feature_importances):
     # type: (FeatureImportances) -> pd.DataFrame
     weights = feature_importances.importances
-    df = pd.DataFrame({'weight': [fw.weight for fw in weights]},
-                      index=[fw.feature for fw in weights])
+    df = pd.DataFrame(
+        {'feature': [fw.feature for fw in weights],
+         'weight': [fw.weight for fw in weights],
+         },
+        columns=['feature', 'weight'])
     if any(fw.std is not None for fw in weights):
         df['std'] = [fw.std for fw in weights]
     if any(fw.value is not None for fw in weights):
@@ -134,35 +137,30 @@ def _targets_to_df(targets):
     # type: (List[TargetExplanation]) -> pd.DataFrame
     if targets and not isinstance(targets[0], TargetExplanation):
         raise ValueError('Only lists of TargetExplanation are supported')
-    index, weights, stds, values = [], [], [], []
+    columns = ['target', 'feature', 'weight', 'std', 'value']
+    df_data = {f: [] for f in columns}  # type: Dict[str, List[Any]]
     for target in targets:
         for fw in chain(target.feature_weights.pos,
                         reversed(target.feature_weights.neg)):
-            index.append((target.target, fw.feature))
-            weights.append(fw.weight)
-            stds.append(fw.std)
-            values.append(fw.value)
-    df = pd.DataFrame(
-        {'weight': weights},
-        index=pd.MultiIndex.from_tuples(index, names=['target', 'feature']))
-    if any(x is not None for x in stds):
-        df['std'] = stds
-    if any(x is not None for x in values):
-        df['value'] = values
-    return df
+            df_data['target'].append(target.target)
+            df_data['feature'].append(fw.feature)
+            df_data['weight'].append(fw.weight)
+            df_data['std'].append(fw.std)
+            df_data['value'].append(fw.value)
+    for optional_field in ['std', 'value']:
+        if all(x is None for x in df_data[optional_field]):
+            df_data.pop(optional_field)
+            columns.remove(optional_field)
+    return pd.DataFrame(df_data, columns=columns)
 
 
 @format_as_dataframe.register(TransitionFeatureWeights)
 def _transition_features_to_df(transition_features):
     # type: (TransitionFeatureWeights) -> pd.DataFrame
     class_names = list(transition_features.class_names)
-    df = pd.DataFrame({
-        'from': [f for _ in class_names for f in class_names],
-        'to': [f for f in class_names for _ in class_names],
-        'coef': transition_features.coef.T.reshape(-1),
-    })
-    table = pd.pivot_table(df, values='coef', columns=['to'], index=['from'])
-    # recover original order
-    table = table[class_names]
-    table = table.reindex(class_names)
-    return table
+    return pd.DataFrame(
+        {'from': [f for _ in class_names for f in class_names],
+         'to': [f for f in class_names for _ in class_names],
+         'coef': transition_features.coef.T.reshape(-1),
+         },
+        columns=['from', 'to', 'coef'])
