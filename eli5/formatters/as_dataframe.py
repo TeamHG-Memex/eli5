@@ -159,8 +159,8 @@ def _transition_features_to_df(transition_features):
     # type: (TransitionFeatureWeights) -> pd.DataFrame
     class_names = list(transition_features.class_names)
     return pd.DataFrame(
-        {'from': [f for _ in class_names for f in class_names],
-         'to': [f for f in class_names for _ in class_names],
-         'coef': transition_features.coef.T.reshape(-1),
+        {'from': [f for f in class_names for _ in class_names],
+         'to': [f for _ in class_names for f in class_names],
+         'coef': transition_features.coef.reshape(-1),
          },
         columns=['from', 'to', 'coef'])

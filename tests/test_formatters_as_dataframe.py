@@ -199,8 +199,8 @@ def test_transition_features():
     print(format_as_text(expl))
     expected = pd.DataFrame([
         {'from': 'class2', 'to': 'class2', 'coef': 1.5},
-        {'from': 'class1', 'to': 'class2', 'coef': 3.5},
         {'from': 'class2', 'to': 'class1', 'coef': 2.5},
+        {'from': 'class1', 'to': 'class2', 'coef': 3.5},
         {'from': 'class1', 'to': 'class1', 'coef': 4.5},
     ], columns=['from', 'to', 'coef'])
     assert df.equals(expected)
