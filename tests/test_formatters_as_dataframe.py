@@ -33,11 +33,13 @@ def test_explain_weights(boston_train):
 
 
 def check_targets_dataframe(df, expl):
-    assert list(df.columns) == ['weight']
+    assert list(df.columns) == ['target', 'feature', 'weight']
+    df_indexed = df.groupby(['target', 'feature']).agg(lambda x: x)
     for target in expl.targets:
         feature_weights = target.feature_weights
         for fw in chain(feature_weights.pos, feature_weights.neg):
-            assert df.loc[target.target, fw.feature]['weight'] == fw.weight
+            weight = df_indexed.loc[target.target, fw.feature]['weight']
+            assert weight == fw.weight
 
 
 def test_explain_weights_fi(boston_train):
@@ -46,9 +48,10 @@ def test_explain_weights_fi(boston_train):
     reg.fit(X, y)
     expl = explain_weights(reg)
     df = format_as_dataframe(expl)
-    assert list(df.columns) == ['weight', 'std']
+    assert list(df.columns) == ['feature', 'weight', 'std']
+    df_indexed = df.groupby('feature').agg(lambda x: x)
     for fw in expl.feature_importances.importances:
-        df_fw = df.loc[fw.feature]
+        df_fw = df_indexed.loc[fw.feature]
         assert np.isclose(df_fw['weight'], fw.weight)
         assert np.isclose(df_fw['std'], fw.std)
 
@@ -67,11 +70,12 @@ def test_explain_prediction(boston_train):
 
 
 def check_prediction_df(df, expl):
-    assert list(df.columns) == ['weight', 'value']
+    assert list(df.columns) == ['target', 'feature', 'weight', 'value']
     target = expl.targets[0].target
     feature_weights = expl.targets[0].feature_weights
+    df_indexed = df.groupby(['target', 'feature']).agg(lambda x: x)
     for fw in chain(feature_weights.pos, feature_weights.neg):
-        df_fw = df.loc[target, fw.feature]
+        df_fw = df_indexed.loc[target, fw.feature]
         assert df_fw['weight'] == fw.weight
         assert df_fw['value'] == fw.value
 
@@ -110,10 +114,10 @@ def test_targets(with_std, with_value):
     assert list(df_dict) == ['targets']
     df = df_dict['targets']
     expected_df = pd.DataFrame(
-        {'weight': [13, 5, -1, -10, 1]},
-        index=pd.MultiIndex.from_tuples(
-            [('y', 'a'), ('y', 'b'), ('y', 'neg2'), ('y', 'neg1'),
-             ('y2', 'f')], names=['target', 'feature']))
+        {'target': ['y', 'y', 'y', 'y', 'y2'],
+         'feature': ['a', 'b', 'neg2', 'neg1', 'f'],
+         'weight': [13, 5, -1, -10, 1]},
+        columns=['target', 'feature', 'weight'])
     if with_std:
         expected_df['std'] = [0.13, 0.5, 0.3, 0.2, None]
     if with_value:
@@ -128,36 +132,6 @@ def test_targets(with_std, with_value):
 def test_bad_list():
     with pytest.raises(ValueError):
         format_as_dataframe([1])
-
-
-def test_targets_with_value():
-    expl = Explanation(
-        estimator='some estimator',
-        targets=[
-            TargetExplanation(
-                'y', feature_weights=FeatureWeights(
-                    pos=[FeatureWeight('a', 13, value=1),
-                         FeatureWeight('b', 5, value=2)],
-                    neg=[FeatureWeight('neg1', -10, value=3),
-                         FeatureWeight('neg2', -1, value=4)],
-                )),
-            TargetExplanation(
-                'y2', feature_weights=FeatureWeights(
-                    pos=[FeatureWeight('f', 1, value=5)],
-                    neg=[],
-                )),
-        ],
-    )
-    df = format_as_dataframe(expl)
-    expected_df = pd.DataFrame(
-        {'weight': [13, 5, -1, -10, 1],
-         'value': [1, 2, 4, 3, 5]},
-        columns=['weight', 'value'],
-        index=pd.MultiIndex.from_tuples(
-            [('y', 'a'), ('y', 'b'), ('y', 'neg2'), ('y', 'neg1'),
-             ('y2', 'f')], names=['target', 'feature']))
-    print(df, expected_df, sep='\n')
-    assert expected_df.equals(df)
 
 
 @pytest.mark.parametrize(
@@ -182,7 +156,9 @@ def test_feature_importances(with_std, with_value):
     assert isinstance(df_dict, dict)
     assert list(df_dict) == ['feature_importances']
     df = df_dict['feature_importances']
-    expected_df = pd.DataFrame({'weight': [1, 2]}, index=['a', 'b'])
+    expected_df = pd.DataFrame(
+        {'feature': ['a', 'b'], 'weight': [1, 2]},
+        columns=['feature', 'weight'])
     if with_std:
         expected_df['std'] = [0.1, 0.2]
     if with_value:
@@ -221,13 +197,13 @@ def test_transition_features():
     df = df_dict['transition_features']
     print(df)
     print(format_as_text(expl))
-    assert str(df) == (
-        'to      class2  class1\n'
-        'from                  \n'
-        'class2     1.5     2.5\n'
-        'class1     3.5     4.5'
-    )
-
+    expected = pd.DataFrame([
+        {'from': 'class2', 'to': 'class2', 'coef': 1.5},
+        {'from': 'class2', 'to': 'class1', 'coef': 2.5},
+        {'from': 'class1', 'to': 'class2', 'coef': 3.5},
+        {'from': 'class1', 'to': 'class1', 'coef': 4.5},
+    ], columns=['from', 'to', 'coef'])
+    assert df.equals(expected)
     with pytest.warns(UserWarning):
         single_df = format_as_dataframe(expl)
     assert single_df.equals(df)

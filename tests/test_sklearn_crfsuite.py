@@ -59,12 +59,17 @@ def test_sklearn_crfsuite(xseq, yseq):
         df_dict = format_as_dataframes(expl)
         check_targets_dataframe(df_dict['targets'], expl)
         df_transition = df_dict['transition_features']
+        assert list(df_transition.columns) == ['from', 'to', 'coef']
+        df_indexed = df_transition.groupby(['from', 'to']).agg(lambda x: x)
         transition = expl.transition_features
-        print(df_transition)
+        print(df_indexed)
         assert list(transition.class_names) == ['rainy', 'sunny']
-        assert np.isclose(df_transition['rainy']['rainy'], transition.coef[0, 0])
-        assert np.isclose(df_transition['sunny']['rainy'], transition.coef[0, 1])
-        assert np.isclose(df_transition['rainy']['sunny'], transition.coef[1, 0])
+        assert np.isclose(df_indexed.loc['rainy', 'rainy'].coef,
+                          transition.coef[0, 0])
+        assert np.isclose(df_indexed.loc['rainy', 'sunny'].coef,
+                          transition.coef[0, 1])
+        assert np.isclose(df_indexed.loc['sunny', 'rainy'].coef,
+                          transition.coef[1, 0])
 
 
 def test_sklearn_crfsuite_feature_re(xseq, yseq):
