@@ -131,7 +131,8 @@ def explain_prediction_xgboost(
 
     missing : optional
         Pass if an ``xgboost.Booster`` is passed as the first argument.
-        Set it to the same value as the ``missing`` argument to ``xgboost.DMatrix``.
+        Set it to the same value as the ``missing`` argument to
+        ``xgboost.DMatrix``.
         Matters only if sparse values are used. Default is ``np.nan``.
 
     Method for determining feature importances follows an idea from
@@ -147,7 +148,8 @@ def explain_prediction_xgboost(
     booster, is_regression = _check_booster_args(xgb, is_regression)
     xgb_feature_names = booster.feature_names
     vec, feature_names = handle_vec(
-        xgb, doc, vec, vectorized, feature_names, num_features=len(xgb_feature_names))
+        xgb, doc, vec, vectorized, feature_names,
+        num_features=len(xgb_feature_names))
     if feature_names.bias_name is None:
         # XGBoost estimators do not have an intercept, but here we interpret
         # them as having an intercept

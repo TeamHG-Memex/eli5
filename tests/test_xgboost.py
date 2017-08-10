@@ -97,7 +97,9 @@ def test_explain_prediction_clf_binary(
     explain_kwargs = {}
     if use_booster:
         clf = xgboost.train(
-            params={'objective': 'binary:logistic', 'silent': True, 'max_depth': 2},
+            params={'objective': 'binary:logistic',
+                    'silent': True,
+                    'max_depth': 2},
             dtrain=xgboost.DMatrix(xs, label=ys, missing=missing),
             num_boost_round=100,
         )
@@ -129,6 +131,7 @@ def test_explain_prediction_clf_binary(
     for expl in format_as_all(flt_value_res, clf, show_feature_values=True):
         assert 'Missing' not in expl
 
+
 @pytest.mark.parametrize(['clf'], [
     [XGBClassifier(n_estimators=50)],
     [XGBRegressor(n_estimators=50)],
@@ -154,8 +157,10 @@ def test_explain_prediction_clf_multitarget(
     xs = vec.fit_transform(docs)
     if use_booster:
         clf = xgboost.train(
-            params={'objective': 'multi:softprob', 'num_class': len(target_names),
-                    'silent': True, 'max_depth': 2},
+            params={'objective': 'multi:softprob',
+                    'num_class': len(target_names),
+                    'silent': True,
+                    'max_depth': 2},
             dtrain=xgboost.DMatrix(xs, label=ys, missing=np.nan),
             num_boost_round=100,
         )
@@ -216,7 +221,8 @@ def test_dense_missing():
 
 
 def test_explain_prediction_clf_interval():
-    true_xs = [[np.random.randint(3), np.random.randint(10)] for _ in range(1000)]
+    true_xs = [[np.random.randint(3), np.random.randint(10)]
+               for _ in range(1000)]
     xs = np.array([[np.random.normal(x, 0.2), np.random.normal(y, 0.2)]
                    for x, y in true_xs])
     ys = np.array([x == 1 for x, _ in true_xs])
