@@ -107,7 +107,11 @@ class InvertableHashingVectorizer(BaseEstimator, TransformerMixin):
 
     def _always_positive(self):
         # type: () -> bool
-        return self.vec.binary or getattr(self.vec, 'non_negative', False)
+        return (
+            self.vec.binary
+            or getattr(self.vec, 'non_negative', False)
+            or not getattr(self.vec, 'alternate_sign', True)
+        )
 
 
 class FeatureUnhasher(BaseEstimator):

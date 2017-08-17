@@ -5,7 +5,6 @@ import re
 
 import numpy as np
 import scipy.sparse as sp
-from eli5.sklearn.utils import has_intercept
 from sklearn.datasets import make_regression, make_multilabel_classification
 from sklearn.feature_extraction.text import (
     CountVectorizer,
@@ -67,8 +66,9 @@ import pytest
 
 from eli5 import _graphviz
 from eli5 import explain_weights, explain_weights_sklearn
+from eli5.sklearn.utils import has_intercept
 from eli5.sklearn import InvertableHashingVectorizer
-from .utils import format_as_all, get_all_features, get_names_coefs
+from .utils import format_as_all, get_all_features, get_names_coefs, SGD_KWARGS
 
 
 def check_newsgroups_explanation_linear(
@@ -163,12 +163,12 @@ def assert_explained_weights_linear_regressor(boston_train, reg, has_bias=True):
     [LogisticRegressionCV(random_state=42)],
     [RidgeClassifier(random_state=42)],
     [RidgeClassifierCV()],
-    [SGDClassifier(random_state=42)],
-    [SGDClassifier(random_state=42, loss='log')],
+    [SGDClassifier(**SGD_KWARGS)],
+    [SGDClassifier(loss='log', **SGD_KWARGS)],
     [PassiveAggressiveClassifier(random_state=42)],
     [Perceptron(random_state=42)],
     [LinearSVC(random_state=42)],
-    [OneVsRestClassifier(SGDClassifier(random_state=42))],
+    [OneVsRestClassifier(SGDClassifier(**SGD_KWARGS))],
 ])
 def test_explain_linear(newsgroups_train, clf):
     assert_explained_weights_linear_classifier(newsgroups_train, clf)
@@ -176,7 +176,7 @@ def test_explain_linear(newsgroups_train, clf):
 
 @pytest.mark.parametrize(['clf'], [
     [LogisticRegression(random_state=42)],
-    [SGDClassifier(random_state=42)],
+    [SGDClassifier(**SGD_KWARGS)],
     [SVC(kernel='linear', random_state=42)],
     [NuSVC(kernel='linear', random_state=42)],
 ])
@@ -231,7 +231,7 @@ def test_explain_one_class_svm_unsupported():
 
 
 @pytest.mark.parametrize(['clf'], [
-    [OneVsRestClassifier(SGDClassifier(random_state=42))],
+    [OneVsRestClassifier(SGDClassifier(**SGD_KWARGS))],
     [OneVsRestClassifier(LogisticRegression(random_state=42))],
 ])
 def test_explain_linear_multilabel(clf):
@@ -248,7 +248,7 @@ def test_explain_linear_multilabel(clf):
 @pytest.mark.parametrize(['clf'], [
     [LogisticRegression(random_state=42)],
     [LogisticRegression(random_state=42, fit_intercept=False)],
-    [SGDClassifier(random_state=42)],
+    [SGDClassifier(**SGD_KWARGS)],
     [LinearSVC(random_state=42)],
 ])
 def test_explain_linear_hashed(newsgroups_train, clf):
@@ -492,7 +492,7 @@ def test_unsupported():
     [PassiveAggressiveRegressor(C=0.1, random_state=42)],
     [Ridge(random_state=42)],
     [RidgeCV()],
-    [SGDRegressor(random_state=42)],
+    [SGDRegressor(**SGD_KWARGS)],
     [LinearRegression()],
     [LinearSVR(random_state=42)],
     [TheilSenRegressor(random_state=42)],

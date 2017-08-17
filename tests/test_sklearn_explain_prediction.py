@@ -62,7 +62,8 @@ from eli5.base import Explanation
 from eli5.formatters import format_as_text, fields
 from eli5.sklearn.utils import has_intercept
 from .utils import (
-    format_as_all, strip_blanks, get_all_features, check_targets_scores)
+    format_as_all, strip_blanks, get_all_features, check_targets_scores,
+    SGD_KWARGS)
 
 
 format_as_all = partial(format_as_all, show_feature_values=True)
@@ -341,8 +342,8 @@ def _assert_feature_filter_works(get_res, x):
     [LogisticRegression(random_state=42, multi_class='multinomial', solver='lbfgs')],
     [LogisticRegression(random_state=42, fit_intercept=False)],
     [LogisticRegressionCV(random_state=42)],
-    [SGDClassifier(random_state=42)],
-    [SGDClassifier(loss='log', random_state=42)],
+    [SGDClassifier(**SGD_KWARGS)],
+    [SGDClassifier(loss='log', **SGD_KWARGS)],
     [PassiveAggressiveClassifier(random_state=42)],
     [Perceptron(random_state=42)],
     [RidgeClassifier(random_state=42)],
@@ -362,7 +363,7 @@ def test_explain_linear(newsgroups_train, clf):
     [LogisticRegression(random_state=42)],
     [LogisticRegressionCV(random_state=42)],
     [OneVsRestClassifier(LogisticRegression(random_state=42))],
-    [SGDClassifier(random_state=42)],
+    [SGDClassifier(**SGD_KWARGS)],
     [SVC(kernel='linear', random_state=42)],
     [SVC(kernel='linear', random_state=42, decision_function_shape='ovr')],
     [SVC(kernel='linear', random_state=42, decision_function_shape='ovr',
@@ -438,7 +439,7 @@ def test_explain_linear_unsupported_multiclass(clf, newsgroups_train):
     [PassiveAggressiveRegressor(C=0.1)],
     [Ridge(random_state=42)],
     [RidgeCV()],
-    [SGDRegressor(random_state=42)],
+    [SGDRegressor(**SGD_KWARGS)],
     [TheilSenRegressor()],
     [SVR(kernel='linear')],
     [NuSVR(kernel='linear')],
@@ -500,7 +501,7 @@ def test_explain_tree_clf_multiclass(clf, iris_train):
     [RandomForestClassifier(random_state=42)],
     [LogisticRegression(random_state=42)],
     [OneVsRestClassifier(LogisticRegression(random_state=42))],
-    [SGDClassifier(random_state=42)],
+    [SGDClassifier(**SGD_KWARGS)],
     [SVC(kernel='linear', random_state=42)],
     [NuSVC(kernel='linear', random_state=42)],
 ])
