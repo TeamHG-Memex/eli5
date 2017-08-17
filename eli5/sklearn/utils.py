@@ -277,5 +277,5 @@ def sklearn_version():
     >>> sklearn_version() > '0.17'
     True
     """
-    from sklearn import __version__
+    from sklearn import __version__  # type: ignore
     return LooseVersion(__version__)
