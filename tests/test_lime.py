@@ -15,11 +15,16 @@ from .utils import format_as_all, check_targets_scores
 
 def test_lime_explain_probabilistic(newsgroups_train):
     docs, y, target_names = newsgroups_train
-    vec = HashingVectorizer(non_negative=True)
+    try:
+        vec = HashingVectorizer(alternate_sign=False)
+    except TypeError:
+        # sklearn < 0.19
+        vec = HashingVectorizer(non_negative=True)
     clf = MultinomialNB()
 
     X = vec.fit_transform(docs)
     clf.fit(X, y)
+    print(clf.score(X, y))
 
     pipe = make_pipeline(vec, clf)
     doc = docs[0]

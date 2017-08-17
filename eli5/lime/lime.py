@@ -14,6 +14,7 @@ from sklearn.utils import check_random_state  # type: ignore
 from sklearn.base import clone, BaseEstimator  # type: ignore
 
 import eli5
+from eli5.sklearn.utils import sklearn_version
 from eli5.lime.samplers import BaseSampler
 from eli5.lime.textutils import DEFAULT_TOKEN_PATTERN, CHAR_TOKEN_PATTERN
 from eli5.lime.samplers import MaskingTextSamplers
@@ -155,10 +156,7 @@ class TextExplainer(BaseEstimator):
         self.expand_factor = expand_factor
         self.rng_ = check_random_state(random_state)
         if clf is None:
-            clf = SGDClassifier(loss='log',
-                                penalty='elasticnet',
-                                alpha=1e-3,
-                                random_state=self.rng_)
+            clf = self._default_clf()
         self.clf = clf
 
         if char_based is None:
@@ -319,6 +317,18 @@ class TextExplainer(BaseEstimator):
         if not target_names:
             return
         kwargs['target_names'] = np.array(target_names)[self.clf_.classes_]
+
+    def _default_clf(self):
+        kwargs = dict(
+            loss='log',
+            penalty='elasticnet',
+            alpha=1e-3,
+            random_state=self.rng_
+        )
+        if sklearn_version() >= '0.19':
+            kwargs['tol'] = 1e-3
+        return SGDClassifier(**kwargs)
+
 
 
 def _train_local_classifier(estimator,

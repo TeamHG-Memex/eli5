@@ -6,25 +6,28 @@ import numpy as np
 from sklearn.feature_extraction.text import HashingVectorizer
 
 from eli5.sklearn.unhashing import InvertableHashingVectorizer
-
+from eli5.sklearn.utils import sklearn_version
 
 @pytest.mark.parametrize(
-    ['always_signed', 'binary', 'non_negative'], [
-        [True, False, False],
-        [False, False, False],
-        [False, True, False],
-        [True, True, False],
-
-        [False, True, True],
-        [False, False, True],
+    ['always_signed', 'binary', 'alternate_sign'], [
         [True, False, True],
+        [False, False, True],
+        [False, True, True],
+        [True, True, True],
+        [False, True, False],
+        [False, False, False],
+        [True, False, False],
     ],
 )
-def test_invertable_hashing_vectorizer(always_signed, binary, non_negative):
+def test_invertable_hashing_vectorizer(always_signed, binary, alternate_sign):
     n_features = 8
     n_words = 4 * n_features
-    vec = HashingVectorizer(n_features=n_features, binary=binary,
-                            non_negative=non_negative)
+    kwargs = dict(n_features=n_features, binary=binary)
+    if sklearn_version() < '0.19':
+        kwargs['non_negative'] = not alternate_sign
+    else:
+        kwargs['alternate_sign'] = alternate_sign
+    vec = HashingVectorizer(**kwargs)
     words = ['word_{}'.format(i) for i in range(n_words)]
     corpus = [w for i, word in enumerate(words, 1) for w in repeat(word, i)]
     split = len(corpus) // 2
@@ -32,20 +35,20 @@ def test_invertable_hashing_vectorizer(always_signed, binary, non_negative):
 
     ivec = InvertableHashingVectorizer(vec)
     ivec.fit([doc1, doc2])
-    check_feature_names(vec, ivec, always_signed, corpus)
+    check_feature_names(vec, ivec, always_signed, corpus, alternate_sign)
 
     ivec = InvertableHashingVectorizer(vec)
     ivec.partial_fit([doc1])
     ivec.partial_fit([doc2])
-    check_feature_names(vec, ivec, always_signed, corpus)
+    check_feature_names(vec, ivec, always_signed, corpus, alternate_sign)
 
     ivec = InvertableHashingVectorizer(vec)
     for w in corpus:
         ivec.partial_fit([w])
-    check_feature_names(vec, ivec, always_signed, corpus)
+    check_feature_names(vec, ivec, always_signed, corpus, alternate_sign)
 
 
-def check_feature_names(vec, ivec, always_signed, corpus):
+def check_feature_names(vec, ivec, always_signed, corpus, alternate_sign):
     feature_names = ivec.get_feature_names(always_signed=always_signed)
     seen_words = set()
     counts = Counter(corpus)
@@ -69,4 +72,7 @@ def check_feature_names(vec, ivec, always_signed, corpus):
         for prev_w, w in zip(words_in_collision, words_in_collision[1:]):
             # Terms are ordered by frequency.
             assert counts[prev_w] > counts[w]
+
+    if not alternate_sign:
+        assert np.array_equal(ivec.column_signs_, np.ones(len(feature_names)))
     assert seen_words == set(corpus)

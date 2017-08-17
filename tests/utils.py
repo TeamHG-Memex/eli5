@@ -13,6 +13,12 @@ from eli5.base import Explanation
 from eli5.formatters import format_as_text, format_as_html, format_as_dict
 from eli5.formatters.html import html_escape
 from eli5.formatters.text import format_signed
+from eli5.sklearn.utils import sklearn_version
+
+
+SGD_KWARGS = {'random_state': 42}
+if sklearn_version() >= '0.19':
+    SGD_KWARGS['tol'] = 1e-3
 
 
 def rnd_len_arrays(dtype, min_len=0, max_len=3, elements=None):
