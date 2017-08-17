@@ -61,8 +61,8 @@ class InvertableHashingVectorizer(BaseEstimator, TransformerMixin):
         self.unhasher.partial_fit(self._get_terms_iter(X))
         return self
 
-    def transform(self, X, y=None):
-        return self.vec.transform(X, y)
+    def transform(self, X):
+        return self.vec.transform(X)
 
     def get_feature_names(self, always_signed=True):
         # type: (bool) -> FeatureNames
@@ -107,7 +107,7 @@ class InvertableHashingVectorizer(BaseEstimator, TransformerMixin):
 
     def _always_positive(self):
         # type: () -> bool
-        return self.vec.binary or self.vec.non_negative
+        return self.vec.binary or getattr(self.vec, 'non_negative', False)
 
 
 class FeatureUnhasher(BaseEstimator):

@@ -6,7 +6,7 @@ import numpy as np
 from sklearn.feature_extraction.text import HashingVectorizer
 
 from eli5.sklearn.unhashing import InvertableHashingVectorizer
-
+from eli5.sklearn.utils import sklearn_version
 
 @pytest.mark.parametrize(
     ['always_signed', 'binary', 'non_negative'], [
@@ -14,7 +14,7 @@ from eli5.sklearn.unhashing import InvertableHashingVectorizer
         [False, False, False],
         [False, True, False],
         [True, True, False],
-
+    ] + [] if (sklearn_version() >= '0.19') else [
         [False, True, True],
         [False, False, True],
         [True, False, True],
@@ -23,8 +23,10 @@ from eli5.sklearn.unhashing import InvertableHashingVectorizer
 def test_invertable_hashing_vectorizer(always_signed, binary, non_negative):
     n_features = 8
     n_words = 4 * n_features
-    vec = HashingVectorizer(n_features=n_features, binary=binary,
-                            non_negative=non_negative)
+    kwargs = dict(n_features=n_features, binary=binary)
+    if non_negative:
+        kwargs['non_negative'] = non_negative
+    vec = HashingVectorizer(**kwargs)
     words = ['word_{}'.format(i) for i in range(n_words)]
     corpus = [w for i, word in enumerate(words, 1) for w in repeat(word, i)]
     split = len(corpus) // 2

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
+from distutils.version import LooseVersion
 from typing import Any, Optional, List, Tuple
 
 import numpy as np  # type: ignore
@@ -269,3 +270,12 @@ def add_intercept(X):
         return sp.hstack([X, intercept]).tocsr()
     else:
         return np.hstack([X, intercept])
+
+
+def sklearn_version():
+    """Return sklearn version object which can be used for comparison. Usage:
+    >>> sklearn_version() > '0.17'
+    True
+    """
+    from sklearn import __version__
+    return LooseVersion(__version__)
