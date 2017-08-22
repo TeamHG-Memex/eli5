@@ -29,7 +29,7 @@ def lgb_clf():
     return LGBMClassifier(
         n_estimators=10,
         min_child_samples=2,
-        min_child_weight=0,
+        min_child_weight=1,
         seed=42,
     )
 
