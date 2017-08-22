@@ -171,17 +171,17 @@ def _compute_node_values(tree_info):
     """ Add node_value key with an expected value for non-leaf nodes """
     def walk(tree):
         if 'leaf_value' in tree:
-            return tree['leaf_value'], tree['leaf_count']
+            return tree['leaf_value'], tree.get('leaf_count', 0)
         left_value, left_count = walk(tree['left_child'])
         right_value, right_count = walk(tree['right_child'])
         count = left_count + right_count
         if tree['split_gain'] <= 0:
             assert left_value == right_value
-            tree['node_value'] = left_value
+            tree['_node_value'] = left_value
         else:
-            tree['node_value'] = (left_value * left_count +
+            tree['_node_value'] = (left_value * left_count +
                                   right_value * right_count) / count
-        return tree['node_value'], count
+        return tree['_node_value'], count
 
     for tree in tree_info:
         walk(tree['tree_structure'])
@@ -195,7 +195,7 @@ def _get_decision_path(leaf_index, split_index, leaf_id):
         if parent_id == -1:
             break
         parent_id, node = split_index[parent_id]
-        path.append(node['node_value'])
+        path.append(node['_node_value'])
         split_features.append(node['split_feature'])
 
     path.reverse()
@@ -222,9 +222,14 @@ def _get_leaf_split_indices(tree_structure):
 
     def walk(tree, parent_id=-1):
         if 'leaf_index' in tree:
-            leaf_index[tree['leaf_index']] = tree['leaf_parent'], tree
+            # regular leaf
+            leaf_index[tree['leaf_index']] = (parent_id, tree)
+        elif 'split_index' not in tree:
+            # one-leaf tree producing a constant without splits
+            leaf_index[0] = (parent_id, tree)
         else:
-            split_index[tree['split_index']] = parent_id, tree
+            # split node
+            split_index[tree['split_index']] = (parent_id, tree)
             walk(tree['left_child'], tree['split_index'])
             walk(tree['right_child'], tree['split_index'])
 

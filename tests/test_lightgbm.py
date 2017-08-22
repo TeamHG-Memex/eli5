@@ -26,9 +26,12 @@ from .utils import format_as_all, check_targets_scores, get_all_features
 
 @pytest.fixture()
 def lgb_clf():
-    return LGBMClassifier(n_estimators=10,
-                          min_child_samples=2,
-                          min_child_weight=0)
+    return LGBMClassifier(
+        n_estimators=10,
+        min_child_samples=2,
+        min_child_weight=1,
+        seed=42,
+    )
 
 
 @pytest.mark.parametrize(['importance_type'], [['gain'], ['split'], ['weight']])
