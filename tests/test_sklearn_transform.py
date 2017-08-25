@@ -29,6 +29,7 @@ from sklearn.preprocessing import (
 from sklearn.pipeline import FeatureUnion, make_pipeline
 
 from eli5 import transform_feature_names
+from eli5.sklearn import PermutationImportance
 
 
 class MyFeatureExtractor(BaseEstimator, TransformerMixin):
@@ -75,6 +76,14 @@ def selection_score_func(X, y):
     (GenericUnivariateSelect(mode='k_best', param=2), ['<NAME2>', '<NAME3>']),
     (SelectFromModel(LogisticRegression('l1', C=0.01, random_state=42)),
      ['<NAME0>', '<NAME2>']),
+    (SelectFromModel(
+        PermutationImportance(
+            LogisticRegression(random_state=42),
+            cv=5, random_state=42, refit=False,
+        ),
+        threshold=0.1,
+     ),
+     ['<NAME2>', '<NAME3>']),
     (RFE(LogisticRegression(random_state=42), 2),
      ['<NAME1>', '<NAME3>']),
     (RFECV(LogisticRegression(random_state=42)),

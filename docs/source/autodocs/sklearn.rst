@@ -20,3 +20,10 @@ eli5.sklearn.unhashing
 
 .. automodule:: eli5.sklearn.unhashing
     :members:
+
+
+eli5.sklearn.permutation_importance
+-----------------------------------
+
+.. automodule:: eli5.sklearn.permutation_importance
+    :members:

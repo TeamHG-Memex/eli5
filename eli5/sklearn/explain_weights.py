@@ -75,6 +75,8 @@ from eli5._feature_importances import (
     get_feature_importances_filtered,
     get_feature_importance_explanation,
 )
+from .permutation_importance import PermutationImportance
+
 
 LINEAR_CAVEATS = """
 Caveats:
@@ -119,6 +121,12 @@ all values sum to 1.
 DESCRIPTION_DECISION_TREE = """
 Decision tree feature importances; values are numbers 0 <= x <= 1;
 all values sum to 1.
+"""
+
+DESCRIPTION_SCORE_DECREASE = """
+Feature importances, computed as a decrease in score when feature
+values are permuted (i.e. become noise). This is also known as 
+permutation importance.
 """
 
 _TOP = 20
@@ -471,3 +479,39 @@ def explain_weights_pipeline(estimator, feature_names=None, **kwargs):
                           **kwargs)
     out.estimator = repr(estimator)
     return out
+
+
+@register(PermutationImportance)
+def explain_permutation_importance(estimator,
+                                   vec=None,
+                                   top=_TOP,
+                                   target_names=None,  # ignored
+                                   targets=None,  # ignored
+                                   feature_names=None,
+                                   feature_re=None,
+                                   feature_filter=None,
+                                   ):
+    """
+    Return an explanation of PermutationImportance.
+
+    See :func:`eli5.explain_weights` for description of
+    ``top``, ``feature_names``, ``feature_re`` and ``feature_filter``
+    parameters.
+
+    ``target_names`` and ``targets`` parameters are ignored.
+
+    ``vec`` is a vectorizer instance used to transform
+    raw features to the input of the estimator (e.g. a fitted
+    CountVectorizer instance); you can pass it instead of ``feature_names``.
+    """
+    coef = estimator.feature_importances_
+    coef_std = estimator.feature_importances_std_
+    return get_feature_importance_explanation(estimator, vec, coef,
+        coef_std=coef_std,
+        feature_names=feature_names,
+        feature_filter=feature_filter,
+        feature_re=feature_re,
+        top=top,
+        description=DESCRIPTION_SCORE_DECREASE + estimator.caveats_,
+        is_regression=isinstance(estimator.wrapped_estimator_, RegressorMixin),
+    )
