@@ -1,6 +1,21 @@
 Changelog
 =========
 
+0.8 (2017-08-25)
+----------------
+
+* **backwards incompatible**: DataFrame objects with explanations no longer
+  use indexes and pivot tables, they are now just plain DataFrames;
+* new method for inspection black-box models is added
+  (:ref:`eli5-permutation-importance`);
+* transfor_feature_names is implemented for sklearn's MinMaxScaler,
+  StandardScaler, MaxAbsScaler and RobustScaler;
+* zero and negative feature importances are no longer hidden;
+* fixed compatibility with scikit-learn 0.19;
+* fixed compatibility with LightGBM master (2.0.5 and 2.0.6 are still
+  unsupported - there are bugs in LightGBM);
+* documentation, testing and type annotation improvements.
+
 0.7 (2017-07-03)
 ----------------
 

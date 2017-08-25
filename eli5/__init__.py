@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 
-__version__ = '0.7'
+__version__ = '0.8'
 
 from .formatters import (
     format_as_html,
