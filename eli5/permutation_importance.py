@@ -87,10 +87,11 @@ def get_score_importances(
     rng = check_random_state(random_state)
     base_score = score_func(X, y)
     parallel = Parallel(n_jobs=n_jobs)
+    seed0 = rng.randint(2**32)
     result = parallel(delayed(_get_scores_shufled)(
         score_func, X, y, columns_to_shuffle=columns_to_shuffle,
-        random_state=rng
-    ) for _ in range(n_iter))
+        random_state=np.random.RandomState(seed0+i)
+    ) for i in range(n_iter))
     scores_decreases = []
     for scores_shuffled in result:
         scores_decreases.append(-scores_shuffled + base_score)
