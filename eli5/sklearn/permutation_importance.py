@@ -114,6 +114,8 @@ class PermutationImportance(BaseEstimator, MetaEstimatorMixin):
         Whether to fit the estimator on the whole data if cross-validation
         is used (default is False).
 
+    n_jobs : int, number of parallel jobs for shuffle iterations
+
     Attributes
     ----------
     feature_importances_ : array
@@ -139,7 +141,7 @@ class PermutationImportance(BaseEstimator, MetaEstimatorMixin):
         random state
     """
     def __init__(self, estimator, scoring=None, n_iter=5, random_state=None,
-                 cv='prefit', refit=True):
+                 cv='prefit', refit=True, n_jobs=1):
         # type: (...) -> None
         if isinstance(cv, str) and cv != "prefit":
             raise ValueError("Invalid cv value: {!r}".format(cv))
@@ -149,6 +151,7 @@ class PermutationImportance(BaseEstimator, MetaEstimatorMixin):
         self.n_iter = n_iter
         self.random_state = random_state
         self.cv = cv
+        self.n_jobs = n_jobs
         self.rng_ = check_random_state(random_state)
 
     def fit(self, X, y, groups=None, **fit_params):
@@ -216,7 +219,7 @@ class PermutationImportance(BaseEstimator, MetaEstimatorMixin):
 
     def _get_score_importances(self, score_func, X, y):
         return get_score_importances(score_func, X, y, n_iter=self.n_iter,
-                                     random_state=self.rng_)
+                                     random_state=self.rng_, n_jobs=self.n_jobs)
 
     @property
     def caveats_(self):
