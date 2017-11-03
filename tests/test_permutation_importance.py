@@ -42,10 +42,11 @@ def test_iter_shuffled_columns():
 def test_get_feature_importances(boston_train):
     X, y, feat_names = boston_train
     svr = SVR(C=20).fit(X, y)
-    score, importances = get_score_importances(svr.score, X, y)
-    assert score > 0.7
-    importances = dict(zip(feat_names, np.mean(importances, axis=0)))
-    print(score)
-    print(importances)
-    assert importances['AGE'] > importances['NOX']
-    assert importances['B'] > importances['CHAS']
+    for n_jobs in [1, 2]:
+        score, importances = get_score_importances(svr.score, X, y, n_jobs=n_jobs)
+        assert score > 0.7
+        importances = dict(zip(feat_names, np.mean(importances, axis=0)))
+        print(score)
+        print(importances)
+        assert importances['AGE'] > importances['NOX']
+        assert importances['B'] > importances['CHAS']
