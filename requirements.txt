@@ -6,3 +6,4 @@ attrs > 16.0.0
 jinja2
 pip >= 8.1
 setuptools >= 20.7
+multiprocess
