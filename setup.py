@@ -41,6 +41,7 @@ setup(
         'typing',
         'graphviz',
         'tabulate>=0.7.7',
+        'multiprocess',
     ],
     classifiers=[
         'Development Status :: 4 - Beta',
