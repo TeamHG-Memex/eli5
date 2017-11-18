@@ -11,7 +11,7 @@ def build_span_analyzer(document, vec):
     preprocessing so that we can still recover the same features as sklearn
     vectorizers, but with spans, that will allow us to highlight
     features in preprocessed documents.
-    Analyzers are adapter from VectorizerMixin from sklearn.
+    Analyzers are adapted from VectorizerMixin from sklearn.
     """
     preprocessed_doc = vec.build_preprocessor()(vec.decode(document))
     analyzer = None
