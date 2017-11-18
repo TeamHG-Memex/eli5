@@ -132,8 +132,8 @@ class PermutationImportance(BaseEstimator, MetaEstimatorMixin):
     estimator_ : an estimator
         The base estimator from which the :class:`~PermutationImportance`
         instance  is built. This is stored only when a non-fitted estimator
-        is passed to the :class:`~PermutationImportance`, i.e when ``prefit``
-        is False.
+        is passed to the :class:`~PermutationImportance`, i.e when ``cv`` is
+        not "prefit".
 
     rng_ : numpy.random.RandomState
         random state
