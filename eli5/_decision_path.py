@@ -22,8 +22,8 @@ features sum to the output score of the estimator.
 DECISION_PATHS_CAVEATS = """
 Caveats:
 1. Feature weights just show if the feature contributed positively or
-   negatively to the final score, and does show how increasing or decreasing
-   the feature value will change the prediction.
+   negatively to the final score, and does not show how increasing or
+   decreasing the feature value will change the prediction.
 2. In some cases, feature weight can be close to zero for an important feature.
    For example, in a single tree that computes XOR function, the feature at the
    top of the tree will have zero weight because expected scores for both
