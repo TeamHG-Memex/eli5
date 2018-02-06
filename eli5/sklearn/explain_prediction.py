@@ -35,7 +35,15 @@ from sklearn.linear_model import (  # type: ignore
     SGDRegressor,
     TheilSenRegressor,
 )
-from sklearn.svm import LinearSVC, LinearSVR  # type: ignore
+from sklearn.svm import (  # type: ignore
+    LinearSVC,
+    LinearSVR,
+    SVC,
+    SVR,
+    NuSVC,
+    NuSVR,
+    OneClassSVM,
+)
 from sklearn.multiclass import OneVsRestClassifier  # type: ignore
 from sklearn.tree import (   # type: ignore
     DecisionTreeClassifier,
@@ -43,7 +51,10 @@ from sklearn.tree import (   # type: ignore
 )
 
 from eli5.base import Explanation, TargetExplanation
-from eli5.utils import get_target_display_names, mask
+from eli5.utils import (
+    get_target_display_names,
+    get_binary_target_scale_label_id
+)
 from eli5.sklearn.utils import (
     add_intercept,
     get_coef,
@@ -59,7 +70,7 @@ from eli5.sklearn.utils import (
 from eli5.sklearn.text import add_weighted_spans
 from eli5.explain import explain_prediction
 from eli5._decision_path import DECISION_PATHS_CAVEATS
-from eli5._feature_weights import get_top_features
+from eli5._feature_weights import get_top_features_filtered
 
 
 @singledispatch
@@ -152,7 +163,7 @@ def explain_prediction_linear_classifier(clf, doc,
     ``vectorized`` is a flag which tells eli5 if ``doc`` should be
     passed through ``vec`` or not. By default it is False, meaning that
     if ``vec`` is not None, ``vec.transform([doc])`` is passed to the
-    classifier. Set it to False if you're passing ``vec``, but ``doc``
+    classifier. Set it to True if you're passing ``vec``, but ``doc``
     is already vectorized.
     """
     vec, feature_names = handle_vec(clf, doc, vec, vectorized, feature_names)
@@ -175,7 +186,8 @@ def explain_prediction_linear_classifier(clf, doc,
     )
 
     _weights = _linear_weights(clf, x, top, feature_names, flt_indices)
-    display_names = get_target_display_names(clf.classes_, target_names,
+    classes = getattr(clf, "classes_", ["-1", "1"])  # OneClassSVM support
+    display_names = get_target_display_names(classes, target_names,
                                              targets, top_targets, score)
 
     if is_multiclass_classifier(clf):
@@ -189,16 +201,41 @@ def explain_prediction_linear_classifier(clf, doc,
             add_weighted_spans(doc, vec, vectorized, target_expl)
             res.targets.append(target_expl)
     else:
+        if len(display_names) == 1:  # target is passed explicitly
+            label_id, target = display_names[0]
+        else:
+            label_id = 1 if score >= 0 else 0
+            target = display_names[label_id][1]
+        scale = -1 if label_id == 0 else 1
+
         target_expl = TargetExplanation(
-            target=display_names[1][1],
-            feature_weights=_weights(0),
+            target=target,
+            feature_weights=_weights(0, scale=scale),
             score=score,
-            proba=proba[1] if proba is not None else None,
+            proba=proba[label_id] if proba is not None else None,
         )
         add_weighted_spans(doc, vec, vectorized, target_expl)
         res.targets.append(target_expl)
 
     return res
+
+
+@register(NuSVC)
+@register(SVC)
+@register(OneClassSVM)
+def test_explain_prediction_libsvm_linear(clf, doc, *args, **kwargs):
+    if clf.kernel != 'linear':
+        return Explanation(
+            estimator=repr(clf),
+            error="only kernel='linear' is currently supported for "
+                  "libsvm-based classifiers",
+        )
+    if len(getattr(clf, 'classes_', [])) > 2:
+        return Explanation(
+            estimator=repr(clf),
+            error="only binary libsvm-based classifiers are supported",
+        )
+    return explain_prediction_linear_classifier(clf, doc, *args, **kwargs)
 
 
 @register(ElasticNet)
@@ -215,6 +252,8 @@ def explain_prediction_linear_classifier(clf, doc,
 @register(RidgeCV)
 @register(SGDRegressor)
 @register(TheilSenRegressor)
+@register(SVR)
+@register(NuSVR)
 def explain_prediction_linear_regressor(reg, doc,
                                         vec=None,
                                         top=None,
@@ -239,9 +278,12 @@ def explain_prediction_linear_regressor(reg, doc,
     ``vectorized`` is a flag which tells eli5 if ``doc`` should be
     passed through ``vec`` or not. By default it is False, meaning that
     if ``vec`` is not None, ``vec.transform([doc])`` is passed to the
-    regressor ``reg``. Set it to False if you're passing ``vec``,
+    regressor ``reg``. Set it to True if you're passing ``vec``,
     but ``doc`` is already vectorized.
     """
+    if isinstance(reg, (SVR, NuSVR)) and reg.kernel != 'linear':
+        return explain_prediction_sklearn_not_supported(reg, doc)
+
     vec, feature_names = handle_vec(reg, doc, vec, vectorized, feature_names)
     X = get_X(doc, vec=vec, vectorized=vectorized, to_dense=True)
 
@@ -341,7 +383,7 @@ def explain_prediction_tree_classifier(
     ``vectorized`` is a flag which tells eli5 if ``doc`` should be
     passed through ``vec`` or not. By default it is False, meaning that
     if ``vec`` is not None, ``vec.transform([doc])`` is passed to the
-    classifier. Set it to False if you're passing ``vec``,
+    classifier. Set it to True if you're passing ``vec``,
     but ``doc`` is already vectorized.
 
     Method for determining feature importances follows an idea from
@@ -369,16 +411,13 @@ def explain_prediction_tree_classifier(
     feature_weights = _trees_feature_weights(
         clf, X, feature_names, clf.n_classes_)
     x = get_X0(add_intercept(X))
-    feature_names, flt_indices = feature_names.handle_filter(
+    flt_feature_names, flt_indices = feature_names.handle_filter(
         feature_filter, feature_re, x)
 
-    def _weights(label_id):
-        scores = feature_weights[:, label_id]
-        _x = x
-        if flt_indices is not None:
-            scores = scores[flt_indices]
-            _x = mask(_x, flt_indices)
-        return get_top_features(feature_names, scores, top, _x)
+    def _weights(label_id, scale=1.0):
+        weights = feature_weights[:, label_id]
+        return get_top_features_filtered(x, flt_feature_names, flt_indices,
+                                         weights, top, scale)
 
     res = Explanation(
         estimator=repr(clf),
@@ -403,11 +442,13 @@ def explain_prediction_tree_classifier(
             add_weighted_spans(doc, vec, vectorized, target_expl)
             res.targets.append(target_expl)
     else:
+        target, scale, label_id = get_binary_target_scale_label_id(
+            score, display_names, proba)
         target_expl = TargetExplanation(
-            target=display_names[1][1],
-            feature_weights=_weights(1),
+            target=target,
+            feature_weights=_weights(label_id, scale=scale),
             score=score if score is not None else None,
-            proba=proba[1] if proba is not None else None,
+            proba=proba[label_id] if proba is not None else None,
         )
         add_weighted_spans(doc, vec, vectorized, target_expl)
         res.targets.append(target_expl)
@@ -444,7 +485,7 @@ def explain_prediction_tree_regressor(
     ``vectorized`` is a flag which tells eli5 if ``doc`` should be
     passed through ``vec`` or not. By default it is False, meaning that
     if ``vec`` is not None, ``vec.transform([doc])`` is passed to the
-    regressor. Set it to False if you're passing ``vec``,
+    regressor. Set it to True if you're passing ``vec``,
     but ``doc`` is already vectorized.
 
     Method for determining feature importances follows an idea from
@@ -467,16 +508,13 @@ def explain_prediction_tree_regressor(
     is_multitarget = num_targets > 1
     feature_weights = _trees_feature_weights(reg, X, feature_names, num_targets)
     x = get_X0(add_intercept(X))
-    feature_names, flt_indices = feature_names.handle_filter(
+    flt_feature_names, flt_indices = feature_names.handle_filter(
         feature_filter, feature_re, x)
 
-    def _weights(label_id):
-        scores = feature_weights[:, label_id]
-        _x = x
-        if flt_indices is not None:
-            scores = scores[flt_indices]
-            _x = mask(_x, flt_indices)
-        return get_top_features(feature_names, scores, top, _x)
+    def _weights(label_id, scale=1.0):
+        weights = feature_weights[:, label_id]
+        return get_top_features_filtered(x, flt_feature_names, flt_indices,
+                                         weights, top, scale)
 
     res = Explanation(
         estimator=repr(reg),
@@ -559,8 +597,10 @@ def _update_tree_feature_weights(X, feature_names, clf, feature_weights):
     feature_weights[feature_names.bias_idx] += norm(tree_value[0])
     for parent_idx, child_idx in zip(indices, indices[1:]):
         assert tree_feature[parent_idx] >= 0
-        feature_weights[tree_feature[parent_idx]] += (
-            norm(tree_value[child_idx]) - norm(tree_value[parent_idx]))
+        feature_idx = tree_feature[parent_idx]
+        diff = norm(tree_value[child_idx]) - norm(tree_value[parent_idx])
+        feature_weights[feature_idx] += diff
+
 
 
 def _multiply(X, coef):
@@ -571,15 +611,12 @@ def _multiply(X, coef):
         return np.multiply(X, coef)
 
 
-def _linear_weights(clf, x, top, feature_names, flt_indices):
+def _linear_weights(clf, x, top, flt_feature_names, flt_indices):
     """ Return top weights getter for label_id.
     """
-    def _weights(label_id):
+    def _weights(label_id, scale=1.0):
         coef = get_coef(clf, label_id)
-        _x = x
-        scores = _multiply(_x, coef)
-        if flt_indices is not None:
-            scores = scores[flt_indices]
-            _x = mask(_x, flt_indices)
-        return get_top_features(feature_names, scores, top, _x)
+        scores = _multiply(x, coef)
+        return get_top_features_filtered(x, flt_feature_names, flt_indices,
+                                         scores, top, scale)
     return _weights

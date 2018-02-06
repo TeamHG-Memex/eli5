@@ -141,7 +141,7 @@ def _get_weighted_spans_from_union(doc, vec_union, feature_weights):
 def _get_other(feature_weights, named_found_features):
     # type: (FeatureWeights, List[Tuple[str, FoundFeatures]]) -> FeatureWeights
     # search for items that were not accounted at all.
-    other_items = []
+    other_items = []  # type: List[FeatureWeight]
     accounted_keys = set()  # type: Set[Tuple[str, int]]
     all_found_features = set()  # type: Set[Tuple[str, int]]
     for _, found_features in named_found_features:

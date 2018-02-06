@@ -19,19 +19,24 @@ from .test_sklearn_explain_weights import (
 from .test_sklearn_explain_prediction import (
     assert_linear_regression_explained,
     test_explain_prediction_pandas as _check_explain_prediction_pandas,
+    test_explain_clf_binary_iris as _check_binary_classifier,
 )
 from .utils import format_as_all, check_targets_scores, get_all_features
 
 
 @pytest.fixture()
 def lgb_clf():
-    return LGBMClassifier(n_estimators=10,
-                          min_child_samples=2,
-                          min_child_weight=0)
+    return LGBMClassifier(
+        n_estimators=10,
+        min_child_samples=2,
+        min_child_weight=1,
+        seed=42,
+    )
 
 
-def test_explain_weights(newsgroups_train, lgb_clf):
-    _check_rf_classifier(newsgroups_train, lgb_clf)
+@pytest.mark.parametrize(['importance_type'], [['gain'], ['split'], ['weight']])
+def test_explain_weights(newsgroups_train, lgb_clf, importance_type):
+    _check_rf_classifier(newsgroups_train, lgb_clf, importance_type=importance_type)
 
 
 def test_explain_weights_feature_filter(newsgroups_train, lgb_clf):
@@ -72,6 +77,12 @@ def test_explain_prediction_clf_binary(newsgroups_train_binary_big):
     flt_pos_features = get_all_features(flt_res.targets[0].feature_weights.pos)
     assert 'graphics' in flt_pos_features
     assert 'computer' not in flt_pos_features
+
+
+def test_explain_prediction_clf_binary_iris(iris_train_binary):
+    clf = LGBMClassifier(n_estimators=100, max_depth=2,
+                         min_child_samples=1, min_child_weight=1)
+    _check_binary_classifier(clf, iris_train_binary)
 
 
 def test_explain_prediction_clf_multitarget(newsgroups_train):

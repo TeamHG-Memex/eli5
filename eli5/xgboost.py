@@ -2,7 +2,7 @@
 from __future__ import absolute_import
 from functools import partial
 import re
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Tuple, Optional, Pattern
 
 import numpy as np  # type: ignore
 import scipy.sparse as sp  # type: ignore
@@ -21,9 +21,8 @@ from eli5.sklearn.utils import (
     handle_vec,
     predict_proba
 )
-from eli5.utils import mask, is_sparse_vector
+from eli5.utils import is_sparse_vector
 from eli5._decision_path import get_decision_path_explanation
-from eli5._feature_weights import get_top_features
 from eli5._feature_importances import get_feature_importance_explanation
 
 
@@ -35,19 +34,21 @@ all values sum to 1.
 
 @explain_weights.register(XGBClassifier)
 @explain_weights.register(XGBRegressor)
+@explain_weights.register(Booster)
 def explain_weights_xgboost(xgb,
                             vec=None,
                             top=20,
                             target_names=None,  # ignored
                             targets=None,  # ignored
                             feature_names=None,
-                            feature_re=None,
+                            feature_re=None,  # type: Pattern[str]
                             feature_filter=None,
                             importance_type='gain',
                             ):
     """
     Return an explanation of an XGBoost estimator (via scikit-learn wrapper
-    XGBClassifier or XGBRegressor) as feature importances.
+    XGBClassifier or XGBRegressor, or via xgboost.Booster)
+    as feature importances.
 
     See :func:`eli5.explain_weights` for description of
     ``top``, ``feature_names``,
@@ -66,22 +67,25 @@ def explain_weights_xgboost(xgb,
           across all trees
         - 'cover' - the average coverage of the feature when it is used in trees
     """
-    xgb_feature_names = xgb.booster().feature_names
-    coef = _xgb_feature_importances(xgb, importance_type=importance_type)
-    return get_feature_importance_explanation(xgb, vec, coef,
+    booster, is_regression = _check_booster_args(xgb)
+    xgb_feature_names = booster.feature_names
+    coef = _xgb_feature_importances(booster, importance_type=importance_type)
+    return get_feature_importance_explanation(
+        xgb, vec, coef,
         feature_names=feature_names,
         estimator_feature_names=xgb_feature_names,
         feature_filter=feature_filter,
         feature_re=feature_re,
         top=top,
         description=DESCRIPTION_XGBOOST,
-        is_regression=isinstance(xgb, XGBRegressor),
+        is_regression=is_regression,
         num_features=coef.shape[-1],
     )
 
 
 @explain_prediction.register(XGBClassifier)
 @explain_prediction.register(XGBRegressor)
+@explain_prediction.register(Booster)
 def explain_prediction_xgboost(
         xgb, doc,
         vec=None,
@@ -90,27 +94,46 @@ def explain_prediction_xgboost(
         target_names=None,
         targets=None,
         feature_names=None,
-        feature_re=None,
+        feature_re=None,  # type: Pattern[str]
         feature_filter=None,
-        vectorized=False,
+        vectorized=False,  # type: bool
+        is_regression=None,  # type: bool
+        missing=None,  # type: bool
         ):
     """ Return an explanation of XGBoost prediction (via scikit-learn wrapper
-    XGBClassifier or XGBRegressor) as feature weights.
+    XGBClassifier or XGBRegressor, or via xgboost.Booster) as feature weights.
 
     See :func:`eli5.explain_prediction` for description of
     ``top``, ``top_targets``, ``target_names``, ``targets``,
     ``feature_names``, ``feature_re`` and ``feature_filter`` parameters.
 
-    ``vec`` is a vectorizer instance used to transform
-    raw features to the input of the estimator ``xgb``
-    (e.g. a fitted CountVectorizer instance); you can pass it
-    instead of ``feature_names``.
+    Parameters
+    ----------
+    vec : vectorizer, optional
+        A vectorizer instance used to transform
+        raw features to the input of the estimator ``xgb``
+        (e.g. a fitted CountVectorizer instance); you can pass it
+        instead of ``feature_names``.
 
-    ``vectorized`` is a flag which tells eli5 if ``doc`` should be
-    passed through ``vec`` or not. By default it is False, meaning that
-    if ``vec`` is not None, ``vec.transform([doc])`` is passed to the
-    estimator. Set it to False if you're passing ``vec``,
-    but ``doc`` is already vectorized.
+    vectorized : bool, optional
+        A flag which tells eli5 if ``doc`` should be
+        passed through ``vec`` or not. By default it is False, meaning that
+        if ``vec`` is not None, ``vec.transform([doc])`` is passed to the
+        estimator. Set it to True if you're passing ``vec``,
+        but ``doc`` is already vectorized.
+
+    is_regression : bool, optional
+        Pass if an ``xgboost.Booster`` is passed as the first argument.
+        True if solving a regression problem ("objective" starts with "reg")
+        and False for a classification problem.
+        If not set, regression is assumed for a single target estimator
+        and proba will not be shown.
+
+    missing : optional
+        Pass if an ``xgboost.Booster`` is passed as the first argument.
+        Set it to the same value as the ``missing`` argument to
+        ``xgboost.DMatrix``.
+        Matters only if sparse values are used. Default is ``np.nan``.
 
     Method for determining feature importances follows an idea from
     http://blog.datadive.net/interpreting-random-forests/.
@@ -122,9 +145,11 @@ def explain_prediction_xgboost(
     changes from parent to child.
     Weights of all features sum to the output score of the estimator.
     """
-    xgb_feature_names = xgb.booster().feature_names
+    booster, is_regression = _check_booster_args(xgb, is_regression)
+    xgb_feature_names = booster.feature_names
     vec, feature_names = handle_vec(
-        xgb, doc, vec, vectorized, feature_names, num_features=len(xgb_feature_names))
+        xgb, doc, vec, vectorized, feature_names,
+        num_features=len(xgb_feature_names))
     if feature_names.bias_name is None:
         # XGBoost estimators do not have an intercept, but here we interpret
         # them as having an intercept
@@ -136,50 +161,86 @@ def explain_prediction_xgboost(
         # https://github.com/dmlc/xgboost/issues/1238#issuecomment-243872543
         X = X.tocsc()
 
-    proba = predict_proba(xgb, X)
+    if missing is None:
+        missing = np.nan if isinstance(xgb, Booster) else xgb.missing
+    dmatrix = DMatrix(X, missing=missing)
+
+    if isinstance(xgb, Booster):
+        prediction = xgb.predict(dmatrix)
+        n_targets = prediction.shape[-1]  # type: int
+        if is_regression is None:
+            # When n_targets is 1, this can be classification too,
+            # but it's safer to assume regression.
+            # If n_targets > 1, it must be classification.
+            is_regression = n_targets == 1
+        if is_regression:
+            proba = None
+        else:
+            if n_targets == 1:
+                p, = prediction
+                proba = np.array([1 - p, p])
+            else:
+                proba, = prediction
+    else:
+        proba = predict_proba(xgb, X)
+        n_targets = _xgb_n_targets(xgb)
+
+    if is_regression:
+        names = ['y']
+    elif isinstance(xgb, Booster):
+        names = np.arange(max(2, n_targets))
+    else:
+        names = xgb.classes_
+
     scores_weights = _prediction_feature_weights(
-        xgb, X, feature_names, xgb_feature_names)
+        booster, dmatrix, n_targets, feature_names, xgb_feature_names)
 
     x = get_X0(add_intercept(X))
-    x = _missing_values_set_to_nan(x, xgb.missing, sparse_missing=True)
-    feature_names, flt_indices = feature_names.handle_filter(
-        feature_filter, feature_re, x)
-
-    is_multiclass = _xgb_n_targets(xgb) > 1
-    is_regression = isinstance(xgb, XGBRegressor)
-    names = xgb.classes_ if not is_regression else ['y']
-
-    def get_score_feature_weights(_label_id):
-        _score, _feature_weights = scores_weights[_label_id]
-        _x = x
-        if flt_indices is not None:
-            _x = mask(_x, flt_indices)
-            _feature_weights = mask(_feature_weights, flt_indices)
-        return _score, get_top_features(
-            feature_names, _feature_weights, top, _x)
+    x = _missing_values_set_to_nan(x, missing, sparse_missing=True)
 
     return get_decision_path_explanation(
         xgb, doc, vec,
+        x=x,
+        feature_names=feature_names,
+        feature_filter=feature_filter,
+        feature_re=feature_re,
+        top=top,
         vectorized=vectorized,
         original_display_names=names,
         target_names=target_names,
         targets=targets,
         top_targets=top_targets,
         is_regression=is_regression,
-        is_multiclass=is_multiclass,
+        is_multiclass=n_targets > 1,
         proba=proba,
-        get_score_feature_weights=get_score_feature_weights,
+        get_score_weights=lambda label_id: scores_weights[label_id],
      )
 
 
-def _prediction_feature_weights(xgb, X, feature_names, xgb_feature_names):
+def _check_booster_args(xgb, is_regression=None):
+    # type: (Any, bool) -> Tuple[Booster, bool]
+    if isinstance(xgb, Booster):
+        booster = xgb
+    else:
+        booster = xgb.booster()
+        _is_regression = isinstance(xgb, XGBRegressor)
+        if is_regression is not None and is_regression != _is_regression:
+            raise ValueError(
+                'Inconsistent is_regression={} passed. '
+                'You don\'t have to pass it when using scikit-learn API'
+                .format(is_regression))
+        is_regression = _is_regression
+    return booster, is_regression
+
+
+def _prediction_feature_weights(booster, dmatrix, n_targets,
+                                feature_names, xgb_feature_names):
     """ For each target, return score and numpy array with feature weights
     on this prediction, following an idea from
     http://blog.datadive.net/interpreting-random-forests/
     """
     # XGBClassifier does not have pred_leaf argument, so use booster
-    booster = xgb.booster()  # type: Booster
-    leaf_ids, = booster.predict(DMatrix(X, missing=xgb.missing), pred_leaf=True)
+    leaf_ids, = booster.predict(dmatrix, pred_leaf=True)
     xgb_feature_names = {f: i for i, f in enumerate(xgb_feature_names)}
     tree_dumps = booster.get_dump(with_stats=True)
     assert len(tree_dumps) == len(leaf_ids)
@@ -187,7 +248,6 @@ def _prediction_feature_weights(xgb, X, feature_names, xgb_feature_names):
     target_feature_weights = partial(
         _target_feature_weights,
         feature_names=feature_names, xgb_feature_names=xgb_feature_names)
-    n_targets = _xgb_n_targets(xgb)
     if n_targets > 1:
         # For multiclass, XGBoost stores dumps and leaf_ids in a 1d array,
         # so we need to split them.
@@ -201,7 +261,8 @@ def _prediction_feature_weights(xgb, X, feature_names, xgb_feature_names):
     return scores_weights
 
 
-def _target_feature_weights(leaf_ids, tree_dumps, feature_names, xgb_feature_names):
+def _target_feature_weights(leaf_ids, tree_dumps, feature_names,
+                            xgb_feature_names):
     feature_weights = np.zeros(len(feature_names))
     # All trees in XGBoost give equal contribution to the prediction:
     # it is equal to sum of "leaf" values in leafs
@@ -242,6 +303,7 @@ def _indexed_leafs(parent):
 
 
 def _parent_value(children):
+    # type: (...) -> int
     """ Value of the parent node: a weighted sum of child values.
     """
     covers = np.array([child['cover'] for child in children])
@@ -251,6 +313,7 @@ def _parent_value(children):
 
 
 def _xgb_n_targets(xgb):
+    # type: (...) -> int
     if isinstance(xgb, XGBClassifier):
         return 1 if xgb.n_classes_ == 2 else xgb.n_classes_
     elif isinstance(xgb, XGBRegressor):
@@ -259,15 +322,15 @@ def _xgb_n_targets(xgb):
         raise TypeError
 
 
-def _xgb_feature_importances(xgb, importance_type):
-    b = xgb.booster()
-    fs = b.get_score(importance_type=importance_type)
+def _xgb_feature_importances(booster, importance_type):
+    fs = booster.get_score(importance_type=importance_type)
     all_features = np.array(
-        [fs.get(f, 0.) for f in b.feature_names], dtype=np.float32)
+        [fs.get(f, 0.) for f in booster.feature_names], dtype=np.float32)
     return all_features / all_features.sum()
 
 
 def _parse_tree_dump(text_dump):
+    # type: (str) -> Optional[Dict[str, Any]]
     """ Parse text tree dump (one item of a list returned by Booster.get_dump())
     into json format that will be used by next XGBoost release.
     """

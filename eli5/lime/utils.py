@@ -10,6 +10,7 @@ from sklearn.utils.metaestimators import if_delegate_has_method  # type: ignore
 from sklearn.utils import shuffle as _shuffle  # type: ignore
 
 from eli5.utils import vstack
+from eli5.sklearn.utils import sklearn_version
 
 
 def fit_proba(clf, X, y_proba, expand_factor=10, sample_weight=None,
@@ -55,7 +56,7 @@ def fix_multiclass_predict_proba(y_proba,          # type: np.ndarray
     """
     Add missing columns to predict_proba result.
 
-    When a multiclass classifier is fit on a dataset which onlly contains
+    When a multiclass classifier is fit on a dataset which only contains
     a subset of possible classes its predict_proba result only has columns
     corresponding to seen classes. This function adds missing columns.
     """
@@ -70,9 +71,8 @@ def fix_multiclass_predict_proba(y_proba,          # type: np.ndarray
 
 
 class _PipelinePatched(Pipeline):
-    # Patch from https://github.com/scikit-learn/scikit-learn/pull/7723.
-    # FIXME/TODO: don't use it if the fix is in upstream!
-
+    # Patch from https://github.com/scikit-learn/scikit-learn/pull/7723;
+    # only needed for scikit-learn < 0.19.
     @if_delegate_has_method(delegate='_final_estimator')
     def score(self, X, y=None, **score_params):
         Xt = X
@@ -83,10 +83,9 @@ class _PipelinePatched(Pipeline):
 
 
 def score_with_sample_weight(estimator, X, y=None, sample_weight=None):
-    # A workaround for https://github.com/scikit-learn/scikit-learn/pull/7723.
-    # FIXME/TODO: don't use it if the fix is in upstream!
-    if isinstance(estimator, Pipeline) and sample_weight is not None:
-        estimator = _PipelinePatched(estimator.steps)
+    if sklearn_version() < '0.19':
+        if isinstance(estimator, Pipeline) and sample_weight is not None:
+            estimator = _PipelinePatched(estimator.steps)
     if sample_weight is None:
         return estimator.score(X, y)
     return estimator.score(X, y, sample_weight=sample_weight)

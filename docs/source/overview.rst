@@ -21,12 +21,14 @@ following machine learning frameworks and packages:
   print decision trees as text or as SVG, show feature importances
   and explain predictions of decision trees and tree-based ensembles.
 
+  Pipeline and FeatureUnion are supported.
+
   ELI5 understands text processing utilities from scikit-learn and can
   highlight text data accordingly. It also allows to debug scikit-learn
   pipelines which contain HashingVectorizer, by undoing hashing.
 
 * :ref:`library-xgboost` - show feature importances and explain predictions
-  of XGBClassifier and XGBRegressor.
+  of XGBClassifier, XGBRegressor and xgboost.Booster.
 
 * :ref:`library-lightgbm` - show feature importances and explain predictions
   of LGBMClassifier and LGBMRegressor.
@@ -37,16 +39,22 @@ following machine learning frameworks and packages:
 * :ref:`library-sklearn-crfsuite`. ELI5 allows to check weights of
   sklearn_crfsuite.CRF models.
 
-ELI5 also provides :ref:`TextExplainer <lime-tutorial>` which allows to
-explain predictions of any text classifier using :ref:`LIME <eli5-lime>`
-algorithm (Ribeiro et al., 2016). There are utilities for using LIME with
-non-text data and arbitrary black-box classifiers as well, but this feature
-is currently experimental.
+ELI5 also implements several algorithms for inspecting black-box models
+(see :ref:`eli5-black-box`):
+
+* :ref:`TextExplainer <lime-tutorial>` allows to explain predictions
+  of any text classifier using :ref:`LIME <eli5-lime>` algorithm
+  (Ribeiro et al., 2016). There are utilities for using LIME with non-text
+  data and arbitrary black-box classifiers as well, but this feature is
+  currently experimental.
+* :ref:`eli5-permutation-importance` method can be used to compute feature
+  importances for black box estimators.
 
 Explanation and formatting are separated; you can get text-based explanation
 to display in console, HTML version embeddable in an IPython notebook
-or web dashboards, or JSON version which allows to implement custom
-rendering and formatting on a client.
+or web dashboards, JSON version which allows to implement custom
+rendering and formatting on a client, and convert explanations to pandas
+DataFrame objects.
 
 .. _lightning: https://github.com/scikit-learn-contrib/lightning
 .. _scikit-learn: https://github.com/scikit-learn/scikit-learn
@@ -72,7 +80,7 @@ If the ML library you're working with is supported then you usually
 can enter something like this in the IPython Notebook::
 
     import eli5
-    eli5.explain_weights(clf)
+    eli5.show_weights(clf)
 
 and get an explanation like this:
 
@@ -124,8 +132,8 @@ Architecture
 In ELI5 "explanation" is separated from output format:
 :func:`eli5.explain_weights` and :func:`eli5.explain_prediction`
 return :class:`~.Explanation` instances; then functions from
-:mod:`eli5.formatters` can be used to get HTML, text or dict/JSON
-representation of the explanation.
+:mod:`eli5.formatters` can be used to get HTML, text, dict/JSON
+or pandas DataFrame representation of the explanation.
 
 It is not convenient to do that all when working interactively in IPython
 notebooks, so there are :func:`eli5.show_weights` and

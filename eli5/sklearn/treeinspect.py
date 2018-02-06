@@ -13,7 +13,10 @@ from sklearn.tree import _tree, export_graphviz  # type: ignore
 from eli5.base import TreeInfo, NodeInfo
 
 
-def get_tree_info(decision_tree, feature_names=None, **export_graphviz_kwargs):
+def get_tree_info(decision_tree,
+                  feature_names=None,
+                  **export_graphviz_kwargs):
+    # type: (...) -> TreeInfo
     """
     Convert DecisionTreeClassifier or DecisionTreeRegressor
     to an inspectable object.
@@ -34,6 +37,7 @@ def tree2dot(decision_tree, **export_graphviz_kwargs):
 
 
 def _get_root_node_info(decision_tree, feature_names=None):
+    # type: (...) -> NodeInfo
     res = _get_node_info(decision_tree.tree_, 0)
     _add_feature_names(res, feature_names)
     return res
@@ -50,6 +54,7 @@ def _add_feature_names(root, feature_names=None):
 
 
 def _get_node_info(tree, node_id):
+    # type: (...) -> NodeInfo
     is_leaf = tree.children_left[node_id] == _tree.TREE_LEAF
     value = _node_value(tree, node_id)
     node = NodeInfo(

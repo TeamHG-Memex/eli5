@@ -14,4 +14,5 @@ API documentation is auto-generated.
    ./sklearn_crfsuite
    ./xgboost
    ./lightgbm
+   ./permutation_importance
    ./base

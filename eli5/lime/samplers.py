@@ -147,7 +147,7 @@ class MaskingTextSamplers(BaseSampler):
         params = dict(
             token_pattern=self.token_pattern,
             random_state=self.rng_,
-        )
+        )  # type: Dict[str, Any]
         params.update(extra)
         return MaskingTextSampler(**params)
 

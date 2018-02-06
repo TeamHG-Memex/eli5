@@ -7,15 +7,15 @@ ELI5
    :alt: PyPI Version
 
 .. image:: https://travis-ci.org/TeamHG-Memex/eli5.svg?branch=master
-   :target: http://travis-ci.org/TeamHG-Memex/eli5
+   :target: https://travis-ci.org/TeamHG-Memex/eli5
    :alt: Build Status
 
-.. image:: http://codecov.io/github/TeamHG-Memex/eli5/coverage.svg?branch=master
-   :target: http://codecov.io/github/TeamHG-Memex/eli5?branch=master
+.. image:: https://codecov.io/github/TeamHG-Memex/eli5/coverage.svg?branch=master
+   :target: https://codecov.io/github/TeamHG-Memex/eli5?branch=master
    :alt: Code Coverage
 
 .. image:: https://readthedocs.org/projects/eli5/badge/?version=latest
-   :target: http://eli5.readthedocs.io/en/latest/?badge=latest
+   :target: https://eli5.readthedocs.io/en/latest/?badge=latest
    :alt: Documentation
 
 
@@ -36,8 +36,8 @@ It provides support for the following machine learning frameworks and packages:
   It also allows to debug scikit-learn pipelines which contain
   HashingVectorizer, by undoing hashing.
 
-* xgboost_ - show feature importances and explain predictions of XGBClassifier
-  and XGBRegressor.
+* xgboost_ - show feature importances and explain predictions of XGBClassifier,
+  XGBRegressor and xgboost.Booster.
 
 * LightGBM_ - show feature importances and explain predictions of
   LGBMClassifier and LGBMRegressor.
@@ -48,24 +48,38 @@ It provides support for the following machine learning frameworks and packages:
 * sklearn-crfsuite_. ELI5 allows to check weights of sklearn_crfsuite.CRF
   models.
 
-ELI5 also provides TextExplainer_ which allows to explain predictions
-of any text classifier using LIME_ algorithm (Ribeiro et al., 2016).
-There are utilities for using LIME with non-text data and arbitrary black-box
-classifiers as well, but this feature is currently experimental.
+ELI5 also implements several algorithms for inspecting black-box models
+(see `Inspecting Black-Box Estimators`_):
+
+* TextExplainer_ allows to explain predictions
+  of any text classifier using LIME_ algorithm (Ribeiro et al., 2016).
+  There are utilities for using LIME with non-text data and arbitrary black-box
+  classifiers as well, but this feature is currently experimental.
+* `Permutation importance`_ method can be used to compute feature importances
+  for black box estimators.
 
 Explanation and formatting are separated; you can get text-based explanation
 to display in console, HTML version embeddable in an IPython notebook
-or web dashboards, or JSON version which allows to implement custom
-rendering and formatting on a client.
+or web dashboards, a ``pandas.DataFrame`` object if you want to process
+results further, or JSON version which allows to implement custom rendering
+and formatting on a client.
 
 .. _lightning: https://github.com/scikit-learn-contrib/lightning
 .. _scikit-learn: https://github.com/scikit-learn/scikit-learn
 .. _sklearn-crfsuite: https://github.com/TeamHG-Memex/sklearn-crfsuite
-.. _LIME: http://eli5.readthedocs.io/en/latest/lime.html
-.. _TextExplainer: http://eli5.readthedocs.io/en/latest/tutorials/black-box-text-classifiers.html
+.. _LIME: https://eli5.readthedocs.io/en/latest/blackbox/lime.html
+.. _TextExplainer: https://eli5.readthedocs.io/en/latest/tutorials/black-box-text-classifiers.html
 .. _xgboost: https://github.com/dmlc/xgboost
 .. _LightGBM: https://github.com/Microsoft/LightGBM
+.. _Permutation importance: https://eli5.readthedocs.io/en/latest/blackbox/permutation_importance.html
+.. _Inspecting Black-Box Estimators: https://eli5.readthedocs.io/en/latest/blackbox/index.html
 
 License is MIT.
 
-Check `docs <http://eli5.readthedocs.io/>`_ for more.
+Check `docs <https://eli5.readthedocs.io/>`_ for more.
+
+----
+
+.. image:: https://hyperiongray.s3.amazonaws.com/define-hg.svg
+	:target: https://hyperiongray.com/?pk_campaign=github&pk_kwd=eli5
+	:alt: define hyperiongray

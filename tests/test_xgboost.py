@@ -6,13 +6,14 @@ import numpy as np
 import scipy.sparse as sp
 from sklearn.feature_extraction.text import CountVectorizer
 pytest.importorskip('xgboost')
+import xgboost
 from xgboost import XGBClassifier, XGBRegressor
 from sklearn.pipeline import FeatureUnion
 from sklearn.preprocessing import FunctionTransformer
 
 from eli5.xgboost import (
     _parse_tree_dump, _xgb_n_targets, _missing_values_set_to_nan,
-    _parent_value, _parse_dump_line,
+    _parent_value, _parse_dump_line, _check_booster_args,
 )
 from eli5.explain import explain_prediction, explain_weights
 from eli5.formatters.text import format_as_text
@@ -22,15 +23,33 @@ from .test_sklearn_explain_weights import (
     test_explain_tree_classifier as _check_rf_classifier,
     test_explain_random_forest_and_tree_feature_filter as _check_rf_feature_filter,
     test_feature_importances_no_remaining as _check_rf_no_remaining,
+    assert_tree_classifier_explained,
 )
 from .test_sklearn_explain_prediction import (
     assert_linear_regression_explained,
+    assert_trained_linear_regression_explained,
+    assert_explain_prediction_single_target,
+    test_explain_clf_binary_iris as _check_binary_classifier,
     test_explain_prediction_pandas as _check_explain_prediction_pandas,
 )
 
 
-def test_explain_xgboost(newsgroups_train):
-    _check_rf_classifier(newsgroups_train, XGBClassifier(n_estimators=10))
+@pytest.mark.parametrize(['importance_type'], [['gain'], ['weight'], ['cover']])
+def test_explain_xgboost(newsgroups_train, importance_type):
+    _check_rf_classifier(newsgroups_train, XGBClassifier(n_estimators=10),
+                         importance_type=importance_type)
+
+
+def test_explain_booster(newsgroups_train):
+    docs, y, target_names = newsgroups_train
+    vec = CountVectorizer()
+    X = vec.fit_transform(docs)
+    booster = xgboost.train(
+        params={'objective': 'multi:softprob', 'silent': True, 'max_depth': 3,
+                'num_class': len(target_names)},
+        dtrain=xgboost.DMatrix(X, label=y, missing=np.nan),
+        num_boost_round=10)
+    assert_tree_classifier_explained(booster, vec, target_names)
 
 
 def test_explain_xgboost_feature_filter(newsgroups_train):
@@ -53,16 +72,44 @@ def test_explain_xgboost_regressor(boston_train):
         assert 'LSTAT' in expl
 
 
-@pytest.mark.parametrize(['missing'], [[np.nan], [0]])
-def test_explain_prediction_clf_binary(newsgroups_train_binary_big, missing):
+def test_explain_xgboost_booster(boston_train):
+    xs, ys, feature_names = boston_train
+    booster = xgboost.train(
+        params={'objective': 'reg:linear', 'silent': True},
+        dtrain=xgboost.DMatrix(xs, label=ys),
+    )
+    res = explain_weights(booster)
+    for expl in format_as_all(res, booster):
+        assert 'f12' in expl
+    res = explain_weights(booster, feature_names=feature_names)
+    for expl in format_as_all(res, booster):
+        assert 'LSTAT' in expl
+
+
+@pytest.mark.parametrize(
+    ['missing', 'use_booster'],
+    [[np.nan, False], [0, False], [np.nan, True]])
+def test_explain_prediction_clf_binary(
+        newsgroups_train_binary_big, missing, use_booster):
     docs, ys, target_names = newsgroups_train_binary_big
     vec = CountVectorizer(stop_words='english')
-    clf = XGBClassifier(n_estimators=100, max_depth=2, missing=missing)
     xs = vec.fit_transform(docs)
-    clf.fit(xs, ys)
+    explain_kwargs = {}
+    if use_booster:
+        clf = xgboost.train(
+            params={'objective': 'binary:logistic',
+                    'silent': True,
+                    'max_depth': 2},
+            dtrain=xgboost.DMatrix(xs, label=ys, missing=missing),
+            num_boost_round=100,
+        )
+        explain_kwargs.update({'missing': missing, 'is_regression': False})
+    else:
+        clf = XGBClassifier(n_estimators=100, max_depth=2, missing=missing)
+        clf.fit(xs, ys)
     get_res = lambda **kwargs: explain_prediction(
         clf, 'computer graphics in space: a sign of atheism',
-        vec=vec, target_names=target_names, **kwargs)
+        vec=vec, target_names=target_names, **dict(kwargs, **explain_kwargs))
     res = get_res()
     for expl in format_as_all(res, clf, show_feature_values=True):
         assert 'graphics' in expl
@@ -85,13 +132,41 @@ def test_explain_prediction_clf_binary(newsgroups_train_binary_big, missing):
         assert 'Missing' not in expl
 
 
-@pytest.mark.parametrize(['filter_missing'], [[True], [False]])
-def test_explain_prediction_clf_multitarget(newsgroups_train, filter_missing):
+@pytest.mark.parametrize(['clf'], [
+    [XGBClassifier(n_estimators=50)],
+    [XGBRegressor(n_estimators=50)],
+])
+def test_explain_prediction_xgboost_binary_iris(clf, iris_train_binary):
+    X, y, feature_names = iris_train_binary
+    clf.fit(X, y)
+    assert_explain_prediction_single_target(clf, X, feature_names)
+
+
+def test_explain_prediction_xgboost_clf_binary_iris(iris_train_binary):
+    clf = XGBClassifier(n_estimators=50)
+    _check_binary_classifier(clf, iris_train_binary)
+
+
+@pytest.mark.parametrize(
+    ['filter_missing', 'use_booster'],
+    [[True, False], [False, False], [True, True]])
+def test_explain_prediction_clf_multitarget(
+        newsgroups_train, filter_missing, use_booster):
     docs, ys, target_names = newsgroups_train
     vec = CountVectorizer(stop_words='english')
     xs = vec.fit_transform(docs)
-    clf = XGBClassifier(n_estimators=100, max_depth=2)
-    clf.fit(xs, ys)
+    if use_booster:
+        clf = xgboost.train(
+            params={'objective': 'multi:softprob',
+                    'num_class': len(target_names),
+                    'silent': True,
+                    'max_depth': 2},
+            dtrain=xgboost.DMatrix(xs, label=ys, missing=np.nan),
+            num_boost_round=100,
+        )
+    else:
+        clf = XGBClassifier(n_estimators=100, max_depth=2)
+        clf.fit(xs, ys)
     feature_filter = (lambda _, v: not np.isnan(v)) if filter_missing else None
     doc = 'computer graphics in space: a new religion'
     res = explain_prediction(clf, doc, vec=vec, target_names=target_names,
@@ -146,7 +221,8 @@ def test_dense_missing():
 
 
 def test_explain_prediction_clf_interval():
-    true_xs = [[np.random.randint(3), np.random.randint(10)] for _ in range(1000)]
+    true_xs = [[np.random.randint(3), np.random.randint(10)]
+               for _ in range(1000)]
     xs = np.array([[np.random.normal(x, 0.2), np.random.normal(y, 0.2)]
                    for x, y in true_xs])
     ys = np.array([x == 1 for x, _ in true_xs])
@@ -166,6 +242,17 @@ def test_explain_prediction_clf_interval():
 def test_explain_prediction_reg(boston_train):
     assert_linear_regression_explained(
         boston_train, XGBRegressor(), explain_prediction,
+        reg_has_intercept=True)
+
+
+def test_explain_prediction_reg_booster(boston_train):
+    X, y, feature_names = boston_train
+    booster = xgboost.train(
+        params={'objective': 'reg:linear', 'silent': True, 'max_depth': 2},
+        dtrain=xgboost.DMatrix(X, label=y),
+    )
+    assert_trained_linear_regression_explained(
+        X[0], feature_names, booster, explain_prediction,
         reg_has_intercept=True)
 
 
@@ -383,3 +470,28 @@ def test_parent_value():
     assert _parent_value([{'cover': 10., 'leaf': 15.}]) == 15.
     assert _parent_value([
         {'cover': 10., 'leaf': 15.}, {'cover': 40., 'leaf': 5.}]) == 7.
+
+
+def test_check_booster_args():
+    x, y = np.random.random((10, 2)), np.random.randint(2, size=10)
+    regressor = XGBRegressor().fit(x, y)
+    classifier = XGBClassifier().fit(x, y)
+    booster, is_regression = _check_booster_args(regressor)
+    assert is_regression is True
+    assert isinstance(booster, xgboost.Booster)
+    _, is_regression = _check_booster_args(regressor, is_regression=True)
+    assert is_regression is True
+    _, is_regression = _check_booster_args(classifier)
+    assert is_regression is False
+    _, is_regression = _check_booster_args(classifier, is_regression=False)
+    assert is_regression is False
+    with pytest.raises(ValueError):
+        _check_booster_args(classifier, is_regression=True)
+    with pytest.raises(ValueError):
+        _check_booster_args(regressor, is_regression=False)
+    booster = xgboost.Booster()
+    _booster, is_regression = _check_booster_args(booster)
+    assert _booster is booster
+    assert is_regression is None
+    _, is_regression = _check_booster_args(booster, is_regression=True)
+    assert is_regression is True

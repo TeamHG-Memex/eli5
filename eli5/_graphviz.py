@@ -3,6 +3,7 @@ import graphviz  # type: ignore
 
 
 def is_supported():
+    # type: () -> bool
     try:
         graphviz.Graph().pipe('svg')
         return True
@@ -11,8 +12,9 @@ def is_supported():
 
 
 def dot2svg(dot):
+    # type: (str) -> str
     """ Render Graphviz data to SVG """
-    svg = graphviz.Source(dot).pipe(format='svg').decode('utf8')
+    svg = graphviz.Source(dot).pipe(format='svg').decode('utf8')  # type: str
     # strip doctype and xml declaration
     svg = svg[svg.index('<svg'):]
     return svg

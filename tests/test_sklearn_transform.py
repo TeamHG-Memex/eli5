@@ -20,8 +20,16 @@ from sklearn.linear_model import (
     RandomizedLogisticRegression,
     RandomizedLasso,  # TODO: add tests and document
 )
-from sklearn.pipeline import FeatureUnion
+from sklearn.preprocessing import (
+    MinMaxScaler,
+    StandardScaler,
+    MaxAbsScaler,
+    RobustScaler,
+)
+from sklearn.pipeline import FeatureUnion, make_pipeline
+
 from eli5 import transform_feature_names
+from eli5.sklearn import PermutationImportance
 
 
 class MyFeatureExtractor(BaseEstimator, TransformerMixin):
@@ -41,6 +49,20 @@ def selection_score_func(X, y):
 
 @pytest.mark.parametrize('transformer,expected', [
     (MyFeatureExtractor(), ['f1', 'f2', 'f3']),
+
+    (make_pipeline(StandardScaler(), MyFeatureExtractor()),
+     ['f1', 'f2', 'f3']),
+    (make_pipeline(MinMaxScaler(), MyFeatureExtractor()),
+     ['f1', 'f2', 'f3']),
+    (make_pipeline(MaxAbsScaler(), MyFeatureExtractor()),
+     ['f1', 'f2', 'f3']),
+    (make_pipeline(RobustScaler(), MyFeatureExtractor()),
+     ['f1', 'f2', 'f3']),
+    (StandardScaler(), ['<NAME0>', '<NAME1>', '<NAME2>', '<NAME3>']),
+    (MinMaxScaler(), ['<NAME0>', '<NAME1>', '<NAME2>', '<NAME3>']),
+    (MaxAbsScaler(), ['<NAME0>', '<NAME1>', '<NAME2>', '<NAME3>']),
+    (RobustScaler(), ['<NAME0>', '<NAME1>', '<NAME2>', '<NAME3>']),
+
     (SelectKBest(selection_score_func, k=1),
      ['<NAME3>']),
     (SelectKBest(selection_score_func, k=2),
@@ -54,6 +76,14 @@ def selection_score_func(X, y):
     (GenericUnivariateSelect(mode='k_best', param=2), ['<NAME2>', '<NAME3>']),
     (SelectFromModel(LogisticRegression('l1', C=0.01, random_state=42)),
      ['<NAME0>', '<NAME2>']),
+    (SelectFromModel(
+        PermutationImportance(
+            LogisticRegression(random_state=42),
+            cv=5, random_state=42, refit=False,
+        ),
+        threshold=0.1,
+     ),
+     ['<NAME2>', '<NAME3>']),
     (RFE(LogisticRegression(random_state=42), 2),
      ['<NAME1>', '<NAME3>']),
     (RFECV(LogisticRegression(random_state=42)),

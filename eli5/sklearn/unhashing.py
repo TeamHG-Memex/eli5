@@ -28,13 +28,13 @@ class InvertableHashingVectorizer(BaseEstimator, TransformerMixin):
         vec = InvertableHashingVectorizer(my_hashing_vectorizer)
 
     Unlike HashingVectorizer it can be fit. During fitting
-    InvertableHashingVectorizer learns which input terms map to which
-    feature columns/signs; this allows to provide more meaningful
+    :class:`~.InvertableHashingVectorizer` learns which input terms map to
+    which feature columns/signs; this allows to provide more meaningful
     :meth:`get_feature_names`. The cost is that it is no longer stateless.
 
-    You can fit InvertableHashingVectorizer on a random sample of documents
-    (not necessarily on the whole training and testing data), and use it
-    to inspect an existing HashingVectorizer instance.
+    You can fit :class:`~.InvertableHashingVectorizer` on a random sample
+    of documents (not necessarily on the whole training and testing data),
+    and use it to inspect an existing HashingVectorizer instance.
 
     If several features hash to the same value, they are ordered by
     their frequency in documents that were used to fit the vectorizer.
@@ -50,7 +50,7 @@ class InvertableHashingVectorizer(BaseEstimator, TransformerMixin):
             hasher=vec._get_hasher(),
             unkn_template=unkn_template,
         )
-        self.n_features = vec.n_features
+        self.n_features = vec.n_features  # type: int
 
     def fit(self, X, y=None):
         """ Extract possible terms from documents """
@@ -61,14 +61,15 @@ class InvertableHashingVectorizer(BaseEstimator, TransformerMixin):
         self.unhasher.partial_fit(self._get_terms_iter(X))
         return self
 
-    def transform(self, X, y=None):
-        return self.vec.transform(X, y)
+    def transform(self, X):
+        return self.vec.transform(X)
 
     def get_feature_names(self, always_signed=True):
+        # type: (bool) -> FeatureNames
         """
         Return feature names.
         This is a best-effort function which tries to reconstruct feature
-        names based on what it have seen so far.
+        names based on what it has seen so far.
 
         HashingVectorizer uses a signed hash function. If always_signed is True,
         each term in feature names is prepended with its sign. If it is False,
@@ -105,7 +106,12 @@ class InvertableHashingVectorizer(BaseEstimator, TransformerMixin):
         return self.unhasher.column_signs_
 
     def _always_positive(self):
-        return self.vec.binary or self.vec.non_negative
+        # type: () -> bool
+        return (
+            self.vec.binary
+            or getattr(self.vec, 'non_negative', False)
+            or not getattr(self.vec, 'alternate_sign', True)
+        )
 
 
 class FeatureUnhasher(BaseEstimator):
@@ -118,7 +124,7 @@ class FeatureUnhasher(BaseEstimator):
             raise ValueError("FeatureUnhasher only supports hashers with "
                              "input_type 'string', got %r." % hasher.input_type)
         self.hasher = hasher
-        self.n_features = self.hasher.n_features
+        self.n_features = self.hasher.n_features  # type: int
         self.unkn_template = unkn_template
         self._attributes_dirty = True
         self._term_counts = Counter()  # type: Counter
@@ -137,6 +143,7 @@ class FeatureUnhasher(BaseEstimator):
         return self
 
     def get_feature_names(self, always_signed=True, always_positive=False):
+        # type: (bool, bool) -> FeatureNames
         self.recalculate_attributes()
 
         # lists of names with signs of known features
@@ -157,6 +164,7 @@ class FeatureUnhasher(BaseEstimator):
             unkn_template=self.unkn_template)
 
     def recalculate_attributes(self, force=False):
+        # type: (bool) -> None
         """
         Update all computed attributes. It is only needed if you need to access
         computed attributes after :meth:`patrial_fit` was called.
@@ -172,7 +180,7 @@ class FeatureUnhasher(BaseEstimator):
             indices, signs = _get_indices_and_signs(self.hasher, terms)
         else:
             indices, signs = np.array([]), np.array([])
-        self.terms_ = terms
+        self.terms_ = terms  # type: np.ndarray
         self.term_columns_ = indices
         self.term_signs_ = signs
         self.collisions_ = _get_collisions(indices)
@@ -190,6 +198,7 @@ class FeatureUnhasher(BaseEstimator):
         return colums_signs
 
     def _get_collision_info(self):
+        # type: () -> Tuple[List[int], List[np.ndarray], List[np.ndarray]]
         column_ids, term_names, term_signs = [], [], []
         for column_id, _term_ids in self.collisions_.items():
             column_ids.append(column_id)
@@ -199,6 +208,7 @@ class FeatureUnhasher(BaseEstimator):
 
 
 def _get_collisions(indices):
+    # type: (...) -> Dict[int, List[int]]
     """
     Return a dict ``{column_id: [possible term ids]}``
     with collision information.
@@ -297,10 +307,10 @@ def invert_hashing_and_fit(
         docs
     ):
     # type: (...) -> Union[FeatureUnion, InvertableHashingVectorizer]
-    """ Create an InvertableHashingVectorizer from hashing vectorizer vec
-    and fit it on docs. If vec is a FeatureUnion, do it for all
+    """ Create an :class:`~.InvertableHashingVectorizer` from hashing
+    vectorizer vec and fit it on docs. If vec is a FeatureUnion, do it for all
     hashing vectorizers in the union.
-    Return an InvertableHashingVectorizer, or a FeatureUnion,
+    Return an :class:`~.InvertableHashingVectorizer`, or a FeatureUnion,
     or an unchanged vectorizer.
     """
     if isinstance(vec, HashingVectorizer):

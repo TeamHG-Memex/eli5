@@ -1,16 +1,14 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import
+from __future__ import absolute_import, division
 from collections import defaultdict
 from typing import DefaultDict
 
 import numpy as np  # type: ignore
 import lightgbm  # type: ignore
 
-from eli5._feature_weights import get_top_features
 from eli5.explain import explain_weights, explain_prediction
 from eli5._feature_importances import get_feature_importance_explanation
 from eli5.sklearn.utils import handle_vec, get_X, get_X0, add_intercept, predict_proba
-from eli5.utils import mask
 from eli5._decision_path import get_decision_path_explanation
 
 
@@ -96,7 +94,7 @@ def explain_prediction_lightgbm(
     ``vectorized`` is a flag which tells eli5 if ``doc`` should be
     passed through ``vec`` or not. By default it is False, meaning that
     if ``vec`` is not None, ``vec.transform([doc])`` is passed to the
-    estimator. Set it to False if you're passing ``vec``,
+    estimator. Set it to True if you're passing ``vec``,
     but ``doc`` is already vectorized.
 
     Method for determining feature importances follows an idea from
@@ -120,28 +118,27 @@ def explain_prediction_lightgbm(
     proba = predict_proba(lgb, X)
     weight_dicts = _get_prediction_feature_weights(lgb, X, _lgb_n_targets(lgb))
     x = get_X0(add_intercept(X))
-    flt_feature_names, flt_indices = feature_names.handle_filter(
-        feature_filter, feature_re, x)
 
     is_regression = isinstance(lgb, lightgbm.LGBMRegressor)
     is_multiclass = _lgb_n_targets(lgb) > 2
     names = lgb.classes_ if not is_regression else ['y']
 
-    def get_score_feature_weights(_label_id):
+    def get_score_weights(_label_id):
         _weights = _target_feature_weights(
             weight_dicts[_label_id],
             num_features=len(feature_names),
             bias_idx=feature_names.bias_idx,
         )
         _score = _get_score(weight_dicts[_label_id])
-        _x = x
-        if flt_indices is not None:
-            _x = mask(_x, flt_indices)
-            _weights = mask(_weights, flt_indices)
-        return _score, get_top_features(flt_feature_names, _weights, top, _x)
+        return _score, _weights
 
     return get_decision_path_explanation(
         lgb, doc, vec,
+        x=x,
+        feature_names=feature_names,
+        feature_filter=feature_filter,
+        feature_re=feature_re,
+        top=top,
         vectorized=vectorized,
         original_display_names=names,
         target_names=target_names,
@@ -150,7 +147,7 @@ def explain_prediction_lightgbm(
         is_regression=is_regression,
         is_multiclass=is_multiclass,
         proba=proba,
-        get_score_feature_weights=get_score_feature_weights,
+        get_score_weights=get_score_weights,
      )
 
 
@@ -174,13 +171,17 @@ def _compute_node_values(tree_info):
     """ Add node_value key with an expected value for non-leaf nodes """
     def walk(tree):
         if 'leaf_value' in tree:
-            return tree['leaf_value'], tree['leaf_count']
+            return tree['leaf_value'], tree.get('leaf_count', 0)
         left_value, left_count = walk(tree['left_child'])
         right_value, right_count = walk(tree['right_child'])
         count = left_count + right_count
-        tree['node_value'] = (left_value * left_count +
-                              right_value * right_count) / count
-        return tree['node_value'], count
+        if tree['split_gain'] <= 0:
+            assert left_value == right_value
+            tree['_node_value'] = left_value
+        else:
+            tree['_node_value'] = (left_value * left_count +
+                                  right_value * right_count) / count
+        return tree['_node_value'], count
 
     for tree in tree_info:
         walk(tree['tree_structure'])
@@ -194,7 +195,7 @@ def _get_decision_path(leaf_index, split_index, leaf_id):
         if parent_id == -1:
             break
         parent_id, node = split_index[parent_id]
-        path.append(node['node_value'])
+        path.append(node['_node_value'])
         split_features.append(node['split_feature'])
 
     path.reverse()
@@ -221,9 +222,14 @@ def _get_leaf_split_indices(tree_structure):
 
     def walk(tree, parent_id=-1):
         if 'leaf_index' in tree:
-            leaf_index[tree['leaf_index']] = tree['leaf_parent'], tree
+            # regular leaf
+            leaf_index[tree['leaf_index']] = (parent_id, tree)
+        elif 'split_index' not in tree:
+            # one-leaf tree producing a constant without splits
+            leaf_index[0] = (parent_id, tree)
         else:
-            split_index[tree['split_index']] = parent_id, tree
+            # split node
+            split_index[tree['split_index']] = (parent_id, tree)
             walk(tree['left_child'], tree['split_index'])
             walk(tree['right_child'], tree['split_index'])
 

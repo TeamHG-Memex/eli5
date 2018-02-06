@@ -21,13 +21,15 @@ from eli5.sklearn.utils import (
     is_multitarget_regressor,
     get_num_features,
 )
+from .utils import SGD_KWARGS
 
 
 @pytest.mark.parametrize(['clf', 'intercept'], [
-    [SGDClassifier(), True],
-    [SGDClassifier(fit_intercept=False), False],
-    [OneVsRestClassifier(SGDClassifier()), True],
-    [OneVsRestClassifier(SGDClassifier(fit_intercept=False)), False],
+    [SGDClassifier(**SGD_KWARGS), True],
+    [SGDClassifier(fit_intercept=False, **SGD_KWARGS), False],
+    [OneVsRestClassifier(SGDClassifier(**SGD_KWARGS)), True],
+    [OneVsRestClassifier(
+        SGDClassifier(fit_intercept=False, **SGD_KWARGS)), False],
 ])
 def test_has_intercept(newsgroups_train, clf, intercept):
     vec = TfidfVectorizer()
@@ -103,14 +105,14 @@ def test_get_feature_names():
 
 
 def test_get_feature_names_1dim_coef():
-    clf = SGDRegressor(fit_intercept=False)
+    clf = SGDRegressor(fit_intercept=False, **SGD_KWARGS)
     X, y = make_regression(n_targets=1, n_features=3)
     clf.fit(X, y)
     assert set(get_feature_names(clf)) == {'x0', 'x1', 'x2'}
 
 
 def test_get_default_target_names():
-    clf = SGDRegressor()
+    clf = SGDRegressor(**SGD_KWARGS)
     X, y = make_regression(n_targets=1, n_features=3)
     clf.fit(X, y)
     assert set(get_default_target_names(clf)) == {'y'}

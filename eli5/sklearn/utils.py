@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
-from typing import Any, Optional
+from distutils.version import LooseVersion
+from typing import Any, Optional, List, Tuple
 
 import numpy as np  # type: ignore
 import scipy.sparse as sp  # type: ignore
@@ -115,6 +116,7 @@ def get_feature_names_filtered(clf, vec=None, bias_name='<BIAS>',
                                feature_names=None, num_features=None,
                                feature_filter=None, feature_re=None,
                                estimator_feature_names=None):
+    # type: (...) -> Tuple[FeatureNames, List[int]]
     feature_names = get_feature_names(
         clf=clf,
         vec=vec,
@@ -153,13 +155,13 @@ def get_coef(clf, label_id, scale=None):
     """
     if len(clf.coef_.shape) == 2:
         # Most classifiers (even in binary case) and regressors
-        coef = clf.coef_[label_id]
+        coef = _dense_1d(clf.coef_[label_id])
     elif len(clf.coef_.shape) == 1:
         # SGDRegressor stores coefficients in a 1D array
         if label_id != 0:
             raise ValueError(
                 'Unexpected label_id %s for 1D coefficient' % label_id)
-        coef = clf.coef_
+        coef = _dense_1d(clf.coef_)
     elif len(clf.coef_.shape) == 0:
         # Lasso with one feature: 0D array
         coef = np.array([clf.coef_])
@@ -183,6 +185,12 @@ def get_coef(clf, label_id, scale=None):
     else:
         bias = clf.intercept_[label_id]
     return np.hstack([coef, bias])
+
+
+def _dense_1d(arr):
+    if not sp.issparse(arr):
+        return arr
+    return arr.toarray().reshape(-1)
 
 
 def get_num_features(estimator):
@@ -240,6 +248,7 @@ def get_X0(X):
 
 
 def handle_vec(clf, doc, vec, vectorized, feature_names, num_features=None):
+    # type: (...) -> Tuple[Any, FeatureNames]
     if not vectorized:
         vec = invert_hashing_and_fit(vec, [doc])
     if (vec is None and feature_names is None and
@@ -261,3 +270,12 @@ def add_intercept(X):
         return sp.hstack([X, intercept]).tocsr()
     else:
         return np.hstack([X, intercept])
+
+
+def sklearn_version():
+    """Return sklearn version object which can be used for comparison. Usage:
+    >>> sklearn_version() > '0.17'
+    True
+    """
+    from sklearn import __version__  # type: ignore
+    return LooseVersion(__version__)

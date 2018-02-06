@@ -1,12 +1,66 @@
 Changelog
 =========
 
+0.8 (2017-08-25)
+----------------
+
+* **backwards incompatible**: DataFrame objects with explanations no longer
+  use indexes and pivot tables, they are now just plain DataFrames;
+* new method for inspection black-box models is added
+  (:ref:`eli5-permutation-importance`);
+* transfor_feature_names is implemented for sklearn's MinMaxScaler,
+  StandardScaler, MaxAbsScaler and RobustScaler;
+* zero and negative feature importances are no longer hidden;
+* fixed compatibility with scikit-learn 0.19;
+* fixed compatibility with LightGBM master (2.0.5 and 2.0.6 are still
+  unsupported - there are bugs in LightGBM);
+* documentation, testing and type annotation improvements.
+
+0.7 (2017-07-03)
+----------------
+
+* better pandas.DataFrame integration: :func:`eli5.explain_weights_df`,
+  :func:`eli5.explain_weights_dfs`, :func:`eli5.explain_prediction_df`,
+  :func:`eli5.explain_prediction_dfs`,
+  :func:`eli5.format_as_dataframe <eli5.formatters.as_dataframe.format_as_dataframe>`
+  and :func:`eli5.format_as_dataframes <eli5.formatters.as_dataframe.format_as_dataframes>`
+  functions allow to export explanations to pandas.DataFrames;
+* :func:`eli5.explain_prediction` now shows predicted class for binary
+  classifiers (previously it was always showing positive class);
+* :func:`eli5.explain_prediction` supports ``targets=[<class>]`` now
+  for binary classifiers; e.g. to show result as seen for negative class,
+  you can use ``eli5.explain_prediction(..., targets=[False])``;
+* support :func:`eli5.explain_prediction` and :func:`eli5.explain_weights`
+  for libsvm-based linear estimators from sklearn.svm: ``SVC(kernel='linear')``
+  (only binary classification), ``NuSVC(kernel='linear')`` (only
+  binary classification), ``SVR(kernel='linear')``, ``NuSVR(kernel='linear')``,
+  ``OneClassSVM(kernel='linear')``;
+* fixed :func:`eli5.explain_weights` for LightGBM_ estimators in Python 2 when
+  ``importance_type`` is 'split' or 'weight';
+* testing improvements.
+
+0.6.4 (2017-06-22)
+------------------
+
+* Fixed :func:`eli5.explain_prediction` for recent LightGBM_ versions;
+* fixed Python 3 deprecation warning in formatters.html;
+* testing improvements.
+
+0.6.3 (2017-06-02)
+------------------
+
+* :func:`eli5.explain_weights` and :func:`eli5.explain_prediction`
+  works with xgboost.Booster, not only with sklearn-like APIs;
+* :func:`eli5.formatters.as_dict.format_as_dict` is now available as
+  ``eli5.format_as_dict``;
+* testing and documentation fixes.
+
 0.6.2 (2017-05-17)
 ------------------
 
-* readable :func:`eli5.explain_weight` for XGBoost models trained on
+* readable :func:`eli5.explain_weights` for XGBoost models trained on
   pandas.DataFrame;
-* readable :func:`eli5.explain_weight` for LightGBM models trained on
+* readable :func:`eli5.explain_weights` for LightGBM models trained on
   pandas.DataFrame;
 * fixed an issue with :func:`eli5.explain_prediction` for XGBoost
   models trained on pandas.DataFrame when feature names contain dots;

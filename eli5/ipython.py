@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
+from typing import Any, Dict, Tuple
 
 from IPython.display import HTML  # type: ignore
 
@@ -174,6 +175,12 @@ def show_prediction(estimator, doc, **kwargs):
         of class / target names which match either names provided by
         an estimator or names defined in ``target_names`` parameter.
 
+        In case of binary classification you can use this argument to
+        set the class which probability or score should be displayed, with
+        an appropriate explanation. By default a result for predicted class
+        is shown. For example, you can use ``targets=[True]`` to always show
+        result for a positive class, even if the predicted label is False.
+
         This argument may be supported or not, depending on estimator type.
 
     feature_names : list, optional
@@ -266,6 +273,7 @@ def show_prediction(estimator, doc, **kwargs):
 
 
 def _split_kwargs(kwargs):
+    # type: (Dict[str, Any]) -> Tuple[Dict[str, Any], Dict[str, Any]]
     format_kwargs = {k: v for k, v in kwargs.items() if k in FORMAT_KWARGS}
     format_kwargs.setdefault('show', fields.WEIGHTS)
     format_kwargs.setdefault('force_weights', False)

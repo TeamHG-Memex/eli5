@@ -67,14 +67,20 @@ def cosine_similarity_vec(num_tokens, num_removed_vec):
 
 class TokenizedText(object):
     def __init__(self, text, token_pattern=DEFAULT_TOKEN_PATTERN):
+        # type: (str, str) -> None
         self.text = text
         self.split = SplitResult.fromtext(text, token_pattern)
         self._vocab = None  # type: List[str]
 
-    def replace_random_tokens(self, n_samples, replacement='',
+    def replace_random_tokens(self,
+                              n_samples,  # type: int
+                              replacement='',  # type: str
                               random_state=None,
-                              min_replace=1, max_replace=1.0,
-                              group_size=1):
+                              min_replace=1,  # type: Union[int, float]
+                              max_replace=1.0,  # type: Union[int, float]
+                              group_size=1  # type: int
+                              ):
+        # type: (...) -> List[Tuple[str, int, np.ndarray]]
         """ 
         Return a list of ``(text, replaced_count, mask)``
         tuples with n_samples versions of text with some words replaced.
@@ -103,10 +109,15 @@ class TokenizedText(object):
             res.append((s.text, num_to_replace, mask))
         return res
     
-    def replace_random_tokens_bow(self, n_samples, replacement='',
+    def replace_random_tokens_bow(self,
+                                  n_samples,  # type: int
+                                  replacement='',  # type: str
                                   random_state=None,
-                                  min_replace=1, max_replace=1.0):
-        """ 
+                                  min_replace=1,  # type: Union[int, float]
+                                  max_replace=1.0, # type: Union[int, float]
+                                  ):
+        # type: (...) -> List[Tuple[str, int, np.ndarray]]
+        """
         Return a list of ``(text, replaced_words_count, mask)`` tuples with
         n_samples versions of text with some words replaced.
         If a word is replaced, all duplicate words are also replaced
@@ -132,7 +143,12 @@ class TokenizedText(object):
             res.append((s.text, num_to_replace, mask))
         return res
 
-    def _get_min_max(self, min_replace, max_replace, hard_maximum):
+    def _get_min_max(self,
+                     min_replace,  # type: Union[int, float]
+                     max_replace,  # type: Union[int, float]
+                     hard_maximum  # type: int
+                     ):
+        # type: (...) -> Tuple[int, int]
         if isinstance(min_replace, float):
             min_replace = int(math.floor(hard_maximum * min_replace)) or 1
         if isinstance(max_replace, float):
@@ -165,6 +181,7 @@ class SplitResult(object):
 
     @classmethod
     def fromtext(cls, text, token_pattern=DEFAULT_TOKEN_PATTERN):
+        # type: (str, str) -> SplitResult
         token_pattern = u"(%s)" % token_pattern
         parts = re.split(token_pattern, text)
         return cls(parts)

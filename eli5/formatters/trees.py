@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from typing import Any
+
 from eli5.base import TreeInfo, NodeInfo
 
 
@@ -12,6 +14,7 @@ def tree2text(tree_obj, indent=4):
     def _format_node(node, depth=0):
         # type: (NodeInfo, int) -> None
         def p(*args):
+            # type: (*str) -> None
             parts.append(" " * depth * indent)
             parts.extend(args)
 
@@ -45,6 +48,7 @@ def tree2text(tree_obj, indent=4):
 
 
 def _format_leaf_value(tree_obj, node):
+    # type: (...) -> str
     if tree_obj.is_classification:
         if len(node.value_ratio) == 2:
             return "{:0.3f}".format(node.value_ratio[1])
@@ -60,6 +64,7 @@ def _format_leaf_value(tree_obj, node):
 
 
 def _format_array(x, fmt):
+    # type: (Any, str) -> str
     """
     >>> _format_array([0, 1.0], "{:0.3f}")
     '[0.000, 1.000]'
