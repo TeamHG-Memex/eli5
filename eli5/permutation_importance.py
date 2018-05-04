@@ -56,6 +56,7 @@ def get_score_importances(
         score_func,  # type: Callable[[Any, Any], float]
         X,
         y,
+        sample_weight=None,
         n_iter=5,  # type: int
         columns_to_shuffle=None,
         random_state=None
@@ -76,7 +77,7 @@ def get_score_importances(
     If you just want feature importances, you can take a mean of the result::
 
         import numpy as np
-        from eli5.permutation_importance import get_scores_importances
+        from eli5.permutation_importance import get_score_importances
 
         base_score, score_decreases = get_score_importances(score_func, X, y)
         feature_importances = np.mean(score_decreases, axis=0)
@@ -87,14 +88,15 @@ def get_score_importances(
     scores_decreases = []
     for i in range(n_iter):
         scores_shuffled = _get_scores_shufled(
-            score_func, X, y, columns_to_shuffle=columns_to_shuffle,
+            score_func, X, y, sample_weight,
+            columns_to_shuffle=columns_to_shuffle,
             random_state=rng
         )
         scores_decreases.append(-scores_shuffled + base_score)
     return base_score, scores_decreases
 
 
-def _get_scores_shufled(score_func, X, y, columns_to_shuffle=None,
+def _get_scores_shufled(score_func, X, y, sample_weight, columns_to_shuffle=None,
                         random_state=None):
     Xs = iter_shuffled(X, columns_to_shuffle, random_state=random_state)
-    return np.array([score_func(X_shuffled, y) for X_shuffled in Xs])
+    return np.array([score_func(X_shuffled, y, sample_weight) for X_shuffled in Xs])

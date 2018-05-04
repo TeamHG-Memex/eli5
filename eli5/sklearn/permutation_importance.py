@@ -151,7 +151,7 @@ class PermutationImportance(BaseEstimator, MetaEstimatorMixin):
         self.cv = cv
         self.rng_ = check_random_state(random_state)
 
-    def fit(self, X, y, groups=None, **fit_params):
+    def fit(self, X, y, sample_weight=None, groups=None, **fit_params):
         # type: (...) -> PermutationImportance
         """Compute ``feature_importances_`` attribute and optionally
         fit the base estimator.
@@ -185,9 +185,10 @@ class PermutationImportance(BaseEstimator, MetaEstimatorMixin):
         X = check_array(X)
 
         if self.cv not in (None, "prefit"):
-            si = self._cv_scores_importances(X, y, groups=groups, **fit_params)
+            si = self._cv_scores_importances(X, y, sample_weight=sample_weight,
+                                             groups=groups, **fit_params)
         else:
-            si = self._non_cv_scores_importances(X, y)
+            si = self._non_cv_scores_importances(X, y, sample_weight=sample_weight)
         scores, results = si
         self.scores_ = np.array(scores)
         self.results_ = results
@@ -195,13 +196,19 @@ class PermutationImportance(BaseEstimator, MetaEstimatorMixin):
         self.feature_importances_std_ = np.std(results, axis=0)
         return self
 
-    def _cv_scores_importances(self, X, y, groups=None, **fit_params):
+    def _cv_scores_importances(self, X, y, sample_weight=None, groups=None, **fit_params):
         assert self.cv is not None
         cv = check_cv(self.cv, y, is_classifier(self.estimator))
         feature_importances = []  # type: List
         base_scores = []  # type: List[float]
         for train, test in cv.split(X, y, groups):
-            est = clone(self.estimator).fit(X[train], y[train], **fit_params)
+            if sample_weight is not None:
+                sample_weight_train = sample_weight[train]
+            else:
+                sample_weight_train = None
+            est = clone(self.estimator).fit(X[train], y[train],
+                                            sample_weight_train,
+                                            **fit_params)
             score_func = partial(self.scorer_, est)
             _base_score, _importances = self._get_score_importances(
                 score_func, X[test], y[test])
@@ -209,13 +216,13 @@ class PermutationImportance(BaseEstimator, MetaEstimatorMixin):
             feature_importances.extend(_importances)
         return base_scores, feature_importances
 
-    def _non_cv_scores_importances(self, X, y):
+    def _non_cv_scores_importances(self, X, y, sample_weight=None):
         score_func = partial(self.scorer_, self.wrapped_estimator_)
-        base_score, importances = self._get_score_importances(score_func, X, y)
+        base_score, importances = self._get_score_importances(score_func, X, y, sample_weight)
         return [base_score] * len(importances), importances
 
-    def _get_score_importances(self, score_func, X, y):
-        return get_score_importances(score_func, X, y, n_iter=self.n_iter,
+    def _get_score_importances(self, score_func, X, y, sample_weight=None):
+        return get_score_importances(score_func, X, y, sample_weight, n_iter=self.n_iter,
                                      random_state=self.rng_)
 
     @property
