@@ -112,7 +112,7 @@ class PermutationImportance(BaseEstimator, MetaEstimatorMixin):
 
     refit : bool
         Whether to fit the estimator on the whole data if cross-validation
-        is used (default is False).
+        is used (default is True).
 
     Attributes
     ----------
