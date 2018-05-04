@@ -76,7 +76,7 @@ def get_score_importances(
     If you just want feature importances, you can take a mean of the result::
 
         import numpy as np
-        from eli5.permutation_importance import get_scores_importances
+        from eli5.permutation_importance import get_score_importances
 
         base_score, score_decreases = get_score_importances(score_func, X, y)
         feature_importances = np.mean(score_decreases, axis=0)
