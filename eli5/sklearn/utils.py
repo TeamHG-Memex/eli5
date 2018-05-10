@@ -226,7 +226,7 @@ def get_X(doc, vec=None, vectorized=False, to_dense=False):
             X = np.array([doc])
         elif pandas_available and isinstance(doc, pd.Series):
             # Convert to a DataFrame with a single row
-            X = doc.to_frame().transpose()
+            X = doc.to_frame().transpose().convert_objects()
         else:
             X = doc
     else:
