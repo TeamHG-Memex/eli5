@@ -56,11 +56,11 @@ def is_sparse_vector(x):
 def indices_to_bool_mask(indices, size):
     """ Convert indices to a boolean (integer) mask.
 
-    >>> indices_to_bool_mask(np.array([2, 3]), 4)
-    array([False, False, True, True], dtype=bool)
+    >>> list(indices_to_bool_mask(np.array([2, 3]), 4))
+    [False, False, True, True]
 
-    >>> indices_to_bool_mask([2, 3], 4)
-    array([False, False, True, True], dtype=bool)
+    >>> list(indices_to_bool_mask([2, 3], 4))
+    [False, False, True, True]
 
     >>> indices_to_bool_mask(np.array([5]), 2)
     Traceback (most recent call last):

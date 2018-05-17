@@ -23,7 +23,7 @@ matrix:
     - python: 3.6
       env: TOXENV=py36-extra
     - python: 3.6
-      env: TOXENV=py36-sklearn018
+      env: TOXENV=py36-legacy
     - python: 3.5
       env: TOXENV=mypy
     - python: 3.5
