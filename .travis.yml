@@ -24,9 +24,9 @@ matrix:
       env: TOXENV=py36-extra
     - python: 3.6
       env: TOXENV=py36-legacy
-    - python: 3.5
+    - python: 3.6
       env: TOXENV=mypy
-    - python: 3.5
+    - python: 3.6
       env: TOXENV=docs
 
 addons:
