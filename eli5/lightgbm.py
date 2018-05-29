@@ -181,7 +181,7 @@ def _check_booster_args(lgb, is_regression=None):
     if isinstance(lgb, lightgbm.Booster):
         booster = lgb
     else:
-        booster = lgb.booster()
+        booster = lgb.booster_
         _is_regression = isinstance(lgb, lightgbm.LGBMRegressor)
         if is_regression is not None and is_regression != _is_regression:
             raise ValueError(
