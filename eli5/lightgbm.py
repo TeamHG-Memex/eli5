@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division
 from collections import defaultdict
-from typing import DefaultDict
+from typing import DefaultDict, Any, Tuple
 
 import numpy as np  # type: ignore
 import lightgbm  # type: ignore
@@ -177,7 +177,7 @@ def explain_prediction_lightgbm(
      )
 
 def _check_booster_args(lgb, is_regression=None):
-    # type: (Any, bool) -> Tuple[Booster, bool]
+    # type: (Any, bool) -> Tuple[lightgbm.Booster, bool]
     if isinstance(lgb, lightgbm.Booster):
         booster = lgb
     else:
