@@ -10,6 +10,7 @@ from sklearn.feature_extraction.text import CountVectorizer
 from lightgbm import LGBMClassifier, LGBMRegressor
 
 from eli5 import explain_weights, explain_prediction
+from eli5.lightgbm import _check_booster_args
 from .test_sklearn_explain_weights import (
     test_explain_tree_classifier as _check_rf_classifier,
     test_explain_random_forest_and_tree_feature_filter as _check_rf_feature_filter,
@@ -144,3 +145,37 @@ def test_explain_weights_feature_names_pandas(boston_train):
     res = explain_weights(reg, feature_names=numeric_feature_names)
     for expl in format_as_all(res, reg):
         assert 'zz12' in expl
+
+        
+def test_check_booster_args():
+    x, y = np.random.random((10, 2)), np.random.randint(2, size=10)
+    regressor = LGBMRegressor(min_data=1).fit(x, y)
+    classifier = LGBMClassifier(min_data=1).fit(x, y)
+    
+    booster, is_regression = _check_booster_args(regressor)
+    assert is_regression == True
+    assert isinstance(booster, lightgbm.Booster)
+    _, is_regression = _check_booster_args(regressor, is_regression=True)
+    assert is_regression == True
+    _, is_regression = _check_booster_args(classifier)
+    assert is_regression == False
+    _, is_regression = _check_booster_args(classifier, is_regression=False)
+    assert is_regression == False
+    with pytest.raises(ValueError):
+        _check_booster_args(classifier, is_regression=True)
+    with pytest.raises(ValueError):
+        _check_booster_args(regressor, is_regression=False)
+        
+    booster = regressor.booster_
+    _booster, is_regression = _check_booster_args(booster)
+    assert _booster is booster
+    assert is_regression is None
+    _, is_regression = _check_booster_args(booster, is_regression=True)
+    assert is_regression == True
+    
+    booster = classifier.booster_
+    _booster, is_regression = _check_booster_args(booster)
+    assert _booster is booster
+    assert is_regression is None
+    _, is_regression = _check_booster_args(booster, is_regression=False)
+    assert is_regression == False
