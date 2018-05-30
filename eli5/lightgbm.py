@@ -170,7 +170,7 @@ def explain_prediction_lightgbm(
         target_names=target_names,
         targets=targets,
         top_targets=top_targets,
-        is_regression=isinstance(lgb, lightgbm.LGBMRegressor),
+        is_regression=is_regression,
         is_multiclass=n_targets > 1,
         proba=proba,
         get_score_weights=get_score_weights,
