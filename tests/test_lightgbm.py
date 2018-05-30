@@ -20,6 +20,7 @@ from .test_sklearn_explain_weights import (
 )
 from .test_sklearn_explain_prediction import (
     assert_linear_regression_explained,
+    assert_trained_linear_regression_explained,
     test_explain_prediction_pandas as _check_explain_prediction_pandas,
     test_explain_clf_binary_iris as _check_binary_classifier,
 )
@@ -193,3 +194,13 @@ def test_explain_lightgbm_booster(boston_train):
     res = explain_weights(booster, feature_names=feature_names)
     for expl in format_as_all(res, booster):
         assert 'LSTAT' in expl
+        
+def test_explain_prediction_reg_booster(boston_train):
+    X, y, feature_names = boston_train
+    booster = lightgbm.train(
+        params={'objective': 'regression', 'verbose_eval': -1},
+        train_set=lightgbm.Dataset(X, label=y),
+    )
+    assert_trained_linear_regression_explained(
+        X[0], feature_names, booster, explain_prediction,
+        reg_has_intercept=True)
