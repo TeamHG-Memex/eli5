@@ -7,6 +7,7 @@ pytest.importorskip('lightgbm')
 
 import numpy as np
 from sklearn.feature_extraction.text import CountVectorizer
+import lightgbm
 from lightgbm import LGBMClassifier, LGBMRegressor
 
 from eli5 import explain_weights, explain_prediction
@@ -179,3 +180,16 @@ def test_check_booster_args():
     assert is_regression is None
     _, is_regression = _check_booster_args(booster, is_regression=False)
     assert is_regression == False
+    
+def test_explain_lightgbm_booster(boston_train):
+    xs, ys, feature_names = boston_train
+    booster = lightgbm.train(
+        params={'objective': 'regression', 'verbose_eval': -1},
+        train_set=lightgbm.Dataset(xs, label=ys),
+    )
+    res = explain_weights(booster)
+    for expl in format_as_all(res, booster):
+        assert 'Column_12' in expl
+    res = explain_weights(booster, feature_names=feature_names)
+    for expl in format_as_all(res, booster):
+        assert 'LSTAT' in expl
