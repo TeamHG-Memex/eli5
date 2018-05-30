@@ -204,3 +204,27 @@ def test_explain_prediction_reg_booster(boston_train):
     assert_trained_linear_regression_explained(
         X[0], feature_names, booster, explain_prediction,
         reg_has_intercept=True)
+
+def test_explain_prediction_booster_multitarget(newsgroups_train):
+    docs, ys, target_names = newsgroups_train
+    vec = CountVectorizer(stop_words='english', dtype=np.float64)
+    xs = vec.fit_transform(docs)
+    clf = lightgbm.train(
+        params={'objective': 'multiclass', 'verbose_eval': -1, 'max_depth': 2,'n_estimators':100,
+                         'min_child_samples':1, 'min_child_weight':1,
+                'num_class': len(target_names)},
+        train_set=lightgbm.Dataset(xs.toarray(), label=ys))
+    
+    doc = 'computer graphics in space: a new religion'
+    res = explain_prediction(clf, doc, vec=vec, target_names=target_names)
+    format_as_all(res, clf)
+    check_targets_scores(res)
+    graphics_weights = res.targets[1].feature_weights
+    assert 'computer' in get_all_features(graphics_weights.pos)
+    religion_weights = res.targets[3].feature_weights
+    assert 'religion' in get_all_features(religion_weights.pos)
+
+    top_target_res = explain_prediction(clf, doc, vec=vec, top_targets=2)
+    assert len(top_target_res.targets) == 2
+    assert sorted(t.proba for t in top_target_res.targets) == sorted(
+        t.proba for t in res.targets)[-2:]
