@@ -5,14 +5,13 @@ LightGBM
 
 LightGBM_ is a fast Gradient Boosting framework; it provides a Python
 interface. eli5 supports :func:`eli5.explain_weights`
-and :func:`eli5.explain_prediction` for ``lightgbm.LGBMClassifer``
-and ``lightgbm.LGBMRegressor`` estimators. It is tested against LightGBM
+and :func:`eli5.explain_prediction` for ``lightgbm.LGBMClassifer``, ``lightgbm.LGBMRegressor`` and ``lightgbm.Booster``  estimators. It is tested against LightGBM
 master branch.
 
 .. _LightGBM: https://github.com/Microsoft/LightGBM
 
 :func:`eli5.explain_weights` uses feature importances. Additional
-arguments for LGBMClassifier and LGBMClassifier:
+arguments for LGBMClassifier , LGBMClassifier and lightgbm.Booster:
 
 * ``importance_type`` is a way to get feature importance. Possible values are:
 
@@ -38,7 +37,7 @@ contribution of a feature on the decision path is how much the score changes
 from parent to child.
 
 Additional :func:`eli5.explain_prediction` keyword arguments supported
-for ``lightgbm.LGBMClassifer`` and ``lightgbm.LGBMRegressor``:
+for ``lightgbm.LGBMClassifer``, ``lightgbm.LGBMRegressor`` and ``lightgbm.Booster``:
 
 * ``vec`` is a vectorizer instance used to transform
   raw features to the input of the estimator ``lgb``
@@ -50,6 +49,14 @@ for ``lightgbm.LGBMClassifer`` and ``lightgbm.LGBMRegressor``:
   if ``vec`` is not None, ``vec.transform([doc])`` is passed to the
   estimator. Set it to True if you're passing ``vec``,
   but ``doc`` is already vectorized.
+
+``lightgbm.Booster`` estimator accepts one more optional argument:
+
+* ``is_regression`` - True if solving a regression problem
+  ("objective" starts with "reg")
+  and False for a classification problem.
+  If not set, regression is assumed for a single target estimator
+  and proba will not be shown unless the ``target_names`` is defined as a list with length of two.
 
 .. note::
     Top-level :func:`eli5.explain_prediction` calls are dispatched
