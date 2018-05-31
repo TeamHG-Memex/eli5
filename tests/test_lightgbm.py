@@ -11,7 +11,7 @@ import lightgbm
 from lightgbm import LGBMClassifier, LGBMRegressor
 
 from eli5 import explain_weights, explain_prediction
-from eli5.lightgbm import _check_booster_args
+from eli5.lightgbm import _check_booster_args, _lgb_n_targets
 from .test_sklearn_explain_weights import (
     test_explain_tree_classifier as _check_rf_classifier,
     test_explain_random_forest_and_tree_feature_filter as _check_rf_feature_filter,
@@ -258,3 +258,19 @@ def test_explain_prediction_booster_binary(
     flt_pos_features = get_all_features(flt_res.targets[0].feature_weights.pos)
     assert 'graphics' in flt_pos_features
     assert 'computer' not in flt_pos_features
+
+def test_lgb_n_targets():
+    clf = LGBMClassifier(min_data=1)
+    clf.fit(np.array([[0], [1]]), np.array([0, 1]))
+    assert _lgb_n_targets(clf) == 1
+
+    clf = LGBMClassifier(min_data=1)
+    clf.fit(np.array([[0], [1], [2]]), np.array([0, 1, 2]))
+    assert _lgb_n_targets(clf) == 3
+
+    reg = LGBMRegressor(min_data=1)
+    reg.fit(np.array([[0], [1], [2]]), np.array([0, 1, 2]))
+    assert _lgb_n_targets(reg) == 1
+
+    with pytest.raises(TypeError):
+        _lgb_n_targets(object())
