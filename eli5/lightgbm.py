@@ -38,7 +38,9 @@ def explain_weights_lightgbm(lgb,
     ``top``, ``feature_names``,
     ``feature_re`` and ``feature_filter`` parameters.
 
-    ``target_names`` and ``targets`` parameters are ignored.
+    ``target_names`` arguement is ignored for ``lightgbm.LGBMClassifer`` / ``lightgbm.LGBMRegressor``, 
+    but used for ``lightgbm.Booster``. 
+    ``target`` argument is ignored.
     
     Parameters
     ----------
@@ -123,12 +125,13 @@ def explain_prediction_lightgbm(
         prediction = lgb.predict(X)
         n_targets = prediction.shape[-1]
         if is_regression is None and target_names is None:
-            # When n_targets is 1, this can be classification too,
-            # but it's safer to assume regression.
+            # When n_targets is 1, this can be classification too.
+            # It's safer to assume regression in this case, 
+            # unless users set it as a classification problem by assigning 'target_names' input [0,1] etc.
             # If n_targets > 1, it must be classification.
             is_regression = n_targets == 1
         elif is_regression is None:
-            is_regression = len(target_names) == 1
+            is_regression = len(target_names) == 1 and n_targets == 1
             
         if is_regression:
             proba = None

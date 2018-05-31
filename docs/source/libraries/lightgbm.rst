@@ -5,8 +5,7 @@ LightGBM
 
 LightGBM_ is a fast Gradient Boosting framework; it provides a Python
 interface. eli5 supports :func:`eli5.explain_weights`
-and :func:`eli5.explain_prediction` for ``lightgbm.LGBMClassifer``, ``lightgbm.LGBMRegressor`` and ``lightgbm.Booster``  estimators. It is tested against LightGBM
-master branch.
+and :func:`eli5.explain_prediction` for ``lightgbm.LGBMClassifer``, ``lightgbm.LGBMRegressor`` and ``lightgbm.Booster``  estimators. 
 
 .. _LightGBM: https://github.com/Microsoft/LightGBM
 
@@ -22,7 +21,7 @@ arguments for LGBMClassifier , LGBMClassifier and lightgbm.Booster:
   - 'weight' - the same as 'split', for better compatibility with
     :ref:`library-xgboost`.
 
-``target_names`` and ``target`` arguments are ignored.
+``target_names`` arguement is ignored for ``lightgbm.LGBMClassifer`` / ``lightgbm.LGBMRegressor``, but used for ``lightgbm.Booster``. ``target`` argument is ignored.
 
 .. note::
     Top-level :func:`eli5.explain_weights` calls are dispatched
