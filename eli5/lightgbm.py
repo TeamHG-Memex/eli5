@@ -287,8 +287,6 @@ def _get_prediction_feature_weights(booster, X, n_targets):
     Return a list of {feat_id: value} dicts with feature weights, 
     following ideas from  http://blog.datadive.net/interpreting-random-forests/  
     """
-    if n_targets == 2:
-        n_targets = 1
     dump = booster.dump_model()
     tree_info = dump['tree_info']
     _compute_node_values(tree_info)
