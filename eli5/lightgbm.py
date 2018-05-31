@@ -122,11 +122,14 @@ def explain_prediction_lightgbm(
     if isinstance(lgb, lightgbm.Booster):
         prediction = lgb.predict(X)
         n_targets = prediction.shape[-1]
-        if is_regression is None:
+        if is_regression is None and target_names is None:
             # When n_targets is 1, this can be classification too,
             # but it's safer to assume regression.
             # If n_targets > 1, it must be classification.
             is_regression = n_targets == 1
+        elif is_regression is None:
+            is_regression = len(target_names) == 1
+            
         if is_regression:
             proba = None
         else:
