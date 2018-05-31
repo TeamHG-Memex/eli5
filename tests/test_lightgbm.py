@@ -11,7 +11,7 @@ import lightgbm
 from lightgbm import LGBMClassifier, LGBMRegressor
 
 from eli5 import explain_weights, explain_prediction
-from eli5.lightgbm import _check_booster_args
+from eli5.lightgbm import _check_booster_args, _lgb_n_targets
 from .test_sklearn_explain_weights import (
     test_explain_tree_classifier as _check_rf_classifier,
     test_explain_random_forest_and_tree_feature_filter as _check_rf_feature_filter,
@@ -20,6 +20,7 @@ from .test_sklearn_explain_weights import (
 )
 from .test_sklearn_explain_prediction import (
     assert_linear_regression_explained,
+    assert_trained_linear_regression_explained,
     test_explain_prediction_pandas as _check_explain_prediction_pandas,
     test_explain_clf_binary_iris as _check_binary_classifier,
 )
@@ -193,3 +194,83 @@ def test_explain_lightgbm_booster(boston_train):
     res = explain_weights(booster, feature_names=feature_names)
     for expl in format_as_all(res, booster):
         assert 'LSTAT' in expl
+        
+def test_explain_prediction_reg_booster(boston_train):
+    X, y, feature_names = boston_train
+    booster = lightgbm.train(
+        params={'objective': 'regression', 'verbose_eval': -1},
+        train_set=lightgbm.Dataset(X, label=y),
+    )
+    assert_trained_linear_regression_explained(
+        X[0], feature_names, booster, explain_prediction,
+        reg_has_intercept=True)
+
+def test_explain_prediction_booster_multitarget(newsgroups_train):
+    docs, ys, target_names = newsgroups_train
+    vec = CountVectorizer(stop_words='english', dtype=np.float64)
+    xs = vec.fit_transform(docs)
+    clf = lightgbm.train(
+        params={'objective': 'multiclass', 'verbose_eval': -1, 'max_depth': 2,'n_estimators':100,
+                         'min_child_samples':1, 'min_child_weight':1,
+                'num_class': len(target_names)},
+        train_set=lightgbm.Dataset(xs.toarray(), label=ys))
+    
+    doc = 'computer graphics in space: a new religion'
+    res = explain_prediction(clf, doc, vec=vec, target_names=target_names)
+    format_as_all(res, clf)
+    check_targets_scores(res)
+    graphics_weights = res.targets[1].feature_weights
+    assert 'computer' in get_all_features(graphics_weights.pos)
+    religion_weights = res.targets[3].feature_weights
+    assert 'religion' in get_all_features(religion_weights.pos)
+
+    top_target_res = explain_prediction(clf, doc, vec=vec, top_targets=2)
+    assert len(top_target_res.targets) == 2
+    assert sorted(t.proba for t in top_target_res.targets) == sorted(
+        t.proba for t in res.targets)[-2:]
+
+def test_explain_prediction_booster_binary(
+        newsgroups_train_binary_big):
+    docs, ys, target_names = newsgroups_train_binary_big
+    vec = CountVectorizer(stop_words='english', dtype=np.float64)
+    xs = vec.fit_transform(docs)
+    explain_kwargs = {}
+    clf = lightgbm.train(
+        params={'objective': 'binary', 'verbose_eval': -1, 'max_depth': 2,'n_estimators':100,
+                         'min_child_samples':1, 'min_child_weight':1},
+        train_set=lightgbm.Dataset(xs.toarray(), label=ys))
+    
+    get_res = lambda **kwargs: explain_prediction(
+        clf, 'computer graphics in space: a sign of atheism',
+        vec=vec, target_names=target_names,  **kwargs)
+    res = get_res()
+    for expl in format_as_all(res, clf, show_feature_values=True):
+        assert 'graphics' in expl
+    check_targets_scores(res)
+    weights = res.targets[0].feature_weights
+    pos_features = get_all_features(weights.pos)
+    neg_features = get_all_features(weights.neg)
+    assert 'graphics' in pos_features
+    assert 'computer' in pos_features
+    assert 'atheism' in neg_features
+
+    flt_res = get_res(feature_re='gra')
+    flt_pos_features = get_all_features(flt_res.targets[0].feature_weights.pos)
+    assert 'graphics' in flt_pos_features
+    assert 'computer' not in flt_pos_features
+
+def test_lgb_n_targets():
+    clf = LGBMClassifier(min_data=1)
+    clf.fit(np.array([[0], [1]]), np.array([0, 1]))
+    assert _lgb_n_targets(clf) == 1
+
+    clf = LGBMClassifier(min_data=1)
+    clf.fit(np.array([[0], [1], [2]]), np.array([0, 1, 2]))
+    assert _lgb_n_targets(clf) == 3
+
+    reg = LGBMRegressor(min_data=1)
+    reg.fit(np.array([[0], [1], [2]]), np.array([0, 1, 2]))
+    assert _lgb_n_targets(reg) == 1
+
+    with pytest.raises(TypeError):
+        _lgb_n_targets(object())

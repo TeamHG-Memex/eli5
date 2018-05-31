@@ -122,11 +122,14 @@ def explain_prediction_lightgbm(
     if isinstance(lgb, lightgbm.Booster):
         prediction = lgb.predict(X)
         n_targets = prediction.shape[-1]
-        if is_regression is None:
+        if is_regression is None and target_names is None:
             # When n_targets is 1, this can be classification too,
             # but it's safer to assume regression.
             # If n_targets > 1, it must be classification.
             is_regression = n_targets == 1
+        elif is_regression is None:
+            is_regression = len(target_names) == 1
+            
         if is_regression:
             proba = None
         else:
@@ -170,7 +173,7 @@ def explain_prediction_lightgbm(
         target_names=target_names,
         targets=targets,
         top_targets=top_targets,
-        is_regression=isinstance(lgb, lightgbm.LGBMRegressor),
+        is_regression=is_regression,
         is_multiclass=n_targets > 1,
         proba=proba,
         get_score_weights=get_score_weights,
@@ -284,8 +287,6 @@ def _get_prediction_feature_weights(booster, X, n_targets):
     Return a list of {feat_id: value} dicts with feature weights, 
     following ideas from  http://blog.datadive.net/interpreting-random-forests/  
     """
-    if n_targets == 2:
-        n_targets = 1
     dump = booster.dump_model()
     tree_info = dump['tree_info']
     _compute_node_values(tree_info)
