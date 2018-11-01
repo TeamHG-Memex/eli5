@@ -3,9 +3,9 @@ import inspect
 import attr  # type: ignore
 
 try:
-    from functools import singledispatch
+    from functools import singledispatch  # type: ignore
 except ImportError:
-    from singledispatch import singledispatch
+    from singledispatch import singledispatch  # type: ignore
 
 
 def attrs(class_):
