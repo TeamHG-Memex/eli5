@@ -1,5 +1,4 @@
 from itertools import chain
-from singledispatch import singledispatch
 from typing import Any, Dict, List, Optional
 import warnings
 
@@ -10,6 +9,7 @@ from eli5.base import (
     Explanation, FeatureImportances, TargetExplanation,
     TransitionFeatureWeights,
 )
+from eli5.base_utils import singledispatch
 
 
 def explain_weights_df(estimator, **kwargs):

@@ -35,13 +35,17 @@ setup(
         'jinja2',
         'numpy >= 1.9.0',
         'scipy',
-        'singledispatch >= 3.4.0.3',
         'six',
         'scikit-learn >= 0.18',
         'typing',
         'graphviz',
         'tabulate>=0.7.7',
     ],
+    extras_require={
+        ":python_version<'3.5.6'": [
+            'singledispatch >= 3.4.0.3',
+        ],
+    },
     classifiers=[
         'Development Status :: 4 - Beta',
         'License :: OSI Approved :: MIT License',

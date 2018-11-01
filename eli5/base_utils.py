@@ -2,6 +2,11 @@ import inspect
 
 import attr  # type: ignore
 
+try:
+    from functools import singledispatch
+except ImportError:
+    from singledispatch import singledispatch
+
 
 def attrs(class_):
     """ Like attr.s with slots=True,

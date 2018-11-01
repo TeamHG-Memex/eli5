@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from singledispatch import singledispatch
 from functools import partial
 
 import numpy as np  # type: ignore
@@ -51,6 +50,7 @@ from sklearn.tree import (   # type: ignore
 )
 
 from eli5.base import Explanation, TargetExplanation
+from eli5.base_utils import singledispatch
 from eli5.utils import (
     get_target_display_names,
     get_binary_target_scale_label_id

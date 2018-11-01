@@ -1,6 +1,6 @@
 """Handling transformation pipelines in explanations"""
 
-from singledispatch import singledispatch
+from eli5.base_utils import singledispatch
 
 
 @singledispatch
