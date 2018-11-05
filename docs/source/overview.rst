@@ -31,7 +31,7 @@ following machine learning frameworks and packages:
   of XGBClassifier, XGBRegressor and xgboost.Booster.
 
 * :ref:`library-lightgbm` - show feature importances and explain predictions
-  of LGBMClassifier and LGBMRegressor.
+  of LGBMClassifier , LGBMRegressor and lightgbm.Booster.
 
 * :ref:`library-lightning` - explain weights and predictions of lightning
   classifiers and regressors.
