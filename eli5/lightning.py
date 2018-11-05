@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
-from singledispatch import singledispatch
 
 from lightning.impl.base import BaseEstimator  # type: ignore
 from lightning import classification, regression   # type: ignore
 from sklearn.multiclass import OneVsRestClassifier   # type: ignore
 
 from eli5.base import Explanation
+from eli5.base_utils import singledispatch
 from eli5.sklearn import (
     explain_linear_classifier_weights,
     explain_linear_regressor_weights,
