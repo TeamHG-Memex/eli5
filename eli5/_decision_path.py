@@ -80,6 +80,7 @@ def get_decision_path_explanation(estimator, doc, vec, vectorized,
         is_regression=is_regression,
         targets=[],
     )
+    assert explanation.targets is not None
 
     if is_multiclass:
         for label_id, label in display_names:

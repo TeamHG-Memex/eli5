@@ -161,7 +161,7 @@ class TextExplainer(BaseEstimator):
 
         if char_based is None:
             if token_pattern is None:
-                self.char_based = False
+                self.char_based = False  # type: Optional[bool]
                 self.token_pattern = DEFAULT_TOKEN_PATTERN
             else:
                 self.char_based = None
@@ -335,7 +335,7 @@ def _train_local_classifier(estimator,
                             samples,
                             similarity,        # type: np.ndarray
                             y_proba,           # type: np.ndarray
-                            expand_factor=10,  # type: int
+                            expand_factor=10,  # type: Optional[int]
                             test_size=0.3,     # type: float
                             random_state=None,
                             ):

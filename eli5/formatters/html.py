@@ -143,22 +143,26 @@ def render_targets_weighted_spans(
         targets,  # type: List[TargetExplanation]
         preserve_density,  # type: Optional[bool]
     ):
-    # type: (...) -> List[str]
+    # type: (...) -> List[Optional[str]]
     """ Return a list of rendered weighted spans for targets.
     Function must accept a list in order to select consistent weight
     ranges across all targets.
     """
     prepared_weighted_spans = prepare_weighted_spans(
         targets, preserve_density)
-    return [
-        '<br/>'.join(
-            '{}{}'.format(
-                '<b>{}:</b> '.format(pws.doc_weighted_spans.vec_name)
-                if pws.doc_weighted_spans.vec_name else '',
-                render_weighted_spans(pws))
-            for pws in pws_lst)
-        if pws_lst else None
-        for pws_lst in prepared_weighted_spans]
+
+    def _fmt_pws(pws):
+        # type: (PreparedWeightedSpans) -> str
+        name = ('<b>{}:</b> '.format(pws.doc_weighted_spans.vec_name)
+                if pws.doc_weighted_spans.vec_name else '')
+        return '{}{}'.format(name, render_weighted_spans(pws))
+
+    def _fmt_pws_list(pws_lst):
+        # type: (List[PreparedWeightedSpans]) -> str
+        return '<br/>'.join(_fmt_pws(pws) for pws in pws_lst)
+
+    return [_fmt_pws_list(pws_lst) if pws_lst else None
+            for pws_lst in prepared_weighted_spans]
 
 
 def render_weighted_spans(pws):

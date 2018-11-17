@@ -218,7 +218,7 @@ def explain_prediction_xgboost(
 
 
 def _check_booster_args(xgb, is_regression=None):
-    # type: (Any, bool) -> Tuple[Booster, bool]
+    # type: (Any, Optional[bool]) -> Tuple[Booster, Optional[bool]]
     if isinstance(xgb, Booster):
         booster = xgb
     else:
