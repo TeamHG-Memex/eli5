@@ -1,6 +1,14 @@
 Changelog
 =========
 
+0.8.1 (2018-11-19)
+------------------
+
+* fixed Python 3.7 support;
+* added support for XGBoost > 0.6a2;
+* fixed deprecation warnings in numpy >= 1.14;
+* documentation, type annotation and test improvements.
+
 0.8 (2017-08-25)
 ----------------
 
