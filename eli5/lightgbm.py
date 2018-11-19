@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division
 from collections import defaultdict
-from typing import DefaultDict
+from typing import DefaultDict, Optional
 
 import numpy as np  # type: ignore
 import lightgbm  # type: ignore
@@ -253,7 +253,7 @@ def _get_prediction_feature_weights(lgb, X, n_targets):
 
     res = []
     for target in range(n_targets):
-        feature_weights = defaultdict(float)  # type: DefaultDict[str, float]
+        feature_weights = defaultdict(float)  # type: DefaultDict[Optional[str], float]
         for info, leaf_id in zip(tree_info[:, target], pred_leafs[:, target]):
             leaf_index, split_index = _get_leaf_split_indices(
                 info['tree_structure']

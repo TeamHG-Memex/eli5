@@ -69,7 +69,7 @@ def has_intercept(estimator):
 
 def get_feature_names(clf, vec=None, bias_name='<BIAS>', feature_names=None,
                       num_features=None, estimator_feature_names=None):
-    # type: (Any, Any, str, Any, int, Any) -> FeatureNames
+    # type: (Any, Any, Optional[str], Any, int, Any) -> FeatureNames
     """
     Return a FeatureNames instance that holds all feature names
     and a bias feature.

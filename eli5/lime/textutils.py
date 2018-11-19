@@ -5,7 +5,7 @@ Utilities for text generation.
 from __future__ import absolute_import
 import re
 import math
-from typing import List, Tuple, Union
+from typing import List, Tuple, Union, Optional
 
 import numpy as np  # type: ignore
 from sklearn.utils import check_random_state  # type: ignore
@@ -70,7 +70,7 @@ class TokenizedText(object):
         # type: (str, str) -> None
         self.text = text
         self.split = SplitResult.fromtext(text, token_pattern)
-        self._vocab = None  # type: List[str]
+        self._vocab = None  # type: Optional[List[str]]
 
     def replace_random_tokens(self,
                               n_samples,  # type: int
