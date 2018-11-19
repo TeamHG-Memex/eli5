@@ -87,10 +87,13 @@ def test_explain_prediction_clf_binary_iris(iris_train_binary):
 
 def test_explain_prediction_clf_multitarget(newsgroups_train):
     docs, ys, target_names = newsgroups_train
-    vec = CountVectorizer(stop_words='english', dtype=np.float64)
+    from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS
+    stop_words = set(ENGLISH_STOP_WORDS) | {'does', 'just'}
+    vec = CountVectorizer(stop_words=stop_words, dtype=np.float64)
     xs = vec.fit_transform(docs)
     clf = LGBMClassifier(n_estimators=100, max_depth=2,
-                         min_child_samples=1, min_child_weight=1)
+                         min_child_samples=1, min_child_weight=1,
+                         random_state=42)
     clf.fit(xs, ys)
     doc = 'computer graphics in space: a new religion'
     res = explain_prediction(clf, doc, vec=vec, target_names=target_names)
