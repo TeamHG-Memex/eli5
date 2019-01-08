@@ -52,9 +52,9 @@ jupyter nbconvert \
         --stdout \
         '../notebooks/xgboost-titanic.ipynb' \
         > source/_notebooks/xgboost-titanic.rst
-sed -i '' 's/eli5.show\\_weights/:func:`eli5.show_weights`/g' \
+sed -i '' 's/eli5.show_weights/:func:`eli5.show_weights`/g' \
     source/_notebooks/xgboost-titanic.rst
-sed -i '' 's/eli5.show\\_prediction/:func:`eli5.show_prediction`/g' \
+sed -i '' 's/eli5.show_prediction/:func:`eli5.show_prediction`/g' \
     source/_notebooks/xgboost-titanic.rst
 
 # LIME
