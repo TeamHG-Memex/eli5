@@ -1,3 +1,6 @@
+sphinx
+sphinx_rtd_theme
+
 ipython
 scipy
 numpy > 1.9.0

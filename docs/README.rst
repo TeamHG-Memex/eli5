@@ -1,6 +1,6 @@
 Install extra python requirements to be able to build html docs locally::
 
-    pip install sphinx sphinx_rtd_theme -r requirements.txt
+    pip install -r requirements.txt
 
 Install `Pandoc <http://pandoc.org>`_ 2.x for notebook conversion.
 
