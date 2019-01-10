@@ -52,7 +52,7 @@ encoding. CoNLL 2002 data also provide POS tags.
 2. Feature extraction
 ---------------------
 
-POS tags can be seen as pre-extracted features. Let's extract more
+POS tags can be seen as pre-extracted features. Let’s extract more
 features (word parts, simplified POS tags, lower/title/upper flags,
 features of nearby words) and convert them to sklear-crfsuite format -
 each sentence should be converted to a list of dicts. This is a very
@@ -154,7 +154,7 @@ This is how features extracted from a single token look like:
 --------------------
 
 Once we have features in a right format we can train a linear-chain CRF
-(Conditional Random Fields) model using sklearn\_crfsuite.CRF:
+(Conditional Random Fields) model using sklearn_crfsuite.CRF:
 
 .. code:: ipython3
 
@@ -171,8 +171,8 @@ Once we have features in a right format we can train a linear-chain CRF
 ------------------------
 
 CRFsuite CRF models use two kinds of features: state features and
-transition features. Let's check their weights using
-eli5.explain\_weights:
+transition features. Let’s check their weights using
+eli5.explain_weights:
 
 .. code:: ipython3
 
@@ -3905,16 +3905,16 @@ eli5.explain\_weights:
 
 Transition features make sense: at least model learned that I-ENITITY
 must follow B-ENTITY. It also learned that some transitions are
-unlikely, e.g. it is not common in this dataset to have a location right
+unlikely, e.g. it is not common in this dataset to have a location right
 after an organization name (I-ORG -> B-LOC has a large negative weight).
 
-Features don't use gazetteers, so model had to remember some geographic
-names from the training data, e.g. that España is a location.
+Features don’t use gazetteers, so model had to remember some geographic
+names from the training data, e.g. that España is a location.
 
 If we regularize CRF more, we can expect that only features which are
 generic will remain, and memoized tokens will go. With L1 regularization
 (c1 parameter) coefficients of most features should be driven to zero.
-Let's check what effect does regularization have on CRF weights:
+Let’s check what effect does regularization have on CRF weights:
 
 .. code:: ipython3
 
@@ -6220,19 +6220,19 @@ Let's check what effect does regularization have on CRF weights:
 As you can see, memoized tokens are mostly gone and model now relies on
 word shapes and POS tags. There is only a few non-zero features
 remaining. In our example the change probably made the quality worse,
-but that's a separate question.
+but that’s a separate question.
 
-Let's focus on transition weights. We can expect that O -> I-ENTIRY
+Let’s focus on transition weights. We can expect that O -> I-ENTIRY
 transitions to have large negative weights because they are impossible.
 But these transitions have zero weights, not negative weights, both in
 heavily regularized model and in our initial model. Something is going
 on here.
 
-The reason they are zero is that crfsuite haven't seen these transitions
+The reason they are zero is that crfsuite haven’t seen these transitions
 in training data, and assumed there is no need to learn weights for
 them, to save some computation time. This is the default behavior, but
-it is possible to turn it off using sklearn\_crfsuite.CRF
-``all_possible_transitions`` option. Let's check how does it affect the
+it is possible to turn it off using sklearn_crfsuite.CRF
+``all_possible_transitions`` option. Let’s check how does it affect the
 result:
 
 .. code:: ipython3
@@ -7342,7 +7342,7 @@ subset of labels:
 
 
 Another option is to check only some of the features - it helps to check
-if a feature function works as intended. For example, let's check how
+if a feature function works as intended. For example, let’s check how
 word shape features are used by model using ``feature_re`` argument and
 hide transition table:
 

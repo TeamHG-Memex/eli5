@@ -4,13 +4,13 @@ Debugging scikit-learn text classification pipeline
 
 scikit-learn docs provide a nice text classification
 `tutorial <http://scikit-learn.org/stable/tutorial/text_analytics/working_with_text_data.html>`__.
-Make sure to read it first. We'll be doing something similar to it,
+Make sure to read it first. We’ll be doing something similar to it,
 while taking more detailed look at classifier weights and predictions.
 
 1. Baseline model
 -----------------
 
-First, we need some data. Let's load 20 Newsgroups data, keeping only 4
+First, we need some data. Let’s load 20 Newsgroups data, keeping only 4
 categories:
 
 .. code:: ipython3
@@ -46,13 +46,13 @@ Regression as a classifier:
     pipe = make_pipeline(vec, clf)
     pipe.fit(twenty_train.data, twenty_train.target);
 
-We're using LogisticRegressionCV here to adjust regularization parameter
+We’re using LogisticRegressionCV here to adjust regularization parameter
 C automatically. It allows to compare different vectorizers - optimal C
-value could be different for different input features (e.g. for bigrams
+value could be different for different input features (e.g. for bigrams
 or for character-level input). An alternative would be to use
 GridSearchCV or RandomizedSearchCV.
 
-Let's check quality of this pipeline:
+Let’s check quality of this pipeline:
 
 .. code:: ipython3
 
@@ -84,7 +84,7 @@ Let's check quality of this pipeline:
 
 
 Not bad. We can try other classifiers and preprocessing methods, but
-let's check first what the model learned using :func:`eli5.show_weights`
+let’s check first what the model learned using :func:`eli5.show_weights`
 function:
 
 .. code:: ipython3
@@ -818,7 +818,7 @@ function:
 
 
 
-The table above doesn't make any sense; the problem is that eli5 was not
+The table above doesn’t make any sense; the problem is that eli5 was not
 able to get feature and class names from the classifier object alone. We
 can provide feature and target names explicitly:
 
@@ -1565,14 +1565,14 @@ and let eli5 figure out the details automatically:
 This starts to make more sense. Columns are target classes. In each
 column there are features and their weights. Intercept (bias) feature is
 shown as ``<BIAS>`` in the same table. We can inspect features and
-weights because we're using a bag-of-words vectorizer and a linear
+weights because we’re using a bag-of-words vectorizer and a linear
 classifier (so there is a direct mapping between individual words and
 classifier coefficients). For other classifiers features can be harder
 to inspect.
 
-Some features look good, but some don't. It seems model learned some
+Some features look good, but some don’t. It seems model learned some
 names specific to a dataset (email parts, etc.) though, instead of
-learning topic-specific words. Let's check prediction results on an
+learning topic-specific words. Let’s check prediction results on an
 example:
 
 .. code:: ipython3
@@ -2012,7 +2012,7 @@ example:
 
 
 What can be highlighted in text is highlighted in text. There is also a
-separate table for features which can't be highlighted in text -
+separate table for features which can’t be highlighted in text -
 ``<BIAS>`` in this case. If you hover mouse on a highlighted word it
 shows you a weight of this word in a title. Words are colored according
 to their weights.
@@ -2021,15 +2021,15 @@ to their weights.
 --------------------------------
 
 Aha, from the highlighting above it can be seen that a classifier
-learned some non-interesting stuff indeed, e.g. it remembered parts of
+learned some non-interesting stuff indeed, e.g. it remembered parts of
 email addresses. We should probably clean the data first to make it more
 interesting; improving model (trying different classifiers, etc.)
-doesn't make sense at this point - it may just learn to leverage these
+doesn’t make sense at this point - it may just learn to leverage these
 email addresses better.
 
-In practice we'd have to do cleaning yourselves; in this example 20
+In practice we’d have to do cleaning yourselves; in this example 20
 newsgroups dataset provides an option to remove footers and headers from
-the messages. Nice. Let's clean up the data and re-train a classifier.
+the messages. Nice. Let’s clean up the data and re-train a classifier.
 
 .. code:: ipython3
 
@@ -2081,14 +2081,14 @@ classifier allowed us to notice a problem with the data and made a good
 change, despite of numbers which told us not to do that.
 
 Instead of removing headers and footers we could have improved
-evaluation setup directly, using e.g. GroupKFold from scikit-learn. Then
+evaluation setup directly, using e.g. GroupKFold from scikit-learn. Then
 quality of old model would have dropped, we could have removed
 headers/footers and see increased accuracy, so the numbers would have
 told us to remove headers and footers. It is not obvious how to split
 data though, what groups to use with GroupKFold.
 
 So, what have the updated classifier learned? (output is less verbose
-because only a subset of classes is shown - see "targets" argument):
+because only a subset of classes is shown - see “targets” argument):
 
 .. code:: ipython3
 
@@ -2253,9 +2253,9 @@ because only a subset of classes is shown - see "targets" argument):
 
 
 
-Hm, it no longer uses email addresses, but it still doesn't look good:
-classifier assigns high weights to seemingly unrelated words like 'do'
-or 'my'. These words appear in many texts, so maybe classifier uses them
+Hm, it no longer uses email addresses, but it still doesn’t look good:
+classifier assigns high weights to seemingly unrelated words like ‘do’
+or ‘my’. These words appear in many texts, so maybe classifier uses them
 as a proxy for bias. Or maybe some of them are more common in some of
 classes.
 
@@ -2451,17 +2451,17 @@ To help classifier we may filter out stop words:
 
 
 
-Looks better, isn't it?
+Looks better, isn’t it?
 
-Alternatively, we can use TF\*IDF scheme; it should give a somewhat
+Alternatively, we can use TF*IDF scheme; it should give a somewhat
 similar effect.
 
-Note that we're cross-validating LogisticRegression regularisation
+Note that we’re cross-validating LogisticRegression regularisation
 parameter here, like in other examples (LogisticRegressionCV, not
-LogisticRegression). TF\*IDF values are different from word count
-values, so optimal C value can be different. We could draw a wrong
-conclusion if a classifier with fixed regularization strength is used -
-the chosen C value could have worked better for one kind of data.
+LogisticRegression). TF*IDF values are different from word count values,
+so optimal C value can be different. We could draw a wrong conclusion if
+a classifier with fixed regularization strength is used - the chosen C
+value could have worked better for one kind of data.
 
 .. code:: ipython3
 
@@ -2652,7 +2652,7 @@ the chosen C value could have worked better for one kind of data.
 
 
 
-It helped, but didn't have quite the same effect. Why not do both?
+It helped, but didn’t have quite the same effect. Why not do both?
 
 .. code:: ipython3
 
@@ -2847,7 +2847,7 @@ This starts to look good!
 ----------------------
 
 Maybe we can get somewhat better quality by choosing a different
-classifier, but let's skip it for now. Let's try other analysers instead
+classifier, but let’s skip it for now. Let’s try other analysers instead
 - use char n-grams instead of words:
 
 .. code:: ipython3
@@ -3253,10 +3253,10 @@ classifier, but let's skip it for now. Let's try other analysers instead
 
 It works, but quality is a bit worse. Also, it takes ages to train.
 
-It looks like stop\_words have no effect now - in fact, this is
-documented in scikit-learn docs, so our stop\_words='english' was
+It looks like stop_words have no effect now - in fact, this is
+documented in scikit-learn docs, so our stop_words=‘english’ was
 useless. But at least it is now more obvious how the text looks like for
-a char ngram-based classifier. Grab a cup of tea and see how char\_wb
+a char ngram-based classifier. Grab a cup of tea and see how char_wb
 looks like:
 
 .. code:: ipython3
@@ -3666,7 +3666,7 @@ unknown reason; maybe cross-word dependencies are not that important.
 ------------------------------
 
 To check that we can try fitting word n-grams instead of char n-grams.
-But let's deal with efficiency first. To handle large vocabularies we
+But let’s deal with efficiency first. To handle large vocabularies we
 can use HashingVectorizer from scikit-learn; to make training faster we
 can employ SGDCLassifier:
 
@@ -3697,8 +3697,8 @@ can employ SGDCLassifier:
     accuracy: 0.899
 
 
-It was super-fast! We're not choosing regularization parameter using
-cross-validation though. Let's check what model learned:
+It was super-fast! We’re not choosing regularization parameter using
+cross-validation though. Let’s check what model learned:
 
 .. code:: ipython3
 
@@ -3864,7 +3864,7 @@ cross-validation though. Let's check what model learned:
 
 
 Result looks similar to CountVectorizer. But with HashingVectorizer we
-don't even have a vocabulary! Why does it work?
+don’t even have a vocabulary! Why does it work?
 
 .. code:: ipython3
 
@@ -4597,9 +4597,9 @@ don't even have a vocabulary! Why does it work?
 
 
 
-Ok, we don't have a vocabulary, so we don't have feature names. Are we
+Ok, we don’t have a vocabulary, so we don’t have feature names. Are we
 out of luck? Nope, eli5 has an answer for that:
-:class:`~.InvertableHashingVectorizer` It can be used to get feature names for
+:class:`~.InvertableHashingVectorizer`. It can be used to get feature names for
 HahshingVectorizer without fitiing a huge vocabulary. It still needs
 some data to learn words -> hashes mapping though; we can use a random
 subset of data to fit it.
@@ -5747,11 +5747,11 @@ subset of data to fit it.
 
 
 
-There are collisions (hover mouse over features with "..."), and there
-are important features which were not seen in the random sample
-(FEATURE[...]), but overall it looks fine.
+There are collisions (hover mouse over features with “…”), and there are
+important features which were not seen in the random sample
+(FEATURE[…]), but overall it looks fine.
 
-"rutgers edu" bigram feature is suspicious though, it looks like a part
+“rutgers edu” bigram feature is suspicious though, it looks like a part
 of URL.
 
 .. code:: ipython3
@@ -5937,8 +5937,8 @@ something useful.
 
 
 Quoted text makes it too easy for model to classify some of the
-messages; that won't generalize to new messages. So to improve the model
-next step could be to process the data further, e.g. remove quoted text
+messages; that won’t generalize to new messages. So to improve the model
+next step could be to process the data further, e.g. remove quoted text
 or replace email addresses with a special token.
 
 You get the idea: looking at features helps to understand how classifier

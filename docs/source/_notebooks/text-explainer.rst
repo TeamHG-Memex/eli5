@@ -2,7 +2,7 @@
 TextExplainer: debugging black-box text classifiers
 ===================================================
 
-While eli5 supports many classifiers and preprocessing methods, it can't
+While eli5 supports many classifiers and preprocessing methods, it can’t
 support them all.
 
 If a library is not supported by eli5 directly, or the text processing
@@ -11,12 +11,12 @@ implementation of `LIME <http://arxiv.org/abs/1602.04938>`__ (Ribeiro et
 al., 2016) algorithm which allows to explain predictions of arbitrary
 classifiers, including text classifiers. ``eli5.lime`` can also help
 when it is hard to get exact mapping between model coefficients and text
-features, e.g. if there is dimension reduction involved.
+features, e.g. if there is dimension reduction involved.
 
 Example problem: LSA+SVM for 20 Newsgroups dataset
 --------------------------------------------------
 
-Let's load "20 Newsgroups" dataset and create a text processing pipeline
+Let’s load “20 Newsgroups” dataset and create a text processing pipeline
 which is hard to debug using conventional methods: SVM with RBF kernel
 trained on
 `LSA <https://en.wikipedia.org/wiki/Latent_semantic_analysis>`__
@@ -634,11 +634,11 @@ metrics in ``metrics_`` attribute:
 
 
 
--  'score' is an accuracy score weighted by cosine distance between
-   generated sample and the original document (i.e. texts which are
+-  ‘score’ is an accuracy score weighted by cosine distance between
+   generated sample and the original document (i.e. texts which are
    closer to the example are more important). Accuracy shows how good
-   are 'top 1' predictions.
--  'mean\_KL\_divergence' is a mean `Kullback–Leibler
+   are ‘top 1’ predictions.
+-  ‘mean_KL_divergence’ is a mean `Kullback–Leibler
    divergence <https://en.wikipedia.org/wiki/Kullback%E2%80%93Leibler_divergence>`__
    for all target classes; it is also weighted by distance. KL
    divergence shows how well are probabilities approximated; 0.0 means a
@@ -648,33 +648,33 @@ In this example both accuracy and KL divergence are good; it means our
 white-box classifier usually assigns the same labels as the black-box
 classifier on the dataset we generated, and its predicted probabilities
 are close to those predicted by our LSA+SVM pipeline. So it is likely
-(though not guaranteed, we'll discuss it later) that the explanation is
+(though not guaranteed, we’ll discuss it later) that the explanation is
 correct and can be trusted.
 
-When working with LIME (e.g. via :class:`~.TextExplainer`) it is always a good
+When working with LIME (e.g. via :class:`~.TextExplainer`) it is always a good
 idea to check these scores. If they are not good then you can tell that
 something is not right.
 
-Let's make it fail
+Let’s make it fail
 ------------------
 
 By default :class:`~.TextExplainer` uses a very basic text processing pipeline:
 Logistic Regression trained on bag-of-words and bag-of-bigrams features
 (see ``te.clf_`` and ``te.vec_`` attributes). It limits a set of
-black-box classifiers it can explain: because the text is seen as "bag
-of words/ngrams", the default white-box pipeline can't distinguish e.g.
-between the same word in the beginning of the document and in the end of
-the document. Bigrams help to alleviate the problem in practice, but not
-completely.
+black-box classifiers it can explain: because the text is seen as “bag
+of words/ngrams”, the default white-box pipeline can’t distinguish
+e.g. between the same word in the beginning of the document and in the
+end of the document. Bigrams help to alleviate the problem in practice,
+but not completely.
 
-Black-box classifiers which use features like "text length" (not
+Black-box classifiers which use features like “text length” (not
 directly related to tokens) can be also hard to approximate using the
 default bag-of-words/ngrams model.
 
 This kind of failure is usually detectable though - scores (accuracy and
-KL divergence) will be low. Let's check it on a completely synthetic
+KL divergence) will be low. Let’s check it on a completely synthetic
 example - a black-box classifier which assigns a class based on oddity
-of document length and on a presence of 'medication' word.
+of document length and on a presence of ‘medication’ word.
 
 .. code:: ipython3
 
@@ -849,8 +849,8 @@ of document length and on a presence of 'medication' word.
 
 
 
-:class:`~.TextExplainer` correctly figured out that 'medication' is important,
-but failed to account for "len(doc) % 2" condition, so the explanation
+:class:`~.TextExplainer` correctly figured out that ‘medication’ is important,
+but failed to account for “len(doc) % 2” condition, so the explanation
 is incomplete. We can detect this failure by looking at metrics - they
 are low:
 
@@ -867,11 +867,11 @@ are low:
 
 
 
-If (a big if...) we suspect that the fact document length is even or odd
+If (a big if…) we suspect that the fact document length is even or odd
 is important, it is possible to customize :class:`~.TextExplainer` to check
 this hypothesis.
 
-To do that, we need to create a vectorizer which returns both "is odd"
+To do that, we need to create a vectorizer which returns both “is odd”
 feature and bag-of-words features, and pass this vectorizer to
 :class:`~.TextExplainer`. This vectorizer should follow scikit-learn API. The
 easiest way is to use ``FeatureUnion`` - just make sure all transformers
@@ -1081,7 +1081,7 @@ Much better! It was a toy example, but the idea stands - if you think
 something could be important, add it to the mix as a feature for
 :class:`~.TextExplainer`.
 
-Let's make it fail, again
+Let’s make it fail, again
 -------------------------
 
 Another possible issue is the dataset generation method. Not only
@@ -1089,8 +1089,8 @@ feature extraction should be powerful enough, but auto-generated texts
 also should be diverse enough.
 
 :class:`~.TextExplainer` removes random words by default, so by default it
-can't e.g. provide a good explanation for a black-box classifier which
-works on character level. Let's try to use :class:`~.TextExplainer` to explain
+can’t e.g. provide a good explanation for a black-box classifier which
+works on character level. Let’s try to use :class:`~.TextExplainer` to explain
 a classifier which uses char ngrams as features:
 
 .. code:: ipython3
@@ -1115,8 +1115,8 @@ a classifier which uses char ngrams as features:
 
 
 This pipeline is supported by eli5 directly, so in practice there is no
-need to use :class:`~.TextExplainer` for it. We're using this pipeline as an
-example - it is possible check the "true" explanation first, without
+need to use :class:`~.TextExplainer` for it. We’re using this pipeline as an
+example - it is possible check the “true” explanation first, without
 using :class:`~.TextExplainer`, and then compare the results with
 :class:`~.TextExplainer` results.
 
@@ -1453,7 +1453,7 @@ first sight, but we know that the classifier works in a different way.
 
 To explain such black-box classifiers we need to change both dataset
 generation method (change/remove individual characters, not only words)
-and feature extraction method (e.g. use char ngrams instead of words and
+and feature extraction method (e.g. use char ngrams instead of words and
 word ngrams).
 
 :class:`~.TextExplainer` has an option (``char_based=True``) to use char-based
@@ -1626,8 +1626,8 @@ explanation engine why not always use it?
 
 
 Hm, the result look worse. :class:`~.TextExplainer` detected correctly that
-only the first part of word "medication" is important, but the result is
-noisy overall, and scores are bad. Let's try it with more samples:
+only the first part of word “medication” is important, but the result is
+noisy overall, and scores are bad. Let’s try it with more samples:
 
 .. code:: ipython3
 
@@ -1802,15 +1802,15 @@ training the original pipeline.
 Generally speaking, to do an efficient explanation we should make some
 assumptions about black-box classifier, such as:
 
-1. it uses words as features and doesn't take word position in account;
+1. it uses words as features and doesn’t take word position in account;
 2. it uses words as features and takes word positions in account;
 3. it uses words ngrams as features;
-4. it uses char ngrams as features, positions don't matter (i.e. an
+4. it uses char ngrams as features, positions don’t matter (i.e. an
    ngram means the same everywhere);
-5. it uses arbitrary attention over the text characters, i.e. every part
+5. it uses arbitrary attention over the text characters, i.e. every part
    of text could be potentionally important for a classifier on its own;
 6. it is important to have a particular token at a particular position,
-   e.g. "third token is X", and if we delete 2nd token then prediction
+   e.g. “third token is X”, and if we delete 2nd token then prediction
    changes not because 2nd token changed, but because 3rd token is
    shifted.
 
@@ -1828,12 +1828,12 @@ On the other hand, allowing for each character to be important is a more
 powerful method, but it can require a lot of samples (maybe hundreds
 thousands) and a lot of CPU time to get non-noisy results.
 
-What's bad about this kind of failure (wrong assumption about the
+What’s bad about this kind of failure (wrong assumption about the
 black-box pipeline) is that it could be impossible to detect the failure
 by looking at the scores. Scores could be high because generated dataset
 is not diverse enough, not because our approximation is good.
 
-The takeaway is that it is important to understand the "lenses" you're
+The takeaway is that it is important to understand the “lenses” you’re
 looking through when using LIME to explain a prediction.
 
 Customizing TextExplainer: sampling
@@ -1845,7 +1845,7 @@ main text generation class; :class:`~.MaskingTextSamplers` provides a way to
 combine multiple samplers in a single object with the same interface.
 
 A custom sampler instance can be passed to :class:`~.TextExplainer` if we want
-to experiment with sampling. For example, let's try a sampler which
+to experiment with sampling. For example, let’s try a sampler which
 replaces no more than 3 characters in the text (default is to replace a
 random number of characters):
 
@@ -2047,17 +2047,17 @@ random number of characters):
 
 
 Note that accuracy score is perfect, but KL divergence is bad. It means
-this sampler was not very useful: most generated texts were "easy" in
+this sampler was not very useful: most generated texts were “easy” in
 sense that most (or all?) of them should be still classified as
 ``sci.med``, so it was easy to get a good accuracy. But because
-generated texts were not diverse enough classifier haven't learned
-anything useful; it's having a hard time predicting the probability
+generated texts were not diverse enough classifier haven’t learned
+anything useful; it’s having a hard time predicting the probability
 output of the black-box pipeline on a held-out dataset.
 
 By default :class:`~.TextExplainer` uses a mix of several sampling strategies
 which seems to work OK for token-based explanations. But a good sampling
 strategy which works for many real-world tasks could be a research topic
-on itself. If you've got some experience with it we'd love to hear from
+on itself. If you’ve got some experience with it we’d love to hear from
 you - please share your findings in eli5 issue tracker (
 https://github.com/TeamHG-Memex/eli5/issues )!
 
@@ -2282,10 +2282,10 @@ decision tree:
 
 
 
-How to read it: "kidney <= 0.5" means "word 'kidney' is not in the
-document" (we're explaining the orginal LDA+SVM pipeline again).
+How to read it: “kidney <= 0.5” means “word ‘kidney’ is not in the
+document” (we’re explaining the orginal LDA+SVM pipeline again).
 
-So according to this tree if "kidney" is not in the document and "pain"
+So according to this tree if “kidney” is not in the document and “pain”
 is not in the document then the probability of a document belonging to
 ``sci.med`` drops to ``0.65``. If at least one of these words remain
 ``sci.med`` probability stays ``0.9+``.
