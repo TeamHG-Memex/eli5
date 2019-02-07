@@ -65,7 +65,7 @@ def indices_to_bool_mask(indices, size):
     >>> indices_to_bool_mask(np.array([5]), 2)
     Traceback (most recent call last):
     ...
-    IndexError: index 5 is out of bounds for axis 1 with size 2
+    IndexError: index 5 is out of bounds ...
     """
     mask = np.zeros(size, dtype=bool)
     mask[indices] = 1
