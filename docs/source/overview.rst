@@ -9,6 +9,10 @@ scikit-learn 0.18+. You can install ELI5 using pip::
 
     pip install eli5
 
+or using::
+
+    conda install -c conda-forge eli5
+
 Features
 --------
 
