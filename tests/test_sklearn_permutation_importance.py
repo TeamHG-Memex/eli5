@@ -9,9 +9,6 @@ from sklearn.pipeline import make_pipeline
 from sklearn.feature_selection import SelectFromModel
 from sklearn.linear_model import LogisticRegression
 
-from xgboost import XGBClassifier # type: ignore
-import pandas as pd # type: ignore
-
 import eli5
 from eli5.sklearn import PermutationImportance
 from .utils import format_as_all
@@ -168,10 +165,12 @@ def test_explain_weights(iris_train):
             assert "petal width (cm)" in _expl
 
 def test_pandas_xgboost_support(iris_train):
+    xgboost = pytest.importorskip('xgboost')
+    pd = pytest.importorskip('pandas')
     X, y, feature_names, target_names = iris_train
     X = pd.DataFrame(X)
     y = pd.Series(y)
-    est = XGBClassifier()
+    est = xgboost.XGBClassifier()
     est.fit(X, y)
-    # we expect no excpetion to be raised here when using xgboost with pd.DataFrame
+    # we expect no exception to be raised here when using xgboost with pd.DataFrame
     perm = PermutationImportance(est).fit(X, y) 
