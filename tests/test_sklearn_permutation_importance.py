@@ -9,10 +9,12 @@ from sklearn.pipeline import make_pipeline
 from sklearn.feature_selection import SelectFromModel
 from sklearn.linear_model import LogisticRegression
 
+from xgboost import XGBClassifier # type: ignore
+import pandas as pd # type: ignore
+
 import eli5
 from eli5.sklearn import PermutationImportance
 from .utils import format_as_all
-
 
 def _boston_with_leak(X, y, feat_names, noise_scale=10.0, noise_ratio=0.25):
     rng = np.random.RandomState(42)
@@ -164,3 +166,12 @@ def test_explain_weights(iris_train):
         res = format_as_all(expl, perm.wrapped_estimator_)
         for _expl in res:
             assert "petal width (cm)" in _expl
+
+def test_pandas_xgboost_support(iris_train):
+    X, y, feature_names, target_names = iris_train
+    X = pd.DataFrame(X)
+    y = pd.Series(y)
+    est = XGBClassifier()
+    est.fit(X, y)
+    # we expect no excpetion to be raised here when using xgboost with pd.DataFrame
+    perm = PermutationImportance(est).fit(X, y) 
