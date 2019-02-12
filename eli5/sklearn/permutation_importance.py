@@ -187,12 +187,12 @@ class PermutationImportance(BaseEstimator, MetaEstimatorMixin):
         """
         self.scorer_ = check_scoring(self.estimator, scoring=self.scoring)
 
+        if pandas_available and isinstance(X, pd.DataFrame):
+            self.scorer_ = self._wrap_scorer(self.scorer_, X.columns)
+
         if self.cv != "prefit" and self.refit:
             self.estimator_ = clone(self.estimator)
             self.estimator_.fit(X, y, **fit_params)
-
-        if pandas_available and isinstance(X, pd.DataFrame):
-            self.scorer_ = self._wrap_scorer(self.scorer_, X.columns)
 
         X = check_array(X)
 
