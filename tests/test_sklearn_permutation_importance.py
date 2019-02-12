@@ -13,6 +13,7 @@ import eli5
 from eli5.sklearn import PermutationImportance
 from .utils import format_as_all
 
+
 def _boston_with_leak(X, y, feat_names, noise_scale=10.0, noise_ratio=0.25):
     rng = np.random.RandomState(42)
     noise = noise_scale * (rng.random_sample(y.shape).reshape(-1, 1) - 0.5)
