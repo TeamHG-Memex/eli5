@@ -18,7 +18,7 @@ from eli5.permutation_importance import get_score_importances
 from eli5.sklearn.utils import pandas_available
 
 if pandas_available:
-    import pandas as pd
+    import pandas as pd   # type: ignore
 
 CAVEATS_CV_NONE = """
 Feature importances are computed on the same data as used for training, 
