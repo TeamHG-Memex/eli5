@@ -15,7 +15,10 @@ from sklearn.base import (  # type: ignore
 from sklearn.metrics.scorer import check_scoring  # type: ignore
 
 from eli5.permutation_importance import get_score_importances
+from eli5.sklearn.utils import pandas_available
 
+if pandas_available:
+    import pandas as pd
 
 CAVEATS_CV_NONE = """
 Feature importances are computed on the same data as used for training, 
@@ -151,6 +154,12 @@ class PermutationImportance(BaseEstimator, MetaEstimatorMixin):
         self.cv = cv
         self.rng_ = check_random_state(random_state)
 
+    def wrap_scorer(self, base_scorer, pd_columns):
+        def pd_scorer(model, X, y):
+            X = pd.DataFrame(X, columns=pd_columns)
+            return base_scorer(model, X, y)
+        return pd_scorer
+
     def fit(self, X, y, groups=None, **fit_params):
         # type: (...) -> PermutationImportance
         """Compute ``feature_importances_`` attribute and optionally
@@ -181,6 +190,9 @@ class PermutationImportance(BaseEstimator, MetaEstimatorMixin):
         if self.cv != "prefit" and self.refit:
             self.estimator_ = clone(self.estimator)
             self.estimator_.fit(X, y, **fit_params)
+
+        if pandas_available and isinstance(X, pd.DataFrame):
+            self.scorer_ = self.wrap_scorer(self.scorer_, X.columns)
 
         X = check_array(X)
 
