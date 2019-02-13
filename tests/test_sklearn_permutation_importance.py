@@ -164,3 +164,14 @@ def test_explain_weights(iris_train):
         res = format_as_all(expl, perm.wrapped_estimator_)
         for _expl in res:
             assert "petal width (cm)" in _expl
+
+def test_pandas_xgboost_support(iris_train):
+    xgboost = pytest.importorskip('xgboost')
+    pd = pytest.importorskip('pandas')
+    X, y, feature_names, target_names = iris_train
+    X = pd.DataFrame(X)
+    y = pd.Series(y)
+    est = xgboost.XGBClassifier()
+    est.fit(X, y)
+    # we expect no exception to be raised here when using xgboost with pd.DataFrame
+    perm = PermutationImportance(est).fit(X, y) 
