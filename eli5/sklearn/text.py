@@ -49,7 +49,7 @@ FoundFeatures = Dict[Tuple[str, int], float]
 def _get_doc_weighted_spans(doc,
                             vec,
                             feature_weights,  # type: FeatureWeights
-                            feature_fn=None   # type: Callable[[str], str]
+                            feature_fn=None   # type: Optional[Callable[[str], str]]
                             ):
     # type: (...) -> Optional[Tuple[FoundFeatures, DocWeightedSpans]]
     if isinstance(vec, InvertableHashingVectorizer):
@@ -85,7 +85,7 @@ def _get_doc_weighted_spans(doc,
 
 
 def _get_feature_weights_dict(feature_weights,  # type: FeatureWeights
-                              feature_fn        # type: Callable[[str], str]
+                              feature_fn        # type: Optional[Callable[[str], str]]
                               ):
     # type: (...) -> Dict[str, Tuple[float, Tuple[str, int]]]
     """ Return {feat_name: (weight, (group, idx))} mapping. """

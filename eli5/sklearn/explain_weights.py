@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
-from singledispatch import singledispatch
 
 import numpy as np  # type: ignore
 
@@ -57,6 +56,7 @@ from sklearn.tree import (  # type: ignore
 
 from eli5.base import (
     Explanation, TargetExplanation, FeatureImportances)
+from eli5.base_utils import singledispatch
 from eli5._feature_weights import get_top_features
 from eli5.utils import argsort_k_largest_positive, get_target_display_names
 from eli5.sklearn.unhashing import handle_hashing_vec, is_invhashing

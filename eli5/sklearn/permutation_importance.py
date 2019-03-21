@@ -15,7 +15,10 @@ from sklearn.base import (  # type: ignore
 from sklearn.metrics.scorer import check_scoring  # type: ignore
 
 from eli5.permutation_importance import get_score_importances
+from eli5.sklearn.utils import pandas_available
 
+if pandas_available:
+    import pandas as pd   # type: ignore
 
 CAVEATS_CV_NONE = """
 Feature importances are computed on the same data as used for training, 
@@ -112,7 +115,7 @@ class PermutationImportance(BaseEstimator, MetaEstimatorMixin):
 
     refit : bool
         Whether to fit the estimator on the whole data if cross-validation
-        is used (default is False).
+        is used (default is True).
 
     n_jobs : int, number of parallel jobs for shuffle iterations
 
@@ -134,8 +137,8 @@ class PermutationImportance(BaseEstimator, MetaEstimatorMixin):
     estimator_ : an estimator
         The base estimator from which the :class:`~PermutationImportance`
         instance  is built. This is stored only when a non-fitted estimator
-        is passed to the :class:`~PermutationImportance`, i.e when ``prefit``
-        is False.
+        is passed to the :class:`~PermutationImportance`, i.e when ``cv`` is
+        not "prefit".
 
     rng_ : numpy.random.RandomState
         random state
@@ -153,6 +156,12 @@ class PermutationImportance(BaseEstimator, MetaEstimatorMixin):
         self.cv = cv
         self.n_jobs = n_jobs
         self.rng_ = check_random_state(random_state)
+
+    def _wrap_scorer(self, base_scorer, pd_columns):
+        def pd_scorer(model, X, y):
+            X = pd.DataFrame(X, columns=pd_columns)
+            return base_scorer(model, X, y)
+        return pd_scorer
 
     def fit(self, X, y, groups=None, **fit_params):
         # type: (...) -> PermutationImportance
@@ -180,6 +189,9 @@ class PermutationImportance(BaseEstimator, MetaEstimatorMixin):
             Returns self.
         """
         self.scorer_ = check_scoring(self.estimator, scoring=self.scoring)
+
+        if pandas_available and isinstance(X, pd.DataFrame):
+            self.scorer_ = self._wrap_scorer(self.scorer_, X.columns)
 
         if self.cv != "prefit" and self.refit:
             self.estimator_ = clone(self.estimator)

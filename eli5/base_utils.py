@@ -2,6 +2,11 @@ import inspect
 
 import attr  # type: ignore
 
+try:
+    from functools import singledispatch  # type: ignore
+except ImportError:
+    from singledispatch import singledispatch  # type: ignore
+
 
 def attrs(class_):
     """ Like attr.s with slots=True,
@@ -28,4 +33,4 @@ def attrs(class_):
         if idx >= defaults_shift:
             attrib_kwargs['default'] = init_args.defaults[idx - defaults_shift]
         these[arg] = attr.ib(**attrib_kwargs)
-    return attr.s(class_, these=these, init=False, slots=True, **attrs_kwargs)
+    return attr.s(class_, these=these, init=False, slots=True, **attrs_kwargs)  # type: ignore

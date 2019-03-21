@@ -24,12 +24,12 @@ arguments for XGBClassifer_, XGBRegressor_ and Booster_:
     across all trees
   - 'cover' - the average coverage of the feature when it is used in trees
 
-``target_names`` and ``target`` arguments are ignored.
+``target_names`` and ``targets`` arguments are ignored.
 
 .. note::
     Top-level :func:`eli5.explain_weights` calls are dispatched
     to :func:`eli5.xgboost.explain_weights_xgboost` for
-    XGBClassifer_ and XGBRegressor_.
+    XGBClassifer_, XGBRegressor_ and Booster_.
 
 For :func:`eli5.explain_prediction` eli5 uses an approach based on ideas from
 http://blog.datadive.net/interpreting-random-forests/ :
@@ -57,7 +57,8 @@ for XGBClassifer_, XGBRegressor_ and Booster_:
   estimator. Set it to True if you're passing ``vec``,
   but ``doc`` is already vectorized.
 
-Booster_ estimator accepts two more optional arguments:
+:func:`eli5.explain_prediction` for Booster_ estimator accepts
+two more optional arguments:
 
 * ``is_regression`` - True if solving a regression problem
   ("objective" starts with "reg")
@@ -74,5 +75,4 @@ example.
 .. note::
     Top-level :func:`eli5.explain_prediction` calls are dispatched
     to :func:`eli5.xgboost.explain_prediction_xgboost` for
-    XGBClassifer_ and XGBRegressor_.
-
+    XGBClassifer_, XGBRegressor_ and Booster_.

@@ -218,11 +218,14 @@ def explain_prediction_xgboost(
 
 
 def _check_booster_args(xgb, is_regression=None):
-    # type: (Any, bool) -> Tuple[Booster, bool]
+    # type: (Any, Optional[bool]) -> Tuple[Booster, Optional[bool]]
     if isinstance(xgb, Booster):
         booster = xgb
     else:
-        booster = xgb.booster()
+        if hasattr(xgb, 'get_booster'):
+            booster = xgb.get_booster()
+        else:  # xgb < 0.7
+            booster = xgb.booster()
         _is_regression = isinstance(xgb, XGBRegressor)
         if is_regression is not None and is_regression != _is_regression:
             raise ValueError(

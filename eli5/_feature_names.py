@@ -102,7 +102,7 @@ class FeatureNames(Sized, Iterable):
         """
         indices = []
         filtered_feature_names = []
-        indexed_names = None  # type: Iterable[Tuple[int, Any]]
+        indexed_names = None  # type: Optional[Iterable[Tuple[int, Any]]]
         if isinstance(self.feature_names, (np.ndarray, list)):
             indexed_names = enumerate(self.feature_names)
         elif isinstance(self.feature_names, dict):
@@ -116,7 +116,8 @@ class FeatureNames(Sized, Iterable):
                 assert x.shape[0] == 1
                 flt = lambda nm, i: feature_filter(nm, x[0, i])
             else:
-                flt = lambda nm, i: feature_filter(nm, x[i])
+                # FIXME: mypy warns about x[i] because it thinks x can be None
+                flt = lambda nm, i: feature_filter(nm, x[i])  # type: ignore
         else:
             flt = lambda nm, i: feature_filter(nm)
 
@@ -125,6 +126,7 @@ class FeatureNames(Sized, Iterable):
                 indices.append(idx)
                 filtered_feature_names.append(name)
         if self.has_bias and flt(self.bias_name, self.bias_idx):
+            assert self.bias_idx is not None  # for mypy
             bias_name = self.bias_name
             indices.append(self.bias_idx)
         else:

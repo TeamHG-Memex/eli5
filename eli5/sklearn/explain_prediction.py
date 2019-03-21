@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from singledispatch import singledispatch
 from functools import partial
 
 import numpy as np  # type: ignore
@@ -51,6 +50,7 @@ from sklearn.tree import (   # type: ignore
 )
 
 from eli5.base import Explanation, TargetExplanation
+from eli5.base_utils import singledispatch
 from eli5.utils import (
     get_target_display_names,
     get_binary_target_scale_label_id
@@ -184,6 +184,7 @@ def explain_prediction_linear_classifier(clf, doc,
         method='linear model',
         targets=[],
     )
+    assert res.targets is not None
 
     _weights = _linear_weights(clf, x, top, feature_names, flt_indices)
     classes = getattr(clf, "classes_", ["-1", "1"])  # OneClassSVM support
@@ -302,6 +303,7 @@ def explain_prediction_linear_regressor(reg, doc,
         targets=[],
         is_regression=True,
     )
+    assert res.targets is not None
 
     _weights = _linear_weights(reg, x, top, feature_names, flt_indices)
     names = get_default_target_names(reg)
@@ -426,6 +428,7 @@ def explain_prediction_tree_classifier(
         description=(DESCRIPTION_TREE_CLF_MULTICLASS if is_multiclass
                      else DESCRIPTION_TREE_CLF_BINARY),
     )
+    assert res.targets is not None
 
     display_names = get_target_display_names(
         clf.classes_, target_names, targets, top_targets,
@@ -524,6 +527,7 @@ def explain_prediction_tree_regressor(
         targets=[],
         is_regression=True,
     )
+    assert res.targets is not None
 
     names = get_default_target_names(reg, num_targets=num_targets)
     display_names = get_target_display_names(names, target_names, targets,

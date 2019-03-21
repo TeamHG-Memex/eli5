@@ -62,7 +62,7 @@ def format_signed(feature,  # type: Dict[str, Any]
 
 def should_highlight_spaces(explanation):
     # type: (Explanation) -> bool
-    hl_spaces = explanation.highlight_spaces
+    hl_spaces = bool(explanation.highlight_spaces)
     if explanation.feature_importances:
         hl_spaces = hl_spaces or any(
             _has_invisible_spaces(fw.feature)
@@ -97,7 +97,7 @@ def has_any_values_for_weights(explanation):
 
 
 def tabulate(data,  # type: List[List[Any]]
-             header=None,  # type: List[Any]
+             header=None,  # type: Optional[List[Any]]
              col_align=None,  # type: Union[str, List[str]]
              ):
     # type: (...) -> List[str]
@@ -107,7 +107,11 @@ def tabulate(data,  # type: List[List[Any]]
     """
     if not data and not header:
         return []
-    n_cols = len(data[0] if data else header)
+    if data:
+        n_cols = len(data[0])
+    else:
+        assert header is not None
+        n_cols = len(header)
     if not all(len(row) == n_cols for row in data):
         raise ValueError('data is not rectangular')
 

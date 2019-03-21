@@ -6,8 +6,7 @@ LightGBM
 LightGBM_ is a fast Gradient Boosting framework; it provides a Python
 interface. eli5 supports :func:`eli5.explain_weights`
 and :func:`eli5.explain_prediction` for ``lightgbm.LGBMClassifer``
-and ``lightgbm.LGBMRegressor`` estimators. It is tested against LightGBM
-master branch.
+and ``lightgbm.LGBMRegressor`` estimators.
 
 .. _LightGBM: https://github.com/Microsoft/LightGBM
 

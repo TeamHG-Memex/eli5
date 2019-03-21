@@ -9,14 +9,14 @@ dataset <https://www.kaggle.com/c/titanic/data>`__, which is small and
 has not too many features, but is still interesting enough.
 
 We are using `XGBoost <https://xgboost.readthedocs.io/en/latest/>`__
-0.6a2 and data downloaded from https://www.kaggle.com/c/titanic/data (it
+0.81 and data downloaded from https://www.kaggle.com/c/titanic/data (it
 is also bundled in the eli5 repo:
 https://github.com/TeamHG-Memex/eli5/blob/master/notebooks/titanic-train.csv).
 
 1. Training data
 ----------------
 
-Let's start by loading the data:
+Let’s start by loading the data:
 
 .. code:: ipython3
 
@@ -102,32 +102,22 @@ We do just minimal preprocessing: convert obviously contiuous *Age* and
 2. Simple XGBoost classifier
 ----------------------------
 
-Let's first build a very simple classifier with
+Let’s first build a very simple classifier with
 `xbgoost.XGBClassifier <http://xgboost.readthedocs.io/en/latest/python/python_api.html#xgboost.XGBClassifier>`__
 and
-`sklearn.feature\_extraction.DictVectorizer <http://scikit-learn.org/stable/modules/generated/sklearn.feature_extraction.DictVectorizer.html>`__,
+`sklearn.feature_extraction.DictVectorizer <http://scikit-learn.org/stable/modules/generated/sklearn.feature_extraction.DictVectorizer.html>`__,
 and check its accuracy with 10-fold cross-validation:
 
 .. code:: ipython3
 
-    import warnings
-    # xgboost <= 0.6a2 shows a warning when used with scikit-learn 0.18+
-    warnings.filterwarnings('ignore', category=DeprecationWarning) 
     from xgboost import XGBClassifier
     from sklearn.feature_extraction import DictVectorizer
     from sklearn.pipeline import make_pipeline
     from sklearn.model_selection import cross_val_score
     
-    class CSCTransformer:
-        def transform(self, xs):
-            # work around https://github.com/dmlc/xgboost/issues/1238#issuecomment-243872543
-            return xs.tocsc()
-        def fit(self, *args):
-            return self
-        
     clf = XGBClassifier()
     vec = DictVectorizer()
-    pipeline = make_pipeline(vec, CSCTransformer(), clf)
+    pipeline = make_pipeline(vec, clf)
     
     def evaluate(_clf):
         scores = cross_val_score(_clf, all_xs, all_ys, scoring='accuracy', cv=10)
@@ -142,27 +132,24 @@ and check its accuracy with 10-fold cross-validation:
     Accuracy: 0.823 ± 0.071
 
 
-There is one tricky bit about the code above: XGBClassifier in xgboost
-0.6a2 has some `issues <https://github.com/dmlc/xgboost/issues/1238>`__
-with sparse data. One way to solve them is to convert a sparse matrix to
-CSC format, so we add a ``CSCTransformer`` to the pipelne. One may be
-templed to just pass ``dense=True`` to ``DictVectorizer``: after all, in
-this case the matrixes are small. But this is not a great solution,
-because we will loose the ability to distinguish features that are
-missing and features that have zero value.
+There is one tricky bit about the code above: one may be templed to just
+pass ``dense=True`` to ``DictVectorizer``: after all, in this case the
+matrixes are small. But this is not a great solution, because we will
+loose the ability to distinguish features that are missing and features
+that have zero value.
 
 3. Explaining weights
 ---------------------
 
 In order to calculate a prediction, XGBoost sums predictions of all its
 trees. The number of trees is controlled by ``n_estimators`` argument
-and is 100 by default. Each tree is not a great predictor on it's own,
+and is 100 by default. Each tree is not a great predictor on it’s own,
 but by summing across all trees, XGBoost is able to provide a robust
 estimate in many cases. Here is one of the trees:
 
 .. code:: ipython3
 
-    booster = clf.booster()
+    booster = clf.get_booster()
     original_feature_names = booster.feature_names
     booster.feature_names = vec.get_feature_names()
     print(booster.get_dump()[0])
@@ -172,21 +159,21 @@ estimate in many cases. Here is one of the trees:
 
 .. parsed-literal::
 
-    0:[Sex=female<-9.53674e-07] yes=1,no=2,missing=1
+    0:[Sex=female<-9.53674316e-07] yes=1,no=2,missing=1
     	1:[Age<13] yes=3,no=4,missing=4
     		3:[SibSp<2] yes=7,no=8,missing=7
-    			7:leaf=0.145455
+    			7:leaf=0.145454556
     			8:leaf=-0.125
-    		4:[Fare<26.2687] yes=9,no=10,missing=9
-    			9:leaf=-0.151515
-    			10:leaf=-0.0727273
-    	2:[Pclass=3<-9.53674e-07] yes=5,no=6,missing=5
-    		5:[Fare<12.175] yes=11,no=12,missing=12
-    			11:leaf=0.05
-    			12:leaf=0.175194
-    		6:[Fare<24.8083] yes=13,no=14,missing=14
-    			13:leaf=0.0365591
-    			14:leaf=-0.152
+    		4:[Fare<26.2687492] yes=9,no=10,missing=9
+    			9:leaf=-0.151515156
+    			10:leaf=-0.0727272779
+    	2:[Pclass=3<-9.53674316e-07] yes=5,no=6,missing=5
+    		5:[Fare<12.1750002] yes=11,no=12,missing=12
+    			11:leaf=0.0500000007
+    			12:leaf=0.175193802
+    		6:[Fare<24.8083496] yes=13,no=14,missing=14
+    			13:leaf=0.0365591422
+    			14:leaf=-0.151999995
     
 
 
@@ -194,7 +181,7 @@ We see that this tree checks *Sex*, *Age*, *Pclass*, *Fare* and *SibSp*
 features. ``leaf`` gives the decision of a single tree, and they are
 summed over all trees in the ensemble.
 
-Let's check feature importances with :func:`eli5.show_weights`:
+Let’s check feature importances with :func:`eli5.show_weights`:
 
 .. code:: ipython3
 
@@ -494,19 +481,19 @@ Let's check feature importances with :func:`eli5.show_weights`:
 
 
 There are several different ways to calculate feature importances. By
-default, "gain" is used, that is the average gain of the feature when it
-is used in trees. Other types are "weight" - the number of times a
-feature is used to split the data, and "cover" - the average coverage of
+default, “gain” is used, that is the average gain of the feature when it
+is used in trees. Other types are “weight” - the number of times a
+feature is used to split the data, and “cover” - the average coverage of
 the feature. You can pass it with ``importance_type`` argument.
 
 Now we know that two most important features are *Sex=female* and
-*Pclass=3*, but we still don't know how XGBoost decides what prediction
+*Pclass=3*, but we still don’t know how XGBoost decides what prediction
 to make based on their values.
 
 4. Explaining predictions
 -------------------------
 
-To get a better idea of how our classifier works, let's examine
+To get a better idea of how our classifier works, let’s examine
 individual predictions with :func:`eli5.show_prediction`:
 
 .. code:: ipython3
@@ -830,15 +817,15 @@ http://blog.datadive.net/interpreting-random-forests/; eli5 provides an
 independent implementation of this algorithm for XGBoost and most
 scikit-learn tree ensembles.
 
-Here we see that classifier thinks it's good to be a female, but bad to
-travel third class. Some features have "Missing" as value (we are
+Here we see that classifier thinks it’s good to be a female, but bad to
+travel third class. Some features have “Missing” as value (we are
 passing ``show_feature_values=True`` to view the values): that means
-that the feature was missing, so in this case it's good to not have
+that the feature was missing, so in this case it’s good to not have
 embarked in Southampton. This is where our decision to go with sparse
 matrices comes handy - we still see that *Parch* is zero, not missing.
 
-It's possible to show only features that are present using
-``feature_filter`` argument: it's a function that accepts feature name
+It’s possible to show only features that are present using
+``feature_filter`` argument: it’s a function that accepts feature name
 and value, and returns True value for features that should be shown:
 
 .. code:: ipython3
@@ -1091,11 +1078,11 @@ and value, and returns True value for features that should be shown:
 
 Right now we treat *Name* field as categorical, like other text
 features. But in this dataset each name is unique, so XGBoost does not
-use this feature at all, because it's such a poor discriminator: it's
+use this feature at all, because it’s such a poor discriminator: it’s
 absent from the weights table in section 3.
 
-But *Name* still might contain some useful information. We don't want to
-guess how to best pre-process it and what features to extract, so let's
+But *Name* still might contain some useful information. We don’t want to
+guess how to best pre-process it and what features to extract, so let’s
 use the most general character ngram vectorizer:
 
 .. code:: ipython3
@@ -1113,7 +1100,7 @@ use the most general character ngram vectorizer:
         ('All', DictVectorizer()),
     ])
     clf2 = XGBClassifier()
-    pipeline2 = make_pipeline(vec2, CSCTransformer(), clf2)
+    pipeline2 = make_pipeline(vec2, clf2)
     evaluate(pipeline2)
 
 
@@ -1123,7 +1110,7 @@ use the most general character ngram vectorizer:
 
 
 In this case the pipeline is more complex, we slightly improved our
-result, but the improvement is not significant. Let's look at feature
+result, but the improvement is not significant. Let’s look at feature
 importances:
 
 .. code:: ipython3
@@ -2686,12 +2673,12 @@ they are not very interesting:
 
 
 Text features from the *Name* field are highlighted directly in text,
-and the sum of weights is shown in the weights table as "Name:
-Highlighted in text (sum)".
+and the sum of weights is shown in the weights table as “Name:
+Highlighted in text (sum)”.
 
 Looks like name classifier tried to infer both gender and status from
-the title: "Mr." is bad because women are saved first, and it's better
-to be "Mrs." (married) than "Miss.". Also name classifier is trying to
+the title: “Mr.” is bad because women are saved first, and it’s better
+to be “Mrs.” (married) than “Miss.”. Also name classifier is trying to
 pick some parts of names and surnames, especially endings, perhaps as a
-proxy for social status. It's especially bad to be "Mary" if you are
+proxy for social status. It’s especially bad to be “Mary” if you are
 from the third class.

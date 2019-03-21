@@ -106,7 +106,7 @@ def _method_lines(explanation):
 
 def _description_lines(explanation):
     # type: (Explanation) -> List[str]
-    return [explanation.description]
+    return [explanation.description or '']
 
 
 def _error_lines(explanation):
@@ -117,6 +117,7 @@ def _error_lines(explanation):
 def _feature_importances_lines(explanation, hl_spaces):
     # type: (Explanation, Optional[bool]) -> Iterator[str]
     max_width = 0
+    assert explanation.feature_importances is not None
     for line in _fi_lines(explanation.feature_importances, hl_spaces):
         max_width = max(max_width, len(line))
         yield line
@@ -146,6 +147,7 @@ def _fi_lines(feature_importances, hl_spaces):
 
 def _decision_tree_lines(explanation):
     # type: (Explanation) -> List[str]
+    assert explanation.decision_tree is not None
     return ["", tree2text(explanation.decision_tree)]
 
 
@@ -153,6 +155,7 @@ def _transition_features_lines(explanation):
     # type: (Explanation) -> List[str]
     from tabulate import tabulate  # type: ignore
     tf = explanation.transition_features
+    assert tf is not None
     return [
         "",
         "Transition features:",
@@ -169,7 +172,7 @@ def _targets_lines(explanation,  # type: Explanation
                    ):
     # type: (...) -> List[str]
     lines = []
-
+    assert explanation.targets is not None
     for target in explanation.targets:
         scores = _format_scores(target.proba, target.score)
         if scores:

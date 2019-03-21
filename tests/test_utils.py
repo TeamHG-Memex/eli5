@@ -3,7 +3,7 @@ from __future__ import absolute_import
 
 import numpy as np
 import scipy.sparse as sp
-from hypothesis import given, assume
+from hypothesis import given, assume, settings, HealthCheck
 from hypothesis.strategies import integers
 
 from eli5.utils import (
@@ -12,6 +12,7 @@ from .utils import rnd_len_arrays
 
 
 @given(rnd_len_arrays(np.float32, 0, 5), integers(1, 6))
+@settings(suppress_health_check=[HealthCheck.filter_too_much])
 def test_argsort_k_smallest(x, k):
     assume(len(x) >= k)
     assume(len(set(x)) == len(x))
@@ -20,6 +21,7 @@ def test_argsort_k_smallest(x, k):
 
 
 @given(rnd_len_arrays(np.float32, 0, 5), integers(1, 6))
+@settings(suppress_health_check=[HealthCheck.filter_too_much])
 def test_argsort_k_largest(x, k):
     assume(len(x) >= k)
     assume(len(set(x)) == len(x))

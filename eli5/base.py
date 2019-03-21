@@ -16,15 +16,15 @@ class Explanation(object):
     """
     def __init__(self,
                  estimator,  # type: str
-                 description=None,  # type: str
-                 error=None,  # type: str
-                 method=None,  # type: str
+                 description=None,  # type: Optional[str]
+                 error=None,  # type: Optional[str]
+                 method=None,  # type: Optional[str]
                  is_regression=False,  # type: bool
-                 targets=None,  # type: List[TargetExplanation]
-                 feature_importances=None,  # type: FeatureImportances
-                 decision_tree=None,  # type: TreeInfo
+                 targets=None,  # type: Optional[List[TargetExplanation]]
+                 feature_importances=None,  # type: Optional[FeatureImportances]
+                 decision_tree=None,  # type: Optional[TreeInfo]
                  highlight_spaces=None,  # type: Optional[bool]
-                 transition_features=None,  # type: TransitionFeatureWeights
+                 transition_features=None,  # type: Optional[TransitionFeatureWeights]
                  ):
         # type: (...) -> None
         self.estimator = estimator
@@ -73,7 +73,7 @@ class TargetExplanation(object):
                  feature_weights,  # type: FeatureWeights
                  proba=None,  # type: float
                  score=None,  # type: float
-                 weighted_spans=None,  # type: WeightedSpans
+                 weighted_spans=None,  # type: Optional[WeightedSpans]
                  ):
         # type: (...) -> None
         self.target = target

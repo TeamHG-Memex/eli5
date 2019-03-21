@@ -77,3 +77,9 @@ and formatting on a client.
 License is MIT.
 
 Check `docs <https://eli5.readthedocs.io/>`_ for more.
+
+----
+
+.. image:: https://hyperiongray.s3.amazonaws.com/define-hg.svg
+	:target: https://www.hyperiongray.com/?pk_campaign=github&pk_kwd=eli5
+	:alt: define hyperiongray

@@ -58,7 +58,7 @@ class PreparedWeightedSpans(object):
 def prepare_weighted_spans(targets,  # type: List[TargetExplanation]
                            preserve_density=None,  # type: Optional[bool]
                            ):
-    # type: (...) -> List[List[PreparedWeightedSpans]]
+    # type: (...) -> List[Optional[List[PreparedWeightedSpans]]]
     """ Return weighted spans prepared for rendering.
     Calculate a separate weight range for each different weighted
     span (for each different index): each target has the same number
@@ -67,18 +67,23 @@ def prepare_weighted_spans(targets,  # type: List[TargetExplanation]
     targets_char_weights = [
         [get_char_weights(ws, preserve_density=preserve_density)
          for ws in t.weighted_spans.docs_weighted_spans]
-        if t.weighted_spans else None
-        for t in targets]  # type: List[List[np.ndarray]]
+         if t.weighted_spans else None
+         for t in targets]  # type: List[Optional[List[np.ndarray]]]
     max_idx = max_or_0(len(ch_w or []) for ch_w in targets_char_weights)
+
+    targets_char_weights_not_None = [
+        cw for cw in targets_char_weights
+        if cw is not None]  # type: List[List[np.ndarray]]
+
     spans_weight_ranges = [
         max_or_0(
-            abs(x) for char_weights in targets_char_weights
-            for x in char_weights[idx] if char_weights is not None)
+            abs(x) for char_weights in targets_char_weights_not_None
+            for x in char_weights[idx])
         for idx in range(max_idx)]
     return [
         [PreparedWeightedSpans(ws, char_weights, weight_range)
          for ws, char_weights, weight_range in zip(
-            t.weighted_spans.docs_weighted_spans,
+            t.weighted_spans.docs_weighted_spans,  # type: ignore
             t_char_weights,
             spans_weight_ranges)]
         if t_char_weights is not None else None

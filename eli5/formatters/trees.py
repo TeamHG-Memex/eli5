@@ -22,6 +22,8 @@ def tree2text(tree_obj, indent=4):
             value_repr = _format_leaf_value(tree_obj, node)
             parts.append("  ---> {}".format(value_repr))
         else:
+            assert node.left is not None
+            assert node.right is not None
             feat_name = node.feature_name
 
             if depth > 0:
