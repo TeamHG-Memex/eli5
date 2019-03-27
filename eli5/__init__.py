@@ -73,3 +73,14 @@ try:
 except ImportError:
     # lightgbm is not available
     pass
+
+
+try:
+    from .catboost import (
+        explain_weights_catboost
+    )
+except ImportError:
+    #catboost is not available
+    pass
+  
+
