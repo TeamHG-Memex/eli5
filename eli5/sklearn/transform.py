@@ -18,6 +18,7 @@ from eli5.sklearn.utils import get_feature_names as _get_feature_names
 
 # Feature selection:
 
+@transform_feature_names.register(SelectorMixin)
 def _select_names(est, in_names=None):
     mask = est.get_support(indices=False)
     in_names = _get_feature_names(est, feature_names=in_names,
@@ -33,7 +34,6 @@ try:
     _select_names = transform_feature_names.register(RandomizedLogisticRegression)(_select_names)
 except ImportError:     # Removed in scikit-learn 0.21
     pass
-_select_names = transform_feature_names.register(SelectorMixin)(_select_names)
 
 
 # Scaling
