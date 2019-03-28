@@ -1,11 +1,16 @@
 from __future__ import absolute_import
 
 import pytest 
+
+pytest.importorskip('catboost')
+
 import numpy as np 
 import catboost
 from catboost import CatBoostClassifier,CatBoostRegressor,CatBoost,Pool
 
 from .utils import format_as_all
+
+
 
 from eli5.catboost import (
     _check_catboost_args

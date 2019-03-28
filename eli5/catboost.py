@@ -82,5 +82,5 @@ def _catb_feature_importance(catb,importance_type,Pool=None):
             )
     else:
         raise ValueError('invalid importance_type')
-    all_features = np.array([*fs],dtype=np.float32)
+    all_features = np.array([i for i in fs],dtype=np.float32)
     return all_features/all_features.sum()
