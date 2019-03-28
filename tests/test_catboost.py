@@ -3,7 +3,7 @@ from __future__ import absolute_import
 import pytest 
 import numpy as np 
 import catboost
-from catboost import CatBoostClassifier,CatBoostRegressor,CatBoost
+from catboost import CatBoostClassifier,CatBoostRegressor,CatBoost,Pool
 
 from .utils import format_as_all
 
@@ -35,3 +35,17 @@ def test_explain_catboost_regressor(boston_train):
     for expl in format_as_all(res, catb):
         assert 'LSTAT' in expl  
     
+def test_explain_catboost_classifier(iris_train):
+    x,y,feature_names,target = iris_train
+    train = Pool(x,y)
+    catb = CatBoostClassifier(iterations=10,
+                            learning_rate=1,
+                            depth=2,
+                            loss_function='MultiClass')
+    catb.fit(train)
+    res = explain_weights(catb)
+    for expl in format_as_all(res,catb):
+        assert '3' in expl
+    res = explain_weights(catb,feature_names=feature_names)
+    for expl in format_as_all(res,catb):
+        assert 'petal width (cm)' in expl
