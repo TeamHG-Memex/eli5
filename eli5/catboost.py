@@ -2,7 +2,7 @@
 from __future__ import absolute_import, division
 
 import numpy as np  # type: ignore
-import catboost  # type: ignore
+import catboost # type: ignore
 
 from eli5.explain import explain_weights
 from eli5._feature_importances import get_feature_importance_explanation
