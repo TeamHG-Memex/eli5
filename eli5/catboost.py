@@ -1,8 +1,8 @@
 
-from __future__ import absolute_import,division
+from __future__ import absolute_import, division
 
-import numpy as np
-import catboost
+import numpy as np  # type: ignore
+import catboost  # type: ignore
 
 from eli5.explain import explain_weights
 from eli5._feature_importances import get_feature_importance_explanation
@@ -17,13 +17,12 @@ all values sum to 1.
 @explain_weights.register(catboost.CatBoostClassifier)
 @explain_weights.register(catboost.CatBoostRegressor)
 def explain_weights_catboost(catb,
-                            vec=None,
-                            top=20,
-                            importance_type='PredictionValuesChange',
-                            prettified=True,
-                            feature_names=None,
-                            Pool=None
-                            ):
+                             top=20,
+                             importance_type='PredictionValuesChange',
+                             prettified=True,
+                             feature_names=None,
+                             pool=None
+                             ):
     """
     Return an explanation of an CatBoost estimator (CatBoostClassifier, CatBoost, CatBoostRegressor)
     as feature importances.
@@ -38,47 +37,54 @@ def explain_weights_catboost(catb,
     ----------
     importance_type : str, optional
         A way to get feature importance. Possible values are:
-
         - 'PredictionValuesChange' - The individual importance values for each of the input features.
           (default)
         - 'LossFunctionChange' - The individual importance values for each of the input features for ranking metrics (requires training data to be passed  or a similar dataset with Pool)
+
     prettified : bool, optional
         A way to get the feature names from the columns and display it against the feature importance
         - 'True' - return list of tuples on get_feature_importance on catboost objects along with the column names. (default)
         - 'False' - return list numbers on get_feature_importance on catboost objects.
-    
-    """ 
+
+    pool : catboost.Pool, optional
+        To be passed if explain_weights_catboost has importance_type set to "LossFunctionChange".
+        The catboost feature_importances_ uses the Pool datatype to calculate the parameter for the specific importance_type.
+
+    """
     is_regression = _check_catboost_args(catb)
     catb_feature_names = catb.feature_names_
-    coef = _catb_feature_importance(catb,importance_type=importance_type,Pool=Pool)
-    return get_feature_importance_explanation(catb,vec,coef,
-                                                feature_names=feature_names,
-                                                estimator_feature_names=catb_feature_names,
-                                                feature_filter=None,
-                                                feature_re=None,
-                                                top=top,
-                                                description=DESCRIPTION_CATBOOST,
-                                                is_regression=is_regression,
-                                                num_features=coef.shape[-1]
-                                                )
-
+    coef = _catb_feature_importance(catb, importance_type=importance_type, pool=pool)
+    #vec is only added since it is a positional argument in get feature_importance_explanation and cannot 
+    #be made into a keyword argument since it is followed by a positional argument.
+    vec = None
+    return get_feature_importance_explanation(catb, vec, coef,
+                                              feature_names=feature_names,
+                                              estimator_feature_names=catb_feature_names,
+                                              feature_filter=None,
+                                              feature_re=None,
+                                              top=top,
+                                              description=DESCRIPTION_CATBOOST,
+                                              is_regression=is_regression,
+                                              num_features=coef.shape[-1]
+                                              )
 
 
 def _check_catboost_args(catb):
-    return isinstance(catb,catboost.CatBoostRegressor)
+    return isinstance(catb, catboost.CatBoostRegressor)
 
 
-def _catb_feature_importance(catb,importance_type,Pool=None):
-    if(importance_type=="PredictionValuesChange"):
+def _catb_feature_importance(catb, importance_type, pool=None):
+    if importance_type == "PredictionValuesChange":
         fs = catb.get_feature_importance(type=importance_type)
-    elif(importance_type=="LossFunctionChange"):
-        if(isinstance(Pool,catboost.Pool)):
-            fs = catb.get_feature_importance(Pool,type=importance_type)
+    elif importance_type == "LossFunctionChange":
+        if isinstance(pool, catboost.Pool):
+            fs = catb.get_feature_importance(data=pool, type=importance_type)
         else:
             raise ValueError(
-                'POOL datatype required or type:LossFunctionChange '
+                'importance_type: "LossFunctionChange" requires catboost.Pool datatype to be passed with parameter pool to calculate metric. Either no datatype or invalid datatype was passed'
             )
     else:
-        raise ValueError('invalid importance_type')
-    all_features = np.array([i for i in fs],dtype=np.float32)
+        raise ValueError(
+            'Only two importance_type "PredictionValuesChange" and "LossFunctionChange" are supported. Invalid Parameter {} for importance_type'.format(importance_type))
+    all_features = np.array(fs, dtype=np.float32)
     return all_features/all_features.sum()
