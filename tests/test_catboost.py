@@ -2,13 +2,12 @@ from __future__ import absolute_import
 
 import numpy as np
 from eli5.explain import explain_weights
-from eli5.catboost import _check_catboost_args
 from .utils import format_as_all
 
 import pytest
 pytest.importorskip('catboost')
 from catboost import CatBoostClassifier, CatBoostRegressor, CatBoost, Pool
-
+from eli5.catboost import _check_catboost_args
 
 def test_explain_catboost_catboost(boston_train):
     xs, ys, feature_names = boston_train
