@@ -1,10 +1,5 @@
 import numpy as np
-from catboost import (
-    CatBoost,
-    CatBoostClassifier,
-    CatBoostRegressor,
-    Pool
-)
+import catboost
 
 from eli5.explain import explain_weights
 from eli5._feature_importances import get_feature_importance_explanation
@@ -15,9 +10,9 @@ all values sum to 1.
 """
 
 
-@explain_weights.register(CatBoost)
-@explain_weights.register(CatBoostClassifier)
-@explain_weights.register(CatBoostRegressor)
+@explain_weights.register(catboost.CatBoost)
+@explain_weights.register(catboost.CatBoostClassifier)
+@explain_weights.register(catboost.CatBoostRegressor)
 def explain_weights_catboost(catb,
                             vec=None,
                             top=20,
@@ -67,14 +62,14 @@ def explain_weights_catboost(catb,
 
 
 def _check_catboost_args(catb):
-    return isinstance(catb,CatBoostRegressor)
+    return isinstance(catb,catboost.CatBoostRegressor)
 
 
 def _catb_feature_importance(catb,importance_type,Pool=None):
     if(importance_type=="PredictionValuesChange"):
         fs = catb.get_feature_importance(type=importance_type)
     elif(importance_type=="LossFunctionChange"):
-        if(isinstance(pool,Pool)):
+        if(isinstance(Pool,catboost.Pool)):
             fs = catb.get_feature_importance(Pool,type=importance_type)
         else:
             raise ValueError(
