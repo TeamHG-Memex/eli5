@@ -1,4 +1,3 @@
-
 from __future__ import absolute_import, division
 
 import numpy as np  # type: ignore
@@ -16,10 +15,10 @@ all values sum to 1.
 @explain_weights.register(catboost.CatBoost)
 @explain_weights.register(catboost.CatBoostClassifier)
 @explain_weights.register(catboost.CatBoostRegressor)
-def explain_weights_catboost(catb,
+def explain_weights_catboost(catb, 
+                             vec=None,
                              top=20,
                              importance_type='PredictionValuesChange',
-                             prettified=True,
                              feature_names=None,
                              pool=None
                              ):
@@ -41,17 +40,12 @@ def explain_weights_catboost(catb,
           (default)
         - 'LossFunctionChange' - The individual importance values for each of the input features for ranking metrics (requires training data to be passed  or a similar dataset with Pool)
 
-    prettified : bool, optional
-        A way to get the feature names from the columns and display it against the feature importance
-        - 'True' - return list of tuples on get_feature_importance on catboost objects along with the column names. (default)
-        - 'False' - return list numbers on get_feature_importance on catboost objects.
-
     pool : catboost.Pool, optional
         To be passed if explain_weights_catboost has importance_type set to "LossFunctionChange".
         The catboost feature_importances_ uses the Pool datatype to calculate the parameter for the specific importance_type.
 
     """
-    is_regression = _check_catboost_args(catb)
+    is_regression = _is_regression(catb)
     catb_feature_names = catb.feature_names_
     coef = _catb_feature_importance(catb, importance_type=importance_type, pool=pool)
     #vec is only added since it is a positional argument in get feature_importance_explanation and cannot 
@@ -69,7 +63,7 @@ def explain_weights_catboost(catb,
                                               )
 
 
-def _check_catboost_args(catb):
+def _is_regression(catb):
     return isinstance(catb, catboost.CatBoostRegressor)
 
 

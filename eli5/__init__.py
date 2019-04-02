@@ -82,5 +82,3 @@ try:
 except ImportError:
     #catboost is not available
     pass
-  
-
