@@ -48,9 +48,6 @@ def explain_weights_catboost(catb,
     is_regression = _is_regression(catb)
     catb_feature_names = catb.feature_names_
     coef = _catb_feature_importance(catb, importance_type=importance_type, pool=pool)
-    #vec is only added since it is a positional argument in get feature_importance_explanation and cannot 
-    #be made into a keyword argument since it is followed by a positional argument.
-    vec = None
     return get_feature_importance_explanation(catb, vec, coef,
                                               feature_names=feature_names,
                                               estimator_feature_names=catb_feature_names,
