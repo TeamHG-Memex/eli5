@@ -76,9 +76,3 @@ except ImportError:
 except OSError:
     # improperly installed lightgbm
     pass
-except Exception as e:
-    if e.__class__.__name__ == 'LightGBMError':
-        # improperly installed lightgbm
-        pass
-    else:
-        raise
