@@ -73,3 +73,6 @@ try:
 except ImportError:
     # lightgbm is not available
     pass
+except OSError:
+    # improperly installed lightgbm
+    pass
