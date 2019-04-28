@@ -261,6 +261,8 @@ Currently the following transformers are supported out of the box:
 * SelectorMixin-based transformers: SelectPercentile_,
   SelectKBest_, GenericUnivariateSelect_, VarianceThreshold_,
   RFE_, RFECV_, SelectFromModel_, RandomizedLogisticRegression_;
+* stability selection-based transformers: RandomizedLogisticRegression_, 
+  RandomizedLasso_, StabilitySelection_;
 * scalers from sklearn.preprocessing: MinMaxScaler_, StandardScaler_,
   MaxAbsScaler_, RobustScaler_.
 
@@ -276,6 +278,8 @@ Currently the following transformers are supported out of the box:
 .. _RFECV: http://scikit-learn.org/stable/modules/generated/sklearn.feature_selection.RFECV.html
 .. _VarianceThreshold: http://scikit-learn.org/stable/modules/generated/sklearn.feature_selection.VarianceThreshold.html
 .. _RandomizedLogisticRegression: http://scikit-learn.org/stable/modules/generated/sklearn.linear_model.RandomizedLogisticRegression.html
+.. _RandomizedLasso: https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.RandomizedLasso.html
+.. _StabilitySelection: https://github.com/scikit-learn-contrib/stability-selection
 .. _Pipeline: http://scikit-learn.org/stable/modules/generated/sklearn.pipeline.Pipeline.html#sklearn.pipeline.Pipeline
 .. _singledispatch: https://pypi.python.org/pypi/singledispatch
 
