@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+from __future__ import absolute_import, print_function
 import re
 
 import pytest
@@ -15,11 +17,21 @@ from sklearn.feature_selection import (
     RFECV,
     SelectFromModel,
 )
-from sklearn.linear_model import (
-    LogisticRegression,
-    RandomizedLogisticRegression,
-    RandomizedLasso,  # TODO: add tests and document
-)
+from sklearn.linear_model import LogisticRegression
+try:
+    from sklearn.linear_model import (
+        RandomizedLogisticRegression,
+        RandomizedLasso,
+    )
+except ImportError:
+    # randomized_l1 feature selectors are not available (removed in scikit-learn 0.21)
+    RandomizedLogisticRegression = None
+    RandomizedLasso = None
+try:
+    from stability_selection import StabilitySelection
+except ImportError:
+    # scikit-learn-contrib/stability-selection is not available
+    StabilitySelection = None
 from sklearn.preprocessing import (
     MinMaxScaler,
     StandardScaler,
@@ -45,6 +57,10 @@ class MyFeatureExtractor(BaseEstimator, TransformerMixin):
 
 def selection_score_func(X, y):
     return np.array([1, 2, 3, 4])
+
+
+def instantiate_notnone(cls, *args, **kwargs):
+    return cls(*args, **kwargs) if cls is not None else None
 
 
 @pytest.mark.parametrize('transformer,expected', [
@@ -88,8 +104,28 @@ def selection_score_func(X, y):
      ['<NAME1>', '<NAME3>']),
     (RFECV(LogisticRegression(random_state=42)),
      ['<NAME0>', '<NAME1>', '<NAME2>', '<NAME3>']),
-    (RandomizedLogisticRegression(random_state=42),
-     ['<NAME1>', '<NAME2>', '<NAME3>']),
+
+    pytest.param(
+        instantiate_notnone(RandomizedLogisticRegression, random_state=42),
+        ['<NAME1>', '<NAME2>', '<NAME3>'],
+        marks=pytest.mark.skipif(
+            RandomizedLogisticRegression is None,
+            reason='scikit-learn RandomizedLogisticRegression is not available')
+    ),
+    pytest.param(
+        instantiate_notnone(RandomizedLasso, random_state=42),
+        ['<NAME1>', '<NAME2>', '<NAME3>'],
+        marks=pytest.mark.skipif(
+            RandomizedLasso is None,
+            reason='scikit-learn RandomizedLasso is not available')
+    ),
+    pytest.param(
+        instantiate_notnone(StabilitySelection, random_state=42),
+        ['<NAME2>'],
+        marks=pytest.mark.skipif(
+            StabilitySelection is None,
+            reason='scikit-learn-contrib/stability-selection is not available')
+    ),
 ])
 def test_transform_feature_names_iris(transformer, expected, iris_train):
     X, y, _, _ = iris_train
