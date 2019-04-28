@@ -32,7 +32,16 @@ try:
     )
     _select_names = transform_feature_names.register(RandomizedLasso)(_select_names)
     _select_names = transform_feature_names.register(RandomizedLogisticRegression)(_select_names)
-except ImportError:     # Removed in scikit-learn 0.21
+except ImportError:     
+    # randomized_l1 was removed in scikit-learn 0.21
+    pass
+
+try:
+    from stability_selection import StabilitySelection
+    _select_names = transform_feature_names.register(StabilitySelection)(_select_names)
+    # TODO: add support for stability_selection.RandomizedLogisticRegression and stability_selection.RandomizedLasso ?
+except ImportError:
+    # scikit-learn-contrib/stability-selection is not available
     pass
 
 
