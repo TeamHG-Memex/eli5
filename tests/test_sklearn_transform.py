@@ -4,7 +4,6 @@ import re
 
 import pytest
 import numpy as np
-import sklearn
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.feature_selection import (
     SelectPercentile,
@@ -41,6 +40,7 @@ from sklearn.preprocessing import (
 )
 from sklearn.pipeline import FeatureUnion, make_pipeline
 
+from .utils import sklearn_version
 from eli5 import transform_feature_names
 from eli5.sklearn import PermutationImportance
 
@@ -62,12 +62,6 @@ def selection_score_func(X, y):
 
 def instantiate_notnone(cls, *args, **kwargs):
     return cls(*args, **kwargs) if cls is not None else None
-
-
-def parse_version(mod):
-    v = mod.__version__
-    vint = list(map(int, v.split('.')))
-    return vint
 
 
 @pytest.mark.parametrize('transformer,expected', [
@@ -123,14 +117,14 @@ def parse_version(mod):
         instantiate_notnone(RandomizedLasso, random_state=42),
         ['<NAME1>', '<NAME2>', '<NAME3>'],
         marks=pytest.mark.skipif(
-            parse_version(sklearn)[1] < 19 or RandomizedLasso is None,
+            sklearn_version() < '0.19' or RandomizedLasso is None,
             reason='scikit-learn < 0.19 or RandomizedLasso is not available')
     ),
     pytest.param(
         instantiate_notnone(RandomizedLasso, random_state=42),
         ['<NAME0>', '<NAME1>', '<NAME2>', '<NAME3>'],
         marks=pytest.mark.skipif(
-            19 <= parse_version(sklearn)[1] or RandomizedLasso is None,
+            '0.19' <= sklearn_version() or RandomizedLasso is None,
             reason='scikit-learn >= 0.19 or RandomizedLasso is not available') 
     ),
     pytest.param(
