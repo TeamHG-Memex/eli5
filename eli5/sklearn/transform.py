@@ -4,6 +4,21 @@
 import numpy as np  # type: ignore
 from sklearn.pipeline import Pipeline, FeatureUnion  # type: ignore
 from sklearn.feature_selection.base import SelectorMixin  # type: ignore
+try:
+    from sklearn.linear_model import (  # type: ignore
+        RandomizedLogisticRegression,
+        RandomizedLasso,
+    )
+except ImportError:     
+    # randomized_l1 feature selectors are not available (removed in scikit-learn 0.21)
+    RandomizedLogisticRegression = None
+    RandomizedLasso = None
+try:
+    from stability_selection import StabilitySelection
+    # TODO: add support for stability_selection.RandomizedLogisticRegression and stability_selection.RandomizedLasso ?
+except ImportError:
+    # scikit-learn-contrib/stability-selection is not available
+    StabilitySelection = None
 
 from sklearn.preprocessing import (  # type: ignore
     MinMaxScaler,
@@ -16,33 +31,32 @@ from eli5.transform import transform_feature_names
 from eli5.sklearn.utils import get_feature_names as _get_feature_names
 
 
+def register_notnone(generic_func, cls):
+    """
+    Register an implementation of a generic function 
+    if the supplied type is not None.
+    """
+    def inner_register(func):
+        if cls is None:
+            # do nothing
+            return func
+        else:
+            # register a new implementation
+            return generic_func.register(cls)(func)
+    return inner_register
+
+
 # Feature selection:
 
 @transform_feature_names.register(SelectorMixin)
+@register_notnone(transform_feature_names, RandomizedLogisticRegression)
+@register_notnone(transform_feature_names, RandomizedLasso)
+@register_notnone(transform_feature_names, StabilitySelection)
 def _select_names(est, in_names=None):
     mask = est.get_support(indices=False)
     in_names = _get_feature_names(est, feature_names=in_names,
                                   num_features=len(mask))
     return [in_names[i] for i in np.flatnonzero(mask)]
-
-try:
-    from sklearn.linear_model import (  # type: ignore
-        RandomizedLogisticRegression,
-        RandomizedLasso,
-    )
-    _select_names = transform_feature_names.register(RandomizedLasso)(_select_names)
-    _select_names = transform_feature_names.register(RandomizedLogisticRegression)(_select_names)
-except ImportError:     
-    # randomized_l1 was removed in scikit-learn 0.21
-    pass
-
-try:
-    from stability_selection import StabilitySelection
-    _select_names = transform_feature_names.register(StabilitySelection)(_select_names)
-    # TODO: add support for stability_selection.RandomizedLogisticRegression and stability_selection.RandomizedLasso ?
-except ImportError:
-    # scikit-learn-contrib/stability-selection is not available
-    pass
 
 
 # Scaling
