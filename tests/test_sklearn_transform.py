@@ -109,29 +109,31 @@ def instantiate_notnone(cls, *args, **kwargs):
     pytest.param(
         instantiate_notnone(RandomizedLogisticRegression, random_state=42),
         ['<NAME1>', '<NAME2>', '<NAME3>'],
-        marks=pytest.mark.skipif(
-            RandomizedLogisticRegression is None,
+        marks=pytest.mark.skipif(RandomizedLogisticRegression is None,
             reason='scikit-learn RandomizedLogisticRegression is not available')
     ),
     pytest.param(
         instantiate_notnone(RandomizedLasso, random_state=42),
         ['<NAME1>', '<NAME2>', '<NAME3>'],
-        marks=pytest.mark.skipif(
-            sklearn_version() < '0.19' or RandomizedLasso is None,
-            reason='scikit-learn < 0.19 or RandomizedLasso is not available')
+        marks=[
+            pytest.mark.skipif(RandomizedLasso is None,
+                reason='RandomizedLasso is not available'),
+            pytest.mark.skipif(sklearn_version() < '0.19',
+                reason='scikit-learn < 0.19')]
     ),
     pytest.param(
         instantiate_notnone(RandomizedLasso, random_state=42),
         ['<NAME0>', '<NAME1>', '<NAME2>', '<NAME3>'],
-        marks=pytest.mark.skipif(
-            '0.19' <= sklearn_version() or RandomizedLasso is None,
-            reason='scikit-learn >= 0.19 or RandomizedLasso is not available') 
+        marks=[
+            pytest.mark.skipif(RandomizedLasso is None, 
+                reason='RandomizedLasso is not available'),
+            pytest.mark.skipif('0.19' <= sklearn_version(),
+                reason='scikit-learn >= 0.19')]
     ),
     pytest.param(
         instantiate_notnone(StabilitySelection, random_state=42),
         ['<NAME2>'],
-        marks=pytest.mark.skipif(
-            StabilitySelection is None,
+        marks=pytest.mark.skipif(StabilitySelection is None,
             reason='scikit-learn-contrib/stability-selection is not available')
     ),
 ])
