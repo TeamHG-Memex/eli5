@@ -14,7 +14,7 @@ except ImportError:
     RandomizedLogisticRegression = None
     RandomizedLasso = None
 try:
-    from stability_selection import StabilitySelection
+    from stability_selection import StabilitySelection # type: ignore
     # TODO: add support for stability_selection.RandomizedLogisticRegression and stability_selection.RandomizedLasso ?
 except ImportError:
     # scikit-learn-contrib/stability-selection is not available

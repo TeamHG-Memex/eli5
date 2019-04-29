@@ -4,6 +4,7 @@ import re
 
 import pytest
 import numpy as np
+import sklearn
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.feature_selection import (
     SelectPercentile,
@@ -63,6 +64,12 @@ def instantiate_notnone(cls, *args, **kwargs):
     return cls(*args, **kwargs) if cls is not None else None
 
 
+def parse_version(mod):
+    v = mod.__version__
+    vint = list(map(int, v.split('.')))
+    return vint
+
+
 @pytest.mark.parametrize('transformer,expected', [
     (MyFeatureExtractor(), ['f1', 'f2', 'f3']),
 
@@ -116,8 +123,15 @@ def instantiate_notnone(cls, *args, **kwargs):
         instantiate_notnone(RandomizedLasso, random_state=42),
         ['<NAME1>', '<NAME2>', '<NAME3>'],
         marks=pytest.mark.skipif(
-            RandomizedLasso is None,
-            reason='scikit-learn RandomizedLasso is not available')
+            parse_version(sklearn)[1] < 19 or RandomizedLasso is None,
+            reason='scikit-learn < 0.19 or RandomizedLasso is not available')
+    ),
+    pytest.param(
+        instantiate_notnone(RandomizedLasso, random_state=42),
+        ['<NAME0>', '<NAME1>', '<NAME2>', '<NAME3>'],
+        marks=pytest.mark.skipif(
+            19 <= parse_version(sklearn)[1] or RandomizedLasso is None,
+            reason='scikit-learn >= 0.19 or RandomizedLasso is not available') 
     ),
     pytest.param(
         instantiate_notnone(StabilitySelection, random_state=42),
