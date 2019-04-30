@@ -36,6 +36,8 @@ following machine learning frameworks and packages:
 
 * :ref:`library-lightgbm` - show feature importances and explain predictions
   of LGBMClassifier and LGBMRegressor.
+ 
+* :ref:`library-catboost` - show feature importances of CatBoostClassifier and CatBoostRegressor. 
 
 * :ref:`library-lightning` - explain weights and predictions of lightning
   classifiers and regressors.
