@@ -1,6 +1,17 @@
 Changelog
 =========
 
+0.8.2 (2019-04-04)
+------------------
+
+* fixed scikit-learn 0.21+ support (randomized linear models are removed
+  from scikit-learn);
+* fixed pandas.DataFrame + xgboost support for PermutationImportance;
+* fixed tests with recent numpy;
+* added conda install instructions (conda package is maintained by community);
+* tutorial is updated to use xgboost 0.81;
+* update docs to use pandoc 2.x.
+
 0.8.1 (2018-11-19)
 ------------------
 
