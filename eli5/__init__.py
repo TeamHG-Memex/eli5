@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 
-__version__ = '0.8.1'
+__version__ = '0.8.2'
 
 from .formatters import (
     format_as_html,
@@ -64,7 +64,6 @@ except Exception as e:
     else:
         raise
 
-
 try:
     from .lightgbm import (
         explain_weights_lightgbm,
@@ -73,7 +72,6 @@ try:
 except ImportError:
     # lightgbm is not available
     pass
-
 
 try:
     from .catboost import (
