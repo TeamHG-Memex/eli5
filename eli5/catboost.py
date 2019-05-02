@@ -11,7 +11,6 @@ CatBoost feature importances; values are numbers 0 <= x <= 1;
 all values sum to 1.
 """
 
-
 @explain_weights.register(catboost.CatBoost)
 @explain_weights.register(catboost.CatBoostClassifier)
 @explain_weights.register(catboost.CatBoostRegressor)
