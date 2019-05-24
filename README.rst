@@ -42,6 +42,8 @@ It provides support for the following machine learning frameworks and packages:
 * LightGBM_ - show feature importances and explain predictions of
   LGBMClassifier and LGBMRegressor.
 
+* CatBoost_ - show feature importances and explain predictions of CatBoostClassifier and CatBoostRegressor.
+
 * lightning_ - explain weights and predictions of lightning classifiers and
   regressors.
 
@@ -71,6 +73,7 @@ and formatting on a client.
 .. _TextExplainer: https://eli5.readthedocs.io/en/latest/tutorials/black-box-text-classifiers.html
 .. _xgboost: https://github.com/dmlc/xgboost
 .. _LightGBM: https://github.com/Microsoft/LightGBM
+.. _Catboost: https://github.com/catboost/catboost
 .. _Permutation importance: https://eli5.readthedocs.io/en/latest/blackbox/permutation_importance.html
 .. _Inspecting Black-Box Estimators: https://eli5.readthedocs.io/en/latest/blackbox/index.html
 
