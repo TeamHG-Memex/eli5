@@ -18,3 +18,4 @@ except ImportError:
 from .as_dict import format_as_dict
 from . import fields
 from .features import FormattedFeatureName
+from .image import format_as_image
