@@ -72,6 +72,12 @@ except OSError:
     # improperly installed lightgbm
     pass
 
+
+try:
+    from .keras import explain_prediction_keras
+except ImportError: # TODO: test this
+    # keras is not available
+    pass
 try:
     from .catboost import (
         explain_weights_catboost
