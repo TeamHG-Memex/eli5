@@ -47,6 +47,7 @@ MOCK_MODULES = [
     # 'typing',
     'xgboost',
     'lightgbm',
+    'catboost',
     'pandas',
     'pytest',
 ]
