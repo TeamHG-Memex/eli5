@@ -69,6 +69,7 @@ except ImportError:
     # lightgbm is not available
     pass
 except OSError:
+    # improperly installed lightgbm
     pass
 
 try:
@@ -76,5 +77,5 @@ try:
         explain_weights_catboost
     )
 except ImportError:
-    #catboost is not available
+    # catboost is not available
     pass   
