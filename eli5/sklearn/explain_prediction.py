@@ -558,11 +558,12 @@ def _trees_feature_weights(clf, X, feature_names, num_targets):
     """ Return feature weights for a tree or a tree ensemble.
     """
     feature_weights = np.zeros([len(feature_names), num_targets])
+    is_grad_boost = isinstance(clf, (GradientBoostingClassifier,
+                                     GradientBoostingRegressor))
     if hasattr(clf, 'tree_'):
         _update_tree_feature_weights(X, feature_names, clf, feature_weights)
     else:
-        if isinstance(clf, (
-                GradientBoostingClassifier, GradientBoostingRegressor)):
+        if is_grad_boost:
             weight = clf.learning_rate
         else:
             weight = 1. / len(clf.estimators_)
@@ -578,7 +579,14 @@ def _trees_feature_weights(clf, X, feature_names, num_targets):
                 _update(_clfs, feature_weights)
         feature_weights *= weight
         if hasattr(clf, 'init_'):
-            feature_weights[feature_names.bias_idx] += clf.init_.predict(X)[0]
+            if clf.init_ == 'zero':
+                bias_init = 0
+            elif is_grad_boost and hasattr(clf.loss_, 'get_init_raw_predictions'):
+                bias_init = clf.loss_.get_init_raw_predictions(
+                    X, clf.init_).astype(np.float64)[0]
+            else:
+                bias_init = clf.init_.predict(X)[0]
+            feature_weights[feature_names.bias_idx] += bias_init
     return feature_weights
 
 

@@ -474,7 +474,8 @@ def test_explain_linear_regression_multitarget(reg):
 @pytest.mark.parametrize(['clf'], [
     [DecisionTreeClassifier(random_state=42)],
     [ExtraTreesClassifier(random_state=42)],
-    [GradientBoostingClassifier(learning_rate=0.075, random_state=42)],
+    [GradientBoostingClassifier(learning_rate=0.075, random_state=42),],
+    [GradientBoostingClassifier(learning_rate=0.075, random_state=42, init='zero'),],
     [RandomForestClassifier(random_state=42)],
 ])
 def test_explain_tree_clf_multiclass(clf, iris_train):

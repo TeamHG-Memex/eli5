@@ -15,11 +15,18 @@ from sklearn.feature_selection import (
     RFECV,
     SelectFromModel,
 )
-from sklearn.linear_model import (
-    LogisticRegression,
-    RandomizedLogisticRegression,
-    RandomizedLasso,  # TODO: add tests and document
-)
+from sklearn.linear_model import LogisticRegression
+_additional_test_cases = []
+try:
+    from sklearn.linear_model import (  # type: ignore
+        RandomizedLogisticRegression,
+        RandomizedLasso,  # TODO: add tests and document
+    )
+    _additional_test_cases.append(
+        (RandomizedLogisticRegression(random_state=42),
+         ['<NAME1>', '<NAME2>', '<NAME3>']))
+except ImportError:     # Removed in scikit-learn 0.21
+    pass
 from sklearn.preprocessing import (
     MinMaxScaler,
     StandardScaler,
@@ -88,9 +95,7 @@ def selection_score_func(X, y):
      ['<NAME1>', '<NAME3>']),
     (RFECV(LogisticRegression(random_state=42)),
      ['<NAME0>', '<NAME1>', '<NAME2>', '<NAME3>']),
-    (RandomizedLogisticRegression(random_state=42),
-     ['<NAME1>', '<NAME2>', '<NAME3>']),
-])
+] + _additional_test_cases)
 def test_transform_feature_names_iris(transformer, expected, iris_train):
     X, y, _, _ = iris_train
     transformer.fit(X, y)
