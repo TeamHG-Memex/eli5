@@ -12,15 +12,14 @@ for ``catboost.CatBoost``, ``catboost.CatBoostClassifier`` and ``catboost.CatBoo
 arguments for CatBoostClassifier and CatBoostRegressor:
 
 * ``importance_type`` is a way to get feature importance. Possible values are:
-
-  - 'PredictionValuesChange' - The individual importance values for each of the input features.
-          (default)
+  
+  - 'PredictionValuesChange' - The individual importance values for each of the input features.(default)
   - 'LossFunctionChange' - The individual importance values for each of the input features for ranking metrics (requires training data to be passed  or a similar dataset with Pool)
 
-* ``pool`` the catboost.Pool datatype . To be passed if explain_weights_catboost has importance_type set to "LossFunctionChange".The catboost feature_importances uses the Pool datatype to calculate the parameter for the specific importance_type.
+* ``pool`` the ``catboost.Pool`` datatype . To be passed if ``explain_weights_catboost`` has importance_type set to 'LossFunctionChange'. The catboost ``feature_importances`` uses the ``Pool`` datatype to calculate the parameter for the specific ``importance_type``.
 
 .. note::
     Top-level :func:`eli5.explain_weights` calls are dispatched
     to :func:`eli5.catboost.explain_weights_catboost` for
-    ``catboost.CatBoost``,``catboost.CatBoostClassifer`` and ``catboost.CatBoostRegressor``.
+    ``catboost.CatBoost``, ``catboost.CatBoostClassifer`` and ``catboost.CatBoostRegressor``.
 
