@@ -48,3 +48,19 @@ def test_explain_catboost_classifier(iris_train, importance_type):
                           importance_type=importance_type, pool=train)
     for expl in format_as_all(res, catb):
         assert 'petal width (cm)' in expl
+    if(importance_type == 'LossFunctionChange'):
+        with pytest.raises(ValueError):
+            res = explain_weights(catb, feature_names=feature_names,
+                          importance_type=importance_type, pool=[x,y])
+
+@pytest.mark.parametrize(['importance_type'], [['Error']])
+def test_explain_catboost_catboost_wrong_importance_type(iris_train, importance_type):
+    x, y, feature_names, target = iris_train
+    train = Pool(x, y)
+    catb = CatBoostClassifier(iterations=10,
+                              learning_rate=1,
+                              depth=2,
+                              loss_function='MultiClass')
+    catb.fit(train)
+    with pytest.raises(ValueError):
+        res = explain_weights(catb, importance_type=importance_type, pool=train)

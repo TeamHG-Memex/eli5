@@ -18,9 +18,6 @@ try:
     from .ipython import show_weights, show_prediction
 except ImportError:
     pass  # IPython is not installed
-except OSError:
-    pass
-
 
 try:
     from .formatters.as_dataframe import (
@@ -31,7 +28,6 @@ try:
 except ImportError:
     pass  # pandas not available
 
-
 try:
     from .lightning import (
         explain_prediction_lightning,
@@ -41,7 +37,6 @@ except ImportError as e:
     # lightning is not available
     pass
 
-
 try:
     from .sklearn_crfsuite import (
         explain_weights_sklearn_crfsuite
@@ -49,9 +44,6 @@ try:
 except ImportError as e:
     # sklearn-crfsuite is not available
     pass
-except OSError:
-    pass
-
 
 try:
     from .xgboost import (
@@ -60,8 +52,6 @@ try:
     )
 except ImportError:
     # xgboost is not available
-    pass
-except OSError:
     pass
 except Exception as e:
     if e.__class__.__name__ == 'XGBoostLibraryNotFound':
@@ -87,7 +77,4 @@ try:
     )
 except ImportError:
     #catboost is not available
-    pass
-except OSError:
-    pass
-    
+    pass   
