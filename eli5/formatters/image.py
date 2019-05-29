@@ -2,4 +2,4 @@
 
 
 def format_as_image(expl):
-    return expl.REPLACETHISATTR
+    return expl.heatmap

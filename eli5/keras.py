@@ -31,12 +31,12 @@ def explain_prediction_keras(estimator, doc, # model, image
         one of: path to a single image, directory containing images, 
         PIL image object, or an array can also be multiple images.
     """
-    class REPLACEME(Explanation): 
-        def __init__(self, *args, REPLACETHISATTR=None, **kwargs):
-            super().__init__(*args, **kwargs)
-            self.REPLACETHISATTR = REPLACETHISATTR
+    # class REPLACEME(Explanation): 
+    #     def __init__(self, *args, REPLACETHISATTR=None, **kwargs):
+    #         super().__init__(*args, **kwargs)
+    #         self.REPLACETHISATTR = REPLACETHISATTR
 
-    explanation = REPLACEME(
+    explanation = Explanation(
         repr(estimator), # might want to replace this with something else, eg: estimator.summary()
         description='',
         error='',
@@ -45,10 +45,10 @@ def explain_prediction_keras(estimator, doc, # model, image
         targets=[],
         highlight_spaces=None, # might be relevant later when explaining text models
     )
-
+    
     cam, heatmap = jacobgil(model=estimator, img_path=doc)
     cam = array_to_img(cam)
-    explanation.REPLACETHISATTR = cam
+    explanation.heatmap = cam
     return explanation
 
 ############ jacobgil's code

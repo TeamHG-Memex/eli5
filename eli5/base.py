@@ -25,6 +25,8 @@ class Explanation(object):
                  decision_tree=None,  # type: Optional[TreeInfo]
                  highlight_spaces=None,  # type: Optional[bool]
                  transition_features=None,  # type: Optional[TransitionFeatureWeights]
+                 image=None,
+                 heatmap=None,
                  ):
         # type: (...) -> None
         self.estimator = estimator
@@ -37,6 +39,8 @@ class Explanation(object):
         self.decision_tree = decision_tree
         self.highlight_spaces = highlight_spaces
         self.transition_features = transition_features
+        self.image = image
+        self.heatmap = heatmap
 
     def _repr_html_(self):
         """ HTML formatting for the notebook.
