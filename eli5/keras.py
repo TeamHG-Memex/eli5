@@ -27,8 +27,9 @@ def explain_prediction_keras(estimator, doc, # model, image
                              layers=None, # which layer(s) to focus on
                             ):
     """Explain prediction of a Keras model
-    doc : image, one of: path to a single image, directory containing images, PIL image object, or an array
-    can also be multiple images
+    doc : image, 
+        one of: path to a single image, directory containing images, 
+        PIL image object, or an array can also be multiple images.
     """
     class REPLACEME(Explanation): 
         def __init__(self, *args, REPLACETHISATTR=None, **kwargs):
@@ -44,59 +45,31 @@ def explain_prediction_keras(estimator, doc, # model, image
         targets=[],
         highlight_spaces=None, # might be relevant later when explaining text models
     )
-    # apply grad-cam
-    target = targets[0] if isinstance(targets, list) else None
-    layer = layer[0] if isinstance(layers, list) else None
-    cam = get_grad_cam_explanation(estimator, doc, layer='block5_conv3', target=target, pretrained_weights='imagenet')
+
+    cam, heatmap = jacobgil(model=estimator, img_path=doc)
+    cam = array_to_img(cam)
     explanation.REPLACETHISATTR = cam
     return explanation
 
+############ jacobgil's code
 
-def get_grad_cam_explanation(estimator, doc, layer=None, target=None, pretrained_weights=None):
-    # we find out the required dimensions of the image
-    # https://stackoverflow.com/questions/43743593/keras-how-to-get-layer-shapes-in-a-sequential-model
-    # an alternative is 'estimator.get_layer(index=0).input_shape[1:3]'
-    # or 'estimator.get_layer(index=0).output_shape'
-
-    # input_shape = estimator.inputs[0].shape
-    # xDims = input_shape[1:3]
-    # x = preprocess_example(doc, required_size=xDims, pretrained_weights=pretrained_weights)
-
-    # # get the prediction to focus on
-    # if target is None:
-    #     target = get_target_prediction(estimator, x, pretrained_weights=pretrained_weights)
-    # prediction_index = target[-1]
-    # print(prediction_index)
-
-    # get the same estimator but focus on the target prediction
-    # output_units = estimator.output.shape[-1]
-    # filter_output = Lambda(lambda x: x*K.one_hot(prediction_index, output_units), output_shape=lambda x: x)
-    # forward_predictor = Model(inputs=estimator.inputs[0].shape, outputs=filter_output)
-
-    ##### jacobgil's code
+def jacobgil(model=None, img_path=None):
+    from keras.applications.vgg16 import ( # pre-trained network
+    VGG16, preprocess_input, decode_predictions)
+    from keras.models import Model # functional API
+    from keras.preprocessing import image # image preprocessing
+    from keras.layers.core import Lambda # lambda expression as a layer
+    from keras.models import Sequential # sequential API
+    from tensorflow.python.framework import ops # internal API 
+    import keras.backend as K # abstract backend API for keras
     import tensorflow as tf
+    import numpy as np
+    import keras
     import sys
-    from keras.applications.imagenet_utils import preprocess_input, decode_predictions
+    import cv2
 
-    def load_image(path):
-        img = load_img(path, target_size=(224, 224))
-        x = img_to_array(img)
-        x = np.expand_dims(x, axis=0)
-        x = preprocess_input(x)
-        return x
-
-    x = load_image(doc)
-    predictions = estimator.predict(x)
-    top_1 = decode_predictions(predictions)[0][0]
-    prediction_index = np.argmax(predictions)
-
-    def _compute_gradients(tensor, var_list):
-        grads = tf.gradients(tensor, var_list)
-        return [grad if grad is not None else tf.zeros_like(var) 
-            for var, grad in zip(var_list, grads)]
-
-    def target_category_loss(x, prediction_index, nb_classes):
-        return tf.multiply(x, K.one_hot([prediction_index], nb_classes))
+    def target_category_loss(x, category_index, nb_classes):
+        return tf.multiply(x, K.one_hot([category_index], nb_classes))
 
     def target_category_loss_output_shape(input_shape):
         return input_shape
@@ -104,124 +77,64 @@ def get_grad_cam_explanation(estimator, doc, layer=None, target=None, pretrained
     def normalize(x):
         return x / (K.sqrt(K.mean(K.square(x))) + 1e-5)
 
-    nb_classes = 1000 # number of classes
-
-    target_layer = lambda x: target_category_loss(x, prediction_index, nb_classes)
-    x = Lambda(target_layer, output_shape = target_category_loss_output_shape)(estimator.output)
-    model = Model(inputs=estimator.input, outputs=x)
-    model.summary() # print layers, number of parameters
-    
-    loss = K.sum(model.output) # sum values of output tensor
-    conv_output =  [l for l in model.layers if l.name is layer][0].output
-    
-    grads = normalize(_compute_gradients(loss, [conv_output])[0])
-    
-    gradient_function = K.function([model.input], [conv_output, grads])
-
-    output, grads_val = gradient_function([x])
-    output, grads_val = output[0, :], grads_val[0, :, :, :]
-
-    weights = np.mean(grads_val, axis = (0, 1))
-    cam = np.ones(output.shape[0 : 2], dtype = np.float32)
-
-    for i, w in enumerate(weights):
-        cam += w * output[:, :, i]
-
-    cam = cv2.resize(cam, (224, 224))
-
-    cam = np.maximum(cam, 0)
-
-    heatmap = cam / np.max(cam)
- 
-    x = x[0, :] # 4d -> 3d
-    x -= np.min(x) # -(-smallest) = add to x (make positive)
-    x = np.minimum(x, 255) # cap at 255
-
-    cam = cv2.applyColorMap(np.uint8(255*heatmap), cv2.COLORMAP_JET)
-    cam = np.float32(cam) + np.float32(x)
-    cam = 255 * cam / np.max(cam)
-    return np.uint8(cam), heatmap3
-
-    ####
-
-    cam = array_to_img(x[0])
-    return cam
-
-
-def preprocess_example(doc, required_size=None, pretrained_weights=None):
-    # assuming doc is a single input sample
-    # required_size is a tuple of (height, width)
-
-    # we need to resize the height and witdth of our image to suit the model
-    # https://stackoverflow.com/questions/43017017/keras-model-predict-for-a-single-image
-    img = load_img(doc, target_size=required_size)
-
-    # convert a PIL object to a numpy array
-    imgarr = img_to_array(img)
-
-    # our current shape is (height, width, depth)
-    # we need to insert an axis at the 0th position to indicate the batch size
-    # this is required by the keras predict() function
-    x = np.expand_dims(imgarr, axis=0) # get (batch size, height, width, depth)
-
-    if pretrained_weights == 'imagenet':
-        from keras.applications.imagenet_utils import preprocess_input
+    def load_image(img_path):
+        # img_path = sys.argv[1]
+        img = image.load_img(img_path, target_size=(224, 224))
+        x = image.img_to_array(img)
+        x = np.expand_dims(x, axis=0)
         x = preprocess_input(x)
-        # FIXME: this makes the image blue!
+        return x
 
-    return x
+    def _compute_gradients(tensor, var_list):
+        grads = tf.gradients(tensor, var_list)
+        return [grad if grad is not None else tf.zeros_like(var) for var, grad in zip(var_list, grads)]
 
+    def grad_cam(input_model, image, category_index, layer_name):
+        nb_classes = 1000
+        target_layer = lambda x: target_category_loss(x, category_index, nb_classes)
+        x = Lambda(target_layer, output_shape = target_category_loss_output_shape)(input_model.output)
+        model = Model(inputs=input_model.input, outputs=x)
+        model.summary()
+        loss = K.sum(model.output)
+        conv_output =  [l for l in model.layers if l.name is layer_name][0].output
+        grads = normalize(_compute_gradients(loss, [conv_output])[0])
+        gradient_function = K.function([model.input], [conv_output, grads])
 
-def get_target_prediction(estimator, x, pretrained_weights=None):
-    # get the prediction manually
-    y = estimator.predict(x)
+        output, grads_val = gradient_function([image])
+        output, grads_val = output[0, :], grads_val[0, :, :, :]
 
-    # get the first maximum probability index
-    index = y.argmax(axis=-1)[0] 
+        weights = np.mean(grads_val, axis = (0, 1))
+        cam = np.ones(output.shape[0 : 2], dtype = np.float32)
 
-    # we decode the predicted class
-    if pretrained_weights == 'imagenet':
-        from keras.applications.imagenet_utils import decode_predictions
-        # predictions -> top 1
-        top_prediction = decode_predictions(y, top=1)[0][0]
-        cls_name, cls_descr, score = top_prediction
-    else:
-        cls_name = ''
-        cls_descr = ''
-        score = y[0, index]
-    return cls_name, cls_descr, score, index
+        for i, w in enumerate(weights):
+            cam += w * output[:, :, i]
 
+        cam = cv2.resize(cam, (224, 224))
+        cam = np.maximum(cam, 0)
+        heatmap = cam / np.max(cam)
 
+        #Return to BGR [0..255] from the preprocessed image
+        image = image[0, :]
+        image -= np.min(image)
+        image = np.minimum(image, 255)
 
-### hard
+        cam = cv2.applyColorMap(np.uint8(255*heatmap), cv2.COLORMAP_JET)
+        cam = np.float32(cam) + np.float32(image)
+        cam = 255 * cam / np.max(cam)
+        return np.uint8(cam), heatmap
 
+    preprocessed_input = load_image(img_path)
 
-def get_prediction_forward_activation():
-    pass
+    # model = VGG16(weights='imagenet')
 
+    predictions = model.predict(preprocessed_input)
+    top_1 = decode_predictions(predictions)[0][0]
+    print('Predicted class:')
+    print('%s (%s) with probability %.2f' % (top_1[1], top_1[0], top_1[2]))
 
-def get_target_layer_forward_activation():
-    pass
+    predicted_class = np.argmax(predictions)
+    cam, heatmap = grad_cam(model, preprocessed_input, predicted_class, "block5_conv3")
+    # cv2.imwrite("gradcam.jpg", cam)
+    return cam, heatmap
 
-
-def get_backward_gradients():
-    pass
-
-
-### easy
-
-
-def get_activation_weights():
-    pass
-
-
-def get_localization_map():
-    pass
-
-
-def global_avg_pool():
-    pass
-
-
-def relu():
-    pass
+############
