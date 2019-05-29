@@ -1,14 +1,11 @@
 # -*- coding: utf-8 -*-
 """Keras neural network explanations"""
 
-import numpy as np
 from keras.models import (
     Model, 
     Sequential,
 )
 from keras.preprocessing.image import load_img, img_to_array, array_to_img
-from keras.layers.core import Lambda
-import keras.backend as K
 
 from eli5.base import Explanation, TargetExplanation
 from eli5.explain import explain_prediction
@@ -31,11 +28,6 @@ def explain_prediction_keras(estimator, doc, # model, image
         one of: path to a single image, directory containing images, 
         PIL image object, or an array can also be multiple images.
     """
-    # class REPLACEME(Explanation): 
-    #     def __init__(self, *args, REPLACETHISATTR=None, **kwargs):
-    #         super().__init__(*args, **kwargs)
-    #         self.REPLACETHISATTR = REPLACETHISATTR
-
     explanation = Explanation(
         repr(estimator), # might want to replace this with something else, eg: estimator.summary()
         description='',
@@ -45,7 +37,6 @@ def explain_prediction_keras(estimator, doc, # model, image
         targets=[],
         highlight_spaces=None, # might be relevant later when explaining text models
     )
-    
     cam, heatmap = jacobgil(model=estimator, img_path=doc)
     cam = array_to_img(cam)
     explanation.heatmap = cam
