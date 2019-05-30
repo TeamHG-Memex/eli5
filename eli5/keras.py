@@ -124,13 +124,14 @@ def jacobgil(model=None, preprocessed_input=None, layer=(None, None)):
         # TODO: automatically get last Conv layer if layer_name and layer_index are None
         # we need to get the output attribute, else we get a TypeError: Failed to convert object to tensor
         # bottom-up horizontal graph traversal
+        layer_index = -4 if layer_index is None else layer_index # FIXME: don't hardcode four
         conv_output = model.get_layer(name=layer_name, index=layer_index).output
 
         grads = normalize(_compute_gradients(loss, [conv_output])[0])
         gradient_function = K.function([model.input], [conv_output, grads])
 
         output, grads_val = gradient_function([image])
-        output, grads_val = output[0, :], grads_val[0, :, :, :]
+        output, grads_val = output[0, :], grads_val[0, :, :, :] # FIXME: this probably assumes that the layer is a width*height filter
 
         weights = np.mean(grads_val, axis = (0, 1))
         # cam = np.ones(output.shape[0 : 2], dtype = np.float32)
