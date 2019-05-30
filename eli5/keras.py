@@ -88,7 +88,7 @@ def jacobgil(model=None, preprocessed_input=None):
         target_layer = lambda x: target_category_loss(x, category_index, nb_classes)
         x = Lambda(target_layer, output_shape = target_category_loss_output_shape)(input_model.output)
         model = Model(inputs=input_model.input, outputs=x)
-        model.summary() # remove this later
+        # model.summary() # remove this later
         loss = K.sum(model.output)
         conv_output =  [l for l in model.layers if l.name is layer_name][0].output
         grads = normalize(_compute_gradients(loss, [conv_output])[0])
