@@ -5,7 +5,7 @@ from keras.models import (
     Model, 
     Sequential,
 )
-from keras.preprocessing.image import load_img, img_to_array, array_to_img
+from keras.preprocessing.image import load_img, img_to_array, array_to_img, ImageDataGenerator
 import numpy as np
 
 from eli5.base import Explanation
@@ -22,12 +22,15 @@ def explain_prediction_keras(estimator, doc, # model, image
                              feature_re=None, # not supported
                              feature_filter=None, # not supported
                              # new parameters:
-                             layers=None, # which layer(s) to focus on
+                             layers=None, # which layer(s) to focus on,
+                             preprocessing=None, # function 
                             ):
     """Explain prediction of a Keras model
     doc : image, 
         one of: path to a single image, directory containing images, 
         PIL image object, or an array can also be multiple images.
+    layers: target layer to Grad-CAM on,
+        one of: a layer (valid keras layer name (str) or index (int)), a list of layers
     """
     explanation = Explanation(
         repr(estimator), # might want to replace this with something else, eg: estimator.summary()
@@ -37,26 +40,49 @@ def explain_prediction_keras(estimator, doc, # model, image
         is_regression=False, # classification vs regression model
         highlight_spaces=None, # might be relevant later when explaining text models
     )
-    image = load_image(doc)
-    heatmap = jacobgil(model=estimator, preprocessed_input=image)
+    input_dimensions = estimator.input_shape[1:3]
+    image = load_image(doc, xDims=input_dimensions, preprocess_fn=preprocessing)
+
+    # TODO: grad-cam on multiple layers by passing a list to layers
+    layer_name, layer_index = get_target_layer(layers)
+
+    heatmap = jacobgil(model=estimator, preprocessed_input=image, layer=(layer_name, layer_index))
     heatmap = array_to_img(heatmap)
     image = array_to_img(image[0])
     explanation.heatmap = heatmap
     explanation.image = image
     return explanation
 
+def get_target_layer(layers):
+    layer_name = None
+    layer_index = None
+
+    if layers is None:
+        pass
+    elif isinstance(layers, int):
+        layer_index = layers
+    elif isinstance(layers, str):
+        layer_name = layers
+    else:
+        raise ValueError('Invalid layer (must be str or int): "%s"' % layers)
+
+    return layer_name, layer_index
+
 ############ jacobgil's code
 
-def load_image(img_path):
-        # img_path = sys.argv[1]
-        from keras.applications.vgg16 import preprocess_input
-        img = load_img(img_path, target_size=(224, 224))
-        x = img_to_array(img)
-        x = np.expand_dims(x, axis=0)
-        x = preprocess_input(x)
-        return x
+def load_image(img_path, xDims=None, preprocess_fn=None):
+    # img_path = sys.argv[1]
+    # from keras.applications.vgg16 import preprocess_input
+    # from keras.applications.xception import preprocess_input # FIXME
+    img = load_img(img_path, target_size=xDims)
+    x = img_to_array(img)
+    x = np.expand_dims(x, axis=0)
+    if preprocess_fn is not None:
+        x = preprocess_fn(x)
+    # x = next(ImageDataGenerator(rescale=1.0/255).flow(x))
+    return x
 
-def jacobgil(model=None, preprocessed_input=None):
+def jacobgil(model=None, preprocessed_input=None, layer=(None, None)):
     from keras.applications.vgg16 import (
     VGG16, decode_predictions)
     from keras.models import Model
@@ -83,14 +109,23 @@ def jacobgil(model=None, preprocessed_input=None):
         grads = tf.gradients(tensor, var_list)
         return [grad if grad is not None else tf.zeros_like(var) for var, grad in zip(var_list, grads)]
 
-    def grad_cam(input_model, image, category_index, layer_name):
+    def grad_cam(input_model, image, category_index, layer_name=None, layer_index=None):
         nb_classes = 1000
         target_layer = lambda x: target_category_loss(x, category_index, nb_classes)
         x = Lambda(target_layer, output_shape = target_category_loss_output_shape)(input_model.output)
         model = Model(inputs=input_model.input, outputs=x)
         # model.summary() # remove this later
         loss = K.sum(model.output)
-        conv_output =  [l for l in model.layers if l.name is layer_name][0].output
+
+        # get the target layer
+        # conv_output =  [l for l in model.layers if l.name is layer_name]
+        # conv_output = conv_output[0].output
+
+        # TODO: automatically get last Conv layer if layer_name and layer_index are None
+        # we need to get the output attribute, else we get a TypeError: Failed to convert object to tensor
+        # bottom-up horizontal graph traversal
+        conv_output = model.get_layer(name=layer_name, index=layer_index).output
+
         grads = normalize(_compute_gradients(loss, [conv_output])[0])
         gradient_function = K.function([model.input], [conv_output, grads])
 
@@ -122,7 +157,7 @@ def jacobgil(model=None, preprocessed_input=None):
     print('%s (%s) with probability %.2f' % (top_1[1], top_1[0], top_1[2]))
 
     predicted_class = np.argmax(predictions)
-    heatmap = grad_cam(model, preprocessed_input, predicted_class, "block5_conv3")
+    heatmap = grad_cam(model, preprocessed_input, predicted_class, layer_name=layer[0], layer_index=layer[1])
     # cv2.imwrite("gradcam.jpg", cam)
     return heatmap
 

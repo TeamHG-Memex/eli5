@@ -16,8 +16,10 @@ def format_as_image(expl):
     image = img_to_array(image)
     image = np.uint8(image)
 
+    # use Pillow to resize the heatmap to be the size of the image
+    image_dimensions = image.shape[:2]
+    heatmap = heatmap.resize(image_dimensions, resample=PIL.Image.LANCZOS)
     # heatmap = cv2.resize(heatmap, (224, 224))
-    heatmap = heatmap.resize((224, 224), resample=PIL.Image.LANCZOS)
 
     heatmap = img_to_array(heatmap)
 
@@ -38,7 +40,7 @@ def format_as_image(expl):
     heatmap = np.float32(matplotlib.cm.jet(heatmap[:,:,0]))
 
     # insert alpha channel
-    image = np.dstack((image, np.ones((224, 224), dtype=np.float32)))
+    image = np.dstack((image, np.ones(image_dimensions, dtype=np.float32)))
     # print(heatmap.shape, heatmap.dtype, np.min(heatmap), np.max(heatmap))
 
     # threshold
@@ -62,11 +64,11 @@ def format_as_image(expl):
     I = ax.imshow(image)
     # H = ax.contourf(heatmap[:,:,0], alpha=0.5, cmap='jet', clim=[100, 255])
     H = ax.imshow(heatmap, alpha=0.6)
+    plt.show()
 
     overlayed_image = np.float32(heatmap) + np.float32(image)
     overlayed_image = 255 * overlayed_image / np.max(overlayed_image)
     # fig, ax = plt.subplots()
     # ax.imshow(overlayed_image[:,:,0], interpolation='nearest', alpha=1, extent=extent)
-    plt.show()
-
+    
     return array_to_img(overlayed_image)
