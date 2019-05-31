@@ -3,8 +3,11 @@
 
 import numpy as np
 import keras
+import keras.backend as K
+import tensorflow as tf
+from keras.preprocessing import image
 from keras.models import Model
-from keras.preprocessing.image import load_img, img_to_array, array_to_img, ImageDataGenerator
+from keras.layers.core import Lambda
 
 from eli5.base import Explanation
 from eli5.explain import explain_prediction
@@ -61,12 +64,11 @@ def explain_prediction_keras(estimator, doc, # model, image
         # does it make sense to take a list of targets. You can only Grad-CAM a single target?
         # TODO: consider changing signature / types for explain_prediction generic function
         # TODO: need to find a way to show the label for the passed prediction as well as its probability
-
-    heatmap = jacobgil(estimator, doc, predicted, target_layer)
-    heatmap = array_to_img(heatmap)
-    image = array_to_img(doc[0])
+    heatmap = grad_cam(estimator, doc, predicted, target_layer)
+    heatmap = image.array_to_img(heatmap)
+    original = image.array_to_img(doc[0])
     explanation.heatmap = heatmap
-    explanation.image = image
+    explanation.image = original
     return explanation
 
 
@@ -139,8 +141,8 @@ def preprocess_image(img, estimator=None, preprocessing=None):
     xDims = None
     if estimator is not None:
         xDims = estimator.input_shape[1:3]
-    im = load_img(img, target_size=xDims)
-    x = img_to_array(im)
+    im = image.load_img(img, target_size=xDims)
+    x = image.img_to_array(im)
 
     # we need to insert an axis at the 0th position to indicate the batch size
     # this is required by the keras predict() function
@@ -149,7 +151,7 @@ def preprocess_image(img, estimator=None, preprocessing=None):
     if callable(preprocessing):
         x = preprocessing(x)
     elif preprocessing == "auto":
-        # Consider leaving this out (the user can pass the function themselves)
+        # Consider removing this "auto" option (the user can pass the function themselves)
         try:
             f = getattr(keras.applications, estimator.name.lower()).preprocess_input
         except AttributeError:
@@ -159,75 +161,58 @@ def preprocess_image(img, estimator=None, preprocessing=None):
     return x
 
 
-############ jacobgil's code
+# Credits to Jacob Gildenblat for https://github.com/jacobgil/keras-grad-cam
+# (and https://github.com/PowerOfCreation/keras-grad-cam)
 
 
-def jacobgil(model, preprocessed_input, predicted_class, layer):
-    from keras.models import Model
-    from keras.preprocessing import image
-    from keras.layers.core import Lambda
-    from keras.models import Sequential
-    from tensorflow.python.framework import ops
-    import keras.backend as K
-    import tensorflow as tf
-    import keras
-    import sys
+def target_category_loss(x, category_index, nb_classes):
+    return tf.multiply(x, K.one_hot([category_index], nb_classes))
+    # return x * K.one_hot([category_index], nb_classes) # this works as well
 
-    def target_category_loss(x, category_index, nb_classes):
-        return tf.multiply(x, K.one_hot([category_index], nb_classes))
+def target_category_loss_output_shape(input_shape):
+    return input_shape
 
-    def target_category_loss_output_shape(input_shape):
-        return input_shape
+def normalize(x):
+    return x / (K.sqrt(K.mean(K.square(x))) + 1e-5)
 
-    def normalize(x):
-        return x / (K.sqrt(K.mean(K.square(x))) + 1e-5)
+def _compute_gradients(tensor, var_list):
+    grads = tf.gradients(tensor, var_list)
+    return [grad if grad is not None else tf.zeros_like(var) for var, grad in zip(var_list, grads)]
+    # grads = K.gradients(tensor, var_list)
+    # return [grad if grad is not None else K.zeros_like(var) for var, grad in zip(var_list, grads)]
 
-    def _compute_gradients(tensor, var_list):
-        grads = tf.gradients(tensor, var_list)
-        return [grad if grad is not None else tf.zeros_like(var) for var, grad in zip(var_list, grads)]
+def grad_cam(input_model, image, category_index, layer):
+    # FIXME: this assumes that we are doing classification
+    # nb_classes = 1000 # FIXME: number of classes can be variable
+    nb_classes = input_model.output_shape[1] # TODO: test this
 
-    def grad_cam(input_model, image, category_index, layer):
-        # FIXME: this assumes that we are doing classification
-        # nb_classes = 1000 # FIXME: number of classes can be variable
-        nb_classes = input_model.output_shape[1] # TODO: test this
+    # FIXME: rename these "layer" variables
+    target_layer = lambda x: target_category_loss(x, category_index, nb_classes)
+    x = Lambda(target_layer, output_shape = target_category_loss_output_shape)(input_model.output)
+    model = Model(inputs=input_model.input, outputs=x)
+    # model.summary() # remove this later
+    loss = K.sum(model.output)
 
-        # FIXME: rename these "layer" variables
-        target_layer = lambda x: target_category_loss(x, category_index, nb_classes)
-        x = Lambda(target_layer, output_shape = target_category_loss_output_shape)(input_model.output)
-        model = Model(inputs=input_model.input, outputs=x)
-        # model.summary() # remove this later
-        loss = K.sum(model.output)
+    # we need to get the output attribute, else we get a TypeError: Failed to convert object to tensor
+    conv_output = layer.output
 
-        # we need to get the output attribute, else we get a TypeError: Failed to convert object to tensor
-        conv_output = layer.output
+    grads = normalize(_compute_gradients(loss, [conv_output])[0])
+    gradient_function = K.function([model.input], [conv_output, grads])
 
-        grads = normalize(_compute_gradients(loss, [conv_output])[0])
-        gradient_function = K.function([model.input], [conv_output, grads])
+    output, grads_val = gradient_function([image]) # work happens here
+    output, grads_val = output[0, :], grads_val[0, :, :, :] # FIXME: this probably assumes that the layer is a width*height filter
 
-        output, grads_val = gradient_function([image]) # work happens here
-        output, grads_val = output[0, :], grads_val[0, :, :, :] # FIXME: this probably assumes that the layer is a width*height filter
+    weights = np.mean(grads_val, axis = (0, 1))
+    # cam = np.ones(output.shape[0 : 2], dtype = np.float32)
+    heatmap = np.ones(output.shape[0 : 2], dtype = np.float32)
 
-        weights = np.mean(grads_val, axis = (0, 1))
-        # cam = np.ones(output.shape[0 : 2], dtype = np.float32)
-        heatmap = np.ones(output.shape[0 : 2], dtype = np.float32)
+    for i, w in enumerate(weights):
+        # cam += w * output[:, :, i]
+        heatmap += w * output[:, :, i]
 
-        for i, w in enumerate(weights):
-            # cam += w * output[:, :, i]
-            heatmap += w * output[:, :, i]
-
-        heatmap = np.maximum(heatmap, 0) # ReLU
-        heatmap = heatmap / np.max(heatmap) # probability
-        heatmap = 255*heatmap # 0...255 float
-        # we need to insert a channels axis to have an image (channels last by default)
-        heatmap = np.expand_dims(heatmap, axis=-1)
-        return heatmap
-
-    # preprocessed_input = load_image(img_path)
-
-    # model = VGG16(weights='imagenet')
-
-    heatmap = grad_cam(model, preprocessed_input, predicted_class, layer)
-    # cv2.imwrite("gradcam.jpg", cam)
+    heatmap = np.maximum(heatmap, 0) # ReLU
+    heatmap = heatmap / np.max(heatmap) # probability
+    heatmap = 255*heatmap # 0...255 float
+    # we need to insert a channels axis to have an image (channels last by default)
+    heatmap = np.expand_dims(heatmap, axis=-1)
     return heatmap
-
-############
