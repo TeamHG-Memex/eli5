@@ -16,15 +16,15 @@ from eli5.explain import explain_prediction
 def explain_prediction_keras(estimator, doc, # model, image
                              top=None, # NOT SUPPORTED
                              top_targets=None, # NOT SUPPORTED
-                             target_names=None, # rename / supply prediction labels
+                             target_names=None, # rename / provide prediction labels
                              targets=None, # prediction(s) to focus on, if None take top prediction
                              feature_names=None, # NOT SUPPORTED
                              feature_re=None, # NOT SUPPORTED
                              feature_filter=None, # NOT SUPPORTED
                              # new parameters:
-                             layers=None, # which layer(s) to focus on,
+                             layer=None, # which layer to focus on,
                              preprocessing=None, # preprocessing function 
-                             target_decoder=None, # prediction decoding function
+                             decoder=None, # target prediction decoding function
                             ):
     """Explain prediction of a Keras model
     doc : image, 
@@ -33,8 +33,10 @@ def explain_prediction_keras(estimator, doc, # model, image
     targets: predictions
         a list of predictions
         integer for ImageNet classification
-    layers: target layer to Grad-CAM on,
-        one of: a layer (valid keras layer name (str) or index (int)), a list of layers
+    layer: valid target layer in the model to Grad-CAM on,
+        one of: a valid keras layer name (str) or index (int), 
+        a callable function that returns True when the desired layer is matched for the model
+        if None, automatically use a helper callable function to get the last suitable Conv layer
     """
     explanation = Explanation(
         repr(estimator), # might want to replace this with something else, eg: estimator.summary()
@@ -47,12 +49,16 @@ def explain_prediction_keras(estimator, doc, # model, image
     input_dimensions = estimator.input_shape[1:3]
     image = load_image(doc, xDims=input_dimensions, preprocess_fn=preprocessing)
 
-    # TODO: grad-cam on multiple layers by passing a list to layers
-    layer_name, layer_index = get_target_layer(layers)
+    # TODO: grad-cam on multiple layers by passing a list of layers
+    if layer is None:
+        # Automatically get the layer if not provided
+        # this might not be a good idea from transparency / user point of view
+        layer = get_last_activation_maps
+    target_layer = get_target_layer(estimator, layer)
 
     # get prediction to focus on
     if targets is None:
-        predicted = get_target_prediction(estimator, image, decoder=target_decoder)
+        predicted = get_target_prediction(estimator, image, decoder=decoder)
     else:
         predicted = targets[0] 
         # TODO: take in a single target as well, not just a list
@@ -60,7 +66,7 @@ def explain_prediction_keras(estimator, doc, # model, image
         # TODO: consider changing signature / types for explain_prediction generic function
         # TODO: need to find a way to show the label for the passed prediction as well as its probability
 
-    heatmap = jacobgil(estimator, image, predicted, layer=(layer_name, layer_index))
+    heatmap = jacobgil(estimator, image, predicted, target_layer)
     heatmap = array_to_img(heatmap)
     image = array_to_img(image[0])
     explanation.heatmap = heatmap
@@ -83,20 +89,32 @@ def get_target_prediction(model, preprocessed_input, decoder=None):
     return predicted_class
 
 
-def get_target_layer(layers):
-    layer_name = None
-    layer_index = None
+def get_target_layer(estimator, desired_layer):
+    # Return instance of the desired layer in the model
 
-    if layers is None:
-        pass
-    elif isinstance(layers, int):
-        layer_index = layers
-    elif isinstance(layers, str):
-        layer_name = layers
+    if isinstance(desired_layer, int):
+        # conv_output =  [l for l in model.layers if l.name is layer_name]
+        # conv_output = conv_output[0]
+        # bottom-up horizontal graph traversal
+        target_layer = estimator.get_layer(index=desired_layer)
+        # These can raise ValueError if the layer index / name specified is not found
+    elif isinstance(desired_layer, str):
+        target_layer = estimator.get_layer(name=desired_layer)
+    elif callable(desired_layer):
+        target_layer = desired_layer(estimator)
     else:
-        raise ValueError('Invalid layer (must be str or int): "%s"' % layers)
+        raise ValueError('Invalid desired_layer (must be str, int, or callable): "%s"' % desired_layer)
 
-    return layer_name, layer_index
+    # TODO: check target_layer dimensions (is it possible to do Grad-CAM on it?)
+    return target_layer
+
+
+def get_last_activation_maps(estimator):
+    # TODO: automatically get last Conv layer if layer_name and layer_index are None
+    # FIXME: don't hardcode four
+    target_layer = estimator.get_layer(index=-4)
+    return target_layer
+
 
 ############ jacobgil's code
 
@@ -112,9 +130,7 @@ def load_image(img_path, xDims=None, preprocess_fn=None):
     # x = next(ImageDataGenerator(rescale=1.0/255).flow(x))
     return x
 
-def jacobgil(model, preprocessed_input, predicted_class, layer=(None, None)):
-    from keras.applications.vgg16 import (
-    VGG16, decode_predictions)
+def jacobgil(model, preprocessed_input, predicted_class, layer):
     from keras.models import Model
     from keras.preprocessing import image
     from keras.layers.core import Lambda
@@ -138,26 +154,20 @@ def jacobgil(model, preprocessed_input, predicted_class, layer=(None, None)):
         grads = tf.gradients(tensor, var_list)
         return [grad if grad is not None else tf.zeros_like(var) for var, grad in zip(var_list, grads)]
 
-    def grad_cam(input_model, image, category_index, layer_name=None, layer_index=None):
+    def grad_cam(input_model, image, category_index, layer):
         # FIXME: this assumes that we are doing classification
         nb_classes = 1000 # FIXME: number of classes can be variable
     
+        # FIXME: rename these "layer" variables
         target_layer = lambda x: target_category_loss(x, category_index, nb_classes)
         x = Lambda(target_layer, output_shape = target_category_loss_output_shape)(input_model.output)
         model = Model(inputs=input_model.input, outputs=x)
         # model.summary() # remove this later
         loss = K.sum(model.output)
 
-        # get the target layer
-        # conv_output =  [l for l in model.layers if l.name is layer_name]
-        # conv_output = conv_output[0].output
-
-        # TODO: automatically get last Conv layer if layer_name and layer_index are None
-        # be sure to check BOTH name and index is None
-        layer_index = -4 if (layer_name is None and layer_index is None) else layer_index # FIXME: don't hardcode four
         # we need to get the output attribute, else we get a TypeError: Failed to convert object to tensor
-        # bottom-up horizontal graph traversal
-        conv_output = model.get_layer(name=layer_name, index=layer_index).output
+        conv_output = layer.output
+
         grads = normalize(_compute_gradients(loss, [conv_output])[0])
         gradient_function = K.function([model.input], [conv_output, grads])
 
@@ -183,7 +193,7 @@ def jacobgil(model, preprocessed_input, predicted_class, layer=(None, None)):
 
     # model = VGG16(weights='imagenet')
 
-    heatmap = grad_cam(model, preprocessed_input, predicted_class, layer_name=layer[0], layer_index=layer[1])
+    heatmap = grad_cam(model, preprocessed_input, predicted_class, layer)
     # cv2.imwrite("gradcam.jpg", cam)
     return heatmap
 
