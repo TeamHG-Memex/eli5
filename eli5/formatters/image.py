@@ -70,6 +70,7 @@ def format_as_image(expl):
 
     plt.show()
     # FIXME: for some reason image is resized to 231x231 from 299x299
+    # FIXME: sometimes the plot doesn't show up, only get a 'Axis for figure n' message
 
     # overlayed_image = np.float32(heatmap) + np.float32(image)
     # overlayed_image = 255 * overlayed_image / np.max(overlayed_image)

@@ -100,10 +100,10 @@ def load_image(img, estimator=None):
 
 def applications_preprocessing(x, estimator):
     """
+    Apply preprocess_input function in keras.applications for input
     x: image array,
-    estimator: estimator instance.
+    estimator: estimator instance, one from keras.applications
     """
-    # Apply preprocess_input function in keras.applications for appropriate model
     try:
         f = getattr(keras.applications, estimator.name.lower()).preprocess_input
     except AttributeError:
