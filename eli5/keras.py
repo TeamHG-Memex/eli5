@@ -29,8 +29,8 @@ def explain_prediction_keras(estimator, doc, # model, image
                             ):
     """Explain prediction of a Keras model
     doc : image, 
-        one of: must be an input acceptable by estimator,
-        preprocessing can be done with helper functions.
+        must be an input acceptable by the estimator,
+        (see other functions for loading/preprocessing).
     targets: predictions
         a list of predictions
         integer for ImageNet classification
@@ -63,6 +63,7 @@ def explain_prediction_keras(estimator, doc, # model, image
         # does it make sense to take a list of targets. You can only Grad-CAM a single target?
         # TODO: consider changing signature / types for explain_prediction generic function
         # TODO: need to find a way to show the label for the passed prediction as well as its probability
+    
     heatmap = grad_cam(estimator, doc, predicted, target_layer)
     # consider renaming 'heatmap' to 'visualization'/'activations' (the output is not yet a heat map)
     heatmap = image.array_to_img(heatmap)
@@ -70,6 +71,46 @@ def explain_prediction_keras(estimator, doc, # model, image
     explanation.heatmap = heatmap
     explanation.image = original
     return explanation
+
+
+# TODO: this will need to move to ipython.py
+def show_prediction():
+    raise NotImplementedError
+
+
+def load_image(img, estimator=None):
+    """
+    Returns a single image as an array for an estimator's input
+    img: one of: path to a single image file, PIL Image object, numpy array
+    estimator: model instance, for resizing the image to the required input dimensions
+    """
+    # TODO: Take in PIL image object, or an array can also be multiple images.
+    # "pipeline": path str -> PIL image -> numpy array
+    xDims = None
+    if estimator is not None:
+        xDims = estimator.input_shape[1:3]
+    im = image.load_img(img, target_size=xDims)
+    x = image.img_to_array(im)
+
+    # we need to insert an axis at the 0th position to indicate the batch size
+    # this is required by the keras predict() function
+    x = np.expand_dims(x, axis=0)
+    return x
+
+
+def applications_preprocessing(x, estimator):
+    """
+    x: image array,
+    estimator: estimator instance.
+    """
+    # Apply preprocess_input function in keras.applications for appropriate model
+    try:
+        f = getattr(keras.applications, estimator.name.lower()).preprocess_input
+    except AttributeError:
+        raise AttributeError('Could not get the preprocessing function')
+    else:
+        x = f(x)
+        return x
 
 
 def get_target_prediction(model, x, decoder=None):
@@ -114,7 +155,7 @@ def get_target_layer(estimator, desired_layer):
     else:
         raise ValueError('Invalid desired_layer (must be str, int, or callable): "%s"' % desired_layer)
 
-    # TODO: check target_layer dimensions (is it possible to do Grad-CAM on it?)
+    # TODO: check target_layer dimensions (is it possible to perform Grad-CAM on it?)
     return target_layer
 
 
@@ -126,39 +167,14 @@ def get_last_activation_maps(estimator):
     # 2. look at layer input/output dimensions, to ensure they match
     return True
 
-# path to a single image, directory containing images, 
-# PIL image object, or an array can also be multiple images.
 
+def explain_images():
+    # Take a directory of images and call explain_prediction_keras on each image
+    raise NotImplementedError
 
-def preprocess_image(img, estimator=None, preprocessing=None):
-    """
-    Returns a single image as an array for an estimator's input
-    img: one of: path to a single image file, PIL Image object, numpy array
-    estimator: model instance, for resizing the image to the required input dimensions
-    preprocessing: one of: callable (called with the image array as an argument),
-    "auto" (attempts to use a preprocessing function from keras.applications, requires estimator argument)
-    """
-    xDims = None
-    if estimator is not None:
-        xDims = estimator.input_shape[1:3]
-    im = image.load_img(img, target_size=xDims)
-    x = image.img_to_array(im)
-
-    # we need to insert an axis at the 0th position to indicate the batch size
-    # this is required by the keras predict() function
-    x = np.expand_dims(x, axis=0)
-
-    if callable(preprocessing):
-        x = preprocessing(x)
-    elif preprocessing == "auto":
-        # Consider removing this "auto" option (the user can pass the function themselves)
-        try:
-            f = getattr(keras.applications, estimator.name.lower()).preprocess_input
-        except AttributeError:
-            print('Could not get the preprocessing function automatically')
-        else:
-            x = f(x)
-    return x
+def explain_layers():
+    # Take a list of layers and call explain_prediction_keras on each layer
+    raise NotImplementedError
 
 
 def target_category_loss(x, category_index, nb_classes):
