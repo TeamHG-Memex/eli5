@@ -122,11 +122,11 @@ def jacobgil(model=None, preprocessed_input=None, layer=(None, None)):
         # conv_output = conv_output[0].output
 
         # TODO: automatically get last Conv layer if layer_name and layer_index are None
+        # need to check BOTH name and index
+        layer_index = -4 if (layer_name is None and layer_index is None) else layer_index # FIXME: don't hardcode four
         # we need to get the output attribute, else we get a TypeError: Failed to convert object to tensor
         # bottom-up horizontal graph traversal
-        layer_index = -4 if layer_index is None else layer_index # FIXME: don't hardcode four
         conv_output = model.get_layer(name=layer_name, index=layer_index).output
-
         grads = normalize(_compute_gradients(loss, [conv_output])[0])
         gradient_function = K.function([model.input], [conv_output, grads])
 
