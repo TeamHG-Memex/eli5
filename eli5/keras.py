@@ -64,6 +64,7 @@ def explain_prediction_keras(estimator, doc, # model, image
         # TODO: consider changing signature / types for explain_prediction generic function
         # TODO: need to find a way to show the label for the passed prediction as well as its probability
     heatmap = grad_cam(estimator, doc, predicted, target_layer)
+    # consider renaming 'heatmap' to 'visualization'/'activations' (the output is not yet a heat map)
     heatmap = image.array_to_img(heatmap)
     original = image.array_to_img(doc[0])
     explanation.heatmap = heatmap
@@ -154,64 +155,88 @@ def preprocess_image(img, estimator=None, preprocessing=None):
         try:
             f = getattr(keras.applications, estimator.name.lower()).preprocess_input
         except AttributeError:
-            print('Could not get preprocessing automatically')
+            print('Could not get the preprocessing function automatically')
         else:
             x = f(x)
     return x
 
 
-# Credits to Jacob Gildenblat for https://github.com/jacobgil/keras-grad-cam
-# (and https://github.com/PowerOfCreation/keras-grad-cam)
-
-
 def target_category_loss(x, category_index, nb_classes):
     # return tf.multiply(x, K.one_hot([category_index], nb_classes))
-    return x * K.one_hot([category_index], nb_classes) # this works as well
+    return x * K.one_hot([category_index], nb_classes)
+
 
 def target_category_loss_output_shape(input_shape):
     return input_shape
 
+
 def normalize(x):
+    # L2 norm
     return x / (K.sqrt(K.mean(K.square(x))) + 1e-5)
 
-def _compute_gradients(tensor, var_list):
+
+def compute_gradients(tensor, var_list):
     # grads = tf.gradients(tensor, var_list)
     # return [grad if grad is not None else tf.zeros_like(var) for var, grad in zip(var_list, grads)]
     grads = K.gradients(tensor, var_list)
     return [grad if grad is not None else K.zeros_like(var) for var, grad in zip(var_list, grads)]
 
-def grad_cam(input_model, image, category_index, layer):
+
+def gap(tensor): # FIXME: might want to rename this argument
+    """Global Average Pooling"""
+    # First two axes only
+    return np.mean(tensor, axis=(0, 1))
+
+
+def relu(tensor):
+    """ReLU"""
+    return np.maximum(tensor, 0)
+
+
+def get_localization_map(activation_maps, weights): # consider renaming this function to 'weighted_lincomb'
+    localization_map = np.ones(activation_maps.shape[0:2], dtype=np.float32)
+    for i, w in enumerate(weights):
+        localization_map += w * activation_maps[:,:,i] # weighted linear combination
+    return localization_map
+
+
+def grad_cam(estimator, image, prediction_index, layer):
     # FIXME: this assumes that we are doing classification
+    # also we make the explicit assumption that we are dealing with images
+
     # nb_classes = 1000 # FIXME: number of classes can be variable
-    nb_classes = input_model.output_shape[1] # TODO: test this
+    nb_classes = estimator.output_shape[1] # TODO: test this
 
     # FIXME: rename these "layer" variables
-    target_layer = lambda x: target_category_loss(x, category_index, nb_classes)
-    x = Lambda(target_layer, output_shape = target_category_loss_output_shape)(input_model.output)
-    model = Model(inputs=input_model.input, outputs=x)
-    # model.summary() # remove this later
+    target_layer = lambda x: target_category_loss(x, prediction_index, nb_classes)
+    x = Lambda(target_layer, output_shape = target_category_loss_output_shape)(estimator.output)
+    model = Model(inputs=estimator.input, outputs=x)
     loss = K.sum(model.output)
 
-    # we need to get the output attribute, else we get a TypeError: Failed to convert object to tensor
+    # we need to access the output attribute, else we get a TypeError: Failed to convert object to tensor
     conv_output = layer.output
 
-    grads = normalize(_compute_gradients(loss, [conv_output])[0])
+    grads = normalize(compute_gradients(loss, [conv_output])[0])
     gradient_function = K.function([model.input], [conv_output, grads])
 
     output, grads_val = gradient_function([image]) # work happens here
-    output, grads_val = output[0, :], grads_val[0, :, :, :] # FIXME: this probably assumes that the layer is a width*height filter
+    output, grads_val = output[0,:], grads_val[0,:,:,:] # FIXME: this probably assumes that the layer is a width*height filter
 
-    weights = np.mean(grads_val, axis = (0, 1))
-    # cam = np.ones(output.shape[0 : 2], dtype = np.float32)
-    heatmap = np.ones(output.shape[0 : 2], dtype = np.float32)
+    weights = gap(grads_val)
 
-    for i, w in enumerate(weights):
-        # cam += w * output[:, :, i]
-        heatmap += w * output[:, :, i]
+    lmap = get_localization_map(output, weights)
+    lmap = relu(lmap)
 
-    heatmap = np.maximum(heatmap, 0) # ReLU
-    heatmap = heatmap / np.max(heatmap) # probability
-    heatmap = 255*heatmap # 0...255 float
-    # we need to insert a channels axis to have an image (channels last by default)
-    heatmap = np.expand_dims(heatmap, axis=-1)
-    return heatmap
+    lmap = lmap / np.max(lmap) # probability
+    lmap = 255*lmap # 0...255 float
+    # we need to insert a "channels" axis to have an image (channels last by default)
+    lmap = np.expand_dims(lmap, axis=-1)
+
+    return lmap
+
+
+#
+# Credits:
+# Jacob Gildenblat for "https://github.com/jacobgil/keras-grad-cam",
+# author of "https://github.com/PowerOfCreation/keras-grad-cam" for various fixes.
+#
