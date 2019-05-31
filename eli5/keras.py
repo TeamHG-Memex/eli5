@@ -1,18 +1,16 @@
 # -*- coding: utf-8 -*-
 """Keras neural network explanations"""
 
-from keras.models import (
-    Model, 
-    Sequential,
-)
+from keras.models import Model
 from keras.preprocessing.image import load_img, img_to_array, array_to_img, ImageDataGenerator
 import numpy as np
 
 from eli5.base import Explanation
 from eli5.explain import explain_prediction
 
-
-@explain_prediction.register(Model)
+# note that Sequential subclasses Model, so we can just register the Model type
+# Model subclasses Network, but is using Network with this function valid?
+@explain_prediction.register(Model) 
 def explain_prediction_keras(estimator, doc, # model, image
                              top=None, # NOT SUPPORTED
                              top_targets=None, # NOT SUPPORTED
@@ -22,14 +20,13 @@ def explain_prediction_keras(estimator, doc, # model, image
                              feature_re=None, # NOT SUPPORTED
                              feature_filter=None, # NOT SUPPORTED
                              # new parameters:
-                             layer=None, # which layer to focus on,
-                             preprocessing=None, # preprocessing function 
-                             decoder=None, # target prediction decoding function
+                             layer=None, # which layer to focus on, 
+                             prediction_decoder=None, # target prediction decoding function
                             ):
     """Explain prediction of a Keras model
     doc : image, 
-        one of: path to a single image, directory containing images, 
-        PIL image object, or an array can also be multiple images.
+        one of: must be an input acceptable by estimator,
+        preprocessing can be done with helper functions.
     targets: predictions
         a list of predictions
         integer for ImageNet classification
@@ -46,8 +43,6 @@ def explain_prediction_keras(estimator, doc, # model, image
         is_regression=False, # classification vs regression model
         highlight_spaces=None, # might be relevant later when explaining text models
     )
-    input_dimensions = estimator.input_shape[1:3]
-    image = load_image(doc, xDims=input_dimensions, preprocess_fn=preprocessing)
 
     # TODO: grad-cam on multiple layers by passing a list of layers
     if layer is None:
@@ -58,7 +53,7 @@ def explain_prediction_keras(estimator, doc, # model, image
 
     # get prediction to focus on
     if targets is None:
-        predicted = get_target_prediction(estimator, image, decoder=decoder)
+        predicted = get_target_prediction(estimator, doc, decoder=prediction_decoder)
     else:
         predicted = targets[0] 
         # TODO: take in a single target as well, not just a list
@@ -66,16 +61,16 @@ def explain_prediction_keras(estimator, doc, # model, image
         # TODO: consider changing signature / types for explain_prediction generic function
         # TODO: need to find a way to show the label for the passed prediction as well as its probability
 
-    heatmap = jacobgil(estimator, image, predicted, target_layer)
+    heatmap = jacobgil(estimator, doc, predicted, target_layer)
     heatmap = array_to_img(heatmap)
-    image = array_to_img(image[0])
+    image = array_to_img(doc[0])
     explanation.heatmap = heatmap
     explanation.image = image
     return explanation
 
 
-def get_target_prediction(model, preprocessed_input, decoder=None):
-    predictions = model.predict(preprocessed_input)
+def get_target_prediction(model, x, decoder=None):
+    predictions = model.predict(x)
     if decoder is not None:
         # TODO: check if decoder is callable?
         # FIXME: it is not certain that we need such indexing into the decoder's output
@@ -101,6 +96,7 @@ def get_target_layer(estimator, desired_layer):
     elif isinstance(desired_layer, str):
         target_layer = estimator.get_layer(name=desired_layer)
     elif callable(desired_layer):
+        # is 'callable' the right function to use here?
         target_layer = desired_layer(estimator)
     else:
         raise ValueError('Invalid desired_layer (must be str, int, or callable): "%s"' % desired_layer)
@@ -112,21 +108,34 @@ def get_target_layer(estimator, desired_layer):
 def get_last_activation_maps(estimator):
     # TODO: automatically get last Conv layer if layer_name and layer_index are None
     # FIXME: don't hardcode four
+    # Some ideas:
+    # 1. linear search backwards (using negative indexing with get_layer()) until find the desired layer
+    # 2. look at layer name, exclude things like "softmax", "global average pooling", 
+    # etc, include things like "conv" (but watch for false positives)
+    # 3. look at layer input/output dimensions, to ensure they match
+    # 4. If can't find, either raise error, or try some layer and log a warning
     target_layer = estimator.get_layer(index=-4)
     return target_layer
 
 
 ############ jacobgil's code
 
-def load_image(img_path, xDims=None, preprocess_fn=None):
-    # img_path = sys.argv[1]
-    # from keras.applications.vgg16 import preprocess_input
-    # from keras.applications.xception import preprocess_input # FIXME
-    img = load_img(img_path, target_size=xDims)
-    x = img_to_array(img)
+
+def preprocess_image(img, estimator=None, preprocessing=None):
+    # path to a single image, directory containing images, 
+    # PIL image object, or an array can also be multiple images.
+    # preprocessing function is an optional callable
+    xDims = None
+    if estimator is not None:
+        xDims = estimator.input_shape[1:3]
+    im = load_img(img, target_size=xDims)
+    x = img_to_array(im)
     x = np.expand_dims(x, axis=0)
-    if preprocess_fn is not None:
-        x = preprocess_fn(x)
+    if preprocessing is not None:
+        # eg:
+        # from keras.applications.vgg16 import preprocess_input
+        # from keras.applications.xception import preprocess_input # FIXME
+        x = preprocessing(x)
     # x = next(ImageDataGenerator(rescale=1.0/255).flow(x))
     return x
 
@@ -156,8 +165,9 @@ def jacobgil(model, preprocessed_input, predicted_class, layer):
 
     def grad_cam(input_model, image, category_index, layer):
         # FIXME: this assumes that we are doing classification
-        nb_classes = 1000 # FIXME: number of classes can be variable
-    
+        # nb_classes = 1000 # FIXME: number of classes can be variable
+        nb_classes = input_model.output_shape[1] # TODO: test this
+
         # FIXME: rename these "layer" variables
         target_layer = lambda x: target_category_loss(x, category_index, nb_classes)
         x = Lambda(target_layer, output_shape = target_category_loss_output_shape)(input_model.output)
