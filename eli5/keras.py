@@ -4,7 +4,6 @@
 import numpy as np
 import keras
 import keras.backend as K
-import tensorflow as tf
 from keras.preprocessing import image
 from keras.models import Model
 from keras.layers.core import Lambda
@@ -166,8 +165,8 @@ def preprocess_image(img, estimator=None, preprocessing=None):
 
 
 def target_category_loss(x, category_index, nb_classes):
-    return tf.multiply(x, K.one_hot([category_index], nb_classes))
-    # return x * K.one_hot([category_index], nb_classes) # this works as well
+    # return tf.multiply(x, K.one_hot([category_index], nb_classes))
+    return x * K.one_hot([category_index], nb_classes) # this works as well
 
 def target_category_loss_output_shape(input_shape):
     return input_shape
@@ -176,10 +175,10 @@ def normalize(x):
     return x / (K.sqrt(K.mean(K.square(x))) + 1e-5)
 
 def _compute_gradients(tensor, var_list):
-    grads = tf.gradients(tensor, var_list)
-    return [grad if grad is not None else tf.zeros_like(var) for var, grad in zip(var_list, grads)]
-    # grads = K.gradients(tensor, var_list)
-    # return [grad if grad is not None else K.zeros_like(var) for var, grad in zip(var_list, grads)]
+    # grads = tf.gradients(tensor, var_list)
+    # return [grad if grad is not None else tf.zeros_like(var) for var, grad in zip(var_list, grads)]
+    grads = K.gradients(tensor, var_list)
+    return [grad if grad is not None else K.zeros_like(var) for var, grad in zip(var_list, grads)]
 
 def grad_cam(input_model, image, category_index, layer):
     # FIXME: this assumes that we are doing classification
