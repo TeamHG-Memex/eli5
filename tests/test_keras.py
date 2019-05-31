@@ -19,3 +19,6 @@
 ## test explain_prediction different number of classes
 # manual test: might want to train an keras.applications imagenet model on less than or more than 1000 classes
 # https://stackoverflow.com/questions/54156128/keras-transfer-learning-on-more-than-1000-classes
+
+
+## test different image formats: png, jpg, etc

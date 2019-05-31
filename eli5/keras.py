@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 """Keras neural network explanations"""
 
+import numpy as np
+import keras
 from keras.models import Model
 from keras.preprocessing.image import load_img, img_to_array, array_to_img, ImageDataGenerator
-import numpy as np
 
 from eli5.base import Explanation
 from eli5.explain import explain_prediction
+
 
 # note that Sequential subclasses Model, so we can just register the Model type
 # Model subclasses Network, but is using Network with this function valid?
@@ -43,7 +45,6 @@ def explain_prediction_keras(estimator, doc, # model, image
         is_regression=False, # classification vs regression model
         highlight_spaces=None, # might be relevant later when explaining text models
     )
-
     # TODO: grad-cam on multiple layers by passing a list of layers
     if layer is None:
         # Automatically get the layer if not provided
@@ -85,8 +86,12 @@ def get_target_prediction(model, x, decoder=None):
 
 
 def get_target_layer(estimator, desired_layer):
-    # Return instance of the desired layer in the model
-
+    """
+    Return instance of the desired layer in the model.
+    estimator: model whose layer is to be gotten
+    desired_layer: one of: integer index, string name of the layer, 
+    callable that returns True if a layer instance matches.
+    """
     if isinstance(desired_layer, int):
         # conv_output =  [l for l in model.layers if l.name is layer_name]
         # conv_output = conv_output[0]
@@ -96,8 +101,14 @@ def get_target_layer(estimator, desired_layer):
     elif isinstance(desired_layer, str):
         target_layer = estimator.get_layer(name=desired_layer)
     elif callable(desired_layer):
-        # is 'callable' the right function to use here?
-        target_layer = desired_layer(estimator)
+        # is 'callable()' the right check to use here?
+        l = estimator.get_layer(index=-4)
+        # FIXME: don't hardcode four
+        # actually iterate through the list of layers backwards (using negative indexing with get_layer()) until find the desired layer
+        target_layer = l if desired_layer(l) else None
+        if target_layer is None:
+            # If can't find, raise error
+            raise ValueError('Target layer could not be found using callable %s' % desired_layer)
     else:
         raise ValueError('Invalid desired_layer (must be str, int, or callable): "%s"' % desired_layer)
 
@@ -107,37 +118,49 @@ def get_target_layer(estimator, desired_layer):
 
 def get_last_activation_maps(estimator):
     # TODO: automatically get last Conv layer if layer_name and layer_index are None
-    # FIXME: don't hardcode four
     # Some ideas:
-    # 1. linear search backwards (using negative indexing with get_layer()) until find the desired layer
-    # 2. look at layer name, exclude things like "softmax", "global average pooling", 
+    # 1. look at layer name, exclude things like "softmax", "global average pooling", 
     # etc, include things like "conv" (but watch for false positives)
-    # 3. look at layer input/output dimensions, to ensure they match
-    # 4. If can't find, either raise error, or try some layer and log a warning
-    target_layer = estimator.get_layer(index=-4)
-    return target_layer
+    # 2. look at layer input/output dimensions, to ensure they match
+    return True
 
-
-############ jacobgil's code
+# path to a single image, directory containing images, 
+# PIL image object, or an array can also be multiple images.
 
 
 def preprocess_image(img, estimator=None, preprocessing=None):
-    # path to a single image, directory containing images, 
-    # PIL image object, or an array can also be multiple images.
-    # preprocessing function is an optional callable
+    """
+    Returns a single image as an array for an estimator's input
+    img: one of: path to a single image file, PIL Image object, numpy array
+    estimator: model instance, for resizing the image to the required input dimensions
+    preprocessing: one of: callable (called with the image array as an argument),
+    "auto" (attempts to use a preprocessing function from keras.applications, requires estimator argument)
+    """
     xDims = None
     if estimator is not None:
         xDims = estimator.input_shape[1:3]
     im = load_img(img, target_size=xDims)
     x = img_to_array(im)
+
+    # we need to insert an axis at the 0th position to indicate the batch size
+    # this is required by the keras predict() function
     x = np.expand_dims(x, axis=0)
-    if preprocessing is not None:
-        # eg:
-        # from keras.applications.vgg16 import preprocess_input
-        # from keras.applications.xception import preprocess_input # FIXME
+
+    if callable(preprocessing):
         x = preprocessing(x)
-    # x = next(ImageDataGenerator(rescale=1.0/255).flow(x))
+    elif preprocessing == "auto":
+        # Consider leaving this out (the user can pass the function themselves)
+        try:
+            f = getattr(keras.applications, estimator.name.lower()).preprocess_input
+        except AttributeError:
+            print('Could not get preprocessing automatically')
+        else:
+            x = f(x)
     return x
+
+
+############ jacobgil's code
+
 
 def jacobgil(model, preprocessed_input, predicted_class, layer):
     from keras.models import Model
