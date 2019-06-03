@@ -14,7 +14,7 @@ from eli5.explain import explain_prediction
 
 # note that Sequential subclasses Model, so we can just register the Model type
 # Model subclasses Network, but is using Network with this function valid?
-@explain_prediction.register(Model) 
+@explain_prediction.register(Model)
 def explain_prediction_keras(estimator, doc, # model, image
                              top=None, # NOT SUPPORTED
                              top_targets=None, # NOT SUPPORTED
@@ -73,46 +73,6 @@ def explain_prediction_keras(estimator, doc, # model, image
     return explanation
 
 
-# TODO: this will need to move to ipython.py
-def show_prediction():
-    raise NotImplementedError
-
-
-def load_image(img, estimator=None):
-    """
-    Returns a single image as an array for an estimator's input
-    img: one of: path to a single image file, PIL Image object, numpy array
-    estimator: model instance, for resizing the image to the required input dimensions
-    """
-    # TODO: Take in PIL image object, or an array can also be multiple images.
-    # "pipeline": path str -> PIL image -> numpy array
-    xDims = None
-    if estimator is not None:
-        xDims = estimator.input_shape[1:3]
-    im = image.load_img(img, target_size=xDims)
-    x = image.img_to_array(im)
-
-    # we need to insert an axis at the 0th position to indicate the batch size
-    # this is required by the keras predict() function
-    x = np.expand_dims(x, axis=0)
-    return x
-
-
-def applications_preprocessing(x, estimator):
-    """
-    Apply preprocess_input function in keras.applications for input
-    x: image array,
-    estimator: estimator instance, one from keras.applications
-    """
-    try:
-        f = getattr(keras.applications, estimator.name.lower()).preprocess_input
-    except AttributeError:
-        raise AttributeError('Could not get the preprocessing function')
-    else:
-        x = f(x)
-        return x
-
-
 def get_target_prediction(model, x, decoder=None):
     predictions = model.predict(x)
     if decoder is not None:
@@ -135,6 +95,8 @@ def get_target_layer(estimator, desired_layer):
     desired_layer: one of: integer index, string name of the layer, 
     callable that returns True if a layer instance matches.
     """
+    # TODO: Consider moving this to Keras utils, 
+    # only passing an instance of Keras Layer to the `layer` argument.
     if isinstance(desired_layer, int):
         # conv_output =  [l for l in model.layers if l.name is layer_name]
         # conv_output = conv_output[0]
@@ -166,15 +128,6 @@ def get_last_activation_maps(estimator):
     # etc, include things like "conv" (but watch for false positives)
     # 2. look at layer input/output dimensions, to ensure they match
     return True
-
-
-def explain_images():
-    # Take a directory of images and call explain_prediction_keras on each image
-    raise NotImplementedError
-
-def explain_layers():
-    # Take a list of layers and call explain_prediction_keras on each layer
-    raise NotImplementedError
 
 
 def target_category_loss(x, category_index, nb_classes):
