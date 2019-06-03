@@ -38,9 +38,10 @@ def explain_prediction_keras(estimator, doc, # model, image
         one of: a valid keras layer name (str) or index (int), 
         a callable function that returns True when the desired layer is matched for the model
         if None, automatically use a helper callable function to get the last suitable Conv layer
+    Returns: explanation object with .image and .heatmap attributes as numpy arrays
     """
     explanation = Explanation(
-        repr(estimator), # might want to replace this with something else, eg: estimator.summary()
+        estimator.name, # might want to replace this with something else, eg: estimator.summary()
         description='',
         error='',
         method='gradcam',
@@ -58,18 +59,23 @@ def explain_prediction_keras(estimator, doc, # model, image
     if targets is None:
         predicted = get_target_prediction(estimator, doc, decoder=prediction_decoder)
     else:
-        predicted = targets[0] 
+        predicted = targets[0]
         # TODO: take in a single target as well, not just a list
         # does it make sense to take a list of targets. You can only Grad-CAM a single target?
         # TODO: consider changing signature / types for explain_prediction generic function
         # TODO: need to find a way to show the label for the passed prediction as well as its probability
     
     heatmap = grad_cam(estimator, doc, predicted, target_layer)
-    # consider renaming 'heatmap' to 'visualization'/'activations' (the output is not yet a heat map)
-    heatmap = image.array_to_img(heatmap)
-    original = image.array_to_img(doc[0])
-    explanation.heatmap = heatmap
-    explanation.image = original
+    # TODO: consider renaming 'heatmap' to 'visualization'/'activations' (the output is not yet a heat map)
+
+    # need to insert a 'channel' axis for a rank 3 image
+    heatmap = np.expand_dims(heatmap, axis=-1) 
+    explanation.heatmap = image.array_to_img(heatmap)
+    
+    # take the single image from the input 'batch'
+    doc = doc[0]
+    explanation.image = image.array_to_img(doc)
+
     return explanation
 
 
@@ -131,7 +137,8 @@ def get_last_activation_maps(estimator):
 
 
 def target_category_loss(x, category_index, nb_classes):
-    # return tf.multiply(x, K.one_hot([category_index], nb_classes))
+    # index = 3, classes = 5
+    # -> 000(proba)0
     return x * K.one_hot([category_index], nb_classes)
 
 
@@ -141,14 +148,14 @@ def target_category_loss_output_shape(input_shape):
 
 def normalize(x):
     # L2 norm
+    # ELSE GET ALL RED
     return x / (K.sqrt(K.mean(K.square(x))) + 1e-5)
 
 
-def compute_gradients(tensor, var_list):
-    # grads = tf.gradients(tensor, var_list)
-    # return [grad if grad is not None else tf.zeros_like(var) for var, grad in zip(var_list, grads)]
-    grads = K.gradients(tensor, var_list)
-    return [grad if grad is not None else K.zeros_like(var) for var, grad in zip(var_list, grads)]
+def compute_gradients(ys, xs):
+    grads = K.gradients(ys, xs)
+    return [grad if grad is not None else K.zeros_like(var) 
+            for (var, grad) in zip(xs, grads)]
 
 
 def gap(tensor): # FIXME: might want to rename this argument
@@ -169,37 +176,38 @@ def get_localization_map(activation_maps, weights): # consider renaming this fun
     return localization_map
 
 
-def grad_cam(estimator, image, prediction_index, layer):
+def grad_cam(estimator, image, prediction_index, target_layer):
     # FIXME: this assumes that we are doing classification
     # also we make the explicit assumption that we are dealing with images
 
-    # nb_classes = 1000 # FIXME: number of classes can be variable
     nb_classes = estimator.output_shape[1] # TODO: test this
 
-    # FIXME: rename these "layer" variables
-    target_layer = lambda x: target_category_loss(x, prediction_index, nb_classes)
-    x = Lambda(target_layer, output_shape = target_category_loss_output_shape)(estimator.output)
-    model = Model(inputs=estimator.input, outputs=x)
+    loss = lambda x: target_category_loss(x, prediction_index, nb_classes)
+    loss_layer = Lambda(loss, output_shape=target_category_loss_output_shape)(estimator.output)
+    model = Model(inputs=estimator.input, outputs=loss_layer)
+    # ELSE GET ALL RED
     loss = K.sum(model.output)
 
     # we need to access the output attribute, else we get a TypeError: Failed to convert object to tensor
-    conv_output = layer.output
+    target_output = target_layer.output
+    grads = normalize(compute_gradients(loss, [target_output])[0])
 
-    grads = normalize(compute_gradients(loss, [conv_output])[0])
-    gradient_function = K.function([model.input], [conv_output, grads])
+    evaluate = K.function([model.input], [target_output, grads])
 
-    output, grads_val = gradient_function([image]) # work happens here
-    output, grads_val = output[0,:], grads_val[0,:,:,:] # FIXME: this probably assumes that the layer is a width*height filter
+    output, grads_val = evaluate([image]) # work happens
+    output = output[0,:]
+    grads_val = grads_val[0,:,:,:] # FIXME: this probably assumes that the layer is a width*height filter
 
     weights = gap(grads_val)
 
     lmap = get_localization_map(output, weights)
-    lmap = relu(lmap)
 
-    lmap = lmap / np.max(lmap) # probability
-    lmap = 255*lmap # 0...255 float
+    lmap = relu(lmap) # minimum 0
+
+    lmap = lmap / np.max(lmap) # [0, 1]
+    # lmap = 255*lmap # 0...255 float
     # we need to insert a "channels" axis to have an image (channels last by default)
-    lmap = np.expand_dims(lmap, axis=-1)
+    # lmap = np.expand_dims(lmap, axis=-1)
 
     return lmap
 
