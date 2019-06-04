@@ -49,6 +49,7 @@ def get_spatial_dimensions(image):
 def resize_over(heatmap, image, interpolation=PIL.Image.LANCZOS):
     """Resize the `heatmap` image to fit over the original `image`,
     optionally using an `interpolation` algorithm as a filter from PIL.Image"""
+    # TODO: try scipy.ndimage.interpolation
     heatmap = heatmap.resize(get_spatial_dimensions(image), resample=interpolation)
     return heatmap
 
@@ -58,6 +59,7 @@ def colourise(heatmap):
     heatmap = matplotlib.cm.jet(heatmap) # -> [0, 1] RGBA ndarray
     heatmap = np.uint8(heatmap*255) # re-scale: [0, 1] -> [0, 255] ndarray
     return heatmap
+    # TODO: be able to choose which heatmap to apply
 
 
 def set_alpha(image_array, starting_array=None, cap_value=None):
