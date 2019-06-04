@@ -6,20 +6,24 @@ import matplotlib.pyplot as plt
 import matplotlib.cm
 
 
-def format_as_image(expl):
+def format_as_image(expl,
+    interpolation=PIL.Image.LANCZOS,
+    colormap=matplotlib.cm.magma,
+    alpha_limit=165.75,
+    ):
     # Get PIL Image instances
     image = expl.image
     heatmap = expl.heatmap
     
-    heatmap = resize_over(heatmap, image) # resize the heatmap to be the same as the image
+    heatmap = resize_over(heatmap, image, interpolation=interpolation) # resize the heatmap to be the same as the image
     heatmap = np.array(heatmap) # PIL image -> ndarray spatial map, [0, 255]
     heatmap_grayscale = heatmap # save the 'pre-colour' (grayscale) heatmap
-    heatmap = colourise(heatmap) # apply colour map
+    heatmap = colourise(heatmap, colormap=colormap) # apply colour map
 
     # update the alpha channel (transparency/opacity) values of the heatmap
     # make the alpha intensity correspond to the grayscale heatmap values
     # cap the intensity so that it's not too opaque when near maximum value
-    heatmap = set_alpha(heatmap, starting_array=heatmap_grayscale, cap_value=165.75)
+    heatmap = set_alpha(heatmap, starting_array=heatmap_grayscale, alpha_limit=alpha_limit)
 
     overlay = overlay_heatmap(heatmap, image)
     show_interactive(overlay, expl)
@@ -46,7 +50,7 @@ def get_spatial_dimensions(image):
     return (image.width, image.height)
 
 
-def resize_over(heatmap, image, interpolation=PIL.Image.LANCZOS):
+def resize_over(heatmap, image, interpolation):
     """Resize the `heatmap` image to fit over the original `image`,
     optionally using an `interpolation` algorithm as a filter from PIL.Image"""
     # TODO: try scipy.ndimage.interpolation
@@ -54,30 +58,30 @@ def resize_over(heatmap, image, interpolation=PIL.Image.LANCZOS):
     return heatmap
 
 
-def colourise(heatmap):
+def colourise(heatmap, colormap):
     """Apply colour to a grayscale heatmap, returning an RGBA [0, 255] ndarray"""
-    heatmap = matplotlib.cm.jet(heatmap) # -> [0, 1] RGBA ndarray
+    heatmap = colormap(heatmap) # -> [0, 1] RGBA ndarray
     heatmap = np.uint8(heatmap*255) # re-scale: [0, 1] -> [0, 255] ndarray
     return heatmap
     # TODO: be able to choose which heatmap to apply
 
 
-def set_alpha(image_array, starting_array=None, cap_value=None):
+def set_alpha(image_array, starting_array=None, alpha_limit=None):
     """Update alpha channel values of an RGBA ndarray `image_array`,
     optionally creating the alpha channel from `starting_array`
-    and setting upper limit for alpha values (opacity) to `cap_value`"""
+    and setting upper limit for alpha values (opacity) to `alpha_limit`"""
     if isinstance(starting_array, np.ndarray):
         alpha = starting_array
     else:
         alpha = image_array[:,:,3]
-    if cap_value is not None:
-        alpha = np.minimum(alpha, cap_value)
+    if alpha_limit is not None:
+        alpha = np.minimum(alpha, alpha_limit)
     image_array[:,:,3] = alpha
     return image_array
     # Efficiency of this approach?
 
 
-def normalise_image(img):
+def convert_image(img):
     """Convert an np.ndarray or PIL Image instance to an RGBA PIL Image"""
     if isinstance(img, np.ndarray):
         img = PIL.Image.fromarray(img)
@@ -90,8 +94,8 @@ def normalise_image(img):
 def overlay_heatmap(heatmap, image):
     """Overlay 'heatmap' over 'image'"""
     # perform normalisation steps
-    heatmap = normalise_image(heatmap)
-    image = normalise_image(image)
+    heatmap = convert_image(heatmap)
+    image = convert_image(image)
     # combine the two images
     overlayed_image = PIL.Image.alpha_composite(image, heatmap) # the order of arguments matters!
     return overlayed_image
