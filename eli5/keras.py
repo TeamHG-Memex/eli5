@@ -6,7 +6,7 @@ import keras
 import keras.backend as K
 from keras.preprocessing import image
 from keras.models import Model
-from keras.layers.core import Lambda
+from keras.layers import Layer, Lambda
 
 from eli5.base import Explanation
 from eli5.explain import explain_prediction
@@ -16,16 +16,10 @@ from eli5.explain import explain_prediction
 # Model subclasses Network, but is using Network with this function valid?
 @explain_prediction.register(Model)
 def explain_prediction_keras(estimator, doc, # model, image
-                             top=None, # NOT SUPPORTED
-                             top_targets=None, # NOT SUPPORTED
                              target_names=None, # rename / provide prediction labels
                              targets=None, # prediction(s) to focus on, if None take top prediction
-                             feature_names=None, # NOT SUPPORTED
-                             feature_re=None, # NOT SUPPORTED
-                             feature_filter=None, # NOT SUPPORTED
                              # new parameters:
                              layer=None, # which layer to focus on, 
-                             prediction_decoder=None, # target prediction decoding function
                             ):
     """Explain prediction of a Keras model
     doc : image, 
@@ -35,10 +29,8 @@ def explain_prediction_keras(estimator, doc, # model, image
         a list of predictions
         integer for ImageNet classification
     layer: valid target layer in the model to Grad-CAM on,
-        one of: a valid keras layer name (str) or index (int), 
-        a callable function that returns True when the desired layer is matched for the model
-        if None, automatically use a helper callable function to get the last suitable Conv layer
-    Returns: explanation object with .image and .heatmap attributes as numpy arrays
+        one of: a valid keras layer name (str) or index (int), or layer instance (keras.layers.Layer)
+    Returns: explanation object with the results in attributes.
     """
     explanation = Explanation(
         estimator.name, # might want to replace this with something else, eg: estimator.summary()
@@ -52,12 +44,13 @@ def explain_prediction_keras(estimator, doc, # model, image
     if layer is None:
         # Automatically get the layer if not provided
         # this might not be a good idea from transparency / user point of view
-        layer = get_last_activation_maps
+        # layer = get_last_activation_maps
+        layer = -4
     target_layer = get_target_layer(estimator, layer)
 
     # get prediction to focus on
     if targets is None:
-        predicted = get_target_prediction(estimator, doc, decoder=prediction_decoder)
+        predicted = get_target_prediction(estimator, doc)
     else:
         predicted = targets[0]
         # TODO: take in a single target as well, not just a list
@@ -84,17 +77,9 @@ def explain_prediction_keras(estimator, doc, # model, image
 
 def get_target_prediction(model, x, decoder=None):
     predictions = model.predict(x)
-    if decoder is not None:
-        # TODO: check if decoder is callable?
-        # FIXME: it is not certain that we need such indexing into the decoder's output
-        top_1 = decoder(predictions)[0][0] 
-        ncode, label, proba = top_1
-        # TODO: do I print, log, or append to 'description' this output?
-        print('Predicted class:') 
-        print('%s (%s) with probability %.2f' % (label, ncode, proba))
     # FIXME: non-classification tasks
-    predicted_class = np.argmax(predictions)
-    return predicted_class
+    maximum_predicted_idx = np.argmax(predictions)
+    return maximum_predicted_idx
 
 
 def get_target_layer(estimator, desired_layer):
@@ -106,7 +91,9 @@ def get_target_layer(estimator, desired_layer):
     """
     # TODO: Consider moving this to Keras utils, 
     # only passing an instance of Keras Layer to the `layer` argument.
-    if isinstance(desired_layer, int):
+    if isinstance(desired_layer, Layer):
+        target_layer = desired_layer
+    elif isinstance(desired_layer, int):
         # conv_output =  [l for l in model.layers if l.name is layer_name]
         # conv_output = conv_output[0]
         # bottom-up horizontal graph traversal
@@ -114,17 +101,6 @@ def get_target_layer(estimator, desired_layer):
         # These can raise ValueError if the layer index / name specified is not found
     elif isinstance(desired_layer, str):
         target_layer = estimator.get_layer(name=desired_layer)
-    elif callable(desired_layer):
-        # is 'callable()' the right check to use here?
-        l = estimator.get_layer(index=-4)
-        # FIXME: don't hardcode four
-        # actually iterate through the list of layers backwards (using negative indexing with get_layer()) until find the desired layer
-        target_layer = l if desired_layer(l) else None
-        if target_layer is None:
-            # If can't find, raise error
-            raise ValueError('Target layer could not be found using callable %s' % desired_layer)
-    else:
-        raise ValueError('Invalid desired_layer (must be str, int, or callable): "%s"' % desired_layer)
 
     # TODO: check target_layer dimensions (is it possible to perform Grad-CAM on it?)
     return target_layer
@@ -148,7 +124,7 @@ def target_category_loss(x, category_index, nb_classes):
     # return x
     # return K.one_hot([category_index], nb_classes)
     # ON THEIR OWN THESE TERMS GIVE ALL RED
-
+    # x[category_index]
 
 def target_category_loss_output_shape(input_shape):
     return input_shape
@@ -158,6 +134,7 @@ def normalize(x):
     # L2 norm
     # ELSE GET ALL RED
     return x / (K.sqrt(K.mean(K.square(x))) + 1e-5)
+    # return x
 
 
 def compute_gradients(ys, xs):
@@ -195,6 +172,9 @@ def grad_cam(estimator, image, prediction_index, target_layer):
     model = Model(inputs=estimator.input, outputs=loss_layer)
     output = model.output # all 0's and one probability
     loss = K.sum(output) # single number (the probability)
+    # model = estimator
+    # loss = estimator.output[1, prediction_index]
+    # print(loss.shape)
     # ELSE GET ALL RED
 
     # we need to access the output attribute, else we get a TypeError: Failed to convert object to tensor
