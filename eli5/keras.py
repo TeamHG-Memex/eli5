@@ -115,97 +115,51 @@ def get_last_activation_maps(estimator):
     return True
 
 
-def target_category_loss(x, category_index, nb_classes):
-    """
-    index = 3, classes = 5
-    -> 000x0, x = proba
-    """
-    return x * K.one_hot([category_index], nb_classes)
-    # return x
-    # return K.one_hot([category_index], nb_classes)
-    # ON THEIR OWN THESE TERMS GIVE ALL RED
-    # x[category_index]
-
-def target_category_loss_output_shape(input_shape):
-    return input_shape
-
-
-def normalize(x):
-    # L2 norm
-    # ELSE GET ALL RED
-    return x / (K.sqrt(K.mean(K.square(x))) + 1e-5)
-    # return x
-
-
-def compute_gradients(ys, xs):
-    grads = K.gradients(ys, xs)
-    return [grad if grad is not None else K.zeros_like(var) 
-            for (var, grad) in zip(xs, grads)]
-
-
-def gap(tensor): # FIXME: might want to rename this argument
-    """Global Average Pooling"""
-    # First two axes only
-    return np.mean(tensor, axis=(0, 1))
-
-
-def relu(tensor):
-    """ReLU"""
-    return np.maximum(tensor, 0)
-
-
-def get_localization_map(activation_maps, weights): # consider renaming this function to 'weighted_lincomb'
-    localization_map = np.ones(activation_maps.shape[0:2], dtype=np.float32)
-    for i, w in enumerate(weights):
-        localization_map += w * activation_maps[:,:,i] # weighted linear combination
-    return localization_map
-
-
 def grad_cam(estimator, image, prediction_index, target_layer):
     # FIXME: this assumes that we are doing classification
     # also we make the explicit assumption that we are dealing with images
-
     nb_classes = estimator.output_shape[1] # TODO: test this
 
-    loss = lambda x: target_category_loss(x, prediction_index, nb_classes)
-    loss_layer = Lambda(loss, output_shape=target_category_loss_output_shape)(estimator.output)
-    model = Model(inputs=estimator.input, outputs=loss_layer)
-    output = model.output # all 0's and one probability
-    loss = K.sum(output) # single number (the probability)
-    # model = estimator
-    # loss = estimator.output[1, prediction_index]
-    # print(loss.shape)
-    # ELSE GET ALL RED
+    model = estimator
+    output = estimator.output
+    loss = K.sum(output[:, prediction_index])
 
     # we need to access the output attribute, else we get a TypeError: Failed to convert object to tensor
     target_output = target_layer.output # output of target layer, i.e. activation maps of a convolutional layer
-    grads_prenorm = compute_gradients(loss, [target_output])[0]
-    grads = normalize(compute_gradients(loss, [target_output])[0]) # evaluated derivatives for each pixel in the target layer
-    # normalisation centers the gradients around 0 (but also increases their values?)
-
+    
+    grads = K.gradients(loss, [target_output])
+    # grads = [grad if grad is not None else K.zeros_like(var) 
+    #         for (var, grad) in zip(xs, grads)]
+    # https://github.com/jacobgil/keras-grad-cam/issues/17
+    grads = grads[0]
+    grads =  K.l2_normalize(grads) # this seems to produce less noise
 
     evaluate = K.function([model.input], [target_output, grads])
 
-    # model.summary()
-    # evaluate2 = K.function([model.input], [target_output, grads, grads_prenorm, loss, output])
-    # target_output, grads, grads_prenorm, loss, output = evaluate2([image])
+    target_output_val, grads_val = evaluate([image]) # do work
+    target_output_val = target_output_val[0, ...]
+    grads_val = grads_val[0, ...]
 
-    target_output, grads_val = evaluate([image]) # work happens
-    target_output = target_output[0,:]
-    grads_val = grads_val[0,:,:,:] # FIXME: this probably assumes that the layer is a width*height filter
+    weights = np.mean(grads_val, axis=(0, 1)) # Global Average Pooling
+    # TODO: replace numpy operations with keras backend operations, i.e. K.mean
 
-    weights = gap(grads_val)
+    # weighted linear combination
+    spatial_shape = target_output_val.shape[:2]
+    lmap = np.zeros(spatial_shape, dtype=np.float32)
+    for i, w in enumerate(weights):
+        # weight * single activation map
+        # add to the entire map (linear combination), NOT pixel by pixel
+        lmap += w * target_output_val[..., i]
 
-    lmap = get_localization_map(target_output, weights)
-    lmap = relu(lmap) # -> [0, ...] ndarray
+    lmap = np.maximum(lmap, 0) # ReLU
+
     lmap = lmap / np.max(lmap) # -> [0, 1] ndarray
-
-
     return lmap
 
 
 #
 # Credits:
 # Jacob Gildenblat for "https://github.com/jacobgil/keras-grad-cam",
-# author of "https://github.com/PowerOfCreation/keras-grad-cam" for various fixes.
-#
+# Author of "https://github.com/PowerOfCreation/keras-grad-cam" for fixes to above.
+# Kotikalapudi, Raghavendra and contributors for "https://github.com/raghakot/keras-vis"
+# 
