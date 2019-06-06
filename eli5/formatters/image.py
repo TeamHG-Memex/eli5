@@ -7,6 +7,7 @@ import matplotlib.cm
 
 
 def format_as_image(expl,
+    interactive=False, # remove this later
     interpolation=PIL.Image.LANCZOS,
     colormap=matplotlib.cm.magma,
     alpha_limit=165.75,
@@ -26,7 +27,8 @@ def format_as_image(expl,
     heatmap = set_alpha(heatmap, starting_array=heatmap_grayscale, alpha_limit=alpha_limit)
 
     overlay = overlay_heatmap(heatmap, image)
-    show_interactive(overlay, expl)
+    if interactive:
+        show_interactive(overlay, expl)
 
     return overlay
 

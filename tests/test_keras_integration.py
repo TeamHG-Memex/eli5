@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+"""Test integration of Grad-CAM method and image formatter for Keras"""
+
 import pytest
 import numpy as np
 import PIL
@@ -10,19 +12,20 @@ from keras.applications import (
 
 import eli5
 from eli5.keras_utils import load_image
+from eli5.formatters.image import format_as_image
 
 
 imagenet_cat_idx = 282
 
 
 @pytest.fixture(scope='module')
-def classifier():
+def keras_clf():
     # TODO: load weights from a file
     return mobilenet_v2.MobileNetV2(alpha=1.0, include_top=True, weights='imagenet', classes=1000)
 
 
 @pytest.fixture(scope='module')
-def image():
+def cat_dog_image():
     doc = load_image('images/cat_dog.jpg', (224, 224))
     doc = mobilenet_v2.preprocess_input(doc) # FIXME: this preprocessing is hardcoded for mobilenet_v2
     return doc
@@ -51,8 +54,9 @@ def assert_attention_over_area(expl, area):
     p = total_intensity / 100 # -> 1% of total_intensity
     intensity = area_intensity / p # -> intensity %
     # assert 70 < intensity # at least 70% (experiment with this number) # FIXME: fails for cat example
-    remaining_intensity = total_intensity - intensity
-    assert remaining_intensity < total_intensity
+    # remaining_intensity = total_intensity - intensity
+    # assert remaining_intensity < total_intensity
+    assert 50 < intensity # at least 50% (more than half)
 
 
 # TODO: consider a .png example
@@ -62,6 +66,14 @@ def assert_attention_over_area(expl, area):
     ((54, 170, 2, 100), None), # focus on the dog (pick top prediction)
     ((44, 180, 130, 212), [imagenet_cat_idx]) # focus on the cat (pass prediction)
 ])
-def test_gradcam_image_classification(classifier, image, area, targets):
-    res = eli5.explain_prediction(classifier, image, targets=targets)
+def test_image_classification(keras_clf, cat_dog_image, area, targets):
+    res = eli5.explain_prediction(keras_clf, cat_dog_image, targets=targets)
     assert_attention_over_area(res, area)
+    overlay = format_as_image(res)
+    # plt.imshow(overlay); plt.show()
+    original = res.image
+    # check external properties
+    assert isinstance(overlay, PIL.Image.Image)
+    assert overlay.width == original.width
+    assert overlay.height == original.height
+    assert overlay.mode == 'RGBA'
