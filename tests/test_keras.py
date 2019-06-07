@@ -6,7 +6,7 @@ import pytest
 from keras.models import Sequential
 from keras.layers import Activation, Conv2D, GlobalAveragePooling2D
 
-from eli5.keras import get_activation_layer
+from eli5.keras import get_activation_layer, image_from_path
 
 
 # We need to put this layer in a fixture object AND access it in a parametrization.
@@ -51,4 +51,12 @@ def test_get_activation_layer_invalid(simple_seq):
 ## Test get_target_prediction
 
 
-## Test array_from_path utility function
+## Test image_from_path utility function
+
+
+@pytest.mark.parametrize('img_path, dims, expected_shape', [
+    ('images/cat_dog.jpg', (50, 50), (1, 50, 50, 3)), # rank 4, RGB
+])
+def test_image_from_path(img_path, dims, expected_shape):
+    im = image_from_path(img_path, image_shape=dims)
+    assert im.shape == expected_shape

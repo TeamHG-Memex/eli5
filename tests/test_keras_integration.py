@@ -11,7 +11,7 @@ from keras.applications import (
 )
 
 import eli5
-from eli5.keras_utils import load_image
+from eli5.keras import image_from_path
 from eli5.formatters.image import format_as_image
 
 
@@ -26,7 +26,7 @@ def keras_clf():
 
 @pytest.fixture(scope='module')
 def cat_dog_image():
-    doc = load_image('images/cat_dog.jpg', (224, 224))
+    doc = image_from_path('images/cat_dog.jpg', image_shape=(224, 224))
     doc = mobilenet_v2.preprocess_input(doc) # FIXME: this preprocessing is hardcoded for mobilenet_v2
     return doc
 
@@ -48,9 +48,9 @@ def assert_attention_over_area(expl, area):
     focus = heatmap[y1:y2, x1:x2] # row-first ordering
 
     # TODO: show formatted image / heatmap image if test fails
-    plt.imshow(image); plt.show()
-    plt.imshow(heatmap); plt.show()
-    plt.imshow(focus); plt.show()
+    # plt.imshow(image); plt.show()
+    # plt.imshow(heatmap); plt.show()
+    # plt.imshow(focus); plt.show()
 
     total_intensity = np.sum(heatmap)
     area_intensity = np.sum(focus)
@@ -70,8 +70,11 @@ def assert_attention_over_area(expl, area):
     ((44, 180, 130, 212), [imagenet_cat_idx]) # focus on the cat (pass prediction)
 ])
 def test_image_classification(keras_clf, cat_dog_image, area, targets):
+    # check explanation
     res = eli5.explain_prediction(keras_clf, cat_dog_image, targets=targets)
     assert_attention_over_area(res, area)
+    
+    # check formatting
     overlay = format_as_image(res)
     # plt.imshow(overlay); plt.show()
     original = res.image

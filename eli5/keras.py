@@ -122,6 +122,11 @@ def get_target_prediction(model, x, targets):
     # TODO: take in a single target as well, not just a list, consider changing signature / types for explain_prediction generic function
     # TODO: need to find a way to show the label for the passed prediction as well as its probability
     # TODO: multiple predictions list (keras-vis)
+
+    # TODO: maybe do the sum / loss in this function instead of grad_cam. Return a tensor.
+    # This would be consistent with what is done in https://github.com/ramprs/grad-cam/blob/master/misc/utils.lua
+    # https://github.com/ramprs/grad-cam/blob/master/classification.lua
+    # https://github.com/torch/nn/blob/master/doc/module.md
     if isinstance(targets, list):
         # take the first prediction from the list
         # TODO: validate list contents
@@ -144,9 +149,9 @@ def grad_cam(estimator, image, prediction_index, activation_layer):
     * Author of "https://github.com/PowerOfCreation/keras-grad-cam" for fixes to Jacob's implementation.
     * Kotikalapudi, Raghavendra and contributors for "https://github.com/raghakot/keras-vis".
     """
-
     # FIXME: this assumes that we are doing classification
     # also we make the explicit assumption that we are dealing with images
+
     weights, activations, grads_val = grad_cam_backend(estimator, image, prediction_index, activation_layer)
 
     # weighted linear combination
@@ -186,7 +191,7 @@ def grad_cam_backend(estimator, image, prediction_index, activation_layer):
     return weights, activations, grads_val
 
 
-def array_from_path(img_path, image_shape=None):
+def image_from_path(img_path, image_shape=None):
     """
     Utility method for loading a single images from disk / path.
     Returns a tensor suitable for an estimator's input.
