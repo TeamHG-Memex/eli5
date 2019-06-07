@@ -12,6 +12,23 @@ def format_as_image(expl,
     colormap=matplotlib.cm.magma,
     alpha_limit=165.75,
     ):
+    """ Format explanation as an image.
+    
+    Parameters
+    ----------
+    interpolation: int, optional
+        Interpolation ID / PIL filter to be used when resizing the image.
+        Default is PIL.Image.LANCZOS.
+    colormap: matplotlib heatmap object, optional
+        Colormap scheme to be applied when converting the heatmap from grayscale to RGB.
+        Default is matplotlib.cm.magma.
+    alpha_limit: float (0. to 255.), optional
+        Maximum alpha (transparency / opacity) value allowed 
+        for the alpha channel in the RGBA heatmap image.
+        Useful when laying the heatmap over the original image, 
+        so that the image can be seen over the heatmap.
+        Default is alpha_limit=165.75.
+    """
     # Get PIL Image instances
     image = expl.image
     heatmap = expl.heatmap
@@ -34,7 +51,7 @@ def format_as_image(expl,
 
 
 def show_interactive(overlay, expl):
-    """Show the overlayed heatmap over image in a matplotlib plot"""
+    """Show the overlayed heatmap over image in a matplotlib plot (to be moved to show_prediction)"""
     fig, ax = plt.subplots()
     ax.set_axis_off()
     ax.margins(0)
@@ -49,12 +66,12 @@ def show_interactive(overlay, expl):
 
 
 def get_spatial_dimensions(image):
-    return (image.width, image.height)
+    return (image.height, image.width)
 
 
 def resize_over(heatmap, image, interpolation):
     """Resize the `heatmap` image to fit over the original `image`,
-    optionally using an `interpolation` algorithm as a filter from PIL.Image"""
+    using the specified `interpolation`"""
     # TODO: try scipy.ndimage.interpolation
     heatmap = heatmap.resize(get_spatial_dimensions(image), resample=interpolation)
     return heatmap
@@ -62,6 +79,7 @@ def resize_over(heatmap, image, interpolation):
 
 def colourise(heatmap, colormap):
     """Apply colour to a grayscale heatmap, returning an RGBA [0, 255] ndarray"""
+    # TODO: take colormap as callable
     heatmap = colormap(heatmap) # -> [0, 1] RGBA ndarray
     heatmap = np.uint8(heatmap*255) # re-scale: [0, 1] -> [0, 255] ndarray
     return heatmap
@@ -84,9 +102,9 @@ def set_alpha(image_array, starting_array=None, alpha_limit=None):
 
 
 def convert_image(img):
-    """Convert an np.ndarray or PIL Image instance to an RGBA PIL Image"""
+    """Convert an np.ndarray or PIL.Image.Image instance to an RGBA PIL Image"""
     if isinstance(img, np.ndarray):
-        img = PIL.Image.fromarray(img)
+        img = PIL.Image.fromarray(img) # ndarray -> PIL image
     if isinstance(img, PIL.Image.Image):
         if img.mode == 'RGB':
             img = img.convert(mode='RGBA') # RGB image -> RGBA image

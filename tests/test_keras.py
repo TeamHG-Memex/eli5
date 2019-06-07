@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+"""Keras unit tests"""
 
 ## test explain_weights not supported
 
