@@ -3,15 +3,20 @@ from __future__ import absolute_import
 from typing import Any, Dict, Tuple
 
 from IPython.display import HTML  # type: ignore
+import matplotlib.pyplot as plt
 
 from .explain import explain_weights, explain_prediction
-from .formatters import format_as_html, fields
+from .formatters import format_as_html, fields, format_as_image
 
 
 FORMAT_KWARGS = {'include_styles', 'force_weights',
                  'show', 'preserve_density',
                  'highlight_spaces', 'horizontal_layout',
-                 'show_feature_values'}
+                 'show_feature_values',
+                 # kwargs for image formatter
+                 'interpolation', 'colormap', 
+                 'alpha_limit',
+}
 
 
 def show_weights(estimator, **kwargs):
@@ -131,6 +136,13 @@ def show_prediction(estimator, doc, **kwargs):
     :func:`eli5.formatters.html.format_as_html`
     keyword arguments, so it is possible to get explanation and
     customize formatting in a single call.
+
+    (TODO: Format this with Sphinx) 
+    New: If explain_prediction returns an Explanation object with
+    image and heatmap attributes not set to None, i.e. in the case of
+    image based estimators, then formatting is dispatched to the
+    image display implementation, and image explanations are shown with matplotlib.
+    Any extra keyword arguments are passed to the formatters.format_as_image function.
 
     Parameters
     ----------
@@ -268,14 +280,36 @@ def show_prediction(estimator, doc, **kwargs):
     """
     format_kwargs, explain_kwargs = _split_kwargs(kwargs)
     expl = explain_prediction(estimator, doc, **explain_kwargs)
-    html = format_as_html(expl, **format_kwargs)
-    return HTML(html)
+    if expl.image is not None and expl.heatmap is not None:
+        # dispatch to image display implementation
+        return show_prediction_image(expl, **format_kwargs)
+    else:
+        # use default implementation
+        # TODO: test this in the unit test
+        format_kwargs.setdefault('show', fields.WEIGHTS)
+        format_kwargs.setdefault('force_weights', False)
+        html = format_as_html(expl, **format_kwargs)
+        return HTML(html)
+
+
+def show_prediction_image(expl, **format_kwargs):
+    """ Show the heatmap and image overlay in a matplotlib plot """
+    # TODO: arguments to this function that control if any labels should be set, i.e. title
+    overlay = format_as_image(expl, **format_kwargs)
+    fig, ax = plt.subplots()
+    ax.set_axis_off()
+    ax.margins(0)
+    plt.title(expl.estimator) # TODO: add image, prediction, layer information as well
+
+    ax.imshow(overlay)
+    plt.show()
+    return fig, ax
+    # FIXME: for some reason image is resized to 231x231 from 299x299
+    # FIXME: sometimes the plot doesn't show up, only get a 'Axis for figure n' message
 
 
 def _split_kwargs(kwargs):
     # type: (Dict[str, Any]) -> Tuple[Dict[str, Any], Dict[str, Any]]
     format_kwargs = {k: v for k, v in kwargs.items() if k in FORMAT_KWARGS}
-    format_kwargs.setdefault('show', fields.WEIGHTS)
-    format_kwargs.setdefault('force_weights', False)
     explain_kwargs = {k: v for k, v in kwargs.items() if k not in FORMAT_KWARGS}
     return format_kwargs, explain_kwargs

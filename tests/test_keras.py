@@ -46,3 +46,9 @@ def test_get_activation_layer(simple_seq, layer, expected_layer):
 def test_get_activation_layer_invalid(simple_seq):
     with pytest.raises(ValueError):
         get_activation_layer(simple_seq, 2.5) # some nonsense
+
+
+## Test get_target_prediction
+
+
+## Test array_from_path utility function

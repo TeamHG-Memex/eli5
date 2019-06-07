@@ -2,12 +2,10 @@
 
 import numpy as np
 import PIL
-import matplotlib.pyplot as plt
 import matplotlib.cm
 
 
 def format_as_image(expl,
-    interactive=False, # remove this later
     interpolation=PIL.Image.LANCZOS,
     colormap=matplotlib.cm.magma,
     alpha_limit=165.75,
@@ -41,28 +39,11 @@ def format_as_image(expl,
     # update the alpha channel (transparency/opacity) values of the heatmap
     # make the alpha intensity correspond to the grayscale heatmap values
     # cap the intensity so that it's not too opaque when near maximum value
+    # TODO: more options for controlling alpha, i.e. a callable?
     heatmap = set_alpha(heatmap, starting_array=heatmap_grayscale, alpha_limit=alpha_limit)
 
     overlay = overlay_heatmap(heatmap, image)
-    if interactive:
-        show_interactive(overlay, expl)
-
     return overlay
-
-
-def show_interactive(overlay, expl):
-    """Show the overlayed heatmap over image in a matplotlib plot (to be moved to show_prediction)"""
-    fig, ax = plt.subplots()
-    ax.set_axis_off()
-    ax.margins(0)
-    plt.title(expl.estimator) # TODO: add image, prediction, layer information as well
-
-    ax.imshow(overlay)
-    plt.show()
-    return fig, ax
-
-    # FIXME: for some reason image is resized to 231x231 from 299x299
-    # FIXME: sometimes the plot doesn't show up, only get a 'Axis for figure n' message
 
 
 def get_spatial_dimensions(image):
