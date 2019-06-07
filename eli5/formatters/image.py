@@ -19,7 +19,7 @@ def format_as_image(expl,
     interpolation: int, optional
         Interpolation ID / PIL filter to be used when resizing the image.
         Default is PIL.Image.LANCZOS.
-    colormap: matplotlib heatmap object, optional
+    colormap: matplotlib colormap object, optional
         Colormap scheme to be applied when converting the heatmap from grayscale to RGB.
         Default is matplotlib.cm.magma.
     alpha_limit: float (0. to 255.), optional

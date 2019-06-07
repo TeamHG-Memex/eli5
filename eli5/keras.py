@@ -66,7 +66,8 @@ def explain_prediction_keras(estimator, doc, # model, image
 def get_activation_layer(estimator, layer):
     """
     Return instance of the desired layer in the model.
-    See documentation of explain_prediction_keras for description of layer
+    See documentation of explain_prediction_keras for description of layer.
+    Raises ValueError if layer is of wrong type.
     """        
     if layer is None:
         # Automatically get the layer if not provided
@@ -81,6 +82,8 @@ def get_activation_layer(estimator, layer):
         # These can raise ValueError if the layer index / name specified is not found
     elif isinstance(layer, str):
         activation_layer = estimator.get_layer(name=layer)
+    else:
+        raise ValueError('Invalid layer (must be str, int, keras.layers.Layer, or None): %s' % layer)
 
     # TODO: check activation_layer dimensions (is it possible to perform Grad-CAM on it?)
     return activation_layer
