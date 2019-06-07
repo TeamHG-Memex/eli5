@@ -35,6 +35,9 @@ def assert_attention_over_area(expl, area):
     """
     Explanation 'expl' over 'area', 
     a tuple of (x1, x2, y1, y2), starting and ending points of the bounding rectangle.
+    We make two assumptions in this test:
+    1. The model can classify the example image correctly.
+    2. The area specified by the tester over the example image is correct.
     """
     image = expl.image
     heatmap = expl.heatmap
