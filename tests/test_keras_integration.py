@@ -69,9 +69,12 @@ def assert_attention_over_area(expl, area):
 # TODO: consider a .png example
 # TODO: time these tests
 # area = (x1, x2, y1, y2)
+# FIXME: py35-extra fails:
+# tests/test_keras_integration.py::test_image_classification[area0-None] ERROR [ 35%]
+# tests/test_keras_integration.py::test_image_classification[area1-targets1] ERROR [ 35%]
 @pytest.mark.parametrize('area, targets', [
     ((54, 170, 2, 100), None), # focus on the dog (pick top prediction)
-    ((44, 180, 130, 212), [imagenet_cat_idx]) # focus on the cat (pass prediction)
+    ((44, 180, 130, 212), [imagenet_cat_idx]), # focus on the cat (pass prediction)
 ])
 def test_image_classification(keras_clf, cat_dog_image, area, targets):
     # check explanation

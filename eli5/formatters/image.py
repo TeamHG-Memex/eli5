@@ -91,7 +91,7 @@ def convert_image(img):
     """Convert an np.ndarray or PIL.Image.Image instance to an RGBA PIL Image"""
     if isinstance(img, np.ndarray):
         img = Image.fromarray(img) # ndarray -> PIL image
-    if isinstance(img, PIL.Image.Image):
+    if isinstance(img, Image.Image):
         if img.mode == 'RGB':
             img = img.convert(mode='RGBA') # RGB image -> RGBA image
     return img

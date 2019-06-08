@@ -51,6 +51,8 @@ def test_get_activation_layer_invalid(simple_seq):
         get_activation_layer(simple_seq, 2.5) # some nonsense
 
 
+# dims = (height, width)
+# FIXME: different ordering?
 @pytest.mark.parametrize('img_path, dims, expected_shape', [
     ('images/cat_dog.jpg', (30, 50), (1, 30, 50, 3)), # rank 4, RGB
 ])
