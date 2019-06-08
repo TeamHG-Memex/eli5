@@ -123,6 +123,7 @@ def show_weights(estimator, **kwargs):
     """
     format_kwargs, explain_kwargs = _split_kwargs(kwargs)
     expl = explain_weights(estimator, **explain_kwargs)
+    _set_html_kwargs_defaults(format_kwargs)
     html = format_as_html(expl, **format_kwargs)
     return HTML(html)
 
@@ -287,8 +288,7 @@ def show_prediction(estimator, doc, **kwargs):
     else:
         # use default implementation
         # TODO: test this in the unit test
-        format_kwargs.setdefault('show', fields.WEIGHTS)
-        format_kwargs.setdefault('force_weights', False)
+        _set_html_kwargs_defaults(format_kwargs)
         html = format_as_html(expl, **format_kwargs)
         return HTML(html)
 
@@ -314,3 +314,8 @@ def _split_kwargs(kwargs):
     format_kwargs = {k: v for k, v in kwargs.items() if k in FORMAT_KWARGS}
     explain_kwargs = {k: v for k, v in kwargs.items() if k not in FORMAT_KWARGS}
     return format_kwargs, explain_kwargs
+
+
+def _set_html_kwargs_defaults(format_kwargs):
+    format_kwargs.setdefault('show', fields.WEIGHTS)
+    format_kwargs.setdefault('force_weights', False)
