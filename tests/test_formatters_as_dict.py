@@ -58,5 +58,7 @@ def test_format_as_dict():
            'highlight_spaces': None,
            'is_regression': False,
            'method': None,
-           'transition_features': None
+           'transition_features': None,
+           'image': None,
+           'heatmap': None,
            }
