@@ -8,6 +8,7 @@ keras = pytest.importorskip('keras')
 PIL = pytest.importorskip('PIL')
 
 import numpy as np
+from PIL import Image
 # import matplotlib.pyplot as plt
 from keras.applications import (
     mobilenet_v2
@@ -45,7 +46,7 @@ def assert_attention_over_area(expl, area):
     image = expl.image
     heatmap = expl.heatmap
     # fit heatmap over image
-    heatmap = heatmap.resize((image.width, image.height), resample=PIL.Image.LANCZOS)
+    heatmap = heatmap.resize((image.width, image.height), resample=Image.LANCZOS)
     heatmap = np.array(heatmap)
     x1, x2, y1, y2 = area
     focus = heatmap[y1:y2, x1:x2] # row-first ordering
@@ -82,7 +83,7 @@ def test_image_classification(keras_clf, cat_dog_image, area, targets):
     # plt.imshow(overlay); plt.show()
     original = res.image
     # check external properties
-    assert isinstance(overlay, PIL.Image.Image)
+    assert isinstance(overlay, Image.Image)
     assert overlay.width == original.width
     assert overlay.height == original.height
     assert overlay.mode == 'RGBA'

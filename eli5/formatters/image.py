@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-import PIL
+from PIL import Image
 import matplotlib.cm
 
 
 def format_as_image(expl,
-    interpolation=PIL.Image.LANCZOS,
+    interpolation=Image.LANCZOS,
     colormap=matplotlib.cm.magma,
     alpha_limit=165.75,
     ):
@@ -90,7 +90,7 @@ def set_alpha(image_array, starting_array=None, alpha_limit=None):
 def convert_image(img):
     """Convert an np.ndarray or PIL.Image.Image instance to an RGBA PIL Image"""
     if isinstance(img, np.ndarray):
-        img = PIL.Image.fromarray(img) # ndarray -> PIL image
+        img = Image.fromarray(img) # ndarray -> PIL image
     if isinstance(img, PIL.Image.Image):
         if img.mode == 'RGB':
             img = img.convert(mode='RGBA') # RGB image -> RGBA image
@@ -103,5 +103,5 @@ def overlay_heatmap(heatmap, image):
     heatmap = convert_image(heatmap)
     image = convert_image(image)
     # combine the two images
-    overlayed_image = PIL.Image.alpha_composite(image, heatmap) # the order of arguments matters!
+    overlayed_image = Image.alpha_composite(image, heatmap) # the order of arguments matters!
     return overlayed_image
