@@ -12,6 +12,8 @@ from eli5.base import Explanation
 from eli5.explain import explain_prediction
 
 
+DESCRIPTION_KERAS = """Grad-CAM visualization for image input; output is images"""
+
 # note that Sequential subclasses Model, so we can just register the Model type
 @explain_prediction.register(Model)
 def explain_prediction_keras(estimator, doc, # model, image
@@ -53,7 +55,7 @@ def explain_prediction_keras(estimator, doc, # model, image
     # Consider returning the resized version of the heatmap, just a grayscale array
     return Explanation(
         estimator.name, # might want to replace this with something else, eg: estimator.summary()
-        description='',
+        description=DESCRIPTION_KERAS,
         error='',
         method='Vanilla Grad-CAM',
         is_regression=False, # classification vs regression model

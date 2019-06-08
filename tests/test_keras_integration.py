@@ -3,16 +3,19 @@
 """Test integration of Grad-CAM method and image formatter for Keras"""
 
 import pytest
+
+keras = pytest.importorskip('keras')
+PIL = pytest.importorskip('PIL')
+
 import numpy as np
-import PIL
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 from keras.applications import (
     mobilenet_v2
 )
 
 import eli5
 from eli5.keras import image_from_path
-from eli5.formatters.image import format_as_image
+from eli5 import format_as_image
 
 
 imagenet_cat_idx = 282

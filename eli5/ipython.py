@@ -17,6 +17,7 @@ FORMAT_KWARGS = {'include_styles', 'force_weights',
                  'interpolation', 'colormap', 
                  'alpha_limit',
 }
+# TODO: automatically get FORMAT_KWARGS from function signatures
 
 
 def show_weights(estimator, **kwargs):

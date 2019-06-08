@@ -8,7 +8,6 @@ from .formatters import (
     format_html_styles,
     format_as_text,
     format_as_dict,
-    # format_as_image, # FIXME
 )
 from .explain import explain_weights, explain_prediction
 from .sklearn import explain_weights_sklearn, explain_prediction_sklearn
@@ -28,6 +27,14 @@ try:
     )
 except ImportError:
     pass  # pandas not available
+
+try:
+    from .formatters import (
+        format_as_image
+    )
+except ImportError:
+    # Pillow or matplotlib not available
+    pass
 
 try:
     from .lightning import (
@@ -73,7 +80,6 @@ except OSError:
     # improperly installed lightgbm
     pass
 
-
 try:
     from .catboost import (
         explain_weights_catboost
@@ -81,7 +87,6 @@ try:
 except ImportError:
     # catboost is not available
     pass
-
 
 try:
     from .keras import (

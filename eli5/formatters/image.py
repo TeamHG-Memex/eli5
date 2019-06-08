@@ -15,10 +15,13 @@ def format_as_image(expl,
     Parameters
     ----------
     interpolation: int, optional
-        Interpolation ID / PIL filter to be used when resizing the image.
+        Interpolation ID / Pillow filter to use when resizing the image.
         Default is PIL.Image.LANCZOS.
-    colormap: matplotlib colormap object, optional
+    colormap: matplotlib colormap object or callable, optional
         Colormap scheme to be applied when converting the heatmap from grayscale to RGB.
+        Either a colormap from matplotlib.cm, 
+        or a callable that takes a rank 2 array and 
+        returns the colored heatmap as a [0, 1] RGBA numpy array.
         Default is matplotlib.cm.magma.
     alpha_limit: float (0. to 255.), optional
         Maximum alpha (transparency / opacity) value allowed 
@@ -41,7 +44,6 @@ def format_as_image(expl,
     # cap the intensity so that it's not too opaque when near maximum value
     # TODO: more options for controlling alpha, i.e. a callable?
     heatmap = set_alpha(heatmap, starting_array=heatmap_grayscale, alpha_limit=alpha_limit)
-
     overlay = overlay_heatmap(heatmap, image)
     return overlay
 
@@ -53,7 +55,10 @@ def get_spatial_dimensions(image):
 def resize_over(heatmap, image, interpolation):
     """Resize the `heatmap` image to fit over the original `image`,
     using the specified `interpolation`"""
-    # TODO: try scipy.ndimage.interpolation
+    # PIL seems to have a much nicer API for resizing than scipy,
+    # (looking at scipy.ndimage)
+    # Also, scipy seems to have some interpolation problems: 
+    # https://github.com/scipy/scipy/issues/8210
     heatmap = heatmap.resize(get_spatial_dimensions(image), resample=interpolation)
     return heatmap
 

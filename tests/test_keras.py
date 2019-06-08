@@ -3,6 +3,9 @@
 """Keras unit tests"""
 
 import pytest
+
+keras = pytest.importorskip('keras')
+
 from keras.models import Sequential
 from keras.layers import Activation, Conv2D, GlobalAveragePooling2D
 
@@ -48,15 +51,12 @@ def test_get_activation_layer_invalid(simple_seq):
         get_activation_layer(simple_seq, 2.5) # some nonsense
 
 
-## Test get_target_prediction
-
-
-## Test image_from_path utility function
-
-
 @pytest.mark.parametrize('img_path, dims, expected_shape', [
-    ('images/cat_dog.jpg', (50, 50), (1, 50, 50, 3)), # rank 4, RGB
+    ('images/cat_dog.jpg', (30, 50), (1, 30, 50, 3)), # rank 4, RGB
 ])
 def test_image_from_path(img_path, dims, expected_shape):
     im = image_from_path(img_path, image_shape=dims)
     assert im.shape == expected_shape
+
+
+# TODO: test get_target_prediction() once it is finalized regarding non-classification models
