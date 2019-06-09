@@ -12,7 +12,7 @@ from keras.layers import Activation, Conv2D, GlobalAveragePooling2D
 from eli5.keras import get_activation_layer, image_from_path
 
 
-# We need to put this layer in a fixture object AND access it in a parametrization.
+# We need to put this layer in a fixture object AND access it in a parametrization
 gap_layer = GlobalAveragePooling2D()
 
 @pytest.fixture(scope='module')
@@ -54,7 +54,7 @@ def test_get_activation_layer_invalid(simple_seq):
 # dims = (height, width)
 # FIXME: different ordering?
 @pytest.mark.parametrize('img_path, dims, expected_shape', [
-    ('images/cat_dog.jpg', (30, 50), (1, 30, 50, 3)), # rank 4, RGB
+    ('tests/images/cat_dog.jpg', (30, 50), (1, 30, 50, 3)), # rank 4, RGB
 ])
 def test_image_from_path(img_path, dims, expected_shape):
     im = image_from_path(img_path, image_shape=dims)

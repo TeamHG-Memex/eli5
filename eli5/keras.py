@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """Keras neural network explanations"""
+from __future__ import absolute_import
 
 import numpy as np
 import keras

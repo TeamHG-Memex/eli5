@@ -9,7 +9,6 @@ PIL = pytest.importorskip('PIL')
 
 import numpy as np
 from PIL import Image
-# import matplotlib.pyplot as plt
 from keras.applications import (
     mobilenet_v2
 )
@@ -30,7 +29,7 @@ def keras_clf():
 
 @pytest.fixture(scope='module')
 def cat_dog_image():
-    doc = image_from_path('images/cat_dog.jpg', image_shape=(224, 224))
+    doc = image_from_path('tests/images/cat_dog.jpg', image_shape=(224, 224))
     doc = mobilenet_v2.preprocess_input(doc) # FIXME: this preprocessing is hardcoded for mobilenet_v2
     return doc
 
@@ -51,10 +50,10 @@ def assert_attention_over_area(expl, area):
     x1, x2, y1, y2 = area
     focus = heatmap[y1:y2, x1:x2] # row-first ordering
 
-    # TODO: show formatted image / heatmap image if test fails
-    # plt.imshow(image); plt.show()
-    # plt.imshow(heatmap); plt.show()
-    # plt.imshow(focus); plt.show()
+    # TODO: show image, heatmap, and overlay if test fails
+    # https://stackoverflow.com/questions/13364868/in-pytest-how-can-i-figure-out-if-a-test-failed-from-request
+    # https://docs.pytest.org/en/latest/example/simple.html#making-test-result-information-available-in-fixtures
+    # https://stackoverflow.com/questions/35703122/how-to-detect-when-pytest-test-case-failed/36219273
 
     total_intensity = np.sum(heatmap)
     area_intensity = np.sum(focus)
@@ -83,7 +82,6 @@ def test_image_classification(keras_clf, cat_dog_image, area, targets):
     
     # check formatting
     overlay = format_as_image(res)
-    # plt.imshow(overlay); plt.show()
     original = res.image
     # check external properties
     assert isinstance(overlay, Image.Image)
