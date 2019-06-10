@@ -33,3 +33,5 @@ The following functions are exposed to a top level, e.g.
 .. autofunction:: eli5.format_as_dataframes
 
 .. autofunction:: eli5.format_as_dict
+
+.. autofunction:: eli5.format_as_image

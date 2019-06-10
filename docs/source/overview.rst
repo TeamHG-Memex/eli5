@@ -45,6 +45,9 @@ following machine learning frameworks and packages:
 * :ref:`library-sklearn-crfsuite`. ELI5 allows to check weights of
   sklearn_crfsuite.CRF models.
 
+* :ref:`library-keras` - explain predictions of Sequential and Model image classifiers
+  using Grad-CAM.
+
 ELI5 also implements several algorithms for inspecting black-box models
 (see :ref:`eli5-black-box`):
 
@@ -138,8 +141,8 @@ Architecture
 In ELI5 "explanation" is separated from output format:
 :func:`eli5.explain_weights` and :func:`eli5.explain_prediction`
 return :class:`~.Explanation` instances; then functions from
-:mod:`eli5.formatters` can be used to get HTML, text, dict/JSON
-or pandas DataFrame representation of the explanation.
+:mod:`eli5.formatters` can be used to get HTML, text, dict/JSON,
+pandas DataFrame, or PIL image representation of the explanation.
 
 It is not convenient to do that all when working interactively in IPython
 notebooks, so there are :func:`eli5.show_weights` and

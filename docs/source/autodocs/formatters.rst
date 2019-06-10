@@ -18,6 +18,7 @@ also available in ``eli5`` namespace (e.g. ``eli5.formas_as_html``):
 * :func:`eli5.formatters.as_dataframe.explain_prediction_dfs`
 * :func:`eli5.formatters.as_dataframe.format_as_dataframe`
 * :func:`eli5.formatters.as_dataframe.format_as_dataframes`
+* :func:`eli5.formatters.image.format_as_image`
 
 
 eli5.formatters.html
@@ -42,4 +43,9 @@ eli5.formatters.as_dataframe
 ----------------------------
 
 .. automodule:: eli5.formatters.as_dataframe
+    :members:
+
+eli5.formatters.image
+-------------------------------
+.. automodule:: eli5.formatters.image
     :members:

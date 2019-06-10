@@ -139,11 +139,12 @@ def show_prediction(estimator, doc, **kwargs):
     keyword arguments, so it is possible to get explanation and
     customize formatting in a single call.
 
-    New: If explain_prediction returns an Explanation object with
-    image and heatmap attributes not set to None, i.e. in the case of
-    image based estimators, then formatting is dispatched to the
-    image display implementation, and image explanations are shown with matplotlib.
-    Any extra keyword arguments are passed to the formatters.format_as_image function.
+    (*New in x.y.z*)
+    If :func:`explain_prediction` returns an :class:`base.Explanation` object with
+    ``image`` and ``heatmap`` attributes not None, i.e. if explaining image based models,
+    then formatting is dispatched to the image display implementation, 
+    and image explanations are shown with matplotlib.
+    Any extra keyword arguments are passed to :func:`formatters.format_as_image`.
 
     Parameters
     ----------
@@ -294,7 +295,14 @@ def show_prediction(estimator, doc, **kwargs):
 
 
 def show_prediction_image(expl, **format_kwargs):
-    """ Show the heatmap and image overlay in a matplotlib plot """
+    """ 
+    Show the heatmap and image overlay in a matplotlib plot 
+    
+    Returns
+    -------
+    figure and axes : tuple[object]
+        Matplotlib objects for the overlay.
+    """
     # TODO: arguments to this show_prediction_image function 
     # that control if any labels should be set, i.e. title
     overlay = format_as_image(expl, **format_kwargs)

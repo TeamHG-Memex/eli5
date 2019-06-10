@@ -22,24 +22,38 @@ def explain_prediction_keras(estimator, doc,
                              # new parameters:
                              layer=None,
                             ):
-    """ Return an explanation of a Keras model for an image.
+    """
+    Explain an image prediction of a Keras image classifier.
+
+    See :func:`eli5.explain_prediction` for more information about the ``estimator``,
+    ``doc``, ``target_names``, and ``targets`` parameters.
 
     Parameters
     ----------
-    estimator : model, required
-        the neural network
-    doc : tensor, required
-        an input image acceptable by the estimator.
-    target_names: tensor, optional
-        names of prediction classes
-    targets: list or None, optional
-        a list of predictions to focus on, as prediction id's
-        (currently only the first prediction from the list is explained),
-        If None, the model is fed the input and the top prediction is taken automatically.
-    layer: int, str, or keras.layers.Layer instance, optional
-        the activation layer in the model to perform Grad-CAM on, either a valid keras layer name (str) 
-        a layer index (int), or an instance of keras.layers.Layer.
+    estimator : object
+        Instance of a Keras neural network model.
+    doc : object
+        An input image as a tensor to ``estimator``, for example ``numpy.ndarray``.
+    target_names : list, optional
+        *`Not Implemented`*.
+
+        Names for classes in the final output layer.
+    targets : list[int], optional
+        Prediction ID's to focus on.
+
+        *`Currently only the first prediction from the list is explained`*.
+
+        If None, the model is fed the input and its top prediction 
+        is taken as target as the target automatically.
+    layer : int or str or object, optional
+        The activation layer in the model to perform Grad-CAM on,
+        a valid keras layer name, layer index, or an instance of keras.layers.Layer.
+        
         If None, a suitable layer is attempted to be retrieved (raise ValueError if can not).
+
+    Returns
+    -------
+    A :class:`base.Explanation` object with the ``image`` and ``heatmap`` attributes set.
     """
     activation_layer = get_activation_layer(estimator, layer)
     predicted = get_target_prediction(estimator, doc, targets)
@@ -70,13 +84,22 @@ def explain_prediction_keras(estimator, doc,
 
 def get_activation_layer(estimator, layer):
     """
-    Return instance of the desired layer in the model.
-    See documentation of explain_prediction_keras for description of layer.
-    Raises ValueError if layer is of wrong type.
+    Get an instance of the desired activation layer.
+
+    See :func:`explain_prediction_keras` for description of ``estimator`` and
+    ``layer`` parameters.
+
+    Returns
+    -------
+    A ``keras.layers.Layer`` instance.
+
+    Raises
+    ------
+    TypeError : ``layer`` is wrong type.
     """        
     if layer is None:
         # Automatically get the layer if not provided
-        activation_layer = get_last_activation_layer(estimator)
+        activation_layer = search_layer_backwards(estimator, is_suitable_activation_layer)
     elif isinstance(layer, Layer):
         activation_layer = layer
     elif isinstance(layer, int):
@@ -86,30 +109,54 @@ def get_activation_layer(estimator, layer):
     elif isinstance(layer, str):
         activation_layer = estimator.get_layer(name=layer)
     else:
-        raise ValueError('Invalid layer (must be str, int, keras.layers.Layer, or None): %s' % layer)
+        raise TypeError('Invalid layer (must be str, int, keras.layers.Layer, or None): %s' % layer)
 
     # TODO: validate activation_layer dimensions (is it possible to perform Grad-CAM on it?)
     return activation_layer
 
 
-def get_last_activation_layer(estimator):
-    """Return a matching layer instance, searching backwards from model output.
-    Raises ValueError if matching layer can not be found."""
+def search_layer_backwards(estimator, condition):
+    """
+    Search for a layer in ``estimator`` backwards (starting from output layer),
+    checking if the layer is suitable with the callable ``condition``,
+    where condition takes ``estimator`` and ``index`` arguments.
+    
+    Returns
+    -------
+    layer : object
+        A suitable ``keras.layers.Layer`` instance.
+
+    Raises
+    ------
+    ValueError :
+        If suitable layer can not be found.
+    """
     # we assume that this is a simple feedforward network
     # linear search in reverse
     i = len(estimator.layers)-1
-    while -1 < i and not is_suitable_activation_layer(estimator, i):
+    while -1 < i and not condition(estimator, i):
         i -= 1
     if -1 < i:
-        # found a suitable layer
+        # linear search succeeded
         return estimator.get_layer(index=i)
     else:
         raise ValueError('Could not find a suitable target layer automatically.')
 
 
 def is_suitable_activation_layer(estimator, i):
-    """Return True if layer at index i matches what is required 
-    by estimator for an activation layer."""
+    """
+    Check whether
+    the layer at index ``i`` matches what is required 
+    by ``estimator``.
+    
+    Matching is done by
+    * checking the rank of the layer.
+
+    Returns
+    -------
+    is suitable : boolean
+        whether the layer matches what is needed
+    """
     # TODO: experiment with this, using many models and images, to find what works best
     # Some ideas: 
     # check layer type, i.e.: isinstance(l, keras.layers.Conv2D)
@@ -122,7 +169,15 @@ def is_suitable_activation_layer(estimator, i):
 
 
 def get_target_prediction(model, x, targets):
-    """Return a prediction ID. See documentation of explain_prediction_keras for explanation of targets"""
+    """
+    Get a prediction ID from ``targets``.
+
+    See documentation of ``explain_prediction_keras`` for explanation of ``targets``.
+    
+    Returns
+    -------
+    prediction id : int
+    """
     # TODO: take in a single target as well, not just a list, 
     # consider changing signature / types for explain_prediction generic function
     # TODO: need to find a way to show the label for the passed prediction 
@@ -147,13 +202,17 @@ def get_target_prediction(model, x, targets):
 
 def grad_cam(estimator, image, prediction_index, activation_layer):
     """
-    Gradient-weighted Class Activation Mapping (Grad-CAM),
-    https://arxiv.org/pdf/1610.02391.pdf.
+    Generate a heatmap using Gradient-weighted Class Activation Mapping (Grad-CAM).
 
-    Credits:
+    Credits for implementation
     * Jacob Gildenblat for "https://github.com/jacobgil/keras-grad-cam".
     * Author of "https://github.com/PowerOfCreation/keras-grad-cam" for fixes to Jacob's implementation.
     * Kotikalapudi, Raghavendra and contributors for "https://github.com/raghakot/keras-vis".
+    
+    Returns
+    -------
+    heatmap : object
+        A numpy.ndarray localization map.
     """
     # FIXME: this assumes that we are doing classification
     # FIXME: we also explicitly assume that we are dealing with images
@@ -176,8 +235,14 @@ def grad_cam(estimator, image, prediction_index, activation_layer):
 
 
 def grad_cam_backend(estimator, image, prediction_index, activation_layer):
-    """Calculate the terms required by the Grad-CAM formula
-    - weights, activation layer outputs, gradients"""
+    """
+    Compute the terms required by the Grad-CAM formula.
+
+    Returns
+    -------
+    (weights, activations, gradients) : tuple[object]
+        Values of variables.
+    """
     output = estimator.output
     score = output[:, prediction_index]
     # output of target layer, i.e. activation maps of a convolutional layer
@@ -202,21 +267,24 @@ def grad_cam_backend(estimator, image, prediction_index, activation_layer):
 
 def image_from_path(img_path, image_shape=None):
     """
-    Utility method for loading a single images from disk / path.
-    Returns a tensor suitable for an estimator's input.
+    Load a single image from disk, with an optional resize.
 
     Parameters
     ----------
-    img_path: str, required: 
-        path to a single image file.
-    image_shape: tuple, optional:
-        A tuple of shape (height, width) that the image is to be resized to.
-        For example, the required spatial input for the estimator.
-        If None, no resizing is done.
-    estimator: model instance, for resizing the image to the required input dimensions
+    img_path : str
+        Path to a single image file.
+    image_shape : tuple[int], optional
+        A (height, width) tuple that indicates the dimensions that the 
+        image is to be resized to.
+
+    Returns
+    -------
+    doc : object
+        A numpy.ndarray representing the image as input to a model.
     """
-    # TODO: Take in PIL image object, or an array; "pipeline": path str -> PIL image -> numpy array
-    # TODO: multiple images.
+    # TODO: Take in PIL image object, or an array
+    # "pipeline": path str -> PIL image -> numpy array
+    # TODO: multiple images
     im = load_img(img_path, target_size=image_shape)
     x = img_to_array(im)
 
