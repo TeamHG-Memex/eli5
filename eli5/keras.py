@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-"""Keras neural network explanations"""
 from __future__ import absolute_import
 
 import numpy as np
@@ -15,28 +14,32 @@ from eli5.explain import explain_prediction
 
 DESCRIPTION_KERAS = """Grad-CAM visualization for image input; output is images"""
 
-# note that Sequential subclasses Model, so we can just register the Model type
+# note that keras.models.Sequential subclasses keras.models.Model, so we can just register Model
 @explain_prediction.register(Model)
-def explain_prediction_keras(estimator, doc, # model, image
-                             target_names=None, # TODO: rename / provide prediction labels
-                             targets=None, # prediction(s) to focus on, if None take top prediction
+def explain_prediction_keras(estimator, doc,
+                             target_names=None, # TODO: implement this
+                             targets=None,
                              # new parameters:
-                             layer=None, # which layer to focus on, 
+                             layer=None,
                             ):
-    """ Return an explanation of a Keras model for image input.
+    """ Return an explanation of a Keras model for an image.
 
     Parameters
     ----------
+    estimator : model, required
+        the neural network
     doc : tensor, required
         an input image acceptable by the estimator.
+    target_names: tensor, optional
+        names of prediction classes
     targets: list or None, optional
-        a list of prediction id's to focus on,
+        a list of predictions to focus on, as prediction id's
         (currently only the first prediction from the list is explained),
         If None, the model is fed the input and the top prediction is taken automatically.
     layer: int, str, or keras.layers.Layer instance, optional
-        an activation layer in the model to perform Grad-CAM on, either a valid keras layer name (str) 
+        the activation layer in the model to perform Grad-CAM on, either a valid keras layer name (str) 
         a layer index (int), or an instance of keras.layers.Layer.
-        If None, a suitable layer is attempted to be retrieved.
+        If None, a suitable layer is attempted to be retrieved (raise ValueError if can not).
     """
     activation_layer = get_activation_layer(estimator, layer)
     predicted = get_target_prediction(estimator, doc, targets)
@@ -44,22 +47,21 @@ def explain_prediction_keras(estimator, doc, # model, image
     heatmap = grad_cam(estimator, doc, predicted, activation_layer)
     # TODO: consider renaming 'heatmap' to 'visualization'/'activations' (the output is not yet a heat map)
 
-    # need to insert a 'channel' axis for a rank 3 image
+    # need to insert a 'channel' axis to get a rank 3 image from rank 2
     heatmap = np.expand_dims(heatmap, axis=-1)
-    heatmap = array_to_img(heatmap)
+    heatmap = array_to_img(heatmap) # -> PIL image
     
-    # take the single image from the input 'batch'
+    # take the single image from the input 'batch' (rank 4 to rank 3)
     doc = doc[0]
-    image = array_to_img(doc)
+    image = array_to_img(doc) # -> PIL image
 
     # TODO: return arrays, not images (arrays are more general)
-    # Consider returning the resized version of the heatmap, just a grayscale array
     return Explanation(
         estimator.name, # might want to replace this with something else, eg: estimator.summary()
         description=DESCRIPTION_KERAS,
         error='',
         method='Vanilla Grad-CAM',
-        is_regression=False, # classification vs regression model
+        is_regression=False, # TODO: classification vs regression model
         highlight_spaces=None, # might be relevant later when explaining text models
         image=image,
         heatmap=heatmap,
@@ -74,8 +76,6 @@ def get_activation_layer(estimator, layer):
     """        
     if layer is None:
         # Automatically get the layer if not provided
-        # this might not be a good idea from transparency / user point of view
-        # layer = get_last_activation_maps
         activation_layer = get_last_activation_layer(estimator)
     elif isinstance(layer, Layer):
         activation_layer = layer
@@ -88,14 +88,14 @@ def get_activation_layer(estimator, layer):
     else:
         raise ValueError('Invalid layer (must be str, int, keras.layers.Layer, or None): %s' % layer)
 
-    # TODO: check activation_layer dimensions (is it possible to perform Grad-CAM on it?)
+    # TODO: validate activation_layer dimensions (is it possible to perform Grad-CAM on it?)
     return activation_layer
 
 
 def get_last_activation_layer(estimator):
     """Return a matching layer instance, searching backwards from model output.
     Raises ValueError if matching layer can not be found."""
-    # we assume this is a simple feedforward network
+    # we assume that this is a simple feedforward network
     # linear search in reverse
     i = len(estimator.layers)-1
     while -1 < i and not is_suitable_activation_layer(estimator, i):
@@ -108,7 +108,8 @@ def get_last_activation_layer(estimator):
 
 
 def is_suitable_activation_layer(estimator, i):
-    """Return True if layer at index i matches what is required by estimator for an activation layer."""
+    """Return True if layer at index i matches what is required 
+    by estimator for an activation layer."""
     # TODO: experiment with this, using many models and images, to find what works best
     # Some ideas: 
     # check layer type, i.e.: isinstance(l, keras.layers.Conv2D)
@@ -122,9 +123,10 @@ def is_suitable_activation_layer(estimator, i):
 
 def get_target_prediction(model, x, targets):
     """Return a prediction ID. See documentation of explain_prediction_keras for explanation of targets"""
-    # TODO: take in a single target as well, not just a list, consider changing signature / types for explain_prediction generic function
-    # TODO: need to find a way to show the label for the passed prediction as well as its probability
-    # TODO: multiple predictions list (keras-vis)
+    # TODO: take in a single target as well, not just a list, 
+    # consider changing signature / types for explain_prediction generic function
+    # TODO: need to find a way to show the label for the passed prediction 
+    # as well as its probability
 
     # TODO: maybe do the sum / loss in this function instead of grad_cam. Return a tensor.
     # This would be consistent with what is done in https://github.com/ramprs/grad-cam/blob/master/misc/utils.lua
@@ -132,8 +134,9 @@ def get_target_prediction(model, x, targets):
     # https://github.com/torch/nn/blob/master/doc/module.md
     if isinstance(targets, list):
         # take the first prediction from the list
-        # TODO: validate list contents
         predicted_idx = targets[0]
+        # TODO: use all predictions in the list
+        # TODO: validate list contents
     elif targets is None:
         predictions = model.predict(x)
         predicted_idx = np.argmax(predictions)
@@ -153,11 +156,12 @@ def grad_cam(estimator, image, prediction_index, activation_layer):
     * Kotikalapudi, Raghavendra and contributors for "https://github.com/raghakot/keras-vis".
     """
     # FIXME: this assumes that we are doing classification
-    # also we make the explicit assumption that we are dealing with images
+    # FIXME: we also explicitly assume that we are dealing with images
 
+    # Get required terms
     weights, activations, grads_val = grad_cam_backend(estimator, image, prediction_index, activation_layer)
 
-    # weighted linear combination
+    # Perform a weighted linear combination
     spatial_shape = activations.shape[:2]
     lmap = np.zeros(spatial_shape, dtype=np.float32)
     for i, w in enumerate(weights):
@@ -172,21 +176,23 @@ def grad_cam(estimator, image, prediction_index, activation_layer):
 
 
 def grad_cam_backend(estimator, image, prediction_index, activation_layer):
-    """Calculate terms required by Grad-CAM formula
+    """Calculate the terms required by the Grad-CAM formula
     - weights, activation layer outputs, gradients"""
     output = estimator.output
     score = output[:, prediction_index]
-    activation_output = activation_layer.output # output of target layer, i.e. activation maps of a convolutional layer
-    
+    # output of target layer, i.e. activation maps of a convolutional layer
+    activation_output = activation_layer.output 
+
     grads = K.gradients(score, [activation_output])
+    # FIXME: this might have issues
+    # See https://github.com/jacobgil/keras-grad-cam/issues/17
     # grads = [grad if grad is not None else K.zeros_like(var) 
     #         for (var, grad) in zip(xs, grads)]
-    # https://github.com/jacobgil/keras-grad-cam/issues/17
     grads = grads[0]
     grads =  K.l2_normalize(grads) # this seems to make the heatmap less noisy
     evaluate = K.function([estimator.input], [activation_output, grads])
 
-    activations, grads_val = evaluate([image]) # do work
+    activations, grads_val = evaluate([image]) # evaluate the graph / do computations
     activations = activations[0, ...]
     grads_val = grads_val[0, ...]
     weights = np.mean(grads_val, axis=(0, 1)) # Global Average Pooling

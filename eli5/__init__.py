@@ -92,6 +92,6 @@ try:
     from .keras import (
         explain_prediction_keras
     )
-except ImportError: # TODO: test this
+except ImportError:
     # keras is not available
     pass

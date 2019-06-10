@@ -139,7 +139,6 @@ def show_prediction(estimator, doc, **kwargs):
     keyword arguments, so it is possible to get explanation and
     customize formatting in a single call.
 
-    (TODO: Format this with Sphinx) 
     New: If explain_prediction returns an Explanation object with
     image and heatmap attributes not set to None, i.e. in the case of
     image based estimators, then formatting is dispatched to the
@@ -287,7 +286,8 @@ def show_prediction(estimator, doc, **kwargs):
         return show_prediction_image(expl, **format_kwargs)
     else:
         # use default implementation
-        # TODO: test this in the unit test
+        # TODO: test this
+        # TODO: a better design / refactorings might be needed
         _set_html_kwargs_defaults(format_kwargs)
         html = format_as_html(expl, **format_kwargs)
         return HTML(html)
@@ -295,18 +295,20 @@ def show_prediction(estimator, doc, **kwargs):
 
 def show_prediction_image(expl, **format_kwargs):
     """ Show the heatmap and image overlay in a matplotlib plot """
-    # TODO: arguments to this function that control if any labels should be set, i.e. title
+    # TODO: arguments to this show_prediction_image function 
+    # that control if any labels should be set, i.e. title
     overlay = format_as_image(expl, **format_kwargs)
     fig, ax = plt.subplots()
     ax.set_axis_off()
     ax.margins(0)
-    plt.title(expl.estimator) # TODO: add image, prediction, layer information as well
+    plt.title(expl.estimator) 
+    # TODO: add image, prediction, layer information to title?
 
     ax.imshow(overlay)
     plt.show()
     return fig, ax
-    # FIXME: for some reason image is resized to 231x231 from 299x299
-    # FIXME: sometimes the plot doesn't show up, only get a 'Axis for figure n' message
+    # FIXME: image dimensions in plot don't match actual image dimensions
+    # FIXME: sometimes the plot doesn't show up, only get a 'Axis for figure n' text
 
 
 def _split_kwargs(kwargs):
@@ -314,6 +316,7 @@ def _split_kwargs(kwargs):
     format_kwargs = {k: v for k, v in kwargs.items() if k in FORMAT_KWARGS}
     explain_kwargs = {k: v for k, v in kwargs.items() if k not in FORMAT_KWARGS}
     return format_kwargs, explain_kwargs
+    # TODO: consider moving this to utils.py as a function that splits kwargs based on an argset
 
 
 def _set_html_kwargs_defaults(format_kwargs):
