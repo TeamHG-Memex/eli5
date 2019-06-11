@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-import numpy as np
-from PIL import Image
-import matplotlib.cm
+import numpy as np # type: ignore
+from PIL import Image # type: ignore
+import matplotlib.cm # type: ignore
 
 
 def format_as_image(expl,

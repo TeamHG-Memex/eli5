@@ -3,7 +3,7 @@ from __future__ import absolute_import
 from typing import Any, Dict, Tuple
 
 from IPython.display import HTML  # type: ignore
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt # type: ignore
 
 from .explain import explain_weights, explain_prediction
 from .formatters import format_as_html, fields, format_as_image

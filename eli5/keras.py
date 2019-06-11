@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 
-import numpy as np
-import keras
-import keras.backend as K
-from keras.models import Model
-from keras.layers import Layer, Lambda
-from keras.preprocessing.image import load_img, img_to_array, array_to_img
+import numpy as np # type: ignore
+import keras # type: ignore
+import keras.backend as K # type: ignore
+from keras.models import Model # type: ignore
+from keras.layers import Layer, Lambda # type: ignore
+from keras.preprocessing.image import load_img, img_to_array, array_to_img # type: ignore
 
 from eli5.base import Explanation
 from eli5.explain import explain_prediction
