@@ -36,22 +36,22 @@ class Mock(MagicMock):
         return Mock()
 
 
-MOCK_MODULES = [
-    'lightning',
-    'lightning.impl',
-    'lightning.impl.base',
-    'sklearn_crfsuite',
-    # 'IPython',
-    # 'IPython.display',
-    # 'IPython.lib',
-    # 'typing',
-    'xgboost',
-    'lightgbm',
-    'catboost',
-    'pandas',
-    'pytest',
-]
-sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
+# MOCK_MODULES = [
+#     'lightning',
+#     'lightning.impl',
+#     'lightning.impl.base',
+#     'sklearn_crfsuite',
+#     # 'IPython',
+#     # 'IPython.display',
+#     # 'IPython.lib',
+#     # 'typing',
+#     'xgboost',
+#     'lightgbm',
+#     'catboost',
+#     'pandas',
+#     'pytest',
+# ]
+# sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 
 
 # -- General configuration ------------------------------------------------
