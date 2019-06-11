@@ -47,7 +47,7 @@ def test_get_activation_layer(simple_seq, layer, expected_layer):
 # note that cases where an invalid layer index or name is passed are 
 # handled by the underlying keras get_layer method
 def test_get_activation_layer_invalid(simple_seq):
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         get_activation_layer(simple_seq, 2.5) # some nonsense
 
 

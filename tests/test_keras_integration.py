@@ -87,3 +87,6 @@ def test_image_classification(keras_clf, cat_dog_image, area, targets):
     assert overlay.width == original.width
     assert overlay.height == original.height
     assert overlay.mode == 'RGBA'
+
+
+# TODO: test invalid argument to targets
