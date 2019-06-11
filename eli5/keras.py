@@ -195,6 +195,8 @@ def get_target_prediction(model, x, targets):
     elif targets is None:
         predictions = model.predict(x)
         predicted_idx = np.argmax(predictions)
+        print('Taking top prediction: %d' % predicted_idx)
+        # TODO: append this to description / log instead of printing
     else:
         raise ValueError('Invalid argument "targets" (must be list or None): %s' % targets)
     return predicted_idx
