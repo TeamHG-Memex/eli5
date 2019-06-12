@@ -314,9 +314,9 @@ def show_prediction_image(expl, **format_kwargs):
 
     ax.imshow(overlay)
     plt.show()
-    return fig, ax
     # FIXME: image dimensions in plot don't match actual image dimensions
     # FIXME: sometimes the plot doesn't show up, only get a 'Axis for figure n' text
+    return overlay
 
 
 def _split_kwargs(kwargs):
