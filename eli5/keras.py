@@ -142,7 +142,7 @@ def search_layer_backwards(estimator, condition):
     # we assume that this is a simple feedforward network
     # linear search in reverse
     i = len(estimator.layers)-1
-    while -1 < i and not condition(estimator, i):
+    while i >= 0 and not condition(estimator, i):
         i -= 1
     if -1 < i:
         # linear search succeeded
