@@ -8,7 +8,7 @@ model decide a certain class score. We do that using a method called
 'Grad-CAM'.
 
 We will be using images from ImageNet (for more information see
-http://image-net.org/), and a classifiers from ``keras.applications``.
+http://image-net.org/), and classifiers from ``keras.applications``.
 This has been tested with Python 3.7.3, Keras 2.2.4, and Tensorflow
 1.13.1.
 
@@ -46,11 +46,6 @@ To start out, lets load our classifier and data.
     Using TensorFlow backend.
 
 
-.. parsed-literal::
-
-    WARNING:tensorflow:From /media/tomas/Data/Development/gsoc19_scrapinghub_eli5/envs/eli5_venv_py3.7.3_tf1.13/lib/python3.7/site-packages/tensorflow/python/framework/op_def_library.py:263: colocate_with (from tensorflow.python.framework.ops) is deprecated and will be removed in a future version.
-    Instructions for updating:
-    Colocations handled automatically by placer.
 
 
 
@@ -67,9 +62,6 @@ Let's classify our image and explain that classification
 .. parsed-literal::
 
     Taking top prediction: 243
-    WARNING:tensorflow:From /media/tomas/Data/Development/gsoc19_scrapinghub_eli5/envs/eli5_venv_py3.7.3_tf1.13/lib/python3.7/site-packages/tensorflow/python/ops/math_ops.py:3066: to_int32 (from tensorflow.python.ops.math_ops) is deprecated and will be removed in a future version.
-    Instructions for updating:
-    Use tf.cast instead.
 
 
 

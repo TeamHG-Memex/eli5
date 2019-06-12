@@ -141,10 +141,10 @@ def show_prediction(estimator, doc, **kwargs):
 
     (*New in x.y.z*)
     If :func:`explain_prediction` returns an :class:`base.Explanation` object with
-    ``image`` and ``heatmap`` attributes not None, i.e. if explaining image based models,
-    then formatting is dispatched to the image display implementation, 
+    ``image`` and ``heatmap`` attributes not set to None, i.e. if explaining image based models,
+    then formatting is dispatched to an image display implementation, 
     and image explanations are shown with matplotlib.
-    Any extra keyword arguments are passed to :func:`formatters.format_as_image`.
+    Any extra keyword arguments are passed to :func:`eli5.format_as_image`.
 
     Parameters
     ----------

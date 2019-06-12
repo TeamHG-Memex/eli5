@@ -32,19 +32,23 @@ def explain_prediction_keras(estimator, doc,
     ----------
     estimator : object
         Instance of a Keras neural network model.
+
     doc : object
-        An input image as a tensor to ``estimator``, for example ``numpy.ndarray``.
+        An input image as a tensor to ``estimator``, for example a ``numpy.ndarray``.
+
     target_names : list, optional
-        *`Not Implemented`*.
+        *Not Implemented*. 
 
         Names for classes in the final output layer.
+
     targets : list[int], optional
         Prediction ID's to focus on.
 
-        *`Currently only the first prediction from the list is explained`*.
+        *Currently only the first prediction from the list is explained*.
 
         If None, the model is fed the input and its top prediction 
         is taken as the target automatically.
+
     layer : int or str or object, optional
         The activation layer in the model to perform Grad-CAM on,
         a valid keras layer name, layer index, or an instance of keras.layers.Layer.
@@ -53,7 +57,7 @@ def explain_prediction_keras(estimator, doc,
 
     Returns
     -------
-    A :class:`base.Explanation` object with the ``image`` and ``heatmap`` attributes set.
+    A :class:`eli5.base.Explanation` object with the ``image`` and ``heatmap`` attributes set.
     """
     activation_layer = get_activation_layer(estimator, layer)
     predicted = get_target_prediction(estimator, doc, targets)
@@ -91,11 +95,13 @@ def get_activation_layer(estimator, layer):
 
     Returns
     -------
-    A ``keras.layers.Layer`` instance.
+    A keras ``Layer`` instance.
+
+    Notes
+    -----
 
     Raises
-    ------
-    TypeError : ``layer`` is wrong type.
+        * TypeError : if ``layer`` is wrong type.
     """        
     if layer is None:
         # Automatically get the layer if not provided
@@ -124,12 +130,13 @@ def search_layer_backwards(estimator, condition):
     Returns
     -------
     layer : object
-        A suitable ``keras.layers.Layer`` instance.
+        A suitable keras ``Layer`` instance.
+
+    Notes
+    -----
 
     Raises
-    ------
-    ValueError :
-        If suitable layer can not be found.
+        * ValueError : if suitable layer can not be found.
     """
     # we assume that this is a simple feedforward network
     # linear search in reverse
@@ -149,13 +156,16 @@ def is_suitable_activation_layer(estimator, i):
     the layer at index ``i`` matches what is required 
     by ``estimator``.
     
-    Matching is done by
-    * checking the rank of the layer.
-
     Returns
     -------
-    is suitable : boolean
+    is_suitable : boolean
         whether the layer matches what is needed
+
+    Notes
+    -----
+
+    Matching Criteria
+        * Rank of the layer's output tensor.
     """
     # TODO: experiment with this, using many models and images, to find what works best
     # Some ideas: 
@@ -205,16 +215,19 @@ def get_target_prediction(model, x, targets):
 def grad_cam(estimator, image, prediction_index, activation_layer):
     """
     Generate a heatmap using Gradient-weighted Class Activation Mapping (Grad-CAM).
-
-    Credits for implementation
-    * Jacob Gildenblat for "https://github.com/jacobgil/keras-grad-cam".
-    * Author of "https://github.com/PowerOfCreation/keras-grad-cam" for fixes to Jacob's implementation.
-    * Kotikalapudi, Raghavendra and contributors for "https://github.com/raghakot/keras-vis".
     
     Returns
     -------
     heatmap : object
         A numpy.ndarray localization map.
+
+    Notes
+    -----
+
+    Credits
+        * Jacob Gildenblat for "https://github.com/jacobgil/keras-grad-cam".
+        * Author of "https://github.com/PowerOfCreation/keras-grad-cam" for fixes to Jacob's implementation.
+        * Kotikalapudi, Raghavendra and contributors for "https://github.com/raghakot/keras-vis".
     """
     # FIXME: this assumes that we are doing classification
     # FIXME: we also explicitly assume that we are dealing with images

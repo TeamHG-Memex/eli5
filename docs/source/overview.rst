@@ -45,8 +45,8 @@ following machine learning frameworks and packages:
 * :ref:`library-sklearn-crfsuite`. ELI5 allows to check weights of
   sklearn_crfsuite.CRF models.
 
-* :ref:`library-keras` - explain predictions of Sequential and Model image classifiers
-  using Grad-CAM.
+* :ref:`library-keras` - explain predictions of image classifiers
+  via Grad-CAM visualizations.
 
 ELI5 also implements several algorithms for inspecting black-box models
 (see :ref:`eli5-black-box`):

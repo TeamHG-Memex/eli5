@@ -10,7 +10,7 @@ def format_as_image(expl,
     colormap=matplotlib.cm.magma,
     alpha_limit=165.75,
     ):
-    """ Format :class:`base.Explanation` object as an image.
+    """ Format a :class:`eli5.base.Explanation` object as an image.
     
     Parameters
     ----------
