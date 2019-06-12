@@ -246,7 +246,10 @@ def grad_cam(estimator, image, prediction_index, activation_layer):
 
     lmap = np.maximum(lmap, 0) # ReLU
 
-    lmap = lmap / np.max(lmap) # -> [0, 1] ndarray
+    # normalize lmap to [0, 1] ndarray
+    # add eps to avoid division by zero in case lmap is 0's
+    # this also means that lmap max will be slightly less than the 'true' max
+    lmap = lmap / (np.max(lmap)+K.epsilon())
     return lmap
 
 
