@@ -45,7 +45,7 @@ def explain_prediction_keras(estimator, doc,
     targets : list[int], optional
         Prediction ID's to focus on.
 
-        *Currently only the first prediction from the list is explained*.
+        *Currently only the first prediction from the list is explained*. The list must be length one.
 
         If None, the model is fed the input and its top prediction 
         is taken as the target automatically.
@@ -188,6 +188,14 @@ def get_target_prediction(model, x, targets):
     Returns
     -------
     prediction id : int
+
+    Notes
+    -----
+
+    Raises
+        * ValueError : if targets is a list with more than one item.
+            
+            *Currently only a single target prediction is supported*.
     """
     # TODO: take in a single target as well, not just a list, 
     # consider changing signature / types for explain_prediction generic function
@@ -200,9 +208,15 @@ def get_target_prediction(model, x, targets):
     # https://github.com/torch/nn/blob/master/doc/module.md
     if isinstance(targets, list):
         # take the first prediction from the list
-        predicted_idx = targets[0]
-        # TODO: use all predictions in the list
-        # TODO: validate list contents
+        if len(targets) == 1:
+            predicted_idx = targets[0]
+            # TODO: validate list contents
+        else:
+            raise ValueError('More than one prediction target'
+                             'is currently not supported' 
+                             '(found a list that is not length 1):'
+                             '{}'.format(targets))
+            # TODO: use all predictions in the list
     elif targets is None:
         predictions = model.predict(x)
         predicted_idx = np.argmax(predictions)
