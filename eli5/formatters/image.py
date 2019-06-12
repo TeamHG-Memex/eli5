@@ -63,8 +63,8 @@ def format_as_image(expl,
 
 def resize_over(heatmap, image, interpolation):
     """ 
-    Resize the `heatmap` image to fit over the original `image`,
-    using the specified `interpolation` method.
+    Resize the ``heatmap`` image to fit over the original ``image``,
+    using the specified ``interpolation`` method.
 
     See :func:`eli5.format_as_image` for more details on the `interpolation` parameter.
     
@@ -83,9 +83,9 @@ def resize_over(heatmap, image, interpolation):
 
 def colorize(heatmap, colormap):
     """
-    Apply `colormap` to a grayscale `heatmap`. 
+    Apply ``colormap`` to a grayscale ``heatmap``. 
 
-    See :func:`eli5.format_as_image` for more details on the `colormap` parameter.
+    See :func:`eli5.format_as_image` for more details on the ``colormap`` parameter.
 
     Returns
     -------
@@ -99,13 +99,13 @@ def colorize(heatmap, colormap):
 
 def update_alpha(image_array, starting_array=None, alpha_limit=None):
     """
-    Update the alpha channel values of an RGBA ndarray `image_array`,
-    optionally creating the alpha channel from `starting_array`
-    and setting upper limit for alpha values (opacity) to `alpha_limit`.
+    Update the alpha channel values of an RGBA ndarray ``image_array``,
+    optionally creating the alpha channel from ``starting_array``
+    and setting upper limit for alpha values (opacity) to ``alpha_limit``.
 
-    See :func:`eli5.format_as_image` for more details on the `alpha_limit` parameter.
+    See :func:`eli5.format_as_image` for more details on the ``alpha_limit`` parameter.
     
-    This function modifies `image_array` in-place.
+    This function modifies ``image_array`` in-place.
     """
     if isinstance(starting_array, np.ndarray):
         alpha = starting_array
@@ -120,7 +120,7 @@ def update_alpha(image_array, starting_array=None, alpha_limit=None):
 
 def convert_image(img):
     """ 
-    Convert the `img` np.ndarray or PIL.Image.Image instance to an RGBA PIL Image.
+    Convert the ``img`` np.ndarray or PIL.Image.Image instance to an RGBA PIL Image.
     
     Returns
     -------
@@ -137,7 +137,7 @@ def convert_image(img):
 
 def overlay_heatmap(heatmap, image):
     """
-    Blend 'heatmap' over 'image'.
+    Blend ``heatmap`` over ``image``.
     
     Returns
     -------
