@@ -81,6 +81,7 @@ def test_image_classification(keras_clf, cat_dog_image, area, targets):
     
     # check formatting
     overlay = format_as_image(res)
+    # import matplotlib.pyplot as plt; plt.imshow(overlay); plt.show()
     original = res.image
     # check external properties
     assert isinstance(overlay, Image.Image)
@@ -90,3 +91,5 @@ def test_image_classification(keras_clf, cat_dog_image, area, targets):
 
 
 # TODO: test invalid argument to targets
+
+# TODO: test invalid prediction ID
