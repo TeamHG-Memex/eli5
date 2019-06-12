@@ -12,7 +12,8 @@ from eli5.base import Explanation
 from eli5.explain import explain_prediction
 
 
-DESCRIPTION_KERAS = """Grad-CAM visualization for image input; output is images"""
+DESCRIPTION_KERAS = """Grad-CAM visualization for image classification; output is explanation
+object that contains input image and heatmap image."""
 
 # note that keras.models.Sequential subclasses keras.models.Model, so we can just register Model
 @explain_prediction.register(Model)
