@@ -224,15 +224,15 @@ def grad_cam(estimator, image, prediction_index, activation_layer):
 
     Notes
     -----
+    We currently make two assumptions in this implementation
+        * We are dealing with images as our input to ``estimator``.
+        * We are doing a classification. Our ``estimator``'s output is a class scores vector.
 
     Credits
         * Jacob Gildenblat for "https://github.com/jacobgil/keras-grad-cam".
         * Author of "https://github.com/PowerOfCreation/keras-grad-cam" for fixes to Jacob's implementation.
         * Kotikalapudi, Raghavendra and contributors for "https://github.com/raghakot/keras-vis".
     """
-    # FIXME: this assumes that we are doing classification
-    # FIXME: we also explicitly assume that we are dealing with images
-
     # Get required terms
     weights, activations, grads_val = grad_cam_backend(estimator, image, prediction_index, activation_layer)
 
