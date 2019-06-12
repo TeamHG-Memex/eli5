@@ -54,7 +54,7 @@ def format_as_image(expl,
     # make the alpha intensity correspond to the grayscale heatmap values
     # cap the intensity so that it's not too opaque when near maximum value
     # TODO: more options for controlling alpha, i.e. a callable?
-    heatmap = update_alpha(heatmap, starting_array=heatmap_grayscale, alpha_limit=alpha_limit)
+    update_alpha(heatmap, starting_array=heatmap_grayscale, alpha_limit=alpha_limit)
     overlay = overlay_heatmap(heatmap, image)
     # TODO: keep types consistent, i.e. in this function only deal with PIL images
     # instead of switching between PIL and numpy arrays
@@ -104,11 +104,8 @@ def update_alpha(image_array, starting_array=None, alpha_limit=None):
     and setting upper limit for alpha values (opacity) to `alpha_limit`.
 
     See :func:`eli5.format_as_image` for more details on the `alpha_limit` parameter.
-
-    Returns 
-    -------
-    new_image : object
-        the original `image_array` with the updated alpha channel.
+    
+    This function modifies `image_array` in-place.
     """
     if isinstance(starting_array, np.ndarray):
         alpha = starting_array
@@ -118,7 +115,6 @@ def update_alpha(image_array, starting_array=None, alpha_limit=None):
     if alpha_limit is not None:
         alpha = np.minimum(alpha, alpha_limit)
     image_array[:,:,3] = alpha
-    return image_array
     # TODO: optimisation?
 
 
