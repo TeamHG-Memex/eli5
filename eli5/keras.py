@@ -44,7 +44,7 @@ def explain_prediction_keras(estimator, doc,
         *`Currently only the first prediction from the list is explained`*.
 
         If None, the model is fed the input and its top prediction 
-        is taken as target as the target automatically.
+        is taken as the target automatically.
     layer : int or str or object, optional
         The activation layer in the model to perform Grad-CAM on,
         a valid keras layer name, layer index, or an instance of keras.layers.Layer.
