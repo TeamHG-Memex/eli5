@@ -79,7 +79,7 @@ def explain_prediction_keras(estimator, doc,
         estimator.name, # might want to replace this with something else, eg: estimator.summary()
         description=DESCRIPTION_KERAS,
         error='',
-        method='Vanilla Grad-CAM',
+        method='Grad-CAM',
         is_regression=False, # TODO: classification vs regression model
         highlight_spaces=None, # might be relevant later when explaining text models
         image=image,
