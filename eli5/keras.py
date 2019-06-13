@@ -37,6 +37,12 @@ def explain_prediction_keras(estimator, doc,
     doc : object
         An input image as a tensor to ``estimator``, for example a ``numpy.ndarray``.
 
+        The tensor must be of suitable shape for the ``estimator``. 
+        For example, some models require input images to be 
+        rank 4 in format `(batch_size, dims, ..., channels)` (channels last)
+        or `(batch_size, channels, dims, ...)` (channels first), 
+        where batch size is 1 for a single image.
+
     target_names : list, optional
         *Not Implemented*. 
 
@@ -60,6 +66,7 @@ def explain_prediction_keras(estimator, doc,
     -------
     A :class:`eli5.base.Explanation` object with the ``image`` and ``heatmap`` attributes set.
     """
+    validate_doc(estimator, doc)
     activation_layer = get_activation_layer(estimator, layer)
     predicted = get_target_prediction(estimator, doc, targets)
     
@@ -82,6 +89,32 @@ def explain_prediction_keras(estimator, doc,
         image=image,
         heatmap=heatmap, # 2D [0, 1] numpy array
     )
+
+
+def validate_doc(estimator, doc):
+    """
+    Check that input ``doc`` is suitable for ``estimator``.
+
+    We assume that ``doc`` is an image.
+
+    Raises ValueError if ``doc`` is not suitable.
+    """
+    input_sh = estimator.input_shape
+    doc_sh = doc.shape
+    if len(input_sh) == 4:
+        # rank 4 with (batch, ...) shape
+        # check that we have only one image (batch size 1)
+        single_batch = (1, *input_sh[1:])
+        if doc_sh != single_batch:
+            raise ValueError('Batch size does not match. ' 
+                             'doc must be of shape: {}, '
+                             'got: {}'.format(single_batch, doc_sh))
+    else:
+        # other shapes
+        if doc_sh != input_sh:
+            raise ValueError('Input and doc shapes do not match.'
+                             'input: {}, doc: {}'.format(input_sh, doc_sh))
+    # TODO: might want to just show a warning and attempt execution anyways?
 
 
 def get_activation_layer(estimator, layer):
