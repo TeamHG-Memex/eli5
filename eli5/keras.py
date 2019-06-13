@@ -75,11 +75,9 @@ def explain_prediction_keras(estimator, doc,
     # (the output is not yet a heat map)
     
     # TODO: consider passing multiple images in doc to perform grad-cam on multiple images
-    # take the single image from the input 'batch' (rank 4 to rank 3)
-    doc = doc[0]
+    doc = doc[0] # rank 4 batch -> rank 3 single image
     image = array_to_img(doc) # -> PIL image
 
-    # TODO: return arrays, not images (arrays are more general)
     return Explanation(
         estimator.name, # might want to replace this with something else, eg: estimator.summary()
         description=DESCRIPTION_KERAS,
@@ -87,7 +85,7 @@ def explain_prediction_keras(estimator, doc,
         method='Grad-CAM',
         is_regression=False, # TODO: classification vs regression model
         highlight_spaces=None, # might be relevant later when explaining text models
-        image=image,
+        image=image, # PIL image
         heatmap=heatmap, # 2D [0, 1] numpy array
     )
 
