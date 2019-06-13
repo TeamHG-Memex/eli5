@@ -168,18 +168,26 @@ def cap_alpha(alpha_arr, alpha_limit=None):
 
 def convert_image(img):
     """ 
-    Convert the ``img`` np.ndarray or PIL.Image.Image instance to an RGBA PIL Image.
+    Convert the ``img`` numpy.ndarray or PIL.Image.Image instance to an RGBA PIL Image.
     
     Returns
     -------
     pil_image : object
-        A PIL image object.
+        An RGBA PIL image.
+    
+    Notes
+    -----
+
+    Raises
+        * TypeError : if ``img`` is neither a numpy.ndarray or PIL.Image.Image.
     """
     if isinstance(img, np.ndarray):
         img = Image.fromarray(img) # ndarray -> PIL image
     if isinstance(img, Image.Image):
-        if img.mode == 'RGB':
-            img = img.convert(mode='RGBA') # RGB image -> RGBA image
+        img = img.convert(mode='RGBA') # -> RGBA image
+    else:
+        raise TypeError('img must be numpy.ndarray or PIL.Image.Image'
+                        'got: {}'.format(img))
     return img
 
 
