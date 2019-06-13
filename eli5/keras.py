@@ -74,6 +74,7 @@ def explain_prediction_keras(estimator, doc,
     # TODO: consider renaming 'heatmap' to 'visualization'/'activations' 
     # (the output is not yet a heat map)
     
+    # TODO: consider passing multiple images in doc to perform grad-cam on multiple images
     # take the single image from the input 'batch' (rank 4 to rank 3)
     doc = doc[0]
     image = array_to_img(doc) # -> PIL image
