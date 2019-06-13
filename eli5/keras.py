@@ -103,7 +103,7 @@ def validate_doc(estimator, doc):
     if len(input_sh) == 4:
         # rank 4 with (batch, ...) shape
         # check that we have only one image (batch size 1)
-        single_batch = (1, *input_sh[1:])
+        single_batch = (1, input_sh[1], input_sh[2], input_sh[3])
         if doc_sh != single_batch:
             raise ValueError('Batch size does not match. ' 
                              'doc must be of shape: {}, '

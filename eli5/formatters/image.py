@@ -46,6 +46,9 @@ def format_as_image(expl,
     image = expl.image
     heatmap = expl.heatmap
     
+    # We first 1. colorize 2. resize
+    # as opposed 1. resize 2. colorize
+
     heatmap = colorize(heatmap, colormap=colormap)
     # TODO: test colorize with a callable
 
