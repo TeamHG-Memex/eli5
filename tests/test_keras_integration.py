@@ -14,8 +14,12 @@ from keras.applications import (
 )
 
 import eli5
-from eli5.keras import image_from_path
 from eli5 import format_as_image
+from eli5.keras import image_from_path
+from eli5.formatters.image import (
+    heatmap_to_grayscale,
+    resize_over
+)
 
 
 # TODO: time these tests
@@ -48,8 +52,9 @@ def assert_attention_over_area(expl, area):
     image = expl.image
     heatmap = expl.heatmap
     # fit heatmap over image
-    # FIXME: could we use image.py/resize_over function?
-    heatmap = heatmap.resize((image.width, image.height), resample=Image.LANCZOS)
+    # FIXME: this might be too circular? Need to test image formatter first?
+    heatmap = heatmap_to_grayscale(heatmap)
+    heatmap = resize_over(heatmap, image, interpolation=Image.LANCZOS)
     heatmap = np.array(heatmap)
     x1, x2, y1, y2 = area
     crop = heatmap[y1:y2, x1:x2] # row-first ordering

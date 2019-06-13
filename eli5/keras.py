@@ -64,11 +64,8 @@ def explain_prediction_keras(estimator, doc,
     predicted = get_target_prediction(estimator, doc, targets)
     
     heatmap = grad_cam(estimator, doc, predicted, activation_layer)
-    # TODO: consider renaming 'heatmap' to 'visualization'/'activations' (the output is not yet a heat map)
-
-    # need to insert a 'channel' axis to get a rank 3 image from rank 2
-    heatmap = np.expand_dims(heatmap, axis=-1)
-    heatmap = array_to_img(heatmap) # -> PIL image
+    # TODO: consider renaming 'heatmap' to 'visualization'/'activations' 
+    # (the output is not yet a heat map)
     
     # take the single image from the input 'batch' (rank 4 to rank 3)
     doc = doc[0]
@@ -83,7 +80,7 @@ def explain_prediction_keras(estimator, doc,
         is_regression=False, # TODO: classification vs regression model
         highlight_spaces=None, # might be relevant later when explaining text models
         image=image,
-        heatmap=heatmap,
+        heatmap=heatmap, # 2D [0, 1] numpy array
     )
 
 

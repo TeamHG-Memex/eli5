@@ -46,22 +46,38 @@ def format_as_image(expl,
     image = expl.image
     heatmap = expl.heatmap
     
-    heatmap = resize_over(heatmap, image, interpolation=interpolation)
-    heatmap = np.array(heatmap) # PIL image -> ndarray [0, 255] spatial map
-    heatmap_grayscale = heatmap # save the 'pre-colormap' (grayscale) heatmap
-    heatmap_grayscale = heatmap_grayscale / np.max(heatmap_grayscale) # -> [0, 1]
-    heatmap = colorize(heatmap, colormap=colormap) # apply color map
+    heatmap = colorize(heatmap, colormap=colormap)
     # TODO: test colorize with a callable
 
     # make the alpha intensity correspond to the grayscale heatmap values
     # cap the intensity so that it's not too opaque when near maximum value
     # TODO: more options for controlling alpha, i.e. a callable?
-    update_alpha(heatmap, starting_array=heatmap_grayscale, alpha_limit=alpha_limit)
-    heatmap = np.uint8(heatmap*255) # re-scale: [0, 1] -> [0, 255] ndarray
+    heat_values = expl.heatmap
+    update_alpha(heatmap, starting_array=heat_values, alpha_limit=alpha_limit)
+
+    heatmap = heatmap_to_rgba(heatmap)
+
+    heatmap = resize_over(heatmap, image, interpolation=interpolation)
     overlay = overlay_heatmap(heatmap, image)
-    # TODO: keep types consistent, i.e. in this function only deal with PIL images
-    # instead of switching between PIL and numpy arrays
     return overlay
+
+
+def heatmap_to_grayscale(heatmap):
+    """
+    Convert ``heatmap``, a 2D numpy array with [0, 1] float values,
+    into a grayscale PIL image.
+    """
+    heatmap = (heatmap*255).astype('uint8') # -> [0, 255] int
+    return Image.fromarray(heatmap, 'L') # -> grayscale PIL
+
+
+def heatmap_to_rgba(heatmap):
+    """
+    Convert ``heatmap``, a rank 4 numpy array with [0, 1] float values,
+    to an RGBA PIL image.
+    """
+    heatmap = (heatmap*255).astype('uint8') # -> [0, 255] int
+    return Image.fromarray(heatmap, 'RGBA') # -> RGBA PIL
 
 
 def resize_over(heatmap, image, interpolation):
@@ -82,6 +98,7 @@ def resize_over(heatmap, image, interpolation):
     spatial_dimensions = (image.height, image.width)
     heatmap = heatmap.resize(spatial_dimensions, resample=interpolation)
     return heatmap
+    # TODO: resize a numpy array without converting to PIL image?
 
 
 def colorize(heatmap, colormap):
@@ -93,7 +110,7 @@ def colorize(heatmap, colormap):
     Returns
     -------
     new_heatmap : object
-        An RGBA [0, 255] ndarray.
+        An RGBA [0, 1] ndarray.
     """
     heatmap = colormap(heatmap) # -> [0, 1] RGBA ndarray
     return heatmap
