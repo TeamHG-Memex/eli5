@@ -93,3 +93,5 @@ def test_image_classification(keras_clf, cat_dog_image, area, targets):
 # TODO: test invalid argument to targets
 
 # TODO: test invalid prediction ID
+
+# TODO: test format_as_image with alpha_limit set to 0 -> should show no heatmap over the image.
