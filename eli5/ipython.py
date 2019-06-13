@@ -2,8 +2,7 @@
 from __future__ import absolute_import
 from typing import Any, Dict, Tuple
 
-from IPython.display import HTML  # type: ignore
-import matplotlib.pyplot as plt # type: ignore
+from IPython.display import HTML, Image  # type: ignore
 
 from .explain import explain_weights, explain_prediction
 from .formatters import format_as_html, fields, format_as_image
@@ -300,22 +299,18 @@ def show_prediction_image(expl, **format_kwargs):
     
     Returns
     -------
-    figure and axes : tuple[object]
-        Matplotlib objects for the overlay.
-    """
-    # TODO: arguments to this show_prediction_image function 
-    # that control if any labels should be set, i.e. title
-    overlay = format_as_image(expl, **format_kwargs)
-    fig, ax = plt.subplots()
-    ax.set_axis_off()
-    ax.margins(0)
-    plt.title(expl.estimator) 
-    # TODO: add image, prediction, layer information to title?
+    PIL.Image.Image
+        Final image with the heatmap over it, as a Pillow Image object
+        that can be displayed in an IPython cell.
 
-    ax.imshow(overlay)
-    plt.show()
-    # FIXME: image dimensions in plot don't match actual image dimensions
-    # FIXME: sometimes the plot doesn't show up, only get a 'Axis for figure n' text
+        Note that to display the image in a loop, function, or other case,
+        use IPython.display.display::
+
+            from IPython.display import display
+            for cls_idx in [0, 432]:
+                display(eli5.show_prediction(clf, doc, targets=[cls_idx]))
+    """
+    overlay = format_as_image(expl, **format_kwargs)
     return overlay
 
 
