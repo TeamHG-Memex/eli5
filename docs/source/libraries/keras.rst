@@ -21,7 +21,7 @@ Important arguments for ``Model`` and ``Sequential``:
 
 * ``targets`` are the output classes to focus on. Possible values include: 
 
-    - A list of integers (class ID's). *Only the first prediction from the list is currently taken*. 
+    - A list of integers (class ID's). *Only the first prediction from the list is currently taken*. The list must be length one. 
 
     - None for automatically taking the top prediction of the model.
 
