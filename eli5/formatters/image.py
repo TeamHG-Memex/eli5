@@ -19,21 +19,36 @@ def format_as_image(expl, # type: Explanation
     Parameters
     ----------
     interpolation: int, optional
-        Interpolation ID / Pillow filter to use when resizing the image.
+        Interpolation ID or Pillow filter to use when resizing the image.
+        
+        Example filters from PIL.Image
+            * ``NEAREST``
+            * ``BOX``
+            * ``BILINEAR``
+            * ``HAMMING``
+            * ``BICUBIC``
+            * ``LANCZOS``
 
-        # TODO: Example options are PIL.Image.BOX, ...
+        See also https://pillow.readthedocs.io/en/stable/handbook/concepts.html#filters.
 
-        Default is PIL.Image.LANCZOS. 
+        *Note that these attributes are integer values*.
 
-    colormap: object, optional
+        Default is ``PIL.Image.LANCZOS``. 
+
+    colormap: callable, optional
         Colormap scheme to be applied when converting the heatmap from grayscale to RGB.
         Either a colormap from matplotlib.cm, 
         or a callable that takes a rank 2 array and 
         returns the colored heatmap as a [0, 1] RGBA numpy array.
 
-        # TODO: For example, matplotlib.cm has ... 
+        Example colormaps from matplotlib.cm
+            * ``viridis``
+            * ``jet``
+            * ``binary``
+        
+        See also https://matplotlib.org/3.1.0/gallery/color/colormap_reference.html.
 
-        Default is matplotlib.cm.magma (blue to red).
+        Default is ``matplotlib.cm.magma`` (blue to red).
 
     alpha_limit: float or int, optional
         Maximum alpha (transparency / opacity) value allowed 
@@ -44,11 +59,11 @@ def format_as_image(expl, # type: Explanation
         Useful when laying the heatmap over the original image, 
         so that the image can be seen over the heatmap.
 
-        Default is alpha_limit=0.65.
+        Default is 0.65.
 
     Returns
     -------
-    overlay : object
+    overlay : PIL.Image.Image
         PIL image instance of the heatmap blended over the image.
     """
     image = expl.image
@@ -76,8 +91,17 @@ def format_as_image(expl, # type: Explanation
 def heatmap_to_grayscale(heatmap):
     # type: (np.ndarray) -> Image
     """
-    Convert ``heatmap``, a 2D numpy array with [0, 1] float values,
-    into a grayscale PIL image.
+    Convert ``heatmap`` array into a grayscale PIL image.
+    
+    Parameters
+    ----------
+    heatmap: numpy.ndarray
+        a rank 2 (2D) numpy array with [0, 1] float values.
+
+    Returns
+    -------
+    heatmap_img : PIL.Image.Image
+        A grayscale (mode 'L') PIL Image.
     """
     heatmap = (heatmap*255).astype('uint8') # -> [0, 255] int
     return Image.fromarray(heatmap, 'L') # -> grayscale PIL
@@ -86,45 +110,41 @@ def heatmap_to_grayscale(heatmap):
 def heatmap_to_rgba(heatmap):
     # type: (np.ndarray) -> Image
     """
-    Convert ``heatmap``, a rank 4 numpy array with [0, 1] float values,
-    to an RGBA PIL image.
+    Convert ``heatmap`` to an RGBA PIL image.
+
+    Parameters
+    ----------
+    heatmap : PIL.Image.Image
+        A rank 2 (2D) numpy array with [0, 1] float values.
+
+    Returns
+    -------
+    heatmap_img : PIL.Image.Image
+        A coloured, alpha-channel (mode 'RGBA') PIL Image.
     """
     heatmap = (heatmap*255).astype('uint8') # -> [0, 255] int
     return Image.fromarray(heatmap, 'RGBA') # -> RGBA PIL
 
 
-def resize_over(heatmap, image, interpolation):
-    # type: (Image, Image, Union[None, int]) -> Image
-    """ 
-    Resize the ``heatmap`` image to fit over the original ``image``,
-    using the specified ``interpolation`` method.
-
-    See :func:`eli5.format_as_image` for more details on the `interpolation` parameter.
-    
-    Returns
-    -------
-    resized_image : object
-        A resized PIL image.
-    """
-    # PIL seems to have a much nicer API for resizing than scipy (scipy.ndimage)
-    # Also, scipy seems to have some interpolation problems: 
-    # https://github.com/scipy/scipy/issues/8210
-    spatial_dimensions = (image.height, image.width)
-    heatmap = heatmap.resize(spatial_dimensions, resample=interpolation)
-    return heatmap
-    # TODO: resize a numpy array without converting to PIL image?
-
-
 def colorize(heatmap, colormap):
     # type: (np.ndarray, Callable[[np.ndarray], np.ndarray]) -> np.ndarray
     """
-    Apply ``colormap`` to a grayscale ``heatmap`` 2D numpy array. 
+    Apply ``colormap`` to a grayscale ``heatmap`` array.
 
-    See :func:`eli5.format_as_image` for more details on the ``colormap`` parameter.
+
+    Parameters
+    ----------
+    heatmap : numpy.ndarray
+        A rank 2 (2D) numpy array with [0, 1] float values.
+    
+    colormap : callable
+        A function that colours the array.
+
+        See :func:`eli5.format_as_image` for more details on the ``colormap`` parameter.
 
     Returns
     -------
-    new_heatmap : object
+    new_heatmap : numpy.ndarray
         An RGBA [0, 1] ndarray.
     """
     heatmap = colormap(heatmap) # -> [0, 1] RGBA ndarray
@@ -136,12 +156,27 @@ def update_alpha(image_array, starting_array=None, alpha_limit=None):
     """
     Update the alpha channel values of an RGBA ndarray ``image_array``,
     optionally creating the alpha channel from ``starting_array``
-    and setting upper limit for alpha values (opacity) to ``alpha_limit``.
+    and setting upper limit for alpha values (opacity) to ``alpha_limit``.    
 
-    See :func:`eli5.format_as_image` and :func:`cap_alpha` 
-    for more details on the ``alpha_limit`` parameter.
+    Parameters
+    ----------
+    image_array : numpy.ndarray
+        Rank 4, RGBA-format numpy array representing an image,
+        with the last slice of the last axis 
+        representing the alpha channel.
     
-    This function modifies ``image_array`` in-place.
+    starting_array: numpy.ndarray, optional
+        A rank 2 array representing an alpha channel.
+
+    alpha_limit: int or float, optional
+        Maximum opacity for each alpha value in the final alpha channel.
+    
+        See :func:`eli5.format_as_image` and :func:`cap_alpha` 
+        for more details on the ``alpha_limit`` parameter.
+
+    Returns
+    -------
+    None. *This function modifies ``image_array`` in-place.*
     """
     # get the alpha channel slice
     if isinstance(starting_array, np.ndarray):
@@ -159,32 +194,27 @@ def update_alpha(image_array, starting_array=None, alpha_limit=None):
 def cap_alpha(alpha_arr, alpha_limit):
     # type: (np.ndarray, Union[None, float, int]) -> np.ndarray
     """
-    Limit the alpha values in ``alpha_arr``, 
-    by setting the maximum alpha value to be ``alpha_limit``.
+    Limit the alpha values in ``alpha_arr``
+    by setting the maximum alpha value to ``alpha_limit``.
 
     Parameters
     ----------
-    alpha_arr: object
-        rank 2 alpha channel array, i.e. numpy.ndarray.
-
-        Normalized to [0, 1].
+    alpha_arr: numpy.ndarray
+        A rank 2 alpha channel numpy array, normalized to [0, 1] float values.
     
     alpha_limit : int or float, optional
-        Real between 0 and 1 for the maximum alpha value.
+        A real between 0 and 1, representing the maximum alpha value.
 
-        If omitted, no capping is done.
+        If omitted, no capping is done, i.e. `alpha_limit = 1`.
 
     Returns
     -------
-    new_alpha : object
-        Array with alpha values capped, if ``alpha_limit`` is not None
+    new_alpha : numpy.ndarray
+        Array with alpha values capped.
     
-    Notes
-    -----
 
-    Raises
-        * ValueError : if ``alpha_limit`` is outside the [0, 1] interval.
-        * TypeError: if ``alpha_limit`` is not float, int, or None.
+    :raises ValueError: if ``alpha_limit`` is outside the [0, 1] interval.
+    :raises TypeError: if ``alpha_limit`` is not float, int, or None.
     """
     if alpha_limit is None:
         return alpha_arr
@@ -200,21 +230,57 @@ def cap_alpha(alpha_arr, alpha_limit):
                         'got: {}'.format(alpha_limit))
 
 
+def resize_over(heatmap, image, interpolation):
+    # type: (Image, Image, Union[None, int]) -> Image
+    """ 
+    Resize the ``heatmap`` image to fit over the original ``image``,
+    using the specified ``interpolation`` method.
+    
+    Parameters
+    ----------
+    heatmap : PIL.Image.Image
+        Heatmap that is to be resized.
+
+    image : PIL.Image.Image
+        The image whose dimensions will be resized to.
+
+    interpolation : int or None
+        Interpolation to use when resizing.
+
+        See :func:`eli5.format_as_image` for more details on the `interpolation` parameter.
+
+    Returns
+    -------
+    resized_image : PIL.Image.Image
+        A resized PIL image.
+    """
+    # PIL seems to have a much nicer API for resizing than scipy (scipy.ndimage)
+    # Also, scipy seems to have some interpolation problems: 
+    # https://github.com/scipy/scipy/issues/8210
+    spatial_dimensions = (image.height, image.width)
+    heatmap = heatmap.resize(spatial_dimensions, resample=interpolation)
+    return heatmap
+    # TODO: resize a numpy array without converting to PIL image?
+
+
 def convert_image(img):
     # type: (Union[np.ndarray, Image]) -> Image
     """ 
-    Convert the ``img`` numpy.ndarray or PIL.Image.Image instance to an RGBA PIL Image.
+    Convert the ``img`` numpy array or PIL Image (any mode)
+    to an RGBA PIL Image.
     
+    Parameters
+    ----------
+    img : numpy.ndarray or PIL.Image.Image
+        Image to be converted.
+
     Returns
     -------
-    pil_image : object
-        An RGBA PIL image.
+    pil_image : PIL.Image.Image
+        An RGBA PIL image (mode 'RGBA').
     
-    Notes
-    -----
 
-    Raises
-        * TypeError : if ``img`` is neither a numpy.ndarray or PIL.Image.Image.
+    :raises TypeError: if ``img`` is neither a numpy.ndarray or PIL.Image.Image.
     """
     if isinstance(img, np.ndarray):
         img = Image.fromarray(img) # ndarray -> PIL image
@@ -229,12 +295,21 @@ def convert_image(img):
 def overlay_heatmap(heatmap, image):
     # type: (Image, Image) -> Image
     """
-    Blend ``heatmap`` over ``image``.
+    Blend ``heatmap`` over ``image``, 
+    using alpha channel values appropriately.
+
+    Parameters
+    ----------
+    heatmap : PIL.Image.Image
+        The heatmap image, mode 'RGBA'.
+
+    image: PIL.Image.Image
+        The original image, mode 'RGBA'.
     
     Returns
     -------
-    overlayed_image : object
-        A blended PIL image.
+    overlayed_image : PIL.Image.Image
+        A blended PIL image, mode 'RGBA'.
     """
     # normalise to same format
     heatmap = convert_image(heatmap)

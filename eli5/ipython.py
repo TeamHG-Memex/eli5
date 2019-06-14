@@ -139,7 +139,7 @@ def show_prediction(estimator, doc, **kwargs):
     keyword arguments, so it is possible to get explanation and
     customize formatting in a single call.
 
-    (*New in x.y.z*)
+    (*New in x.y.z* ) # TODO
     If :func:`explain_prediction` returns an :class:`base.Explanation` object with
     ``image`` and ``heatmap`` attributes not set to None, i.e. if explaining image based models,
     then formatting is dispatched to an image display implementation, 
