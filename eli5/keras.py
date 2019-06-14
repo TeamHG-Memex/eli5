@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
-from typing import Optional, Union, Callable, Tuple
+from typing import Union, Optional, Callable, Tuple
 
 import numpy as np # type: ignore
 import keras # type: ignore
 import keras.backend as K # type: ignore
 from keras.models import Model # type: ignore
 from keras.layers import Layer, Lambda # type: ignore
-from keras.preprocessing.image import load_img, img_to_array, array_to_img # type: ignore
 
 from eli5.base import Explanation
 from eli5.explain import explain_prediction
@@ -359,7 +358,7 @@ def image_from_path(img_path, image_shape=None):
     # TODO: Take in PIL image object, or an array
     # "pipeline": path str -> PIL image -> numpy array
     # TODO: multiple images
-    im = load_img(img_path, target_size=image_shape)
+    im = keras.preprocessing.image.load_img(img_path, target_size=image_shape)
     x = img_to_array(im)
 
     # we need to insert an axis at the 0th position to indicate the batch size (required by the model's input)
