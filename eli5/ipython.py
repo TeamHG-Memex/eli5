@@ -6,6 +6,7 @@ from IPython.display import HTML, Image  # type: ignore
 
 from .explain import explain_weights, explain_prediction
 from .formatters import format_as_html, fields, format_as_image
+from .base import Explanation
 
 
 FORMAT_KWARGS = {'include_styles', 'force_weights',
@@ -294,6 +295,7 @@ def show_prediction(estimator, doc, **kwargs):
 
 
 def show_prediction_image(expl, **format_kwargs):
+    # type: (Explanation, **Any) -> Image
     """ 
     Show the heatmap and image overlay in a matplotlib plot 
     

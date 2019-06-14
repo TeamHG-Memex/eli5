@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
+from typing import Optional, Union, Callable, Tuple
 
 import numpy as np # type: ignore
 import keras # type: ignore
@@ -17,11 +18,11 @@ object that contains input image and heatmap image."""
 
 # note that keras.models.Sequential subclasses keras.models.Model, so we can just register Model
 @explain_prediction.register(Model)
-def explain_prediction_keras(estimator, doc,
-                             target_names=None, # TODO: implement this
-                             targets=None,
-                             # new parameters:
-                             layer=None,
+def explain_prediction_keras(estimator, # type: Model
+                             doc, # type: np.ndarray
+                             target_names=None,
+                             targets=None, # type: Optional[list]
+                             layer=None, # type: Optional[Union[int, str, Layer]]
                             ):
     # type: (...) -> Explanation
     """
@@ -67,6 +68,8 @@ def explain_prediction_keras(estimator, doc,
     -------
     A :class:`eli5.base.Explanation` object with the ``image`` and ``heatmap`` attributes set.
     """
+    # TODO: implement target_names
+    # FIXME: Could doc be a Tensorflow object, not just a numpy array?
     validate_doc(estimator, doc)
     activation_layer = get_activation_layer(estimator, layer)
     predicted = get_target_prediction(estimator, doc, targets)
@@ -92,6 +95,7 @@ def explain_prediction_keras(estimator, doc,
 
 
 def validate_doc(estimator, doc):
+    # type: (Model, np.ndarray) -> None
     """
     Check that input ``doc`` is suitable for ``estimator``.
 
@@ -118,6 +122,7 @@ def validate_doc(estimator, doc):
 
 
 def get_activation_layer(estimator, layer):
+    # type: (Model, Union[None, int, str, Layer]) -> Layer
     """
     Get an instance of the desired activation layer.
 
@@ -153,6 +158,7 @@ def get_activation_layer(estimator, layer):
 
 
 def search_layer_backwards(estimator, condition):
+    # type: (Model, Callable[[Model, int], bool]) -> Layer
     """
     Search for a layer in ``estimator`` backwards (starting from output layer),
     checking if the layer is suitable with the callable ``condition``,
@@ -210,7 +216,8 @@ def is_suitable_activation_layer(estimator, i):
     return rank == required_rank
 
 
-def get_target_prediction(model, x, targets):
+def get_target_prediction(model, doc, targets):
+    # type: (Model, np.ndarray, Union[None, list]) -> int
     """
     Get a prediction ID from ``targets``.
 
@@ -249,7 +256,7 @@ def get_target_prediction(model, x, targets):
                              '{}'.format(targets))
             # TODO: use all predictions in the list
     elif targets is None:
-        predictions = model.predict(x)
+        predictions = model.predict(doc)
         predicted_idx = np.argmax(predictions)
         print('Taking top prediction: %d' % predicted_idx)
         # TODO: append this to description / log instead of printing
@@ -259,6 +266,7 @@ def get_target_prediction(model, x, targets):
 
 
 def grad_cam(estimator, image, prediction_index, activation_layer):
+    # type: (Model, np.ndarray, int, Layer) -> np.ndarray
     """
     Generate a heatmap using Gradient-weighted Class Activation Mapping (Grad-CAM).
     
@@ -299,6 +307,7 @@ def grad_cam(estimator, image, prediction_index, activation_layer):
 
 
 def grad_cam_backend(estimator, image, prediction_index, activation_layer):
+    # type: (Model, np.ndarray, int, Layer) -> Tuple[np.ndarray, np.ndarray, np.ndarray]
     """
     Compute the terms required by the Grad-CAM formula.
 
@@ -330,6 +339,7 @@ def grad_cam_backend(estimator, image, prediction_index, activation_layer):
 
 
 def image_from_path(img_path, image_shape=None):
+    # type: (str, Optional[Tuple[int, int]]) -> np.ndarray
     """
     Load a single image from disk, with an optional resize.
 

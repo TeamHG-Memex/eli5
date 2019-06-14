@@ -1,14 +1,17 @@
 # -*- coding: utf-8 -*-
+from typing import Union, Optional, Callable
 
 import numpy as np # type: ignore
 from PIL import Image # type: ignore
 import matplotlib.cm # type: ignore
 
+from eli5.base import Explanation
 
-def format_as_image(expl,
-    interpolation=Image.LANCZOS,
-    colormap=matplotlib.cm.magma,
-    alpha_limit=0.65,
+
+def format_as_image(expl, # type: Explanation
+    interpolation=Image.LANCZOS, # type: int
+    colormap=matplotlib.cm.magma, # type: Callable[[np.ndarray], np.ndarray]
+    alpha_limit=0.65, # type: Optional[Union[float, int]]
     ):
     # type: (...) -> Image
     """ Format a :class:`eli5.base.Explanation` object as an image.
@@ -71,6 +74,7 @@ def format_as_image(expl,
 
 
 def heatmap_to_grayscale(heatmap):
+    # type: (np.ndarray) -> Image
     """
     Convert ``heatmap``, a 2D numpy array with [0, 1] float values,
     into a grayscale PIL image.
@@ -80,6 +84,7 @@ def heatmap_to_grayscale(heatmap):
 
 
 def heatmap_to_rgba(heatmap):
+    # type: (np.ndarray) -> Image
     """
     Convert ``heatmap``, a rank 4 numpy array with [0, 1] float values,
     to an RGBA PIL image.
@@ -89,6 +94,7 @@ def heatmap_to_rgba(heatmap):
 
 
 def resize_over(heatmap, image, interpolation):
+    # type: (Image, Image, Union[None, int]) -> Image
     """ 
     Resize the ``heatmap`` image to fit over the original ``image``,
     using the specified ``interpolation`` method.
@@ -110,8 +116,9 @@ def resize_over(heatmap, image, interpolation):
 
 
 def colorize(heatmap, colormap):
+    # type: (np.ndarray, Callable[[np.ndarray], np.ndarray]) -> np.ndarray
     """
-    Apply ``colormap`` to a grayscale ``heatmap``. 
+    Apply ``colormap`` to a grayscale ``heatmap`` 2D numpy array. 
 
     See :func:`eli5.format_as_image` for more details on the ``colormap`` parameter.
 
@@ -125,7 +132,7 @@ def colorize(heatmap, colormap):
 
 
 def update_alpha(image_array, starting_array=None, alpha_limit=None):
-    # type: (...) -> None
+    # type: (np.ndarray, Optional[np.ndarray], Optional[Union[float, int]]) -> None
     """
     Update the alpha channel values of an RGBA ndarray ``image_array``,
     optionally creating the alpha channel from ``starting_array``
@@ -149,7 +156,8 @@ def update_alpha(image_array, starting_array=None, alpha_limit=None):
     # TODO: optimisation?
 
 
-def cap_alpha(alpha_arr, alpha_limit=None):
+def cap_alpha(alpha_arr, alpha_limit):
+    # type: (np.ndarray, Union[None, float, int]) -> np.ndarray
     """
     Limit the alpha values in ``alpha_arr``, 
     by setting the maximum alpha value to be ``alpha_limit``.
@@ -193,6 +201,7 @@ def cap_alpha(alpha_arr, alpha_limit=None):
 
 
 def convert_image(img):
+    # type: (Union[np.ndarray, Image]) -> Image
     """ 
     Convert the ``img`` numpy.ndarray or PIL.Image.Image instance to an RGBA PIL Image.
     
@@ -218,6 +227,7 @@ def convert_image(img):
 
 
 def overlay_heatmap(heatmap, image):
+    # type: (Image, Image) -> Image
     """
     Blend ``heatmap`` over ``image``.
     
