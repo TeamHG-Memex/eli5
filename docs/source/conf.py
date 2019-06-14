@@ -48,11 +48,18 @@ MOCK_MODULES = [
     'xgboost',
     'lightgbm',
     'catboost',
-    'keras',
-    'matplotlib',
-    'PIL',
     'pandas',
     'pytest',
+    'PIL',
+    'matplotlib.pyplot',
+    'matplotlib',
+    'matplotlib.cm',
+    'keras',
+    'keras.backend',
+    'keras.models',
+    'keras.layers',
+    'keras.preprocessing',
+    'keras.preprocessing.image'
 ]
 sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 
