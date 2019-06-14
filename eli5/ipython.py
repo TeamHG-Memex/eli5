@@ -323,5 +323,6 @@ def _split_kwargs(kwargs):
 
 
 def _set_html_kwargs_defaults(format_kwargs):
+    # type: (Dict[str, Any]) -> None
     format_kwargs.setdefault('show', fields.WEIGHTS)
     format_kwargs.setdefault('force_weights', False)

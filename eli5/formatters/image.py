@@ -10,6 +10,7 @@ def format_as_image(expl,
     colormap=matplotlib.cm.magma,
     alpha_limit=0.65,
     ):
+    # type: (...) -> Image
     """ Format a :class:`eli5.base.Explanation` object as an image.
     
     Parameters
@@ -17,13 +18,17 @@ def format_as_image(expl,
     interpolation: int, optional
         Interpolation ID / Pillow filter to use when resizing the image.
 
-        Default is PIL.Image.LANCZOS.
+        # TODO: Example options are PIL.Image.BOX, ...
+
+        Default is PIL.Image.LANCZOS. 
 
     colormap: object, optional
         Colormap scheme to be applied when converting the heatmap from grayscale to RGB.
         Either a colormap from matplotlib.cm, 
         or a callable that takes a rank 2 array and 
         returns the colored heatmap as a [0, 1] RGBA numpy array.
+
+        # TODO: For example, matplotlib.cm has ... 
 
         Default is matplotlib.cm.magma (blue to red).
 
@@ -120,6 +125,7 @@ def colorize(heatmap, colormap):
 
 
 def update_alpha(image_array, starting_array=None, alpha_limit=None):
+    # type: (...) -> None
     """
     Update the alpha channel values of an RGBA ndarray ``image_array``,
     optionally creating the alpha channel from ``starting_array``

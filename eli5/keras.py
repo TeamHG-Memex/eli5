@@ -23,6 +23,7 @@ def explain_prediction_keras(estimator, doc,
                              # new parameters:
                              layer=None,
                             ):
+    # type: (...) -> Explanation
     """
     Explain an image prediction of a Keras image classifier.
 
@@ -181,6 +182,7 @@ def search_layer_backwards(estimator, condition):
 
 
 def is_suitable_activation_layer(estimator, i):
+    # type: (Model, int) -> bool
     """
     Check whether
     the layer at index ``i`` matches what is required 

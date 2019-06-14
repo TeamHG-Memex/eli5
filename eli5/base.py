@@ -25,8 +25,8 @@ class Explanation(object):
                  decision_tree=None,  # type: Optional[TreeInfo]
                  highlight_spaces=None,  # type: Optional[bool]
                  transition_features=None,  # type: Optional[TransitionFeatureWeights]
-                 image=None,
-                 heatmap=None,
+                 image=None, # type: object
+                 heatmap=None, # type: object
                  ):
         # type: (...) -> None
         self.estimator = estimator
