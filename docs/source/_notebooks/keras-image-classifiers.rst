@@ -53,7 +53,7 @@ To start out, lets load our image classifier and data.
 
 
 
-.. image:: static/keras-image-classifiers/output_1_1.png
+.. image:: ../_notebooks/static/keras-image-classifiers/output_1_1.png
 
 
 Let's classify our image and see where the network 'looks' when making
@@ -71,7 +71,7 @@ that classification:
 
 
 
-.. image:: static/keras-image-classifiers/output_3_1.png
+.. image:: ../_notebooks/static/keras-image-classifiers/output_3_1.png
 
 
 
@@ -95,7 +95,7 @@ classifier looks to find those objects.
 
 
 
-.. image:: static/keras-image-classifiers/output_6_0.png
+.. image:: ../_notebooks/static/keras-image-classifiers/output_6_0.png
 
 
 
@@ -112,11 +112,11 @@ We have to pass the class ID as a list to the ``targets`` parameter.
 
 
 
-.. image:: static/keras-image-classifiers/output_8_0.png
+.. image:: ../_notebooks/static/keras-image-classifiers/output_8_0.png
 
 
 
-.. image:: static/keras-image-classifiers/output_8_1.png
+.. image:: ../_notebooks/static/keras-image-classifiers/output_8_1.png
 
 
 That's quite noisy! Perhaps the model is weak at classifying 'window
@@ -138,7 +138,7 @@ Let's check what layers the network consists of:
 .. code:: ipython3
 
     # we could use model.summary() here, but the model has over 100 layers. 
-    # we will only take at the first few and last few layers
+    # we will only look at the first few and last few layers
     
     head = model.layers[:5]
     tail = model.layers[-8:]
@@ -202,7 +202,7 @@ Rough print but okay. Let's pick a few convolutional layers that are
 
 
 
-.. image:: static/keras-image-classifiers/output_13_1.png
+.. image:: ../_notebooks/static/keras-image-classifiers/output_13_1.png
 
 
 .. parsed-literal::
@@ -212,7 +212,7 @@ Rough print but okay. Let's pick a few convolutional layers that are
 
 
 
-.. image:: static/keras-image-classifiers/output_13_3.png
+.. image:: ../_notebooks/static/keras-image-classifiers/output_13_3.png
 
 
 .. parsed-literal::
@@ -222,7 +222,7 @@ Rough print but okay. Let's pick a few convolutional layers that are
 
 
 
-.. image:: static/keras-image-classifiers/output_13_5.png
+.. image:: ../_notebooks/static/keras-image-classifiers/output_13_5.png
 
 
 These results should make intuitive sense for Convolutional Neural
@@ -258,7 +258,7 @@ better understand what is going on.
 
 
 
-.. image:: static/keras-image-classifiers/output_18_0.png
+.. image:: ../_notebooks/static/keras-image-classifiers/output_18_0.png
 
 
 .. parsed-literal::
@@ -288,14 +288,16 @@ Visualizing the heatmap:
 
 
 
-.. image:: static/keras-image-classifiers/output_20_0.png
+.. image:: ../_notebooks/static/keras-image-classifiers/output_20_0.png
 
 
 That's only 7x7! This is the spatial dimensions of the
 activation/feature maps in the last layers of the network. What Grad-CAM
 produces is only a rough approximation.
 
-Let's resize the heatmap:
+Let's resize the heatmap (we have to pass the heatmap and the image with
+the required dimensions as PIL Image objects, and the interpolation
+method):
 
 .. code:: ipython3
 
@@ -304,7 +306,7 @@ Let's resize the heatmap:
 
 
 
-.. image:: static/keras-image-classifiers/output_22_0.png
+.. image:: ../_notebooks/static/keras-image-classifiers/output_22_0.png
 
 
 Now it's clear what is being highlighted. We just need to apply some
@@ -318,7 +320,7 @@ colors and overlay the heatmap over the original image, exactly what
 
 
 
-.. image:: static/keras-image-classifiers/output_24_0.png
+.. image:: ../_notebooks/static/keras-image-classifiers/output_24_0.png
 
 
 5. Extra arguments to ``format_as_image()``
@@ -335,7 +337,7 @@ colors and overlay the heatmap over the original image, exactly what
 
 
 
-.. image:: static/keras-image-classifiers/output_27_0.png
+.. image:: ../_notebooks/static/keras-image-classifiers/output_27_0.png
 
 
 The ``alpha_limit`` argument controls the maximum opacity that the
@@ -345,6 +347,10 @@ useful for seeing the original image.
 The ``colormap`` argument is a function (callable) that does the
 colorisation of the heatmap. See ``matplotlib.cm`` for some options.
 Pick your favourite color!
+
+Another optional argument is ``interpolation``. The default is
+``PIL.Image.LANCZOS`` (shown here). You have already seen
+``PIL.Image.BOX``.
 
 6. Removing softmax
 -------------------
@@ -374,7 +380,7 @@ and swap the softmax (logits) layer of our current model with a linear
 
 
 
-.. image:: static/keras-image-classifiers/output_30_1.png
+.. image:: ../_notebooks/static/keras-image-classifiers/output_30_1.png
 
 
 
@@ -412,7 +418,7 @@ loading another model and explaining a classification of the same image:
 
 
 
-.. image:: static/keras-image-classifiers/output_33_1.png
+.. image:: ../_notebooks/static/keras-image-classifiers/output_33_1.png
 
 
 .. parsed-literal::
@@ -422,7 +428,7 @@ loading another model and explaining a classification of the same image:
 
 
 
-.. image:: static/keras-image-classifiers/output_33_3.png
+.. image:: ../_notebooks/static/keras-image-classifiers/output_33_3.png
 
 
 Wow ``show_prediction()`` is so robust!
