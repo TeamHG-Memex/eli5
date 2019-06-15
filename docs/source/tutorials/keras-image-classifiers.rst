@@ -7,4 +7,6 @@
 
 .. _here: https://github.com/TeamHG-Memex/eli5/blob/master/notebooks/keras-image-classifiers.ipynb
 
+.. 
+    note that we need to rewrite the image paths when the notebook is converted to rst
 .. include:: ../_notebooks/keras-image-classifiers.rst
