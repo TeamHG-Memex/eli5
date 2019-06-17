@@ -143,8 +143,11 @@ def show_prediction(estimator, doc, **kwargs):
     If :func:`explain_prediction` returns an :class:`base.Explanation` object with
     ``image`` and ``heatmap`` attributes not set to None, i.e. if explaining image based models,
     then formatting is dispatched to an image display implementation, 
-    and image explanations are shown with matplotlib.
+    and image explanations are shown in the IPython cell.
     Any extra keyword arguments are passed to :func:`eli5.format_as_image`.
+
+    Note that this image display implementation 
+    requires ``matplotlib`` and ``Pillow`` as extra dependencies.
 
     Parameters
     ----------
@@ -297,7 +300,10 @@ def show_prediction(estimator, doc, **kwargs):
 def show_prediction_image(expl, **format_kwargs):
     # type: (Explanation, **Any) -> Image
     """ 
-    Show the heatmap and image overlay in a matplotlib plot 
+    Show the heatmap and image overlay as a PIL image
+    displayable in an IPython cell.
+
+    Requires ``matplotlib`` and ``Pillow`` extra dependencies.
     
     Returns
     -------

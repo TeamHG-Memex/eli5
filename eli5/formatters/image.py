@@ -8,6 +8,10 @@ import matplotlib.cm # type: ignore
 from eli5.base import Explanation
 
 
+# FIXME: in autodoc the interpolation and colormap defaults show
+# something like: 
+# interpolation=<Mock id='139885759460352'>, colormap=<Mock id='139885771653072'>
+# ID's instead of actual names.
 def format_as_image(expl, # type: Explanation
     interpolation=Image.LANCZOS, # type: int
     colormap=matplotlib.cm.magma, # type: Callable[[np.ndarray], np.ndarray]
@@ -15,6 +19,8 @@ def format_as_image(expl, # type: Explanation
     ):
     # type: (...) -> Image
     """ Format a :class:`eli5.base.Explanation` object as an image.
+
+    Note that this formatter requires ``matplotlib`` and ``Pillow`` optional dependencies.
     
     Parameters
     ----------
