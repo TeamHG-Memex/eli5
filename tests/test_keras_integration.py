@@ -6,6 +6,7 @@ import pytest
 
 keras = pytest.importorskip('keras')
 PIL = pytest.importorskip('PIL')
+IPython = pytest.importorskip('IPython')
 
 import numpy as np
 from PIL import Image
@@ -41,10 +42,38 @@ def cat_dog_image():
     return doc
 
 
+def assert_pixel_by_pixel_equal(im1, im2):
+    """
+    Check that two PIL images are equal
+    pixel-by-pixel.
+    """
+    # see https://stackoverflow.com/questions/1927660/compare-two-images-the-python-linux-way
+    # compute pixel-by-pixel difference
+    diff = PIL.ImageChops.difference(im1, im2)
+    # if no difference, array is all 0's
+    diffa = np.array(diff)
+    assert np.sum(diffa) == 0
+
+
+def assert_good_external_format(expl, overlay):
+    """
+    Check properties of the formatted heatmap over the original image,
+    using external properties of the image,
+    such as dimensions, mode, type.
+    """
+    original = expl.image
+    # check external properties
+    assert isinstance(overlay, Image.Image)
+    assert overlay.width == original.width
+    assert overlay.height == original.height
+    assert overlay.mode == 'RGBA'
+
+
 def assert_attention_over_area(expl, area):
     """
-    Explanation 'expl' over 'area', 
-    a tuple of (x1, x2, y1, y2), starting and ending points of the bounding rectangle.
+    Check that the explanation 'expl' lights up the most over 'area', 
+    a tuple of (x1, x2, y1, y2), starting and ending points of the bounding rectangle
+    in the original image.
     We make two assumptions in this test:
     1. The model can classify the example image correctly.
     2. The area specified by the tester over the example image covers the predicted class correctly.
@@ -59,10 +88,12 @@ def assert_attention_over_area(expl, area):
     x1, x2, y1, y2 = area
     crop = heatmap[y1:y2, x1:x2] # row-first ordering
 
-    # TODO: show image, heatmap, and overlay if test fails
+    # TODO: show image, heatmap, and overlay when test fails
     # https://stackoverflow.com/questions/13364868/in-pytest-how-can-i-figure-out-if-a-test-failed-from-request
     # https://docs.pytest.org/en/latest/example/simple.html#making-test-result-information-available-in-fixtures
     # https://stackoverflow.com/questions/35703122/how-to-detect-when-pytest-test-case-failed/36219273
+    # Current manual solution:
+    # import matplotlib.pyplot as plt; plt.imshow(im); plt.show()
 
     total_intensity = np.sum(heatmap)
     crop_intensity = np.sum(crop)
@@ -75,6 +106,7 @@ def assert_attention_over_area(expl, area):
 
 
 # area = (x1, x2, y1, y2)
+# TODO: instead of hard-coding height and width pixels, be able to take percentages
 @pytest.mark.parametrize('area, targets', [
     ((54, 170, 2, 100), None), # focus on the dog (pick top prediction)
     ((44, 180, 130, 212), [imagenet_cat_idx]), # focus on the cat (supply prediction)
@@ -86,17 +118,9 @@ def test_image_classification(keras_clf, cat_dog_image, area, targets):
     
     # check formatting
     overlay = format_as_image(res)
-    # import matplotlib.pyplot as plt; plt.imshow(overlay); plt.show()
-    original = res.image
-    # check external properties
-    assert isinstance(overlay, Image.Image)
-    assert overlay.width == original.width
-    assert overlay.height == original.height
-    assert overlay.mode == 'RGBA'
+    
+    assert_good_external_format(res, overlay)
 
-
-# TODO: test invalid argument to targets
-
-# TODO: test invalid prediction ID
-
-# TODO: test format_as_image with alpha_limit set to 0 -> should show no heatmap over the image.
+    # check show function
+    show_overlay = eli5.show_prediction(keras_clf, cat_dog_image, targets=targets)
+    assert_pixel_by_pixel_equal(overlay, show_overlay)
