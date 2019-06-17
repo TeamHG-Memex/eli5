@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
-from typing import Union, Optional, Callable, Tuple
+from typing import Union, Optional, Callable, Tuple, List
 
 import numpy as np # type: ignore
 import keras # type: ignore
@@ -75,12 +75,14 @@ def explain_prediction_keras(estimator, # type: Model
     # FIXME: Could doc be a Tensorflow object, not just a numpy array?
     validate_doc(estimator, doc)
     activation_layer = get_activation_layer(estimator, layer)
-    predicted = get_target_prediction(estimator, doc, targets)
     
-    heatmap = grad_cam(estimator, doc, predicted, activation_layer)
-    # TODO: consider renaming 'heatmap' to 'visualization'/'activations' 
+    heatmap, predicted_idx, score = grad_cam(estimator, doc, targets, activation_layer)
+    # TODO: consider renaming 'heatmap' to 'visualization'/'activations'
     # (the output is not yet a heat map)
-    
+
+    print('Predicted class: %d' % predicted_idx)
+    print('With probability: %f' % score)
+
     # TODO: consider passing multiple images in doc to perform grad-cam on multiple images
     doc = doc[0] # rank 4 batch -> rank 3 single image
     image = keras.preprocessing.image.array_to_img(doc) # -> PIL image
@@ -250,8 +252,124 @@ def is_suitable_activation_layer(estimator, i):
     return rank == required_rank
 
 
-def get_target_prediction(estimator, doc, targets):
-    # type: (Model, np.ndarray, Union[None, list]) -> int
+def grad_cam(estimator, doc, targets, activation_layer):
+    # type: (Model, np.ndarray, Optional[list], Layer) -> Tuple[np.ndarray, int, float]
+    """
+    Generate a heatmap using Gradient-weighted Class Activation Mapping 
+    (Grad-CAM) (https://arxiv.org/pdf/1610.02391.pdf).
+    
+    See :func:`explain_prediction_keras` for more information about the 
+    ``estimator``, ``doc`` and ``targets`` parameters.
+
+    Parameters
+    ----------
+    estimator : keras.models.Model
+        Model to Grad-CAM on.
+
+    doc : numpy.ndarray
+        Input image to ``estimator``.
+
+    targets : list or None
+        Prediction to focus on that can be made by ``estimator``.
+
+    activation_layer : keras.layers.Layer
+        Hidden layer in ``estimator`` to differentiate with respect to.
+
+    
+    Returns
+    -------
+    (heatmap, predicted_idx, score) : (numpy.ndarray, int, float)
+        A Grad-CAM localization map,
+        the predicted class ID, and
+        the score (i.e. probability) for that class.
+
+
+    Notes
+    -----
+    We currently make two assumptions in this implementation
+        * We are dealing with images as our input to ``estimator``.
+        * We are doing a classification. Our ``estimator``'s output is a class scores vector.
+
+    Credits
+        * Jacob Gildenblat for "https://github.com/jacobgil/keras-grad-cam".
+        * Author of "https://github.com/PowerOfCreation/keras-grad-cam" for fixes to Jacob's implementation.
+        * Kotikalapudi, Raghavendra and contributors for "https://github.com/raghakot/keras-vis".
+    """
+    # Get required terms
+    weights, activations, grads, predicted_idx, score = grad_cam_backend(estimator, doc, targets, activation_layer)
+
+    # TODO: might want to replace np operations with keras backend operations
+
+    # Perform a weighted linear combination
+    spatial_shape = activations.shape[:2]
+    lmap = np.zeros(spatial_shape, dtype=np.float32)
+    for i, w in enumerate(weights):
+        # weight * single activation map
+        # add to the entire map (linear combination), NOT pixel by pixel
+        lmap += w * activations[..., i]
+
+    lmap = np.maximum(lmap, 0) # ReLU
+
+    # normalize lmap to [0, 1] ndarray
+    # add eps to avoid division by zero in case lmap is 0's
+    # this also means that lmap max will be slightly less than the 'true' max
+    lmap = lmap / (np.max(lmap)+K.epsilon())
+    return lmap, predicted_idx, score
+
+
+def grad_cam_backend(estimator, # type: Model
+    doc, # type: np.ndarray
+    targets, # type: Optional[List[int]]
+    activation_layer # type: Layer
+    ):
+    # type: (...) -> Tuple[np.ndarray, np.ndarray, np.ndarray, int, float]
+    """
+    Compute the terms required by the Grad-CAM formula and its by-products.
+    
+    See :func:`eli5.keras.grad_cam` for description of the 
+    ``estimator``, ``doc``, ``targets``, and ``activation_layer``
+    parameters.
+
+    Returns
+    -------
+    (weights, activations, gradients, predicted_idx, score) : (numpy.ndarray, ..., int, float)
+        Values of variables.
+    """
+    output = estimator.output
+    predicted_idx = get_target_prediction(estimator, targets, output)
+    score = K.gather(output[0,:], predicted_idx) # access value by index
+
+    # output of target layer, i.e. activation maps of a convolutional layer
+    activation_output = activation_layer.output 
+
+    grads = K.gradients(score, [activation_output])
+    # FIXME: this might have issues
+    # See https://github.com/jacobgil/keras-grad-cam/issues/17
+    # a fix is the following piece of code:
+    # grads = [grad if grad is not None else K.zeros_like(var) 
+    #         for (var, grad) in zip(xs, grads)]
+    grads = grads[0]
+    grads =  K.l2_normalize(grads) # this seems to make the heatmap less noisy
+
+    # Global Average Pooling of gradients to get the weights
+    # note that axes are in range [-rank(x), rank(x)) (we start from 1, not 0)
+    weights = K.mean(grads, axis=(1, 2)) 
+
+    evaluate = K.function([estimator.input], [weights, activation_output, grads, output, score, predicted_idx])
+    # evaluate the graph / do actual computations
+    weights, activations, grads, output, score, predicted_idx = evaluate([doc]) 
+    
+    # put into suitable form
+    weights = weights[0]
+    score = score[0]
+    predicted_idx = predicted_idx[0]
+    activations = activations[0, ...]
+    grads = grads[0, ...]
+    return weights, activations, grads, predicted_idx, score
+
+
+def get_target_prediction(estimator, targets, output):
+    # type: (Model, Union[None, list], K.variable) -> K.variable
     """
     Get a prediction ID (index into the final layer of ``estimator``), 
     using ``targets``.
@@ -262,20 +380,20 @@ def get_target_prediction(estimator, doc, targets):
         Model whose predictions are to be taken.
         See :func:`explain_prediction_keras`.
 
-    doc : numpy.ndarray
-        Sample input.
-        See :func:`explain_prediction_keras`.
-
     targets : list, optional
         A list of predictions. Only length one is currently supported.
         If None, top prediction is made automatically by feeding ``doc`` to ``estimator``.
         See documentation of ``explain_prediction_keras``.
 
+    output : K.variable
+        Input tensor, rank 2.
+        This will be searched for the maximum score and indexed.
+
 
     Returns
     -------
-    predicted_idx : int
-        Prediction ID to focus on.
+    predicted_idx : K.variable
+        Prediction ID to focus on, as a suitable rank 1 Keras backend tensor.
 
 
     :raises ValueError: if targets is a list with more than one item.  
@@ -295,6 +413,7 @@ def get_target_prediction(estimator, doc, targets):
         if len(targets) == 1:
             predicted_idx = targets[0]
             # TODO: validate list contents
+            predicted_idx = K.constant([predicted_idx], dtype='int64')
         else:
             raise ValueError('More than one prediction target'
                              'is currently not supported' 
@@ -302,110 +421,12 @@ def get_target_prediction(estimator, doc, targets):
                              '{}'.format(targets))
             # TODO: use all predictions in the list
     elif targets is None:
-        predictions = estimator.predict(doc)
-        predicted_idx = np.argmax(predictions)
-        print('Taking top prediction: %d' % predicted_idx)
+        predicted_idx = K.argmax(output, axis=-1)
+        # print('Taking top prediction: %d' % predicted_idx)
         # TODO: append this to description / log instead of printing
     else:
         raise ValueError('Invalid argument "targets" (must be list or None): %s' % targets)
     return predicted_idx
-
-
-def grad_cam(estimator, doc, prediction_index, activation_layer):
-    # type: (Model, np.ndarray, int, Layer) -> np.ndarray
-    """
-    Generate a heatmap using Gradient-weighted Class Activation Mapping 
-    (Grad-CAM) (https://arxiv.org/pdf/1610.02391.pdf).
-    
-    See See :func:`explain_prediction_keras` for more information about the 
-    ``estimator`` and ``doc`` parameters.
-
-    Parameters
-    ----------
-    estimator : keras.models.Model
-        Model to Grad-CAM on.
-
-    doc : numpy.ndarray
-        Input image to ``estimator``.
-
-    prediction_index : int
-        Prediction to focus on that can be made by ``estimator``.
-
-    activation_layer : keras.layers.Layer
-        Hidden layer in ``estimator`` to differentiate with respect to.
-
-    
-    Returns
-    -------
-    heatmap : numpy.ndarray
-        A Grad-CAM localization map.
-
-
-    Notes
-    -----
-    We currently make two assumptions in this implementation
-        * We are dealing with images as our input to ``estimator``.
-        * We are doing a classification. Our ``estimator``'s output is a class scores vector.
-
-    Credits
-        * Jacob Gildenblat for "https://github.com/jacobgil/keras-grad-cam".
-        * Author of "https://github.com/PowerOfCreation/keras-grad-cam" for fixes to Jacob's implementation.
-        * Kotikalapudi, Raghavendra and contributors for "https://github.com/raghakot/keras-vis".
-    """
-    # Get required terms
-    weights, activations, grads_val = grad_cam_backend(estimator, doc, prediction_index, activation_layer)
-
-    # Perform a weighted linear combination
-    spatial_shape = activations.shape[:2]
-    lmap = np.zeros(spatial_shape, dtype=np.float32)
-    for i, w in enumerate(weights):
-        # weight * single activation map
-        # add to the entire map (linear combination), NOT pixel by pixel
-        lmap += w * activations[..., i]
-
-    lmap = np.maximum(lmap, 0) # ReLU
-
-    # normalize lmap to [0, 1] ndarray
-    # add eps to avoid division by zero in case lmap is 0's
-    # this also means that lmap max will be slightly less than the 'true' max
-    lmap = lmap / (np.max(lmap)+K.epsilon())
-    return lmap
-
-
-def grad_cam_backend(estimator, doc, prediction_index, activation_layer):
-    # type: (Model, np.ndarray, int, Layer) -> Tuple[np.ndarray, np.ndarray, np.ndarray]
-    """
-    Compute the terms required by the Grad-CAM formula.
-    
-    See :func:`eli5.keras.grad_cam` for description of the 
-    ``estimator``, ``doc``, ``prediction_index``, and ``activation_layer``
-    parameters.
-
-    Returns
-    -------
-    (weights, activations, gradients) : tuple[numpy.ndarray]
-        Values of variables.
-    """
-    output = estimator.output
-    score = output[:, prediction_index]
-    # output of target layer, i.e. activation maps of a convolutional layer
-    activation_output = activation_layer.output 
-
-    grads = K.gradients(score, [activation_output])
-    # FIXME: this might have issues
-    # See https://github.com/jacobgil/keras-grad-cam/issues/17
-    # grads = [grad if grad is not None else K.zeros_like(var) 
-    #         for (var, grad) in zip(xs, grads)]
-    grads = grads[0]
-    grads =  K.l2_normalize(grads) # this seems to make the heatmap less noisy
-    evaluate = K.function([estimator.input], [activation_output, grads])
-
-    activations, grads_val = evaluate([doc]) # evaluate the graph / do computations
-    activations = activations[0, ...]
-    grads_val = grads_val[0, ...]
-    weights = np.mean(grads_val, axis=(0, 1)) # Global Average Pooling
-    # TODO: replace numpy operations with keras backend operations, i.e. K.mean
-    return weights, activations, grads_val
 
 
 def image_from_path(img_path, image_shape=None):
