@@ -1,16 +1,10 @@
 # -*- coding: utf-8 -*-
+from typing import Any
 
-try:
-    from PIL import Image # type: ignore
-except ImportError:
-    PIL = None
+from PIL import Image # type: ignore
 
 from .base import Explanation
-try:
-    from .formatters import format_as_image
-except ImportError:
-    # matplotlib or Pillow is not available
-    format_as_image = None
+from .formatters import format_as_image
 
 
 def display_prediction_image(expl, **format_kwargs):
@@ -24,7 +18,10 @@ def display_prediction_image(expl, **format_kwargs):
     Parameters
     ----------
     expl : Explanation
-
+        Explanation object with ``image`` and ``heatmap`` attributes set.
+    
+    format_kwargs : **kwargs
+        Keyword arguments passed to :func:`eli5.format_as_image`
 
     Returns
     -------
@@ -39,11 +36,5 @@ def display_prediction_image(expl, **format_kwargs):
             for cls_idx in [0, 432]:
                 display(eli5.show_prediction(clf, doc, targets=[cls_idx]))
     """
-    if format_as_image is None:
-        # image display implementation not available
-        # no formatting is done
-        print('Dependencies are missing. No formatting will be done.')
-        return expl
-    else:
-        overlay = format_as_image(expl, **format_kwargs)
-        return overlay
+    overlay = format_as_image(expl, **format_kwargs)
+    return overlay

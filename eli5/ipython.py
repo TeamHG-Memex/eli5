@@ -6,7 +6,11 @@ from IPython.display import HTML, Image  # type: ignore
 
 from .explain import explain_weights, explain_prediction
 from .formatters import format_as_html, fields
-from .ipython_image import display_prediction_image
+try:
+    from .ipython_image import display_prediction_image
+except ImportError:
+    # matplotlib or Pillow is not available
+    display_prediction_image = None # type: ignore
 
 
 FORMAT_KWARGS = {'include_styles', 'force_weights',
@@ -289,7 +293,11 @@ def show_prediction(estimator, doc, **kwargs):
     expl = explain_prediction(estimator, doc, **explain_kwargs)
     if expl.image is not None and expl.heatmap is not None:
         # dispatch to image display implementation
-        return display_prediction_image(expl, **format_kwargs)
+        if display_prediction_image is not None:
+            return display_prediction_image(expl, **format_kwargs)
+        else:
+            print('Missing dependencies. Can not display as image.')
+            return expl
     else:
         # use default implementation
         # TODO: a better design / refactorings might be needed
