@@ -125,7 +125,7 @@ def validate_doc(estimator, doc):
         # check that we have only one image (batch size 1)
         single_batch = (1, input_sh[1], input_sh[2], input_sh[3])
         if doc_sh != single_batch:
-            raise ValueError('Batch size does not match. ' 
+            raise ValueError('Batch size does not match (must be 1). ' 
                              'doc must be of shape: {}, '
                              'got: {}'.format(single_batch, doc_sh))
     else:
@@ -134,6 +134,7 @@ def validate_doc(estimator, doc):
             raise ValueError('Input and doc shapes do not match.'
                              'input: {}, doc: {}'.format(input_sh, doc_sh))
     # TODO: might want to just show a warning and attempt execution anyways?
+    # TODO: check for TypeError as well
 
 
 def get_activation_layer(estimator, layer):
@@ -207,7 +208,7 @@ def search_layer_backwards(estimator, condition):
     i = len(estimator.layers)-1
     while i >= 0 and not condition(estimator, i):
         i -= 1
-    if -1 < i:
+    if i >= 0:
         # linear search succeeded
         return estimator.get_layer(index=i)
     else:
@@ -336,7 +337,7 @@ def grad_cam_backend(estimator, # type: Model
         Values of variables.
     """
     output = estimator.output
-    predicted_idx = get_target_prediction(estimator, targets, output)
+    predicted_idx = get_target_prediction(targets, output)
     score = K.gather(output[0,:], predicted_idx) # access value by index
 
     # output of target layer, i.e. activation maps of a convolutional layer
@@ -368,21 +369,19 @@ def grad_cam_backend(estimator, # type: Model
     return weights, activations, grads, predicted_idx, score
 
 
-def get_target_prediction(estimator, targets, output):
-    # type: (Model, Union[None, list], K.variable) -> K.variable
+def get_target_prediction(targets, output):
+    # type: (Union[None, list], K.variable) -> K.variable
     """
-    Get a prediction ID (index into the final layer of ``estimator``), 
+    Get a prediction ID (index into the final layer of the model), 
     using ``targets``.
     
     Parameters
     ----------
-    estimator : keras.models.Model
-        Model whose predictions are to be taken.
-        See :func:`explain_prediction_keras`.
-
     targets : list, optional
         A list of predictions. Only length one is currently supported.
-        If None, top prediction is made automatically by feeding ``doc`` to ``estimator``.
+        If None, top prediction is made automatically by taking 
+        the unit in the output layer with
+        the largest score.
         See documentation of ``explain_prediction_keras``.
 
     output : K.variable
@@ -398,11 +397,14 @@ def get_target_prediction(estimator, targets, output):
 
     :raises ValueError: if targets is a list with more than one item.  
         *Currently only a single target prediction is supported*.
+    :raises TypeError: if targets is not list or None.
     """
     # TODO: take in a single target as well, not just a list, 
     # consider changing signature / types for explain_prediction generic function
     # TODO: need to find a way to show the label for the passed prediction 
     # as well as its probability
+
+    # FIXME: this is hard to test, as output must be evaluated first
 
     # TODO: maybe do the sum / loss in this function instead of grad_cam. Return a tensor.
     # This would be consistent with what is done in https://github.com/ramprs/grad-cam/blob/master/misc/utils.lua
@@ -425,7 +427,9 @@ def get_target_prediction(estimator, targets, output):
         # print('Taking top prediction: %d' % predicted_idx)
         # TODO: append this to description / log instead of printing
     else:
-        raise ValueError('Invalid argument "targets" (must be list or None): %s' % targets)
+        raise TypeError('Invalid argument "targets" (must be list or None): %s' % targets)
+        # TODO: in the future, accept different ways to specify target
+        # label (str), float (in regression tasks), int (not a list) etc.
     return predicted_idx
 
 
