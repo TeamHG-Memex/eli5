@@ -5,8 +5,8 @@ from typing import Any, Dict, Tuple
 from IPython.display import HTML, Image  # type: ignore
 
 from .explain import explain_weights, explain_prediction
-from .formatters import format_as_html, fields, format_as_image
-from .base import Explanation
+from .formatters import format_as_html, fields
+from .ipython_image import display_prediction_image
 
 
 FORMAT_KWARGS = {'include_styles', 'force_weights',
@@ -148,6 +148,8 @@ def show_prediction(estimator, doc, **kwargs):
 
     Note that this image display implementation 
     requires ``matplotlib`` and ``Pillow`` as extra dependencies.
+    If the dependencies are missing, no formatting is done
+    and the explanation is returned as it is.
 
     Parameters
     ----------
@@ -287,39 +289,13 @@ def show_prediction(estimator, doc, **kwargs):
     expl = explain_prediction(estimator, doc, **explain_kwargs)
     if expl.image is not None and expl.heatmap is not None:
         # dispatch to image display implementation
-        return show_prediction_image(expl, **format_kwargs)
+        return display_prediction_image(expl, **format_kwargs)
     else:
         # use default implementation
-        # TODO: test this
         # TODO: a better design / refactorings might be needed
         _set_html_kwargs_defaults(format_kwargs)
         html = format_as_html(expl, **format_kwargs)
         return HTML(html)
-
-
-def show_prediction_image(expl, **format_kwargs):
-    # type: (Explanation, **Any) -> Image
-    """ 
-    Show the heatmap and image overlay as a PIL image
-    displayable in an IPython cell.
-
-    Requires ``matplotlib`` and ``Pillow`` extra dependencies.
-    
-    Returns
-    -------
-    PIL.Image.Image
-        Final image with the heatmap over it, as a Pillow Image object
-        that can be displayed in an IPython cell.
-
-        Note that to display the image in a loop, function, or other case,
-        use IPython.display.display::
-
-            from IPython.display import display
-            for cls_idx in [0, 432]:
-                display(eli5.show_prediction(clf, doc, targets=[cls_idx]))
-    """
-    overlay = format_as_image(expl, **format_kwargs)
-    return overlay
 
 
 def _split_kwargs(kwargs):

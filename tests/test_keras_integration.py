@@ -6,6 +6,7 @@ import pytest
 
 keras = pytest.importorskip('keras')
 PIL = pytest.importorskip('PIL')
+matplotlib = pytest.importorskip('matplotlib')
 IPython = pytest.importorskip('IPython')
 
 import numpy as np
@@ -106,7 +107,6 @@ def test_image_classification(keras_clf, cat_dog_image, area, targets):
     
     # check formatting
     overlay = format_as_image(res)
-    
     assert_good_external_format(res, overlay)
 
     # check show function
