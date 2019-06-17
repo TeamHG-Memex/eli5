@@ -65,4 +65,8 @@ def test_image_from_path(img_path, dims, expected_shape):
 
 # TODO: test get_target_prediction() with more than one prediction target
 
+# TODO: test invalid argument to targets
+
+# TODO: test invalid prediction ID
+
 # TODO: test grad_cam() with lmap all 0's

@@ -21,6 +21,7 @@ from eli5.formatters.image import (
     heatmap_to_grayscale,
     resize_over
 )
+from .utils_image import assert_pixel_by_pixel_equal
 
 
 # TODO: time these tests
@@ -40,19 +41,6 @@ def cat_dog_image():
     doc = image_from_path('tests/images/cat_dog.jpg', image_shape=(224, 224))
     doc = mobilenet_v2.preprocess_input(doc) # FIXME: this preprocessing is hardcoded for mobilenet_v2
     return doc
-
-
-def assert_pixel_by_pixel_equal(im1, im2):
-    """
-    Check that two PIL images are equal
-    pixel-by-pixel.
-    """
-    # see https://stackoverflow.com/questions/1927660/compare-two-images-the-python-linux-way
-    # compute pixel-by-pixel difference
-    diff = PIL.ImageChops.difference(im1, im2)
-    # if no difference, array is all 0's
-    diffa = np.array(diff)
-    assert np.sum(diffa) == 0
 
 
 def assert_good_external_format(expl, overlay):
