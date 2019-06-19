@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# pandoc is required to convert to rst
+
 # scikit-learn text processing tutorial
 jupyter nbconvert \
         --to rst \
@@ -64,3 +66,15 @@ sed -i '' 's/``eli5.show_prediction``/:func:`eli5.show_prediction`/g' \
 #rm -r source/_notebooks/LIME
 #mv '../notebooks/LIME and synthetic data_files' 'source/_notebooks/LIME and synthetic data_files'
 #mv '../notebooks/LIME and synthetic data.rst' source/_notebooks/lime-synthetic.rst
+
+
+# Keras Grad-CAM (keras-image-classifiers)
+jupyter nbconvert \
+        --to rst \
+        '../notebooks/keras-image-classifiers.ipynb'
+mv ../notebooks/keras-image-classifiers.rst \
+    source/_notebooks/
+mv ../notebooks/keras-image-classifiers_files/ \
+    source/_notebooks/
+sed -i 's&.. image:: keras-image-classifiers_files/&.. image:: ../_notebooks/keras-image-classifiers_files/&g' \
+    source/_notebooks/keras-image-classifiers.rst
