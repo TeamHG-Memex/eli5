@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 from typing import Any, List, Tuple, Union, Optional
 
+import numpy as np # type: ignore
+
 from .base_utils import attrs
 from .formatters.features import FormattedFeatureName
 
@@ -25,8 +27,8 @@ class Explanation(object):
                  decision_tree=None,  # type: Optional[TreeInfo]
                  highlight_spaces=None,  # type: Optional[bool]
                  transition_features=None,  # type: Optional[TransitionFeatureWeights]
-                 image=None, # type: object
-                 heatmap=None, # type: object
+                 image=None, # type: Any
+                 heatmap=None, # type: Optional[np.ndarray]
                  ):
         # type: (...) -> None
         self.estimator = estimator
