@@ -265,7 +265,7 @@ def resize_over(heatmap, image, interpolation):
     # PIL seems to have a much nicer API for resizing than scipy (scipy.ndimage)
     # Also, scipy seems to have some interpolation problems: 
     # https://github.com/scipy/scipy/issues/8210
-    spatial_dimensions = (image.height, image.width)
+    spatial_dimensions = (image.width, image.height)
     heatmap = heatmap.resize(spatial_dimensions, resample=interpolation)
     return heatmap
     # TODO: resize a numpy array without converting to PIL image?
