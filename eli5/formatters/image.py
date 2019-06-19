@@ -52,7 +52,7 @@ def format_as_image(expl, # type: Explanation
             * ``jet``
             * ``binary``
         
-        See also https://matplotlib.org/3.1.0/gallery/color/colormap_reference.html.
+        See also https://matplotlib.org/gallery/color/colormap_reference.html.
 
         Default is ``matplotlib.cm.magma`` (blue to red).
 
