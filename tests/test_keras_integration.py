@@ -33,7 +33,10 @@ imagenet_cat_idx = 282
 @pytest.fixture(scope='module')
 def keras_clf():
     # TODO: load weights from a file
-    return mobilenet_v2.MobileNetV2(alpha=1.0, include_top=True, weights='imagenet', classes=1000)
+    clf = mobilenet_v2.MobileNetV2(alpha=1.0, include_top=True, weights='imagenet', classes=1000)
+    print('Summary of classifier:')
+    clf.summary()
+    return  clf
 
 
 @pytest.fixture(scope='module')
