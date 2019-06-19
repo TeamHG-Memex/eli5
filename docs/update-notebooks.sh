@@ -74,6 +74,7 @@ jupyter nbconvert \
         '../notebooks/keras-image-classifiers.ipynb'
 mv ../notebooks/keras-image-classifiers.rst \
     source/_notebooks/
+rm -r source/_notebooks/keras-image-classifiers_files
 mv ../notebooks/keras-image-classifiers_files/ \
     source/_notebooks/
 sed -i 's&.. image:: keras-image-classifiers_files/&.. image:: ../_notebooks/keras-image-classifiers_files/&g' \
