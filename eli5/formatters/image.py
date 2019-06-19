@@ -18,7 +18,9 @@ def format_as_image(expl, # type: Explanation
     alpha_limit=0.65, # type: Optional[Union[float, int]]
     ):
     # type: (...) -> Image
-    """ Format a :class:`eli5.base.Explanation` object as an image.
+    """format_as_image(expl, interpolation=Image.LANCZOS, colormap=matplotlib.cm.magma, alpha_limit=0.65)
+
+    Format a :class:`eli5.base.Explanation` object as an image.
 
     Note that this formatter requires ``matplotlib`` and ``Pillow`` optional dependencies.
     
