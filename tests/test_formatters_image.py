@@ -71,7 +71,7 @@ def test_cap_alpha_invalid():
 
 
 # def test_colorize
-
+# TODO: test colorize with a callable
 
 # def test_resize_over
 

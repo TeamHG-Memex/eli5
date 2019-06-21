@@ -77,7 +77,7 @@ def format_as_image(expl, # type: Explanation
     # as opposed 1. resize 2. colorize
 
     heatmap = colorize(heatmap, colormap=colormap)
-    # TODO: test colorize with a callable
+    # TODO: automatically detect which colormap would be the best based on colors in the image
 
     # make the alpha intensity correspond to the grayscale heatmap values
     # cap the intensity so that it's not too opaque when near maximum value
