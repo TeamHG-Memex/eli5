@@ -30,7 +30,8 @@ def simple_seq():
         Conv2D(20, (3, 3)),                            # index 2, conv2
         gap_layer,                                     # index 3, gap
     ])
-    # model.summary() # TODO: print model summary if fail
+    print('Summary of model:')
+    model.summary()
     # rename layers
     for i, layer in enumerate(model.layers):
         layer.name = 'layer%d' % i
