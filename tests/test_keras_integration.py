@@ -26,14 +26,14 @@ from eli5.formatters.image import (
 from .utils_image import assert_pixel_by_pixel_equal
 
 
-# TODO: time these tests
-
 imagenet_cat_idx = 282
 
 
 @pytest.fixture(scope='module')
 def keras_clf():
-    # TODO: load weights from a file
+    # This is a small classifier (~14 MB, ~3.5 million weights).
+    # On first run weights are downloaded automatically and cached.
+    # See https://keras.io/applications/
     clf = mobilenet_v2.MobileNetV2(alpha=1.0, include_top=True, weights='imagenet', classes=1000)
     print('Summary of classifier:')
     clf.summary()
@@ -85,7 +85,7 @@ def assert_attention_over_area(expl, area):
     # https://stackoverflow.com/questions/13364868/in-pytest-how-can-i-figure-out-if-a-test-failed-from-request
     # https://docs.pytest.org/en/latest/example/simple.html#making-test-result-information-available-in-fixtures
     # https://stackoverflow.com/questions/35703122/how-to-detect-when-pytest-test-case-failed/36219273
-    # Current manual solution:
+    # Current manual solution when testing locally:
     # import matplotlib.pyplot as plt; plt.imshow(im); plt.show()
 
     total_intensity = np.sum(heatmap)
