@@ -1,16 +1,28 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 from typing import Any, Dict, Tuple
+import warnings
 
 from IPython.display import HTML, Image  # type: ignore
 
 from .explain import explain_weights, explain_prediction
 from .formatters import format_as_html, fields
 try:
-    from .ipython_image import display_prediction_image
+    from .formatters import format_as_image
 except ImportError:
-    # matplotlib or Pillow is not available
-    display_prediction_image = None # type: ignore
+    # missing dependencies
+    format_as_image = None
+    # check which are missing
+    try:
+        import PIL # type: ignore
+    except ImportError:
+        # Pillow is not available
+        PIL = None
+    try:
+        import matplotlib # type: ignore
+    except ImportError:
+        # matplotlib is not available
+        matplotlib = None
 
 
 FORMAT_KWARGS = {'include_styles', 'force_weights',
@@ -143,17 +155,26 @@ def show_prediction(estimator, doc, **kwargs):
     keyword arguments, so it is possible to get explanation and
     customize formatting in a single call.
 
+
     (*New in x.y.z* ) # TODO
     If :func:`explain_prediction` returns an :class:`base.Explanation` object with
     ``image`` and ``heatmap`` attributes not set to None, i.e. if explaining image based models,
     then formatting is dispatched to an image display implementation, 
-    and image explanations are shown in the IPython cell.
+    and image explanations are shown in an IPython cell.
     Any extra keyword arguments are passed to :func:`eli5.format_as_image`.
+
+    To display the image in a loop, function, or other case, 
+    use IPython.display.display::
+
+        from IPython.display import display
+        for cls_idx in [0, 432]:
+            display(eli5.show_prediction(clf, doc, targets=[cls_idx]))
 
     Note that this image display implementation 
     requires ``matplotlib`` and ``Pillow`` as extra dependencies.
     If the dependencies are missing, no formatting is done
-    and the explanation is returned as it is.
+    and the original :class:`base.Explanation` object is returned.
+
 
     Parameters
     ----------
@@ -293,10 +314,13 @@ def show_prediction(estimator, doc, **kwargs):
     expl = explain_prediction(estimator, doc, **explain_kwargs)
     if expl.image is not None and expl.heatmap is not None:
         # dispatch to image display implementation
-        if display_prediction_image is not None:
-            return display_prediction_image(expl, **format_kwargs)
-        else:
-            print('Missing dependencies. Can not display as image.')
+        if format_as_image is not None:
+            return format_as_image(expl, **format_kwargs)
+        else:                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
+            warnings.warn('Missing dependencies: {}.' 
+                          'Returning original Explanation.'.format(
+                            [mod for mod in [PIL, matplotlib] if mod is None]
+            ))
             return expl
     else:
         # use default implementation

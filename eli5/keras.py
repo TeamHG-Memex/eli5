@@ -303,11 +303,12 @@ def grad_cam(estimator, doc, targets, activation_layer):
 
     # Perform a weighted linear combination
     spatial_shape = activations.shape[:2]
-    lmap = np.zeros(spatial_shape, dtype=np.float32)
+    lmap = np.zeros(spatial_shape, dtype=np.float64)
     for i, w in enumerate(weights):
-        # weight * single activation map
+        # weight (for one activation map) * single activation map
         # add to the entire map (linear combination), NOT pixel by pixel
         lmap += w * activations[..., i]
+        # TODO: can this be expressed in terms of numpy operations?
 
     lmap = np.maximum(lmap, 0) # ReLU
 
@@ -358,8 +359,8 @@ def grad_cam_backend(estimator, # type: Model
 
     evaluate = K.function([estimator.input], [weights, activation_output, grads, output, score, predicted_idx])
     # evaluate the graph / do actual computations
-    weights, activations, grads, output, score, predicted_idx = evaluate([doc]) 
-    
+    weights, activations, grads, output, score, predicted_idx = evaluate([doc])
+
     # put into suitable form
     weights = weights[0]
     score = score[0]
