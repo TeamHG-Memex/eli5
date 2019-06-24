@@ -9,7 +9,7 @@ Currently ELI5 supports :func:`eli5.explain_prediction` for Keras image classifi
 
 .. _Keras: https://keras.io/
 
-:func:`eli5.explain_prediction` explains image classifications through `Grad-CAM <https://arxiv.org/pdf/1610.02391.pdf>`_. The :class:`eli5.base.Explanation` object returned has a ``.image`` attribute that represents the  image that is inputted into the model, and a ``.heatmap`` attribute that is a grayscale "localization map" roughly indicating regions of importance in the image for the predicted class.
+:func:`eli5.explain_prediction` explains image classifications through `Grad-CAM <https://arxiv.org/pdf/1610.02391.pdf>`_. The :class:`eli5.base.Explanation` object returned has an ``.image`` attribute that represents the  image that is inputted into the model, and a ``.heatmap`` attribute that is a grayscale "localization map" roughly indicating regions of importance in the image for the predicted class.
 
 Important arguments for ``Model`` and ``Sequential``:
 
