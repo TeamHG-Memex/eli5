@@ -8,21 +8,10 @@ from IPython.display import HTML, Image  # type: ignore
 from .explain import explain_weights, explain_prediction
 from .formatters import format_as_html, fields
 try:
-    from .formatters import format_as_image
-except ImportError:
+    from .formatters.image import format_as_image
+except ImportError as e:
     # missing dependencies
-    format_as_image = None
-    # check which are missing
-    try:
-        import PIL # type: ignore
-    except ImportError:
-        # Pillow is not available
-        PIL = None
-    try:
-        import matplotlib # type: ignore
-    except ImportError:
-        # matplotlib is not available
-        matplotlib = None
+    format_as_image = e
 
 
 FORMAT_KWARGS = {'include_styles', 'force_weights',
@@ -314,14 +303,13 @@ def show_prediction(estimator, doc, **kwargs):
     expl = explain_prediction(estimator, doc, **explain_kwargs)
     if expl.image is not None and expl.heatmap is not None:
         # dispatch to image display implementation
-        if format_as_image is not None:
-            return format_as_image(expl, **format_kwargs)
-        else:                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
-            warnings.warn('Missing dependencies: {}.' 
+        if isinstance(format_as_image, ImportError):                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
+            warnings.warn('Missing dependencies: "{}". ' 
                           'Returning original Explanation.'.format(
-                            [mod for mod in [PIL, matplotlib] if mod is None]
-            ))
+                            format_as_image))
             return expl
+        else:
+            return format_as_image(expl, **format_kwargs)
     else:
         # use default implementation
         # TODO: a better design / refactorings might be needed
