@@ -11,7 +11,7 @@ try:
     from .formatters.image import format_as_image
 except ImportError as e:
     # missing dependencies
-    format_as_image = e
+    format_as_image = e # type: ignore
 
 
 FORMAT_KWARGS = {'include_styles', 'force_weights',
