@@ -9,11 +9,21 @@ Currently ELI5 supports :func:`eli5.explain_prediction` for Keras image classifi
 
 .. _Keras: https://keras.io/
 
-:func:`eli5.explain_prediction` explains image classifications through `Grad-CAM <https://arxiv.org/pdf/1610.02391.pdf>`_. The :class:`eli5.base.Explanation` object returned has an ``.image`` attribute that represents the  image that is inputted into the model, and a ``.heatmap`` attribute that is a grayscale "localization map" roughly indicating regions of importance in the image for the predicted class.
+:func:`eli5.explain_prediction` explains image classifications through `Grad-CAM <https://arxiv.org/pdf/1610.02391.pdf>`_. 
+The :class:`eli5.base.Explanation` object returned has an ``.image`` attribute and a ``.heatmap`` attribute.
+``image`` represents the image that is inputted into the model.
+``heatmap``  is a grayscale "localization map", roughly indicating regions of importance in the image for the predicted class.
+
 
 Important arguments for ``Model`` and ``Sequential``:
 
 * ``doc`` is an image as a tensor that can be inputted to the model.
+    
+    - The type is a ``numpy.ndarray``.
+
+    - Usually the tensor has the format `(batch, dims, ..., channels)` (channels last format, `dims=(height, width)`, `batch=1`, one image), i.e. `BHWC`.
+    
+    - Check ``model.input_shape`` to confirm the required dimensions of the input tensor.
 
 * ``target_names`` are the names of the output classes. 
     
@@ -29,7 +39,8 @@ Important arguments for ``Model`` and ``Sequential``:
     
     - An instance of ``Layer``, a name (str), or an index (int)
 
-    - None for automatically getting a suitable layer if possible.
+    - None for automatically getting a suitable layer, if possible.
+
 
 All other arguments are ignored.
 

@@ -39,10 +39,14 @@ def explain_prediction_keras(estimator, # type: Model
         An input image as a tensor to ``estimator``, for example a ``numpy.ndarray``.
 
         The tensor must be of suitable shape for the ``estimator``. 
+
         For example, some models require input images to be 
         rank 4 in format `(batch_size, dims, ..., channels)` (channels last)
         or `(batch_size, channels, dims, ...)` (channels first), 
-        where batch size is 1 for a single image.
+        where `dims` is usually in order `height, width`
+        and `batch_size` is 1 for a single image.
+
+        Check ``estimator.input_shape`` to confirm the required dimensions of the input tensor.
 
     target_names : list, optional
         *Not Implemented*. 
