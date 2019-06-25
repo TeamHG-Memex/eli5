@@ -348,23 +348,28 @@ def grad_cam_backend(estimator, # type: Model
     # output of target layer, i.e. activation maps of a convolutional layer
     activation_output = activation_layer.output 
 
+    # differentiate ys (scalar) with respect to each of xs (python list of variables)
     grads = K.gradients(score, [activation_output])
     # FIXME: this might have issues
     # See https://github.com/jacobgil/keras-grad-cam/issues/17
     # a fix is the following piece of code:
     # grads = [grad if grad is not None else K.zeros_like(var) 
     #         for (var, grad) in zip(xs, grads)]
-    grads = grads[0]
+
+    # grads gives a python list with a tensor (containing the derivatives) for each xs
+    # to use grads with other operations and with K.function
+    # we need to work with the actual tensors and not the python list
+    grads = grads[0] # since xs is a singleton
     grads =  K.l2_normalize(grads) # this seems to make the heatmap less noisy
 
     # Global Average Pooling of gradients to get the weights
     # note that axes are in range [-rank(x), rank(x)) (we start from 1, not 0)
-    weights = K.mean(grads, axis=(1, 2)) 
+    weights = K.mean(grads, axis=(1, 2))
 
     evaluate = K.function([estimator.input], [weights, activation_output, grads, output, score, predicted_idx])
     # evaluate the graph / do actual computations
     weights, activations, grads, output, score, predicted_idx = evaluate([doc])
-
+    
     # put into suitable form
     weights = weights[0]
     score = score[0]
