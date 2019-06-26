@@ -211,7 +211,6 @@ def expand_heatmap(heatmap, image, interpolation):
 
     :raises ValueError: if heatmap's dimensions are not rank 2 or rank 3.
 
-
     Returns
     -------
     resized_image : PIL.Image.Image
@@ -235,28 +234,10 @@ def expand_heatmap(heatmap, image, interpolation):
     # TODO: resize a numpy array without converting to PIL image?
 
 
-def _convert_image(img):
-    # type: (Union[np.ndarray, Image]) -> Image
-    """ 
-    Convert the ``img`` numpy array or PIL Image (any mode)
-    to an RGBA PIL Image.
-    
-    :raises TypeError: if ``img`` is neither a numpy.ndarray or PIL.Image.Image.
-    """
-    if isinstance(img, np.ndarray):
-        img = Image.fromarray(img) # ndarray -> PIL image
-    if isinstance(img, Image.Image):
-        img = img.convert(mode='RGBA') # -> RGBA image
-    else:
-        raise TypeError('img must be numpy.ndarray or PIL.Image.Image'
-                        'got: {}'.format(img))
-    return img
-
-
 def overlay_heatmap(heatmap, image):
     # type: (Image, Image) -> Image
     """
-    Blend ``heatmap`` over ``image``, 
+    Blend (combine) ``heatmap`` over ``image``, 
     using alpha channel values appropriately.
 
     Parameters
@@ -272,10 +253,6 @@ def overlay_heatmap(heatmap, image):
     overlayed_image : PIL.Image.Image
         A blended PIL image, mode 'RGBA'.
     """
-    # normalise to same format
-    heatmap = _convert_image(heatmap)
-    image = _convert_image(image)
-    # combine the two images
     # note that the order of alpha_composite arguments matters
     overlayed_image = Image.alpha_composite(image, heatmap)
     return overlayed_image

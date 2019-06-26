@@ -96,6 +96,10 @@ def explain_prediction_keras(estimator, # type: Model
     expl : Explanation
         A :class:`eli5.base.Explanation` object 
         with the ``image`` and ``heatmap`` attributes set.
+
+        ``image`` is a Pillow image with mode RGBA.
+
+        ``heatmap`` is a rank 2 numpy array with the localization map values.
     """
     # TODO: implement target_names
     # FIXME: Could doc be a Tensorflow object, not just a numpy array?
@@ -112,6 +116,7 @@ def explain_prediction_keras(estimator, # type: Model
     # TODO: consider passing multiple images in doc to perform grad-cam on multiple images
     doc = doc[0] # rank 4 batch -> rank 3 single image
     image = keras.preprocessing.image.array_to_img(doc) # -> PIL image
+    image = image.convert(mode='RGBA')
 
     return Explanation(
         estimator.name, # might want to replace this with something else, eg: estimator.summary()
