@@ -10,7 +10,7 @@ from keras.layers import Layer # type: ignore
 
 from eli5.base import Explanation
 from eli5.explain import explain_prediction
-from .gradcam import gradcam
+from .gradcam import gradcam, gradcam_backend
 
 
 DESCRIPTION_KERAS = """Grad-CAM visualization for image classification; output is explanation
@@ -106,7 +106,8 @@ def explain_prediction_keras(estimator, # type: Model
     _validate_doc(estimator, doc)
     activation_layer = _get_activation_layer(estimator, layer)
     
-    heatmap, predicted_idx, score = gradcam(estimator, doc, targets, activation_layer)
+    weights, activations, grads, predicted_idx, score = gradcam_backend(estimator, doc, targets, activation_layer)
+    heatmap = gradcam(weights, activations)
     # TODO: consider renaming 'heatmap' to 'visualization'/'activations'
     # (the output is not yet a heat map)
 

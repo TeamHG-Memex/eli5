@@ -9,39 +9,30 @@ from keras.models import Model # type: ignore
 from keras.layers import Layer # type: ignore
 
 
-def gradcam(estimator, doc, targets, activation_layer):
-    # type: (Model, np.ndarray, Optional[list], Layer) -> Tuple[np.ndarray, int, float]
+def gradcam(weights, activations):
+    # type: (np.ndarray, np.ndarray) -> np.ndarray
     """
     Generate a heatmap using Gradient-weighted Class Activation Mapping 
     (Grad-CAM) (https://arxiv.org/pdf/1610.02391.pdf).
     
-    See :func:`explain_prediction_keras` for more information about the 
-    ``estimator``, ``doc`` and ``targets`` parameters.
+    The values for the parameters can be obtained from
+    :func:`eli5.keras.gradcam.gradcam_backend`.
 
     Parameters
     ----------
-    estimator : keras.models.Model
-        Model to Grad-CAM on.
+    weights : numpy.ndarray
+        Activation weights, vector with one weight per map, 
+        rank 1.
 
-        Network's nodes must be differentiable.
-
-    doc : numpy.ndarray
-        Input image to ``estimator``.
-
-    targets : list or None
-        Prediction to focus on that can be made by ``estimator``.
-
-    activation_layer : keras.layers.Layer
-        Hidden layer in ``estimator`` to differentiate with respect to.
-
+    activations : numpy.ndarray
+        Forward activation map values, vector of matrices, 
+        rank 3.
     
     Returns
     -------
-    (heatmap, predicted_idx, score) : (numpy.ndarray, int, float)
+    heatmap : numpy.ndarray
         A Grad-CAM localization map,
-        the predicted class ID, and
-        the score (i.e. probability) for that class.
-
+        rank 2, with values normalized in the interval [0, 1].
 
     Notes
     -----
@@ -55,7 +46,6 @@ def gradcam(estimator, doc, targets, activation_layer):
         * Kotikalapudi, Raghavendra and contributors for "https://github.com/raghakot/keras-vis".
     """
     # Get required terms
-    weights, activations, grads, predicted_idx, score = gradcam_backend(estimator, doc, targets, activation_layer)
 
     # For reusability, this function should only use numpy operations
     # Instead of backend library operations
@@ -75,7 +65,7 @@ def gradcam(estimator, doc, targets, activation_layer):
     # add eps to avoid division by zero in case lmap is 0's
     # this also means that lmap max will be slightly less than the 'true' max
     lmap = lmap / (np.max(lmap)+K.epsilon())
-    return lmap, predicted_idx, score
+    return lmap
 
 
 def gradcam_backend(estimator, # type: Model
@@ -85,11 +75,27 @@ def gradcam_backend(estimator, # type: Model
     ):
     # type: (...) -> Tuple[np.ndarray, np.ndarray, np.ndarray, int, float]
     """
-    Compute the terms required by the Grad-CAM formula and its by-products.
+    Compute the terms and by-products required by the Grad-CAM formula.
     
-    See :func:`eli5.keras.gradcam` for description of the 
-    ``estimator``, ``doc``, ``targets``, and ``activation_layer``
-    parameters.
+    Parameters
+    ----------
+    estimator : keras.models.Model
+        Differentiable network.
+
+    doc : numpy.ndarray
+        Input to the network.
+
+    targets : list, optional
+        Index into the network's output,
+        indicating the output node that will be
+        used as the "loss" during differentiation.
+
+    activation_layer : keras.layers.Layer
+        Keras layer instance to differentiate with respect to.
+    
+
+    See :func:`eli5.keras.explain_prediction` for description of the 
+    ``estimator``, ``doc``, ``targets`` parameters.
 
     Returns
     -------
@@ -119,6 +125,7 @@ def gradcam_backend(estimator, # type: Model
 
     # Global Average Pooling of gradients to get the weights
     # note that axes are in range [-rank(x), rank(x)) (we start from 1, not 0)
+    # TODO: decide whether this should go in gradcam_backend() or gradcam()
     weights = K.mean(grads, axis=(1, 2))
 
     evaluate = K.function([estimator.input], [weights, activation_output, grads, output, score, predicted_idx])
