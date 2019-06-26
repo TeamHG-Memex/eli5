@@ -10,9 +10,11 @@ from keras.models import Sequential
 from keras.layers import Activation, Conv2D, GlobalAveragePooling2D
 import numpy as np
 
-from eli5.keras import (
+from eli5.keras.explain_prediction import (
     _validate_doc,
     _get_activation_layer,
+)
+from eli5.keras.gradcam import (
     _get_target_prediction,
 )
 
