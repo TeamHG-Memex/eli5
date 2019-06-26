@@ -359,7 +359,7 @@ def grad_cam_backend(estimator, # type: Model
     # grads gives a python list with a tensor (containing the derivatives) for each xs
     # to use grads with other operations and with K.function
     # we need to work with the actual tensors and not the python list
-    grads = grads[0] # since xs is a singleton
+    grads, = grads # grads should be a singleton list (because xs is a singleton)
     grads =  K.l2_normalize(grads) # this seems to make the heatmap less noisy
 
     # Global Average Pooling of gradients to get the weights
