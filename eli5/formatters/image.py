@@ -20,9 +20,8 @@ def format_as_image(expl, # type: Explanation
 
     Note that this formatter requires ``matplotlib`` and ``Pillow`` optional dependencies.
     
-    Parameters
-    ----------
-    interpolation: int, optional
+    
+    :param interpolation `int, optional`:
         Interpolation ID or Pillow filter to use when resizing the image.
         
         Example filters from PIL.Image
@@ -33,13 +32,14 @@ def format_as_image(expl, # type: Explanation
             * ``BICUBIC``
             * ``LANCZOS``
 
-        See also https://pillow.readthedocs.io/en/stable/handbook/concepts.html#filters.
+        See also `<https://pillow.readthedocs.io/en/stable/handbook/concepts.html#filters>`_.
 
         *Note that these attributes are integer values*.
 
-        Default is ``PIL.Image.LANCZOS``. 
+        Default is ``PIL.Image.LANCZOS``.
 
-    colormap: callable, optional
+
+    :param colormap `callable, optional`:
         Colormap scheme to be applied when converting the heatmap from grayscale to RGB.
         Either a colormap from matplotlib.cm, 
         or a callable that takes a rank 2 array and 
@@ -54,7 +54,9 @@ def format_as_image(expl, # type: Explanation
 
         Default is ``matplotlib.cm.magma`` (blue to red).
 
-    alpha_limit: float or int, optional
+
+
+    :param alpha_limit `float or int, optional`:
         Maximum alpha (transparency / opacity) value allowed 
         for the alpha channel pixels in the RGBA heatmap image.
 
@@ -207,7 +209,8 @@ def expand_heatmap(heatmap, image, interpolation):
         See :func:`eli5.format_as_image` for more details on the `interpolation` parameter.
 
 
-    :raises:ValueError: if heatmap's dimensions are not rank 2 or rank 3.
+    :raises ValueError: if heatmap's dimensions are not rank 2 or rank 3.
+
 
     Returns
     -------

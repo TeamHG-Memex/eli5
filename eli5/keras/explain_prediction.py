@@ -25,23 +25,24 @@ def explain_prediction_keras(estimator, # type: Model
                              layer=None, # type: Optional[Union[int, str, Layer]]
                             ):
     # type: (...) -> Explanation
+    # TODO: top level docstring param order is "type, required (paramname)", should be other way around
     """
     Explain the prediction of a Keras image classifier.
 
-    We make two explicit assumptions:
-    * the input is images.
-    * the model's task is classification, i.e. final output is class scores.
+    We make two explicit assumptions
+        * The input is images.
+        * The model's task is classification, i.e. final output is class scores.
 
     See :func:`eli5.explain_prediction` for more information about the ``estimator``,
     ``doc``, ``target_names``, and ``targets`` parameters.
 
-    Parameters
-    ----------
-    estimator : keras.models.Model
+    
+    :param estimator `keras.models.Model`:
         Instance of a Keras neural network model, 
         whose predictions are to be explained.
 
-    doc : numpy.ndarray
+
+    :param doc `numpy.ndarray`:
         An input image as a tensor to ``estimator``, 
         from which prediction will be done and explained.
 
@@ -60,12 +61,12 @@ def explain_prediction_keras(estimator, # type: Model
 
         :raises ValueError: if ``doc`` shape does not match.
 
-    target_names : list, optional
+    :param target_names `list, optional`:
         *Not Implemented*. 
 
         Names for classes in the final output layer.
 
-    targets : list[int], optional
+    :param targets `list[int], optional`:
         Prediction ID's to focus on.
 
         *Currently only the first prediction from the list is explained*. 
@@ -78,7 +79,7 @@ def explain_prediction_keras(estimator, # type: Model
         :raises ValueError: if targets is a list with more than one item.
         :raises TypeError: if targets is not list or None.
 
-    layer : int or str or keras.layers.Layer, optional
+    :param layer `int or str or keras.layers.Layer, optional`:
         The activation layer in the model to perform Grad-CAM on,
         a valid keras layer name, layer index, or an instance of a Keras layer.
         

@@ -23,6 +23,8 @@ def gradcam(estimator, doc, targets, activation_layer):
     estimator : keras.models.Model
         Model to Grad-CAM on.
 
+        Network's nodes must be differentiable.
+
     doc : numpy.ndarray
         Input image to ``estimator``.
 

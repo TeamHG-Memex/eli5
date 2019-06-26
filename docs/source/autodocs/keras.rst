@@ -7,5 +7,15 @@ The function works with both Sequential model and functional Model.
 
 .. _Keras: https://keras.io/
 
-.. automodule:: eli5.keras
+eli5.keras.explain_prediction
+-----------------------------
+
+.. automodule:: eli5.keras.explain_prediction
+    :members:
+
+
+eli5.keras.gradcam
+------------------
+
+.. automodule:: eli5.keras.gradcam
     :members:

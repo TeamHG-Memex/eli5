@@ -5,9 +5,18 @@ Keras
 
 Keras_ is "a high-level neural networks API, written in Python and capable of running on top of TensorFlow, CNTK, or Theano". 
 
-Currently ELI5 supports :func:`eli5.explain_prediction` for Keras image classifiers.
+Keras can be used for many Machine Learning tasks, and it has support for both popular
+and experimental neural network architectures.
 
 .. _Keras: https://keras.io/
+
+
+.. _keras-explain-prediction:
+
+explain_prediction
+------------------
+
+Currently ELI5 supports :func:`eli5.explain_prediction` for Keras image classifiers.
 
 :func:`eli5.explain_prediction` explains image classifications through `Grad-CAM <https://arxiv.org/pdf/1610.02391.pdf>`_. 
 The :class:`eli5.base.Explanation` object returned has an ``.image`` attribute and a ``.heatmap`` attribute.
@@ -41,11 +50,30 @@ Important arguments for ``Model`` and ``Sequential``:
 
     - None for automatically getting a suitable layer, if possible.
 
-
 All other arguments are ignored.
+
 
 .. note::
     Top-level :func:`eli5.explain_prediction` calls are dispatched
     to :func:`eli5.keras.explain_prediction_keras` for
     ``keras.models.Model`` and ``keras.models.Sequential``.
 
+
+.. _keras-show-prediction:
+
+show_prediction
+---------------
+
+ELI5 supports :func:`eli5.show_prediction` to conveniently 
+invoke ``explain_prediction`` with ``format_as_image``, and display the explanation in an
+IPython cell.
+
+
+.. _keras-gradcam:
+
+Grad-CAM
+--------
+
+ELI5 contains :func:`eli5.keras.gradcam.gradcam` and :func:`eli5.keras.gradcam.gradcam_backend`.
+
+These functions can be used to obtain finer details of a Grad-CAM explanation.
