@@ -18,7 +18,6 @@ from keras.applications import (
 
 import eli5
 from eli5 import format_as_image
-from eli5.keras import image_from_path
 from eli5.formatters.image import (
     expand_heatmap
 )
@@ -42,7 +41,10 @@ def keras_clf():
 @pytest.fixture(scope='module')
 def cat_dog_image():
     # TODO: consider a .png example
-    doc = image_from_path('tests/images/cat_dog.jpg', image_shape=(224, 224))
+    img_path = 'tests/images/cat_dog.jpg'
+    im = keras.preprocessing.image.load_img(img_path, target_size=(224, 224))
+    doc = keras.preprocessing.image.img_to_array(im)
+    doc = np.expand_dims(doc, axis=0)
     doc = mobilenet_v2.preprocess_input(doc) # FIXME: this preprocessing is hardcoded for mobilenet_v2
     return doc
 

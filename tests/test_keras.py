@@ -13,7 +13,6 @@ import numpy as np
 from eli5.keras import (
     _validate_doc,
     _get_activation_layer,
-    image_from_path,
     _get_target_prediction,
 )
 
@@ -65,16 +64,6 @@ def test_get_activation_layer_unfound(simple_seq):
             None,
         )
         # this is handled by _search_layer_backwards function
-
-
-# dims = (height, width)
-# FIXME: different ordering?
-@pytest.mark.parametrize('img_path, dims, expected_shape', [
-    ('tests/images/cat_dog.jpg', (30, 50), (1, 30, 50, 3)), # rank 4, RGB
-])
-def test_image_from_path(img_path, dims, expected_shape):
-    im = image_from_path(img_path, image_shape=dims)
-    assert im.shape == expected_shape
 
 
 def test_validate_doc(simple_seq):

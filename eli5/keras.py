@@ -371,35 +371,3 @@ def _get_target_prediction(targets, output):
         # TODO: in the future, accept different ways to specify target
         # label (str), float (in regression tasks), int (not a list) etc.
     return predicted_idx
-
-
-def image_from_path(img_path, image_shape=None):
-    # type: (str, Optional[Tuple[int, int]]) -> np.ndarray
-    """
-    Load a single image from disk, with an optional resize.
-
-    Parameters
-    ----------
-    img_path : str
-        Path to a single image file.
-
-    image_shape : tuple[int], optional
-        A (height, width) tuple that indicates the dimensions that the 
-        image is to be resized to.
-
-
-    Returns
-    -------
-    doc : numpy.ndarray
-        An array representing the image, 
-        suitable as input to a model (batch axis included).
-    """
-    # TODO: Take in PIL image object, or an array
-    # "pipeline": path str -> PIL image -> numpy array
-    # TODO: multiple images
-    im = keras.preprocessing.image.load_img(img_path, target_size=image_shape)
-    x = keras.preprocessing.image.img_to_array(im)
-
-    # we need to insert an axis at the 0th position to indicate the batch size (required by the model's input)
-    x = np.expand_dims(x, axis=0)
-    return x
