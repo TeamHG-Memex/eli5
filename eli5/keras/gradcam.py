@@ -53,7 +53,7 @@ def gradcam(estimator, doc, targets, activation_layer):
         * Kotikalapudi, Raghavendra and contributors for "https://github.com/raghakot/keras-vis".
     """
     # Get required terms
-    weights, activations, grads, predicted_idx, score = grad_cam_backend(estimator, doc, targets, activation_layer)
+    weights, activations, grads, predicted_idx, score = gradcam_backend(estimator, doc, targets, activation_layer)
 
     # For reusability, this function should only use numpy operations
     # Instead of backend library operations
@@ -76,7 +76,7 @@ def gradcam(estimator, doc, targets, activation_layer):
     return lmap, predicted_idx, score
 
 
-def grad_cam_backend(estimator, # type: Model
+def gradcam_backend(estimator, # type: Model
     doc, # type: np.ndarray
     targets, # type: Optional[List[int]]
     activation_layer # type: Layer
