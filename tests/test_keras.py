@@ -81,6 +81,12 @@ def test_validate_doc_multisample(simple_seq):
         _validate_doc(simple_seq, multisample)
 
 
+def test_validate_doc_wrongtype(simple_seq):
+    wrongtype = 10
+    with pytest.raises(TypeError):
+        _validate_doc(simple_seq, wrongtype)
+
+
 def test_validate_doc_wrongdims(simple_seq):
     wrongdims = np.zeros((5, 5))
     with pytest.raises(ValueError):

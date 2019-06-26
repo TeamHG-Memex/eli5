@@ -16,7 +16,7 @@ from .gradcam import gradcam, gradcam_backend
 DESCRIPTION_KERAS = """Grad-CAM visualization for image classification; output is explanation
 object that contains input image and heatmap image."""
 
-# note that keras.models.Sequential subclasses keras.models.Model, so we can just register Model
+# note that keras.models.Sequential subclasses keras.models.Model
 @explain_prediction.register(Model)
 def explain_prediction_keras(estimator, # type: Model
                              doc, # type: np.ndarray
@@ -25,7 +25,7 @@ def explain_prediction_keras(estimator, # type: Model
                              layer=None, # type: Optional[Union[int, str, Layer]]
                             ):
     # type: (...) -> Explanation
-    # TODO: top level docstring param order is "type, required (paramname)", should be other way around
+    # TODO: rendered param order is "type, required (paramname)", should be other way around
     """
     Explain the prediction of a Keras image classifier.
 
@@ -59,6 +59,7 @@ def explain_prediction_keras(estimator, # type: Model
         Check ``estimator.input_shape`` to confirm the required dimensions of the input tensor.
 
 
+        :raises TypeError: if ``doc`` is not a numpy array.
         :raises ValueError: if ``doc`` shape does not match.
 
     :param target_names `list, optional`:
@@ -101,32 +102,27 @@ def explain_prediction_keras(estimator, # type: Model
 
         ``heatmap`` is a rank 2 numpy array with the localization map values.
     """
-    # TODO: implement target_names
-    # FIXME: Could doc be a Tensorflow object, not just a numpy array?
     _validate_doc(estimator, doc)
     activation_layer = _get_activation_layer(estimator, layer)
     
     weights, activations, grads, predicted_idx, score = gradcam_backend(estimator, doc, targets, activation_layer)
     heatmap = gradcam(weights, activations)
-    # TODO: consider renaming 'heatmap' to 'visualization'/'activations'
-    # (the output is not yet a heat map)
 
     print('Predicted class: %d' % predicted_idx)
     print('With probability: %f' % score)
 
-    # TODO: consider passing multiple images in doc to perform grad-cam on multiple images
     doc = doc[0] # rank 4 batch -> rank 3 single image
-    image = keras.preprocessing.image.array_to_img(doc) # -> PIL image
+    image = keras.preprocessing.image.array_to_img(doc) # -> RGB Pillow image
     image = image.convert(mode='RGBA')
 
     return Explanation(
-        estimator.name, # might want to replace this with something else, eg: estimator.summary()
+        estimator.name,
         description=DESCRIPTION_KERAS,
         error='',
         method='Grad-CAM',
         is_regression=False, # TODO: classification vs regression model
         highlight_spaces=None, # might be relevant later when explaining text models
-        image=image, # PIL image
+        image=image, # RGBA Pillow image
         heatmap=heatmap, # 2D [0, 1] numpy array
     )
 
@@ -136,6 +132,8 @@ def _validate_doc(estimator, doc):
     """
     Check that the input ``doc`` is suitable for ``estimator``.
     """
+    if not isinstance(doc, np.ndarray):
+        raise TypeError('doc must be a numpy.ndarray, got: {}'.format(doc))
     input_sh = estimator.input_shape
     doc_sh = doc.shape
     if len(input_sh) == 4:
@@ -152,7 +150,6 @@ def _validate_doc(estimator, doc):
             raise ValueError('Input and doc shapes do not match.'
                              'input: {}, doc: {}'.format(input_sh, doc_sh))
     # TODO: might want to just show a warning and attempt execution anyways?
-    # TODO: check for TypeError as well
 
 
 def _get_activation_layer(estimator, layer):
@@ -212,7 +209,7 @@ def _is_suitable_activation_layer(estimator, i):
     # Some ideas: 
     # check layer type, i.e.: isinstance(l, keras.layers.Conv2D)
     # check layer name
-    l = estimator.get_layer(index=i)
+    l = estimator.get_layer(index=i) # this raises an error if index is not valid
     # a check that asks 'can we resize this activation layer over the image?'
     rank = len(l.output_shape)
     required_rank = len(estimator.input_shape)
