@@ -27,16 +27,24 @@ def explain_prediction_keras(estimator, # type: Model
     """
     Explain the prediction of a Keras image classifier.
 
+    We make two explicit assumptions:
+    * the input is images.
+    * the model's task is classification, i.e. final output is class scores.
+
     See :func:`eli5.explain_prediction` for more information about the ``estimator``,
     ``doc``, ``target_names``, and ``targets`` parameters.
 
     Parameters
     ----------
     estimator : keras.models.Model
-        Instance of a Keras neural network model.
+        Instance of a Keras neural network model, 
+        whose predictions are to be explained.
 
     doc : numpy.ndarray
-        An input image as a tensor to ``estimator``, for example a ``numpy.ndarray``.
+        An input image as a tensor to ``estimator``, 
+        from which prediction will be done and explained.
+
+        For example a ``numpy.ndarray``.
 
         The tensor must be of suitable shape for the ``estimator``. 
 
@@ -47,6 +55,9 @@ def explain_prediction_keras(estimator, # type: Model
         and `batch_size` is 1 for a single image.
 
         Check ``estimator.input_shape`` to confirm the required dimensions of the input tensor.
+
+
+        :raises ValueError: if ``doc`` shape does not match.
 
     target_names : list, optional
         *Not Implemented*. 
@@ -62,12 +73,21 @@ def explain_prediction_keras(estimator, # type: Model
         If None, the model is fed the input image and its top prediction 
         is taken as the target automatically.
 
+
+        :raises ValueError: if targets is a list with more than one item.
+        :raises TypeError: if targets is not list or None.
+
     layer : int or str or keras.layers.Layer, optional
         The activation layer in the model to perform Grad-CAM on,
         a valid keras layer name, layer index, or an instance of a Keras layer.
         
         If None, a suitable layer is attempted to be retrieved. 
-        See :func:`eli5.keras.search_layer_backwards` for details.
+        See :func:`eli5.keras._search_layer_backwards` for details.
+
+
+        :raises TypeError: if ``layer`` is not None, str, int, or keras.layers.Layer instance.
+        :raises ValueError: if suitable layer can not be found.
+
 
     Returns
     -------
@@ -77,8 +97,8 @@ def explain_prediction_keras(estimator, # type: Model
     """
     # TODO: implement target_names
     # FIXME: Could doc be a Tensorflow object, not just a numpy array?
-    validate_doc(estimator, doc)
-    activation_layer = get_activation_layer(estimator, layer)
+    _validate_doc(estimator, doc)
+    activation_layer = _get_activation_layer(estimator, layer)
     
     heatmap, predicted_idx, score = grad_cam(estimator, doc, targets, activation_layer)
     # TODO: consider renaming 'heatmap' to 'visualization'/'activations'
@@ -103,24 +123,10 @@ def explain_prediction_keras(estimator, # type: Model
     )
 
 
-def validate_doc(estimator, doc):
+def _validate_doc(estimator, doc):
     # type: (Model, np.ndarray) -> None
     """
-    Check that input ``doc`` is suitable for ``estimator``.
-
-    We assume that ``doc`` is an image.
-
-    Parameters
-    ----------
-    estimator : keras.models.Model
-        The model that will be fed the input.
-        See :func:`explain_prediction_keras`.
-
-    doc : numpy.ndarray
-        The input to be checked.
-
-
-    :raises ValueError: if ``doc`` shape does not match.
+    Check that the input ``doc`` is suitable for ``estimator``.
     """
     input_sh = estimator.input_shape
     doc_sh = doc.shape
@@ -141,32 +147,15 @@ def validate_doc(estimator, doc):
     # TODO: check for TypeError as well
 
 
-def get_activation_layer(estimator, layer):
+def _get_activation_layer(estimator, layer):
     # type: (Model, Union[None, int, str, Layer]) -> Layer
     """
-    Get an instance of the desired activation layer.
-    
-    Parameters
-    ----------
-    estimator : keras.models.Model
-        Model whose layers are to be accessed.
-        See :func:`explain_prediction_keras`.
-
-    layer : int or str or keras.layers.Layer, optional
-        Desired layer.
-        See :func:`explain_prediction_keras`.
-
-    Returns
-    -------
-    activation_layer : keras.layers.Layer
-        A keras ``Layer`` instance that will be targetted.
-
-
-    :raises TypeError: if ``layer`` is not None, str, int, or keras.layers.Layer instance.
+    Get an instance of the desired activation layer in ``estimator``,
+    as specified by ``layer``.
     """        
     if layer is None:
         # Automatically get the layer if not provided
-        activation_layer = search_layer_backwards(estimator, is_suitable_activation_layer)
+        activation_layer = _search_layer_backwards(estimator, _is_suitable_activation_layer)
     elif isinstance(layer, Layer):
         activation_layer = layer
     elif isinstance(layer, int):
@@ -182,30 +171,11 @@ def get_activation_layer(estimator, layer):
     return activation_layer
 
 
-def search_layer_backwards(estimator, condition):
+def _search_layer_backwards(estimator, condition):
     # type: (Model, Callable[[Model, int], bool]) -> Layer
     """
-    Search for a layer in ``estimator`` backwards (starting from the output layer),
+    Search for a layer in ``estimator``, backwards (starting from the output layer),
     checking if the layer is suitable with the callable ``condition``,
-    
-    Parameters
-    ----------
-    estimator : keras.models.Model
-        Model whose layers will be searched.
-        See :func:`explain_prediction_keras`.
-
-    condition : callable
-        A callable that takes ``estimator`` and ``index`` arguments
-        and returns a boolean.
-        See :func:`is_suitable_activation_layer` as an example.
-    
-    Returns
-    -------
-    layer : keras.layers.Layer
-        A suitable keras Layer instance.
-
-
-    :raises ValueError: if suitable layer can not be found.
     """
     # we assume that this is a simple feedforward network
     # linear search in reverse
@@ -219,34 +189,18 @@ def search_layer_backwards(estimator, condition):
         raise ValueError('Could not find a suitable target layer automatically.')
 
 
-def is_suitable_activation_layer(estimator, i):
+def _is_suitable_activation_layer(estimator, i):
     # type: (Model, int) -> bool
     """
     Check whether
     the layer at index ``i`` matches what is required 
-    by ``estimator``.
+    by ``estimator``, returning a boolean.
     
-    Parameters
-    ----------
-    estimator : keras.models.Model
-        Model from which to retrieve the layer.
-        See :func:`explain_prediction_keras`.
-
-    i : int
-        Index into the ``estimator``'s layers list.
-
-    Returns
-    -------
-    is_suitable : boolean
-        whether the layer matches what is needed
-
-    Notes
-    -----
-
-    Matching Criteria
+    Matching Criteria:
         * Rank of the layer's output tensor.
     """
     # TODO: experiment with this, using many models and images, to find what works best
+    # TODO: might want to validate index
     # Some ideas: 
     # check layer type, i.e.: isinstance(l, keras.layers.Conv2D)
     # check layer name
@@ -303,7 +257,8 @@ def grad_cam(estimator, doc, targets, activation_layer):
     # Get required terms
     weights, activations, grads, predicted_idx, score = grad_cam_backend(estimator, doc, targets, activation_layer)
 
-    # TODO: might want to replace np operations with keras backend operations
+    # For reusability, this function should only use numpy operations
+    # Instead of backend library operations
 
     # Perform a weighted linear combination
     spatial_shape = activations.shape[:2]
@@ -342,7 +297,7 @@ def grad_cam_backend(estimator, # type: Model
         Values of variables.
     """
     output = estimator.output
-    predicted_idx = get_target_prediction(targets, output)
+    predicted_idx = _get_target_prediction(targets, output)
     score = K.gather(output[0,:], predicted_idx) # access value by index
 
     # output of target layer, i.e. activation maps of a convolutional layer
@@ -379,35 +334,12 @@ def grad_cam_backend(estimator, # type: Model
     return weights, activations, grads, predicted_idx, score
 
 
-def get_target_prediction(targets, output):
+def _get_target_prediction(targets, output):
     # type: (Union[None, list], K.variable) -> K.variable
     """
-    Get a prediction ID (index into the final layer of the model), 
-    using ``targets``.
-    
-    Parameters
-    ----------
-    targets : list, optional
-        A list of predictions. Only length one is currently supported.
-        If None, top prediction is made automatically by taking 
-        the unit in the output layer with
-        the largest score.
-        See documentation of ``explain_prediction_keras``.
-
-    output : K.variable
-        Input tensor, rank 2.
-        This will be searched for the maximum score and indexed.
-
-
-    Returns
-    -------
-    predicted_idx : K.variable
-        Prediction ID to focus on, as a suitable rank 1 Keras backend tensor.
-
-
-    :raises ValueError: if targets is a list with more than one item.  
-        *Currently only a single target prediction is supported*.
-    :raises TypeError: if targets is not list or None.
+    Get a prediction ID, an index into the final layer 
+    of the model ``output`` (rank 2 tensor), using ``targets``.
+    Returns a rank 1 K.variable tensor.
     """
     # TODO: take in a single target as well, not just a list, 
     # consider changing signature / types for explain_prediction generic function
@@ -434,8 +366,6 @@ def get_target_prediction(targets, output):
             # TODO: use all predictions in the list
     elif targets is None:
         predicted_idx = K.argmax(output, axis=-1)
-        # print('Taking top prediction: %d' % predicted_idx)
-        # TODO: append this to description / log instead of printing
     else:
         raise TypeError('Invalid argument "targets" (must be list or None): %s' % targets)
         # TODO: in the future, accept different ways to specify target

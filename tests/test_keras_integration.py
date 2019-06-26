@@ -20,8 +20,7 @@ import eli5
 from eli5 import format_as_image
 from eli5.keras import image_from_path
 from eli5.formatters.image import (
-    heatmap_to_grayscale,
-    resize_over
+    expand_heatmap
 )
 from .utils_image import assert_pixel_by_pixel_equal
 
@@ -75,8 +74,7 @@ def assert_attention_over_area(expl, area):
     heatmap = expl.heatmap
     # fit heatmap over image
     # FIXME: this might be too circular? Need to test image formatter first?
-    heatmap = heatmap_to_grayscale(heatmap)
-    heatmap = resize_over(heatmap, image, interpolation=Image.LANCZOS)
+    heatmap = expand_heatmap(heatmap, image, interpolation=Image.LANCZOS)
     heatmap = np.array(heatmap)
     x1, x2, y1, y2 = area
     crop = heatmap[y1:y2, x1:x2] # row-first ordering

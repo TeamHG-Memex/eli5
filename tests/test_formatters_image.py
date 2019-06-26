@@ -10,8 +10,8 @@ import numpy as np
 from eli5.formatters.image import (
     heatmap_to_grayscale,
     heatmap_to_rgba,
-    update_alpha,
-    cap_alpha,
+    _update_alpha,
+    _cap_alpha,
 )
 from .utils_image import assert_pixel_by_pixel_equal
 
@@ -43,7 +43,7 @@ def test_heatmap_to_rgba(heatmap, expected_im):
     (np.zeros((1, 1, 4)), np.ones((1, 1)), np.array([[[0, 0, 0, 1]]])),
 ])
 def test_update_alpha(old_arr, alpha_start_arr, new_arr):
-    update_alpha(old_arr, starting_array=alpha_start_arr) # this operation is in-place
+    _update_alpha(old_arr, starting_array=alpha_start_arr) # this operation is in-place
     assert np.array_equal(old_arr, new_arr)
 
 
@@ -53,19 +53,19 @@ def test_update_alpha(old_arr, alpha_start_arr, new_arr):
     (np.array([[0.5, 0.49], [0.51, 0.5]]), 0.5, np.array([[0.5, 0.49], [0.5, 0.5]])),
 ])
 def test_cap_alpha(alpha_arr, alpha_limit, new_alpha_arr):
-    capped = cap_alpha(alpha_arr, alpha_limit)
+    capped = _cap_alpha(alpha_arr, alpha_limit)
     assert np.array_equal(capped, new_alpha_arr)
 
 
 def test_cap_alpha_invalid():
     alpha = np.zeros((1, 1))
     with pytest.raises(TypeError):
-        cap_alpha(alpha, '0.5')
+        _cap_alpha(alpha, '0.5')
     # alpha must be between 0 and 1
     with pytest.raises(ValueError):
-        cap_alpha(alpha, 1.1)
+        _cap_alpha(alpha, 1.1)
     with pytest.raises(ValueError):
-        cap_alpha(alpha, -0.1)
+        _cap_alpha(alpha, -0.1)
 
 # TODO: test invalid array shape
 
