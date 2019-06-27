@@ -25,7 +25,7 @@ def explain_prediction_keras(estimator, # type: Model
                              layer=None, # type: Optional[Union[int, str, Layer]]
                             ):
     # type: (...) -> Explanation
-    # TODO: rendered param order is "type, required (paramname)", should be other way around
+    # FIXME: in docs rendered param order is "type, required (paramname)", should be other way around
     """
     Explain the prediction of a Keras image classifier.
 
@@ -120,7 +120,7 @@ def explain_prediction_keras(estimator, # type: Model
         description=DESCRIPTION_KERAS,
         error='',
         method='Grad-CAM',
-        is_regression=False, # TODO: classification vs regression model
+        is_regression=False, # might be relevant later when explaining for regression tasks
         highlight_spaces=None, # might be relevant later when explaining text models
         image=image, # RGBA Pillow image
         heatmap=heatmap, # 2D [0, 1] numpy array
@@ -149,7 +149,6 @@ def _validate_doc(estimator, doc):
         if doc_sh != input_sh:
             raise ValueError('Input and doc shapes do not match.'
                              'input: {}, doc: {}'.format(input_sh, doc_sh))
-    # TODO: might want to just show a warning and attempt execution anyways?
 
 
 def _get_activation_layer(estimator, layer):
@@ -161,19 +160,24 @@ def _get_activation_layer(estimator, layer):
     if layer is None:
         # Automatically get the layer if not provided
         activation_layer = _search_layer_backwards(estimator, _is_suitable_activation_layer)
-    elif isinstance(layer, Layer):
+        return activation_layer
+
+    if isinstance(layer, Layer):
         activation_layer = layer
+    # get_layer() performs a bottom-up horizontal graph traversal
+    # it can raise ValueError if the layer index / name specified is not found
     elif isinstance(layer, int):
-        # bottom-up horizontal graph traversal
         activation_layer = estimator.get_layer(index=layer)
-        # These can raise ValueError if the layer index / name specified is not found
     elif isinstance(layer, str):
         activation_layer = estimator.get_layer(name=layer)
     else:
         raise TypeError('Invalid layer (must be str, int, keras.layers.Layer, or None): %s' % layer)
 
-    # TODO: validate activation_layer dimensions (is it possible to perform Grad-CAM on it?)
-    return activation_layer
+    if _is_suitable_activation_layer(estimator, activation_layer):
+        # final validation step
+        return activation_layer
+    else:
+        raise ValueError('Can not perform Grad-CAM on the retrieved activation layer')
 
 
 def _search_layer_backwards(estimator, condition):
@@ -182,35 +186,31 @@ def _search_layer_backwards(estimator, condition):
     Search for a layer in ``estimator``, backwards (starting from the output layer),
     checking if the layer is suitable with the callable ``condition``,
     """
-    # we assume that this is a simple feedforward network
-    # linear search in reverse
-    i = len(estimator.layers)-1
-    while i >= 0 and not condition(estimator, i):
-        i -= 1
-    if i >= 0:
-        # linear search succeeded
-        return estimator.get_layer(index=i)
-    else:
-        raise ValueError('Could not find a suitable target layer automatically.')
+    # linear search in reverse through the flattened layers
+    for layer in estimator.layers[::-1]:
+        if condition(estimator, layer):
+            # linear search succeeded
+            return layer
+    # linear search ended with no results
+    raise ValueError('Could not find a suitable target layer automatically.')        
 
 
-def _is_suitable_activation_layer(estimator, i):
-    # type: (Model, int) -> bool
+def _is_suitable_activation_layer(estimator, layer):
+    # type: (Model, Layer) -> bool
     """
-    Check whether
-    the layer at index ``i`` matches what is required 
-    by ``estimator``, returning a boolean.
+    Check whether the layer ``layer`` matches what is required 
+    by ``estimator`` to do Grad-CAM on ``layer``.
+    Returns a boolean.
     
     Matching Criteria:
         * Rank of the layer's output tensor.
     """
     # TODO: experiment with this, using many models and images, to find what works best
-    # TODO: might want to validate index
     # Some ideas: 
     # check layer type, i.e.: isinstance(l, keras.layers.Conv2D)
     # check layer name
-    l = estimator.get_layer(index=i) # this raises an error if index is not valid
-    # a check that asks 'can we resize this activation layer over the image?'
-    rank = len(l.output_shape)
+
+    # a check that asks "can we resize this activation layer over the image?"
+    rank = len(layer.output_shape)
     required_rank = len(estimator.input_shape)
     return rank == required_rank
