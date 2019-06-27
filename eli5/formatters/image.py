@@ -113,7 +113,7 @@ def heatmap_to_image(heatmap):
     Parameters
     ----------
     heatmap : numpy.ndarray
-        Rank 2 grayscale ('L') array or rank 4 coloured ('RGBA') array,
+        Rank 2 grayscale ('L') array or rank 3 coloured ('RGBA') array,
         with values in interval [0, 1] as floats.
 
 
@@ -227,8 +227,8 @@ def expand_heatmap(heatmap, image, interpolation):
 
     Returns
     -------
-    resized_image : PIL.Image.Image
-        A resized PIL image.
+    resized_heatmap : PIL.Image.Image
+        The heatmap, resized, as a PIL image.
     """
     heatmap = heatmap_to_image(heatmap)
     spatial_dimensions = (image.width, image.height)
