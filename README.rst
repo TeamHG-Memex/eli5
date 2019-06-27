@@ -42,7 +42,8 @@ It provides support for the following machine learning frameworks and packages:
 * LightGBM_ - show feature importances and explain predictions of
   LGBMClassifier and LGBMRegressor.
 
-* CatBoost_ - show feature importances and explain predictions of CatBoostClassifier and CatBoostRegressor.
+* CatBoost_ - show feature importances of CatBoostClassifier,
+  CatBoostRegressor and catboost.CatBoost.
 
 * lightning_ - explain weights and predictions of lightning classifiers and
   regressors.
