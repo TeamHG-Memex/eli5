@@ -11,11 +11,11 @@ from eli5.base import Explanation
 
 def format_as_image(expl, # type: Explanation
     interpolation=Image.LANCZOS, # type: int
-    colormap=matplotlib.cm.magma, # type: Callable[[np.ndarray], np.ndarray]
+    colormap=matplotlib.cm.viridis, # type: Callable[[np.ndarray], np.ndarray]
     alpha_limit=0.65, # type: Optional[Union[float, int]]
     ):
     # type: (...) -> Image
-    """format_as_image(expl, interpolation=Image.LANCZOS, colormap=matplotlib.cm.magma, alpha_limit=0.65)
+    """format_as_image(expl, interpolation=Image.LANCZOS, colormap=matplotlib.cm.viridis, alpha_limit=0.65)
 
     Format a :class:`eli5.base.Explanation` object as an image.
 
@@ -53,7 +53,7 @@ def format_as_image(expl, # type: Explanation
         
         See also https://matplotlib.org/gallery/color/colormap_reference.html.
 
-        Default is ``matplotlib.cm.magma`` (blue to red).
+        Default is ``matplotlib.cm.viridis`` (green/blue to yellow).
 
 
 
@@ -81,15 +81,14 @@ def format_as_image(expl, # type: Explanation
     image = expl.image
     heatmap = expl.heatmap
     
-    # We first 1. colorize 2. resize
-    # as opposed 1. resize 2. colorize
+    # The order of our operations is: 1. colorize 2. resize
+    # as opposed: 1. resize 2. colorize
 
+    # apply colours to the grayscale array
     heatmap = _colorize(heatmap, colormap=colormap) # -> rank 3 RGBA array
-    # TODO: automatically detect which colormap would be the best based on colors in the image
 
     # make the alpha intensity correspond to the grayscale heatmap values
     # cap the intensity so that it's not too opaque when near maximum value
-    # TODO: more options for controlling alpha, i.e. a callable?
     heat_values = expl.heatmap
     _update_alpha(heatmap, starting_array=heat_values, alpha_limit=alpha_limit)
 
@@ -156,6 +155,7 @@ def _update_alpha(image_array, starting_array=None, alpha_limit=None):
 
     This function modifies ``image_array`` in-place.
     """
+    # FIXME: this function may be too specialized and could be refactored
     # get the alpha channel slice
     if isinstance(starting_array, np.ndarray):
         alpha = starting_array
@@ -166,7 +166,6 @@ def _update_alpha(image_array, starting_array=None, alpha_limit=None):
     alpha = _cap_alpha(alpha, alpha_limit)
     # update alpha channel in the original image
     image_array[:,:,3] = alpha
-    # TODO: optimisation?
 
 
 def _cap_alpha(alpha_arr, alpha_limit):
@@ -226,13 +225,9 @@ def expand_heatmap(heatmap, image, interpolation):
         raise ValueError('heatmap array must have rank 2 (L, grayscale)' 
                          'or rank 3 (RGBA, colored).'
                          'Got: %d' % rank)
-    # PIL seems to have a much nicer API for resizing than scipy (scipy.ndimage)
-    # Also, scipy seems to have some interpolation problems: 
-    # https://github.com/scipy/scipy/issues/8210
     spatial_dimensions = (image.width, image.height)
     heatmap = heatmap.resize(spatial_dimensions, resample=interpolation)
     return heatmap
-    # TODO: resize a numpy array without converting to PIL image?
 
 
 def overlay_heatmap(heatmap, image):
