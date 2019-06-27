@@ -17,6 +17,7 @@ from keras.applications import (
 )
 
 import eli5
+from eli5.base import Explanation
 from eli5 import format_as_image
 from eli5.formatters.image import (
     expand_heatmap
@@ -120,3 +121,20 @@ def test_image_classification(keras_clf, cat_dog_image, area, targets):
     # check show function
     show_overlay = eli5.show_prediction(keras_clf, cat_dog_image, targets=targets)
     assert_pixel_by_pixel_equal(overlay, show_overlay)
+
+
+@pytest.fixture(scope="function")
+def show_nodeps():
+    # set up
+    old_format_as_image = eli5.ipython.format_as_image
+    eli5.ipython.format_as_image = ImportError('mock test')
+    # object return
+    yield eli5.show_prediction
+    # tear down
+    eli5.ipython.format_as_image = old_format_as_image
+
+
+def test_show_prediction_nodeps(show_nodeps, keras_clf, cat_dog_image):
+    with pytest.warns(UserWarning):
+        expl = show_nodeps(keras_clf, cat_dog_image)
+    assert isinstance(expl, Explanation)
