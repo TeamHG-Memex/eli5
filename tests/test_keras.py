@@ -8,6 +8,7 @@ keras = pytest.importorskip('keras')
 
 from keras.models import Sequential
 from keras.layers import Activation, Conv2D, GlobalAveragePooling2D
+from keras.backend import epsilon
 import numpy as np
 
 from eli5.keras.explain_prediction import (
@@ -16,6 +17,7 @@ from eli5.keras.explain_prediction import (
 )
 from eli5.keras.gradcam import (
     _get_target_prediction,
+    gradcam,
 )
 
 
@@ -53,79 +55,68 @@ def test_get_activation_layer(simple_seq, layer, expected_layer):
     assert _get_activation_layer(simple_seq, layer) == simple_seq.get_layer(name=expected_layer)
 
 
-def test_get_activation_layer_wrongdims(simple_seq):
+def test_get_activation_layer_invalid(simple_seq):
+    # invalid layer shape
     with pytest.raises(ValueError):
         # GAP has rank 2 shape, need rank 4
         _get_activation_layer(simple_seq, 'layer3')
-
-
-def test_get_activation_layer_invalid(simple_seq):
+    # invalid layer type
     with pytest.raises(TypeError):
-        _get_activation_layer(simple_seq, 2.5) # some nonsense
-
-
-def test_get_activation_layer_unfound(simple_seq):
+        _get_activation_layer(simple_seq, 2.5)
+    # can not find activation layer automatically
+    # this is handled by _search_layer_backwards function
     with pytest.raises(ValueError):
         _get_activation_layer(
             Sequential(), # a model with no layers
             None,
         )
-        # this is handled by _search_layer_backwards function
-
-
-# note that cases where an invalid layer index or name is passed are 
-# handled by the underlying keras get_layer method()
+    
+    # note that cases where an invalid layer index or name is passed are 
+    # handled by the underlying keras get_layer method()
 
 
 def test_validate_doc(simple_seq):
     # should raise no errors
-    doc = np.zeros((1, 32, 32, 1))
-    _validate_doc(simple_seq, doc)
-
-
-def test_validate_doc_multisample(simple_seq):
+    _validate_doc(simple_seq, np.zeros((1, 32, 32, 1)))
     # batch has more than one sample
-    multisample = np.zeros((3, 32, 32, 1))
     with pytest.raises(ValueError):
-        _validate_doc(simple_seq, multisample)
-
-
-def test_validate_doc_wrongtype(simple_seq):
-    wrongtype = 10
+        _validate_doc(simple_seq, np.zeros((3, 32, 32, 1)))
+    # type is wrong
     with pytest.raises(TypeError):
-        _validate_doc(simple_seq, wrongtype)
-
-
-def test_validate_doc_wrongdims(simple_seq):
-    wrongdims = np.zeros((5, 5))
+        _validate_doc(simple_seq, 10)
+    # incorrect dimensions
     with pytest.raises(ValueError):
-        _validate_doc(simple_seq, wrongdims)
+        _validate_doc(simple_seq, np.zeros((5, 5)))
 
  
 def test_get_target_prediction_invalid(simple_seq):
-    # output = keras.backend.variable(np.zeros((1, 20)))
-    # output_shape = (None, 20)
-
+    # only list of targets is currently supported
     with pytest.raises(TypeError):
-        # only list of targets is currently supported
         _get_target_prediction('somestring', simple_seq)
-    with pytest.raises(TypeError):
-        # only an integer index target is currently supported
-        _get_target_prediction(['someotherstring'], simple_seq)
+    # only one target prediction is currently supported
     with pytest.raises(ValueError):
-        # only one target prediction is currently supported
         _get_target_prediction([1, 2], simple_seq)
+
+    # these are dispatched to _validate_target
+    # only an integer index target is currently supported
+    with pytest.raises(TypeError):
+        _get_target_prediction(['someotherstring'], simple_seq)
+    # target index must correctly reference one of the nodes in the final layer
     with pytest.raises(ValueError):
-        # target index must correctly reference one of the nodes in the final layer
         _get_target_prediction([20], simple_seq)
 
 
-# TODO: test _get_target_prediction() once it is finalized regarding non-classification models
+def test_gradcam_zeros():
+    activations = np.zeros((2, 2, 3)) # three 2x2 maps
+    weights = np.zeros((3,)) # weight for each map
+    lmap = gradcam(weights, activations)
+    # all zeroes
+    assert np.count_nonzero(lmap) == 0
 
-# TODO: test _get_target_prediction() with more than one prediction target
 
-# TODO: test invalid argument to targets
-
-# TODO: test invalid prediction ID
-
-# TODO: test grad_cam() with lmap all 0's
+def test_gradcam_ones():
+    activations = np.ones((1, 1, 2))
+    weights = np.ones((2,))
+    lmap = gradcam(weights, activations)
+    # all within eps distance to one
+    assert np.isclose(lmap, np.ones((1, 1)), rtol=epsilon())

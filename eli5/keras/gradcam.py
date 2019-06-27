@@ -12,7 +12,7 @@ from keras.layers import Layer # type: ignore
 def gradcam(weights, activations):
     # type: (np.ndarray, np.ndarray) -> np.ndarray
     """
-    Generate a heatmap using Gradient-weighted Class Activation Mapping 
+    Generate a localization map (heatmap) using Gradient-weighted Class Activation Mapping 
     (Grad-CAM) (https://arxiv.org/pdf/1610.02391.pdf).
     
     The values for the parameters can be obtained from
@@ -30,7 +30,7 @@ def gradcam(weights, activations):
     
     Returns
     -------
-    heatmap : numpy.ndarray
+    lmap : numpy.ndarray
         A Grad-CAM localization map,
         rank 2, with values normalized in the interval [0, 1].
 
@@ -47,15 +47,19 @@ def gradcam(weights, activations):
     """
     # For reusability, this function should only use numpy operations
     # Instead of backend library operations
-
+    
     # Perform a weighted linear combination
-    spatial_shape = activations.shape[:2]
+    # we need to multiply (dim1, dim2, maps,) by (maps,) over the first two axes
+    # and add each result to (dim1, dim2,) results array
+    # there does not seem to be an easy way to do this:
+    # see: https://stackoverflow.com/questions/30031828/multiply-numpy-ndarray-with-1d-array-along-a-given-axis
+    spatial_shape = activations.shape[:2] # -> (dim1, dim2)
     lmap = np.zeros(spatial_shape, dtype=np.float64)
-    for i, w in enumerate(weights):
-        # weight (for one activation map) * single activation map
-        # add to the entire map (linear combination), NOT pixel by pixel
+    # iterate through each activation map
+    for i, w in enumerate(weights): 
+        # weight * spatial map
+        # add result to the entire localization map (NOT pixel by pixel)
         lmap += w * activations[..., i]
-        # TODO: can this be expressed in terms of numpy operations?
 
     lmap = np.maximum(lmap, 0) # ReLU
 
@@ -108,12 +112,12 @@ def gradcam_backend(estimator, # type: Model
     activation_output = activation_layer.output 
 
     # differentiate ys (scalar) with respect to each of xs (python list of variables)
-    grads = K.gradients(score, [activation_output])
-    # FIXME: this might have issues
+    # FIXME: this might have issues in certain cases
     # See https://github.com/jacobgil/keras-grad-cam/issues/17
     # a fix is the following piece of code:
     # grads = [grad if grad is not None else K.zeros_like(var) 
     #         for (var, grad) in zip([activation_output], grads)]
+    grads = K.gradients(score, [activation_output])
 
     # grads gives a python list with a tensor (containing the derivatives) for each xs
     # to use grads with other operations and with K.function
@@ -140,43 +144,32 @@ def gradcam_backend(estimator, # type: Model
 
 
 def _get_target_prediction(targets, estimator):
-    # type: (Union[None, list], K.variable) -> K.variable
+    # type: (Union[None, list], Model) -> K.variable
     """
-    Get a prediction ID, an index into the final layer 
-    of the model ``output`` (rank 2 tensor), using ``targets``.
+    Get a prediction ID based on ``targets``, 
+    from the model ``estimator`` (with a rank 2 tensor for its final layer).
     Returns a rank 1 K.variable tensor.
     """
-
-    # FIXME: this is hard to test, as output must be evaluated first
-
-    # TODO: maybe do the sum / loss in this function instead of gradcam. Return a tensor.
-    # This would be consistent with what is done in https://github.com/ramprs/grad-cam/blob/master/misc/utils.lua
-    # https://github.com/ramprs/grad-cam/blob/master/classification.lua
-    # https://github.com/torch/nn/blob/master/doc/module.md
-    output = estimator.output
     if isinstance(targets, list):
         # take the first prediction from the list
         if len(targets) == 1:
             target = targets[0]
             _validate_target(target, estimator.output_shape)
-            predicted_idx = K.constant([predicted_idx], dtype='int64')
+            predicted_idx = K.constant([target], dtype='int64')
         else:
             raise ValueError('More than one prediction target '
                              'is currently not supported ' 
                              '(found a list that is not length 1): '
                              '{}'.format(targets))
-            # TODO: use all predictions in the list
     elif targets is None:
-        predicted_idx = K.argmax(output, axis=-1)
+        predicted_idx = K.argmax(estimator.output, axis=-1)
     else:
         raise TypeError('Invalid argument "targets" (must be list or None): %s' % targets)
-        # TODO: in the future, accept different ways to specify target
-        # label (str), float (in regression tasks), int (not a list) etc.
     return predicted_idx
 
 
 def _validate_target(target, output_shape):
-    # type: (int, tuple) -> bool
+    # type: (int, tuple) -> None
     """
     Check whether ``target``, 
     an integer index into the model's output

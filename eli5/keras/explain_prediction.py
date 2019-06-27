@@ -105,6 +105,10 @@ def explain_prediction_keras(estimator, # type: Model
     _validate_doc(estimator, doc)
     activation_layer = _get_activation_layer(estimator, layer)
     
+    # TODO: maybe do the sum / loss calculation in this function and pass it to gradcam.
+    # This would be consistent with what is done in
+    # https://github.com/ramprs/grad-cam/blob/master/misc/utils.lua
+    # and https://github.com/ramprs/grad-cam/blob/master/classification.lua
     weights, activations, grads, predicted_idx, score = gradcam_backend(estimator, doc, targets, activation_layer)
     heatmap = gradcam(weights, activations)
 
