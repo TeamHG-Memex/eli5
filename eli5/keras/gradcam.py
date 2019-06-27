@@ -45,8 +45,6 @@ def gradcam(weights, activations):
         * Author of "https://github.com/PowerOfCreation/keras-grad-cam" for fixes to Jacob's implementation.
         * Kotikalapudi, Raghavendra and contributors for "https://github.com/raghakot/keras-vis".
     """
-    # Get required terms
-
     # For reusability, this function should only use numpy operations
     # Instead of backend library operations
 
@@ -103,7 +101,7 @@ def gradcam_backend(estimator, # type: Model
         Values of variables.
     """
     output = estimator.output
-    predicted_idx = _get_target_prediction(targets, output)
+    predicted_idx = _get_target_prediction(targets, estimator)
     score = K.gather(output[0,:], predicted_idx) # access value by index
 
     # output of target layer, i.e. activation maps of a convolutional layer
@@ -115,7 +113,7 @@ def gradcam_backend(estimator, # type: Model
     # See https://github.com/jacobgil/keras-grad-cam/issues/17
     # a fix is the following piece of code:
     # grads = [grad if grad is not None else K.zeros_like(var) 
-    #         for (var, grad) in zip(xs, grads)]
+    #         for (var, grad) in zip([activation_output], grads)]
 
     # grads gives a python list with a tensor (containing the derivatives) for each xs
     # to use grads with other operations and with K.function
@@ -141,17 +139,13 @@ def gradcam_backend(estimator, # type: Model
     return weights, activations, grads, predicted_idx, score
 
 
-def _get_target_prediction(targets, output):
+def _get_target_prediction(targets, estimator):
     # type: (Union[None, list], K.variable) -> K.variable
     """
     Get a prediction ID, an index into the final layer 
     of the model ``output`` (rank 2 tensor), using ``targets``.
     Returns a rank 1 K.variable tensor.
     """
-    # TODO: take in a single target as well, not just a list, 
-    # consider changing signature / types for explain_prediction generic function
-    # TODO: need to find a way to show the label for the passed prediction 
-    # as well as its probability
 
     # FIXME: this is hard to test, as output must be evaluated first
 
@@ -159,16 +153,17 @@ def _get_target_prediction(targets, output):
     # This would be consistent with what is done in https://github.com/ramprs/grad-cam/blob/master/misc/utils.lua
     # https://github.com/ramprs/grad-cam/blob/master/classification.lua
     # https://github.com/torch/nn/blob/master/doc/module.md
+    output = estimator.output
     if isinstance(targets, list):
         # take the first prediction from the list
         if len(targets) == 1:
-            predicted_idx = targets[0]
-            # TODO: validate list contents
+            target = targets[0]
+            _validate_target(target, estimator.output_shape)
             predicted_idx = K.constant([predicted_idx], dtype='int64')
         else:
-            raise ValueError('More than one prediction target'
-                             'is currently not supported' 
-                             '(found a list that is not length 1):'
+            raise ValueError('More than one prediction target '
+                             'is currently not supported ' 
+                             '(found a list that is not length 1): '
                              '{}'.format(targets))
             # TODO: use all predictions in the list
     elif targets is None:
@@ -178,3 +173,21 @@ def _get_target_prediction(targets, output):
         # TODO: in the future, accept different ways to specify target
         # label (str), float (in regression tasks), int (not a list) etc.
     return predicted_idx
+
+
+def _validate_target(target, output_shape):
+    # type: (int, tuple) -> bool
+    """
+    Check whether ``target``, 
+    an integer index into the model's output
+    is valid for the given ``output_shape``.
+    """
+    if isinstance(target, int):
+        output_nodes = output_shape[1:][0]
+        if not (0 <= target < output_nodes):
+            raise ValueError('Prediction target index is ' 
+                             'outside the required range [0, {}). ',
+                             'Got {}'.format(output_nodes, target))
+    else:
+        raise TypeError('Prediction target must be int. '
+                        'Got: {}'.format(target))

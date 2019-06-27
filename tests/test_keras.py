@@ -20,16 +20,17 @@ from eli5.keras.gradcam import (
 
 
 # We need to put this layer in a fixture object AND access it in a parametrization
-gap_layer = GlobalAveragePooling2D()
+conv_layer = Conv2D(10, (3, 3))
 
 @pytest.fixture(scope='module')
 def simple_seq():
     """A simple sequential model for images."""
     model = Sequential([
         Activation('linear', input_shape=(32, 32, 1)), # index 0, input
-        Conv2D(10, (3, 3)),                            # index 1, conv
+        conv_layer,                                    # index 1, conv
         Conv2D(20, (3, 3)),                            # index 2, conv2
-        gap_layer,                                     # index 3, gap
+        GlobalAveragePooling2D(),                      # index 3, gap
+        # output shape is (None, 20)
     ])
     print('Summary of model:')
     model.summary()
@@ -39,21 +40,25 @@ def simple_seq():
     return model
 
 
-# layer is an argument to _get_activation_layer
+# layer is the argument to _get_activation_layer
 # expected_layer is a unique layer name
 @pytest.mark.parametrize('layer, expected_layer', [
     (-3, 'layer1'), # index backwards
-    ('layer0', 'layer0'),
-    (gap_layer, 'layer3'),
-    (None, 'layer2'), # first matching layer going back from output layer
+    ('layer0', 'layer0'), # name
+    (conv_layer, 'layer1'), # instance
+    (None, 'layer2'), # automatic, first matching layer going back from output layer
 ])
 def test_get_activation_layer(simple_seq, layer, expected_layer):
     """Test different ways to specify activation layer, and automatic activation layer getter"""
     assert _get_activation_layer(simple_seq, layer) == simple_seq.get_layer(name=expected_layer)
 
 
-# note that cases where an invalid layer index or name is passed are 
-# handled by the underlying keras get_layer method
+def test_get_activation_layer_wrongdims(simple_seq):
+    with pytest.raises(ValueError):
+        # GAP has rank 2 shape, need rank 4
+        _get_activation_layer(simple_seq, 'layer3')
+
+
 def test_get_activation_layer_invalid(simple_seq):
     with pytest.raises(TypeError):
         _get_activation_layer(simple_seq, 2.5) # some nonsense
@@ -66,6 +71,10 @@ def test_get_activation_layer_unfound(simple_seq):
             None,
         )
         # this is handled by _search_layer_backwards function
+
+
+# note that cases where an invalid layer index or name is passed are 
+# handled by the underlying keras get_layer method()
 
 
 def test_validate_doc(simple_seq):
@@ -93,13 +102,22 @@ def test_validate_doc_wrongdims(simple_seq):
         _validate_doc(simple_seq, wrongdims)
 
  
-def test_get_target_prediction_invalid():
-    output = keras.backend.variable(np.zeros((1, 20)))
-    with pytest.raises(ValueError):
-        _get_target_prediction([1, 2], output)
+def test_get_target_prediction_invalid(simple_seq):
+    # output = keras.backend.variable(np.zeros((1, 20)))
+    # output_shape = (None, 20)
+
     with pytest.raises(TypeError):
-        _get_target_prediction('somestring', output)
-    # FIXME: both of these exceptions may change or be removed in the future
+        # only list of targets is currently supported
+        _get_target_prediction('somestring', simple_seq)
+    with pytest.raises(TypeError):
+        # only an integer index target is currently supported
+        _get_target_prediction(['someotherstring'], simple_seq)
+    with pytest.raises(ValueError):
+        # only one target prediction is currently supported
+        _get_target_prediction([1, 2], simple_seq)
+    with pytest.raises(ValueError):
+        # target index must correctly reference one of the nodes in the final layer
+        _get_target_prediction([20], simple_seq)
 
 
 # TODO: test _get_target_prediction() once it is finalized regarding non-classification models
