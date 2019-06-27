@@ -46,7 +46,7 @@ def cat_dog_image():
     im = keras.preprocessing.image.load_img(img_path, target_size=(224, 224))
     doc = keras.preprocessing.image.img_to_array(im)
     doc = np.expand_dims(doc, axis=0)
-    doc = mobilenet_v2.preprocess_input(doc) # FIXME: this preprocessing is hardcoded for mobilenet_v2
+    doc = mobilenet_v2.preprocess_input(doc) # because we our classifier is mobilenet_v2
     return doc
 
 
@@ -75,25 +75,35 @@ def assert_attention_over_area(expl, area):
     """
     image = expl.image
     heatmap = expl.heatmap
+
     # fit heatmap over image
-    # FIXME: this might be too circular? Need to test image formatter first?
     heatmap = expand_heatmap(heatmap, image, interpolation=Image.LANCZOS)
     heatmap = np.array(heatmap)
+
+    # get a slice of the area
     x1, x2, y1, y2 = area
     crop = heatmap[y1:y2, x1:x2] # row-first ordering
+    # TODO: instead of hard-coding the height and width offsets
+    # it might be a better idea to use percentages
+    # this makes the tests independent of any resizing done on the image
+    # and the heatmap doesn't have to be resized
+    # however, it might be harder for the user to determine percentages
 
+    # check intensity
     total_intensity = np.sum(heatmap)
     crop_intensity = np.sum(crop)
     p = total_intensity / 100 # -> 1% of total_intensity
-    intensity = crop_intensity / p # -> intensity %
-    assert 50 < intensity # at least 50% (need to experiment with this number)
-    # Alternative:
+    crop_p = crop_intensity / p # -> intensity %
+    # at least 50% (need to experiment with this number)
+    assert 50 < crop_p
+
+    # Alternatively, check that the intensity over area 
+    # is greater than all other intensity:
     # remaining_intensity = total_intensity - intensity
     # assert remaining_intensity < total_intensity
 
 
 # area = (x1, x2, y1, y2)
-# TODO: instead of hard-coding height and width pixels, be able to take percentages
 @pytest.mark.parametrize('area, targets', [
     ((54, 170, 2, 100), None), # focus on the dog (pick top prediction)
     ((44, 180, 130, 212), [imagenet_cat_idx]), # focus on the cat (supply prediction)
