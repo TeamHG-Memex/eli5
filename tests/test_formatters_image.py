@@ -7,37 +7,89 @@ matplotlib = pytest.importorskip('matplotlib')
 
 import numpy as np
 
+from eli5.base import Explanation
 from eli5.formatters.image import (
-    heatmap_to_grayscale,
-    heatmap_to_rgba,
+    format_as_image,
+    heatmap_to_image,
+    expand_heatmap,
     _update_alpha,
     _cap_alpha,
+    _overlay_heatmap,
 )
 from .utils_image import assert_pixel_by_pixel_equal
 
-# TODO: test format_as_image with alpha_limit set to 0 -> should show no heatmap over the image.
+
+# 'png' format is required for RGBA data
+@pytest.fixture(scope='module')
+def boxl():
+    return PIL.Image.open('tests/images/box_5x5_l.png')
 
 
-@pytest.mark.parametrize('heatmap, expected_im', [
-    # 'jpg' format suits for RGB data
-    (np.zeros((5, 5)), PIL.Image.open('tests/images/black_5x5.jpg')),
+@pytest.fixture(scope='module')
+def boxrgb():
+    return PIL.Image.open('tests/images/box_5x5_rgb.png')
+
+
+@pytest.fixture(scope='module')
+def boxrgba():
+    return PIL.Image.open('tests/images/box_5x5_rgba.png')
+
+
+# this is the original catdog image in 'jpg' format with RGB data
+@pytest.fixture(scope='module')
+def catdog():
+    return PIL.Image.open('tests/images/cat_dog.jpg')
+
+
+@pytest.mark.parametrize('heatmap', [
+    (np.zeros((5, 5))),
 ])
-def test_heatmap_to_grayscale(heatmap, expected_im):
-    gray_heatmap = heatmap_to_grayscale(heatmap)
+def test_heatmap_to_image_grayscale(heatmap, boxl):
+    gray_heatmap = heatmap_to_image(heatmap)
     assert heatmap.shape == (gray_heatmap.width, gray_heatmap.height)
-    assert_pixel_by_pixel_equal(gray_heatmap, expected_im)
-
-# TODO: test validation of heatmap argument
+    assert_pixel_by_pixel_equal(gray_heatmap, boxl)
 
 
-@pytest.mark.parametrize('heatmap, expected_im', [
-    # 'png' format is required for RGBA data
-    (np.zeros((5, 5, 4)), PIL.Image.open('tests/images/black_5x5.png')),
+@pytest.mark.parametrize('heatmap', [
+    (np.zeros((5, 5, 3))),
 ])
-def test_heatmap_to_rgba(heatmap, expected_im):
-    rgba_heatmap = heatmap_to_rgba(heatmap)
+def test_heatmap_to_image_rgba(heatmap, boxrgb):
+    rgba_heatmap = heatmap_to_image(heatmap)
     assert heatmap.shape[:2] == (rgba_heatmap.width, rgba_heatmap.height)
-    assert_pixel_by_pixel_equal(rgba_heatmap, expected_im)
+    assert_pixel_by_pixel_equal(rgba_heatmap, boxrgb)
+
+
+@pytest.mark.parametrize('heatmap', [
+    (np.zeros((5, 5, 4))),
+])
+def test_heatmap_to_image_rgba(heatmap, boxrgba):
+    rgba_heatmap = heatmap_to_image(heatmap)
+    assert heatmap.shape[:2] == (rgba_heatmap.width, rgba_heatmap.height)
+    assert_pixel_by_pixel_equal(rgba_heatmap, boxrgba)
+
+
+def test_heatmap_to_image_invalid():
+    # heatmap must be a numpy array
+    with pytest.raises(TypeError):
+        heatmap_to_image('nonsense')
+    # heatmap must have rank 2 or rank 3
+    with pytest.raises(ValueError):
+        heatmap_to_image(np.zeros((1,)))
+    # coloured heatmap must have 4 or 3 channels
+    with pytest.raises(ValueError):
+        heatmap_to_image(np.zeros((1, 1, 10)))
+
+
+@pytest.mark.parametrize('heatmap, colormap', [
+    (np.ones((1, 1)), matplotlib.cm.binary),
+])
+def test_colorize(heatmap, colormap):
+    colorized = colormap(heatmap)
+    # check rank
+    assert len(colorized.shape) == 3
+    # check that in interval [0, 1]
+    assert colorized.max() <= 1.0
+    assert 0.0 <= colorized.min()
 
 
 @pytest.mark.parametrize('old_arr, alpha_start_arr, new_arr', [
@@ -50,7 +102,6 @@ def test_update_alpha(old_arr, alpha_start_arr, new_arr):
 
 
 @pytest.mark.parametrize('alpha_arr, alpha_limit, new_alpha_arr', [
-    # (np.zeros((3, 3)), None, np.zeros((3, 3))), # this is already covered by test_update_alpha
     (np.zeros((4, 3)), 0, np.zeros((4, 3))),
     (np.array([[0.5, 0.49], [0.51, 0.5]]), 0.5, np.array([[0.5, 0.49], [0.5, 0.5]])),
 ])
@@ -61,6 +112,7 @@ def test_cap_alpha(alpha_arr, alpha_limit, new_alpha_arr):
 
 def test_cap_alpha_invalid():
     alpha = np.zeros((1, 1))
+    # alpha must be a float or int
     with pytest.raises(TypeError):
         _cap_alpha(alpha, '0.5')
     # alpha must be between 0 and 1
@@ -69,13 +121,25 @@ def test_cap_alpha_invalid():
     with pytest.raises(ValueError):
         _cap_alpha(alpha, -0.1)
 
-# TODO: test invalid array shape
+
+@pytest.mark.parametrize('heatmap', [
+    (np.zeros((3, 3))),
+    (np.zeros((10, 10, 4))), # would need downsizing
+])
+def test_expand_heatmap(boxrgb, heatmap):
+    expanded = expand_heatmap(heatmap, boxrgb, PIL.Image.BOX)
+    assert (expanded.width, expanded.height) == (boxrgb.width, boxrgb.height)
 
 
-# def test_colorize
-# TODO: test colorize with a callable
+def test_overlay_heatmap(boxrgba):
+    overlay = _overlay_heatmap(boxrgba, boxrgba)
+    assert_pixel_by_pixel_equal(overlay, boxrgba)
 
-# def test_resize_over
 
+def test_format_as_image(catdog):
+    catdog_rgba = catdog.convert('RGBA')
+    expl = Explanation('mockestimator', image=catdog_rgba, heatmap=np.zeros((7, 7)))
 
-# def test_format_as_image
+    # no transparency for heatmap
+    overlay = format_as_image(expl, alpha_limit=0.0)
+    assert_pixel_by_pixel_equal(overlay, catdog_rgba)

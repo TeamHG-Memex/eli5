@@ -21,6 +21,13 @@ def format_as_image(expl, # type: Explanation
 
     Note that this formatter requires ``matplotlib`` and ``Pillow`` optional dependencies.
     
+
+    :param expl `Explanation`:
+        Explanation object to be formatted.
+        It must have a ``image`` attribute that is a Pillow image with mode RGBA.
+        It also must have a ``heatmap`` attribute that is a numpy array with rank 2,
+        with float values in the interval [0, 1].
+
     
     :param interpolation `int, optional`:
         Interpolation ID or Pillow filter to use when resizing the image.
@@ -80,6 +87,7 @@ def format_as_image(expl, # type: Explanation
     """
     image = expl.image
     heatmap = expl.heatmap
+    # TODO: might want to do some validation of image and heatmap here
     
     # The order of our operations is: 1. colorize 2. resize
     # as opposed: 1. resize 2. colorize
@@ -93,46 +101,54 @@ def format_as_image(expl, # type: Explanation
     _update_alpha(heatmap, starting_array=heat_values, alpha_limit=alpha_limit)
 
     heatmap = expand_heatmap(heatmap, image, interpolation=interpolation)
-    overlay = overlay_heatmap(heatmap, image)
+    overlay = _overlay_heatmap(heatmap, image)
     return overlay
 
 
-def heatmap_to_grayscale(heatmap):
+def heatmap_to_image(heatmap):
     # type: (np.ndarray) -> Image
     """
-    Convert ``heatmap`` array into a grayscale PIL image.
-    
-    Parameters
-    ----------
-    heatmap: numpy.ndarray
-        a rank 2 (2D) numpy array with [0, 1] float values.
-
-    Returns
-    -------
-    heatmap_img : PIL.Image.Image
-        A grayscale (mode 'L') PIL Image.
-    """
-    heatmap = (heatmap*255).astype('uint8') # -> [0, 255] int
-    return Image.fromarray(heatmap, 'L') # -> grayscale PIL
-
-
-def heatmap_to_rgba(heatmap):
-    # type: (np.ndarray) -> Image
-    """
-    Convert ``heatmap`` to an RGBA PIL image.
+    Convert the numpy array ``heatmap`` to a Pillow image.
 
     Parameters
     ----------
-    heatmap : PIL.Image.Image
-        A rank 2 (2D) numpy array with [0, 1] float values.
+    heatmap : numpy.ndarray
+        Rank 2 grayscale ('L') array or rank 4 coloured ('RGBA') array,
+        with values in interval [0, 1] as floats.
+
+
+    :raises TypeError: if heatmap is not a numpy array.
+    :raises ValueError: if rank is neither 2 or 3.
+    :raises ValueError: if rank 3 heatmap does not have 4 (RGBA) or 3 (RGB) channels.
+
 
     Returns
     -------
-    heatmap_img : PIL.Image.Image
-        A coloured, alpha-channel (mode 'RGBA') PIL Image.
+    heatmap_image : PIL.Image.Image
+        Heatmap as an image with a suitable mode.
     """
+    if not isinstance(heatmap, np.ndarray):
+        raise TypeError('heatmap must be a numpy array. '
+                        'Got: {}'.format(heatmap))
+    rank = len(heatmap.shape)
+    if rank == 2:
+        mode = 'L'
+    elif rank == 3:
+        channels = heatmap.shape[2]
+        if channels == 4:
+            mode = 'RGBA'
+        elif channels == 3:
+            mode = 'RGB'
+        else:
+            raise ValueError('Rank 3 heatmap must have 4 channels (RGBA), '
+                             'or 3 channels (RGB). '
+                             'Got shape with {} channels'.format(channels))
+    else:
+        raise ValueError('heatmap array must have rank 2 (L, grayscale)' 
+                         'or rank 3 (RGBA, colored).'
+                         'Got: %d' % rank)
     heatmap = (heatmap*255).astype('uint8') # -> [0, 255] int
-    return Image.fromarray(heatmap, 'RGBA') # -> RGBA PIL
+    return Image.fromarray(heatmap, mode=mode)
 
 
 def _colorize(heatmap, colormap):
@@ -198,7 +214,7 @@ def expand_heatmap(heatmap, image, interpolation):
     Parameters
     ----------
     heatmap : numpy.ndarray
-        Heatmap that is to be resized, a rank 2 (grayscale) or rank 3 (colored) array.
+        Heatmap that is to be resized, as an array.
 
     image : PIL.Image.Image
         The image whose dimensions will be resized to.
@@ -209,28 +225,18 @@ def expand_heatmap(heatmap, image, interpolation):
         See :func:`eli5.format_as_image` for more details on the `interpolation` parameter.
 
 
-    :raises ValueError: if heatmap's dimensions are not rank 2 or rank 3.
-
     Returns
     -------
     resized_image : PIL.Image.Image
         A resized PIL image.
     """
-    rank = len(heatmap.shape)
-    if rank == 2:
-        heatmap = heatmap_to_grayscale(heatmap)
-    elif rank == 3:
-        heatmap = heatmap_to_rgba(heatmap)
-    else:
-        raise ValueError('heatmap array must have rank 2 (L, grayscale)' 
-                         'or rank 3 (RGBA, colored).'
-                         'Got: %d' % rank)
+    heatmap = heatmap_to_image(heatmap)
     spatial_dimensions = (image.width, image.height)
     heatmap = heatmap.resize(spatial_dimensions, resample=interpolation)
     return heatmap
 
 
-def overlay_heatmap(heatmap, image):
+def _overlay_heatmap(heatmap, image):
     # type: (Image, Image) -> Image
     """
     Blend (combine) ``heatmap`` over ``image``, 
