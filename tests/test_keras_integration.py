@@ -40,7 +40,8 @@ def keras_clf():
 
 @pytest.fixture(scope='module')
 def cat_dog_image():
-    # TODO: consider a .png example
+    # Note that 'jpg' images can have RGB data
+    # which is fine in the case of this model (requires three channels)
     img_path = 'tests/images/cat_dog.jpg'
     im = keras.preprocessing.image.load_img(img_path, target_size=(224, 224))
     doc = keras.preprocessing.image.img_to_array(im)
@@ -80,13 +81,6 @@ def assert_attention_over_area(expl, area):
     heatmap = np.array(heatmap)
     x1, x2, y1, y2 = area
     crop = heatmap[y1:y2, x1:x2] # row-first ordering
-
-    # TODO: show image, heatmap, and overlay when test fails
-    # https://stackoverflow.com/questions/13364868/in-pytest-how-can-i-figure-out-if-a-test-failed-from-request
-    # https://docs.pytest.org/en/latest/example/simple.html#making-test-result-information-available-in-fixtures
-    # https://stackoverflow.com/questions/35703122/how-to-detect-when-pytest-test-case-failed/36219273
-    # Current manual solution when testing locally:
-    # import matplotlib.pyplot as plt; plt.imshow(im); plt.show()
 
     total_intensity = np.sum(heatmap)
     crop_intensity = np.sum(crop)

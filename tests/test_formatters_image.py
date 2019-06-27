@@ -19,6 +19,7 @@ from .utils_image import assert_pixel_by_pixel_equal
 
 
 @pytest.mark.parametrize('heatmap, expected_im', [
+    # 'jpg' format suits for RGB data
     (np.zeros((5, 5)), PIL.Image.open('tests/images/black_5x5.jpg')),
 ])
 def test_heatmap_to_grayscale(heatmap, expected_im):
@@ -30,6 +31,7 @@ def test_heatmap_to_grayscale(heatmap, expected_im):
 
 
 @pytest.mark.parametrize('heatmap, expected_im', [
+    # 'png' format is required for RGBA data
     (np.zeros((5, 5, 4)), PIL.Image.open('tests/images/black_5x5.png')),
 ])
 def test_heatmap_to_rgba(heatmap, expected_im):
@@ -74,9 +76,6 @@ def test_cap_alpha_invalid():
 # TODO: test colorize with a callable
 
 # def test_resize_over
-
-
-# def test_convert_image
 
 
 # def test_format_as_image
