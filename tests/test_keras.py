@@ -12,6 +12,7 @@ from keras.backend import epsilon
 import numpy as np
 
 from eli5.keras.explain_prediction import (
+    explain_prediction,
     _validate_doc,
     _get_activation_layer,
     _outputs_proba,
@@ -89,6 +90,14 @@ def test_validate_doc(simple_seq):
     with pytest.raises(ValueError):
         _validate_doc(simple_seq, np.zeros((5, 5)))
 
+
+def test_validate_doc_custom():
+    # model with custom (not rank 4) input shape
+    model = Sequential([Dense(1, input_shape=(2, 3))])
+    # not matching shape
+    with pytest.raises(ValueError):
+        _validate_doc(model, np.zeros((5, 3)))
+
  
 def test_get_target_prediction_invalid(simple_seq):
     # only list of targets is currently supported
@@ -117,6 +126,12 @@ def test_get_target_prediction_invalid(simple_seq):
 ])
 def test_outputs_proba(estimator, expected):
     assert _outputs_proba(estimator) == expected
+
+
+def test_explain_prediction_score(simple_seq):
+    expl = explain_prediction(simple_seq, np.zeros((1, 32, 32, 1)))
+    assert expl.targets[0].score is not None
+    assert expl.targets[0].proba is None
 
 
 def test_gradcam_zeros():

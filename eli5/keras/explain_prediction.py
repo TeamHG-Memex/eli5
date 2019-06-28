@@ -243,4 +243,8 @@ def _outputs_proba(estimator):
     output_layer = estimator.get_layer(index=-1)
     # we check if the network's output is put through softmax
     # we assume that only softmax can output 'probabilities'
-    return output_layer.activation is keras.activations.softmax
+    try:
+        return output_layer.activation is keras.activations.softmax
+    except AttributeError:
+        # output layer does not support activation function
+        return False
