@@ -49,6 +49,7 @@ def test_format_as_dict():
                 'score': None,
                 'proba': None,
                 'weighted_spans': None,
+                'heatmap': None,
                 },
            ],
            'decision_tree': None,
@@ -60,5 +61,4 @@ def test_format_as_dict():
            'method': None,
            'transition_features': None,
            'image': None,
-           'heatmap': None,
            }
