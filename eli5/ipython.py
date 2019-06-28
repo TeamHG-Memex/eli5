@@ -304,7 +304,6 @@ def show_prediction(estimator, doc, **kwargs):
     if expl.image is not None and expl.heatmap is not None:
         # dispatch to image display implementation
         if isinstance(format_as_image, ImportError):
-            # TODO: need to test this (or remove it)
             warnings.warn('Missing dependencies: "{}". ' 
                           'Returning original Explanation.'.format(
                             format_as_image))

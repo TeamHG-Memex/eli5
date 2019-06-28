@@ -47,7 +47,7 @@ def cat_dog_image():
     im = keras.preprocessing.image.load_img(img_path, target_size=(224, 224))
     doc = keras.preprocessing.image.img_to_array(im)
     doc = np.expand_dims(doc, axis=0)
-    doc = mobilenet_v2.preprocess_input(doc) # because we our classifier is mobilenet_v2
+    mobilenet_v2.preprocess_input(doc) # because we our classifier is mobilenet_v2
     return doc
 
 

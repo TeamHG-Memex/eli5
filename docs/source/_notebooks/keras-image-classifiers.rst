@@ -149,7 +149,7 @@ Looking good. Now we need to convert the image to a numpy array.
     
     # mobilenetv2-specific preprocessing
     # (this operation is in-place)
-    doc = mobilenet_v2.preprocess_input(doc)
+    mobilenet_v2.preprocess_input(doc)
     print(type(doc), doc.shape)
 
 
@@ -467,8 +467,19 @@ Visualizing the heatmap:
     display(heatmap_im)
 
 
+::
 
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_36_0.png
+
+    ---------------------------------------------------------------------------
+
+    AttributeError                            Traceback (most recent call last)
+
+    <ipython-input-18-96464af765a2> in <module>
+    ----> 1 heatmap_im = eli5.formatters.image.heatmap_to_grayscale(expl.heatmap)
+          2 display(heatmap_im)
+
+
+    AttributeError: module 'eli5.formatters.image' has no attribute 'heatmap_to_grayscale'
 
 
 That's only 7x7! This is the spatial dimensions of the
@@ -484,11 +495,6 @@ method):
     heatmap_im = eli5.formatters.image.resize_over(heatmap_im, expl.image, Image.BOX)
     display(heatmap_im)
 
-
-
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_38_0.png
-
-
 Now it's clear what is being highlighted. We just need to apply some
 colors and overlay the heatmap over the original image, exactly what
 ``eli5.format_as_image()`` does!
@@ -497,11 +503,6 @@ colors and overlay the heatmap over the original image, exactly what
 
     I = eli5.format_as_image(expl)
     display(I)
-
-
-
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_40_0.png
-
 
 6. Extra arguments to ``format_as_image()``
 -------------------------------------------
@@ -514,11 +515,6 @@ colors and overlay the heatmap over the original image, exactly what
     
     I = eli5.format_as_image(expl, alpha_limit=1., colormap=matplotlib.cm.cividis)
     display(I)
-
-
-
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_43_0.png
-
 
 The ``alpha_limit`` argument controls the maximum opacity that the
 heatmap pixels should have. It is between 0.0 and 1.0. Low values are
@@ -552,19 +548,6 @@ and swap the softmax (logits) layer of our current model with a linear
     
     eli5.show_prediction(model, doc)
 
-
-.. parsed-literal::
-
-    Predicted class: 243
-    With probability: 9.836462
-
-
-
-
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_46_1.png
-
-
-
 We see some slight differences. The activations are brighter. Do
 consider swapping out softmax if explanations for your model seem off.
 
@@ -590,28 +573,5 @@ loading another model and explaining a classification of the same image:
     display(eli5.show_prediction(model, doc))
     print(model2.name)
     display(eli5.show_prediction(model2, doc2))
-
-
-.. parsed-literal::
-
-    mobilenetv2_1.00_224
-    Predicted class: 243
-    With probability: 9.836462
-
-
-
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_49_1.png
-
-
-.. parsed-literal::
-
-    NASNet
-    Predicted class: 243
-    With probability: 0.450616
-
-
-
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_49_3.png
-
 
 Wow ``show_prediction()`` is so robust!
