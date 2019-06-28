@@ -86,19 +86,25 @@ def format_as_image(expl, # type: Explanation
         PIL image instance of the heatmap blended over the image.
     """
     image = expl.image
-    heatmap = expl.heatmap
+    if not expl.targets:
+        # no heatmaps
+        return image
+    else:
+        heatmap = expl.targets[0].heatmap
     # TODO: might want to do some validation of image and heatmap here
     
     # The order of our operations is: 1. colorize 2. resize
     # as opposed: 1. resize 2. colorize
 
+    # save the original heatmap values
+    heatvals = heatmap
     # apply colours to the grayscale array
     heatmap = _colorize(heatmap, colormap=colormap) # -> rank 3 RGBA array
 
     # make the alpha intensity correspond to the grayscale heatmap values
     # cap the intensity so that it's not too opaque when near maximum value
-    heat_values = expl.heatmap
-    _update_alpha(heatmap, starting_array=heat_values, alpha_limit=alpha_limit)
+    
+    _update_alpha(heatmap, starting_array=heatvals, alpha_limit=alpha_limit)
 
     heatmap = expand_heatmap(heatmap, image, interpolation=interpolation)
     overlay = _overlay_heatmap(heatmap, image)

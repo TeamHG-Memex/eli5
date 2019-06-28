@@ -38,7 +38,7 @@ def gradcam(weights, activations):
     -----
     We currently make two assumptions in this implementation
         * We are dealing with images as our input to ``estimator``.
-        * We are doing a classification. Our ``estimator``'s output is a class scores vector.
+        * We are doing a classification. ``estimator``'s output is a class scores or probabilities vector.
 
     Credits
         * Jacob Gildenblat for "https://github.com/jacobgil/keras-grad-cam".
@@ -101,12 +101,12 @@ def gradcam_backend(estimator, # type: Model
 
     Returns
     -------
-    (weights, activations, gradients, predicted_idx, score) : (numpy.ndarray, ..., int, float)
+    (weights, activations, gradients, predicted_idx, predicted_val) : (numpy.ndarray, ..., int, float)
         Values of variables.
     """
     output = estimator.output
     predicted_idx = _get_target_prediction(targets, estimator)
-    score = K.gather(output[0,:], predicted_idx) # access value by index
+    predicted_val = K.gather(output[0,:], predicted_idx) # access value by index
 
     # output of target layer, i.e. activation maps of a convolutional layer
     activation_output = activation_layer.output 
@@ -117,7 +117,7 @@ def gradcam_backend(estimator, # type: Model
     # a fix is the following piece of code:
     # grads = [grad if grad is not None else K.zeros_like(var) 
     #         for (var, grad) in zip([activation_output], grads)]
-    grads = K.gradients(score, [activation_output])
+    grads = K.gradients(predicted_val, [activation_output])
 
     # grads gives a python list with a tensor (containing the derivatives) for each xs
     # to use grads with other operations and with K.function
@@ -130,17 +130,19 @@ def gradcam_backend(estimator, # type: Model
     # TODO: decide whether this should go in gradcam_backend() or gradcam()
     weights = K.mean(grads, axis=(1, 2))
 
-    evaluate = K.function([estimator.input], [weights, activation_output, grads, output, score, predicted_idx])
+    evaluate = K.function([estimator.input], 
+        [weights, activation_output, grads, output, predicted_val, predicted_idx]
+    )
     # evaluate the graph / do actual computations
-    weights, activations, grads, output, score, predicted_idx = evaluate([doc])
+    weights, activations, grads, output, predicted_val, predicted_idx = evaluate([doc])
     
     # put into suitable form
     weights = weights[0]
-    score = score[0]
+    predicted_val = predicted_val[0]
     predicted_idx = predicted_idx[0]
     activations = activations[0, ...]
     grads = grads[0, ...]
-    return weights, activations, grads, predicted_idx, score
+    return weights, activations, grads, predicted_idx, predicted_val
 
 
 def _get_target_prediction(targets, estimator):

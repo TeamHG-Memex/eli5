@@ -7,7 +7,7 @@ matplotlib = pytest.importorskip('matplotlib')
 
 import numpy as np
 
-from eli5.base import Explanation
+from eli5.base import Explanation, TargetExplanation, empty_feature_weights
 from eli5.formatters.image import (
     format_as_image,
     heatmap_to_image,
@@ -39,6 +39,11 @@ def boxrgba():
 @pytest.fixture(scope='module')
 def catdog():
     return PIL.Image.open('tests/images/cat_dog.jpg')
+
+
+@pytest.fixture(scope='module')
+def catdog_rgba(catdog):
+    return catdog.convert('RGBA')
 
 
 @pytest.mark.parametrize('heatmap', [
@@ -136,10 +141,32 @@ def test_overlay_heatmap(boxrgba):
     assert_pixel_by_pixel_equal(overlay, boxrgba)
 
 
-def test_format_as_image(catdog):
-    catdog_rgba = catdog.convert('RGBA')
-    expl = Explanation('mockestimator', image=catdog_rgba, heatmap=np.zeros((7, 7)))
+@pytest.fixture(scope='module')
+def mock_expl(catdog_rgba):
+    return Explanation(
+        'mock estimator', 
+        image=catdog_rgba, 
+        targets=[TargetExplanation(-1, 
+            empty_feature_weights, 
+            heatmap=np.zeros((7, 7))
+    )])
 
-    # no transparency for heatmap
-    overlay = format_as_image(expl, alpha_limit=0.0)
+
+@pytest.fixture(scope='module')
+def mock_expl_noheatmap(catdog_rgba):
+    return Explanation(
+        'mock estimator', 
+        image=catdog_rgba, 
+    )
+
+
+def test_format_as_image_notransparency(catdog_rgba, mock_expl):
+    # heatmap with full transparency
+    overlay = format_as_image(mock_expl, alpha_limit=0.0)
+    assert_pixel_by_pixel_equal(overlay, catdog_rgba)
+
+
+def test_format_as_image_noheatmap(catdog_rgba, mock_expl_noheatmap):
+    # no heatmap
+    overlay = format_as_image(mock_expl_noheatmap)
     assert_pixel_by_pixel_equal(overlay, catdog_rgba)

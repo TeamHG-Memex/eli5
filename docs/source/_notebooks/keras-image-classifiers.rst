@@ -221,15 +221,9 @@ for a dog with ELI5:
     eli5.show_prediction(model, doc)
 
 
-.. parsed-literal::
-
-    Predicted class: 243
-    With probability: 0.809675
 
 
-
-
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_19_1.png
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_19_0.png
 
 
 
@@ -250,21 +244,16 @@ classifier looks to find those objects.
     eli5.show_prediction(model, doc, targets=[cat_idx]) # pass the class id
 
 
-.. parsed-literal::
-
-    Predicted class: 282
-    With probability: 0.004809
 
 
-
-
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_22_1.png
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_22_0.png
 
 
 
 The model looks at the cat now!
 
 We have to pass the class ID as a list to the ``targets`` parameter.
+Currently only one class can be explained at a time.
 
 .. code:: ipython3
 
@@ -274,24 +263,12 @@ We have to pass the class ID as a list to the ``targets`` parameter.
     display(eli5.show_prediction(model, doc, targets=[turtle_idx]))
 
 
-.. parsed-literal::
 
-    Predicted class: 904
-    With probability: 0.000135
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_24_0.png
 
 
 
 .. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_24_1.png
-
-
-.. parsed-literal::
-
-    Predicted class: 35
-    With probability: 0.000023
-
-
-
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_24_3.png
 
 
 That's quite noisy! Perhaps the model is weak at classifying 'window
@@ -374,8 +351,6 @@ Rough print but okay. Let's pick a few convolutional layers that are
 .. parsed-literal::
 
     block_2_expand
-    Predicted class: 243
-    With probability: 0.809675
 
 
 
@@ -385,8 +360,6 @@ Rough print but okay. Let's pick a few convolutional layers that are
 .. parsed-literal::
 
     block_9_expand
-    Predicted class: 243
-    With probability: 0.809675
 
 
 
@@ -396,8 +369,6 @@ Rough print but okay. Let's pick a few convolutional layers that are
 .. parsed-literal::
 
     Conv_1
-    Predicted class: 243
-    With probability: 0.809675
 
 
 
@@ -424,21 +395,205 @@ better understand what is going on.
 
     expl = eli5.explain_prediction(model, doc)
 
-
-.. parsed-literal::
-
-    Predicted class: 243
-    With probability: 0.809675
-
+Examining the structure of the ``Explanation`` object:
 
 .. code:: ipython3
 
-    display(expl.image) # the .image attribute is a PIL image
-    print(expl.heatmap) # the .heatmap attribute is a numpy array
+    print(expl)
+
+
+.. parsed-literal::
+
+    Explanation(estimator='mobilenetv2_1.00_224', description='Grad-CAM visualization for image classification; \noutput is explanation object that contains input image \nand heatmap image for a target.\n', error='', method='Grad-CAM', is_regression=False, targets=[TargetExplanation(target=243, feature_weights=FeatureWeights(pos=[FeatureWeight(feature='null', weight=inf, std=None, value=None)], neg=[FeatureWeight(feature='null', weight=-inf, std=None, value=None)], pos_remaining=0, neg_remaining=0), proba=0.80967486, score=None, weighted_spans=None, heatmap=array([[0.        , 0.34700299, 0.81830269, 0.80335707, 0.90060232,
+            0.11643575, 0.01095222],
+           [0.01533252, 0.38341222, 0.80703666, 0.85117042, 0.95316512,
+            0.28513835, 0.        ],
+           [0.0070803 , 0.20260035, 0.77189877, 0.77733782, 0.99999996,
+            0.30238817, 0.        ],
+           [0.        , 0.04289364, 0.44958732, 0.30086692, 0.25115591,
+            0.06772003, 0.        ],
+           [0.01483668, 0.        , 0.        , 0.        , 0.        ,
+            0.00579807, 0.01929005],
+           [0.        , 0.        , 0.        , 0.        , 0.        ,
+            0.        , 0.05308532],
+           [0.        , 0.        , 0.        , 0.        , 0.        ,
+            0.01124774, 0.06864653]]))], feature_importances=None, decision_tree=None, highlight_spaces=None, transition_features=None, image=<PIL.Image.Image image mode=RGBA size=224x224 at 0x7FDF9EB14C18>)
+
+
+We can check the score (raw value) or probability (normalized score) of
+the neuron for the predicted class, and get the class ID itself:
+
+.. code:: ipython3
+
+    # we can either
+    # 1. display the explanation as HTML in an IPython cell (ignore the table entries for feature weights)
+    display(expl)
+    
+    # or 2. access the score and probability values directly
+    print((expl.targets[0].target, expl.targets[0].score, expl.targets[0].proba))
 
 
 
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_34_0.png
+.. raw:: html
+
+    
+        <style>
+        table.eli5-weights tr:hover {
+            filter: brightness(85%);
+        }
+    </style>
+    
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+            
+    
+        
+    
+            
+                
+                    
+                    
+        
+            <p style="margin-bottom: 0.5em; margin-top: 0em">
+                <b>
+        
+            y=243
+        
+    </b>
+    
+        
+        (probability <b>0.810</b>)
+    
+    top features
+            </p>
+        
+        <table class="eli5-weights"
+               style="border-collapse: collapse; border: none; margin-top: 0em; table-layout: auto; margin-bottom: 2em;">
+            <thead>
+            <tr style="border: none;">
+                
+                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature weights. Note that weights do not account for feature value scales, so if feature values have different scales, features with highest weights might not be the most important.">
+                        Weight<sup>?</sup>
+                    </th>
+                
+                <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
+                
+            </tr>
+            </thead>
+            <tbody>
+            
+                <tr style="background-color: hsl(120, 100.00%, nan%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            +inf
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            null
+        </td>
+        
+    </tr>
+            
+            
+    
+            
+            
+                <tr style="background-color: hsl(0, 100.00%, nan%); border: none;">
+        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
+            -inf
+        </td>
+        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
+            null
+        </td>
+        
+    </tr>
+            
+    
+            </tbody>
+        </table>
+    
+                
+            
+    
+            
+    
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+    
+
+
+
+.. parsed-literal::
+
+    (243, None, 0.80967486)
+
+
+We can also access the original image and the Grad-CAM produced heatmap:
+
+.. code:: ipython3
+
+    image = expl.image
+    heatmap = expl.targets[0].heatmap
+    
+    display(image) # the .image attribute is a PIL image
+    print(heatmap) # the .heatmap attribute is a numpy array
+
+
+
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_39_0.png
 
 
 .. parsed-literal::
@@ -463,23 +618,12 @@ Visualizing the heatmap:
 
 .. code:: ipython3
 
-    heatmap_im = eli5.formatters.image.heatmap_to_grayscale(expl.heatmap)
+    heatmap_im = eli5.formatters.image.heatmap_to_image(heatmap)
     display(heatmap_im)
 
 
-::
 
-
-    ---------------------------------------------------------------------------
-
-    AttributeError                            Traceback (most recent call last)
-
-    <ipython-input-18-96464af765a2> in <module>
-    ----> 1 heatmap_im = eli5.formatters.image.heatmap_to_grayscale(expl.heatmap)
-          2 display(heatmap_im)
-
-
-    AttributeError: module 'eli5.formatters.image' has no attribute 'heatmap_to_grayscale'
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_41_0.png
 
 
 That's only 7x7! This is the spatial dimensions of the
@@ -487,13 +631,17 @@ activation/feature maps in the last layers of the network. What Grad-CAM
 produces is only a rough approximation.
 
 Let's resize the heatmap (we have to pass the heatmap and the image with
-the required dimensions as PIL Image objects, and the interpolation
-method):
+the required dimensions as Pillow images, and the interpolation method):
 
 .. code:: ipython3
 
-    heatmap_im = eli5.formatters.image.resize_over(heatmap_im, expl.image, Image.BOX)
+    heatmap_im = eli5.formatters.image.expand_heatmap(heatmap, image, Image.BOX)
     display(heatmap_im)
+
+
+
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_43_0.png
+
 
 Now it's clear what is being highlighted. We just need to apply some
 colors and overlay the heatmap over the original image, exactly what
@@ -504,6 +652,11 @@ colors and overlay the heatmap over the original image, exactly what
     I = eli5.format_as_image(expl)
     display(I)
 
+
+
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_45_0.png
+
+
 6. Extra arguments to ``format_as_image()``
 -------------------------------------------
 
@@ -513,8 +666,13 @@ colors and overlay the heatmap over the original image, exactly what
 
     import matplotlib.cm
     
-    I = eli5.format_as_image(expl, alpha_limit=1., colormap=matplotlib.cm.cividis)
+    I = eli5.format_as_image(expl, alpha_limit=1.0, colormap=matplotlib.cm.cividis)
     display(I)
+
+
+
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_48_0.png
+
 
 The ``alpha_limit`` argument controls the maximum opacity that the
 heatmap pixels should have. It is between 0.0 and 1.0. Low values are
@@ -533,20 +691,47 @@ Another optional argument is ``interpolation``. The default is
 
 The original Grad-CAM paper (https://arxiv.org/pdf/1610.02391.pdf)
 suggests that we should use the output of the layer before softmax when
-doing Grad-CAM. Currently ELI5 simply takes the model as-is. Let's try
-and swap the softmax (logits) layer of our current model with a linear
-(no activation) layer, and check the explanation:
+doing Grad-CAM (use raw score values, not probabilities). Currently ELI5
+simply takes the model as-is. Let's try and swap the softmax (logits)
+layer of our current model with a linear (no activation) layer, and
+check the explanation:
 
 .. code:: ipython3
 
-    l = model.get_layer(index=-1) # get the last, output layer
+    # first check the explanation *with* softmax
+    print('with softmax')
+    display(eli5.show_prediction(model, doc))
+    
+    
+    # remove softmax
+    l = model.get_layer(index=-1) # get the last (output) layer
     l.activation = keras.activations.linear # swap activation
     
     # save and load back the model as a trick to reload the graph
     model.save('tmp_model_save_rmsoftmax') # note that this creates a file of the model
     model = keras.models.load_model('tmp_model_save_rmsoftmax')
     
-    eli5.show_prediction(model, doc)
+    print('without softmax')
+    display(eli5.show_prediction(model, doc))
+
+
+.. parsed-literal::
+
+    with softmax
+
+
+
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_51_1.png
+
+
+.. parsed-literal::
+
+    without softmax
+
+
+
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_51_3.png
+
 
 We see some slight differences. The activations are brighter. Do
 consider swapping out softmax if explanations for your model seem off.
@@ -565,13 +750,33 @@ loading another model and explaining a classification of the same image:
     
     model2 = nasnet.NASNetMobile(include_top=True, weights='imagenet', classes=1000)
     
-    # we reload the image to apply nasnet-specific preprocessing
-    doc2 = eli5.keras.image_from_path(image, image_shape=dims)
-    doc2 = nasnet.preprocess_input(doc2)
+    # we reload the image array to apply nasnet-specific preprocessing
+    doc2 = keras.preprocessing.image.img_to_array(im)
+    doc2 = np.expand_dims(doc2, axis=0)
+    nasnet.preprocess_input(doc2)
     
     print(model.name)
     display(eli5.show_prediction(model, doc))
     print(model2.name)
     display(eli5.show_prediction(model2, doc2))
+
+
+.. parsed-literal::
+
+    mobilenetv2_1.00_224
+
+
+
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_54_1.png
+
+
+.. parsed-literal::
+
+    NASNet
+
+
+
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_54_3.png
+
 
 Wow ``show_prediction()`` is so robust!

@@ -75,7 +75,7 @@ def assert_attention_over_area(expl, area):
     2. The area specified by the tester over the example image covers the predicted class correctly.
     """
     image = expl.image
-    heatmap = expl.heatmap
+    heatmap = expl.targets[0].heatmap
 
     # fit heatmap over image
     heatmap = expand_heatmap(heatmap, image, interpolation=Image.LANCZOS)

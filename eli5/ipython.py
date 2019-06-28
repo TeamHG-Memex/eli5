@@ -147,7 +147,7 @@ def show_prediction(estimator, doc, **kwargs):
 
     (*New in x.y.z* ) # TODO
     If :func:`explain_prediction` returns an :class:`base.Explanation` object with
-    ``image`` and ``heatmap`` attributes not set to None, i.e. if explaining image based models,
+    the ``image`` attribute not set to None, i.e. if explaining image based models,
     then formatting is dispatched to an image display implementation, 
     and image explanations are shown in an IPython cell.
     Any extra keyword arguments are passed to :func:`eli5.format_as_image`.
@@ -301,7 +301,7 @@ def show_prediction(estimator, doc, **kwargs):
     """
     format_kwargs, explain_kwargs = _split_kwargs(kwargs)
     expl = explain_prediction(estimator, doc, **explain_kwargs)
-    if expl.image is not None and expl.heatmap is not None:
+    if expl.image is not None:
         # dispatch to image display implementation
         if isinstance(format_as_image, ImportError):
             warnings.warn('Missing dependencies: "{}". ' 

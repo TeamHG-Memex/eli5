@@ -7,13 +7,14 @@ import pytest
 keras = pytest.importorskip('keras')
 
 from keras.models import Sequential
-from keras.layers import Activation, Conv2D, GlobalAveragePooling2D
+from keras.layers import Dense, Activation, Conv2D, GlobalAveragePooling2D
 from keras.backend import epsilon
 import numpy as np
 
 from eli5.keras.explain_prediction import (
     _validate_doc,
     _get_activation_layer,
+    _outputs_proba,
 )
 from eli5.keras.gradcam import (
     _get_target_prediction,
@@ -104,6 +105,18 @@ def test_get_target_prediction_invalid(simple_seq):
     # target index must correctly reference one of the nodes in the final layer
     with pytest.raises(ValueError):
         _get_target_prediction([20], simple_seq)
+
+
+@pytest.mark.parametrize('estimator, expected', [
+    (Sequential([
+        Dense(5, input_shape=(5,), activation='softmax')]), 
+        True),
+    (Sequential([
+        Activation('linear', input_shape=(10,))]), 
+        False),
+])
+def test_outputs_proba(estimator, expected):
+    assert _outputs_proba(estimator) == expected
 
 
 def test_gradcam_zeros():

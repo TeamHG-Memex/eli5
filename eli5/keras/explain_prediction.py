@@ -8,13 +8,15 @@ import keras.backend as K # type: ignore
 from keras.models import Model # type: ignore
 from keras.layers import Layer # type: ignore
 
-from eli5.base import Explanation
+from eli5.base import Explanation, TargetExplanation, empty_feature_weights
 from eli5.explain import explain_prediction
 from .gradcam import gradcam, gradcam_backend
 
 
-DESCRIPTION_KERAS = """Grad-CAM visualization for image classification; output is explanation
-object that contains input image and heatmap image."""
+DESCRIPTION_KERAS = """Grad-CAM visualization for image classification; 
+output is explanation object that contains input image 
+and heatmap image for a target.
+"""
 
 # note that keras.models.Sequential subclasses keras.models.Model
 @explain_prediction.register(Model)
@@ -96,7 +98,8 @@ def explain_prediction_keras(estimator, # type: Model
     -------
     expl : Explanation
         A :class:`eli5.base.Explanation` object 
-        with the ``image`` and ``heatmap`` attributes set.
+        with the ``image`` attribute set and a
+        ``heatmap`` attribute inside ``targets``.
 
         ``image`` is a Pillow image with mode RGBA.
 
@@ -109,25 +112,38 @@ def explain_prediction_keras(estimator, # type: Model
     # This would be consistent with what is done in
     # https://github.com/ramprs/grad-cam/blob/master/misc/utils.lua
     # and https://github.com/ramprs/grad-cam/blob/master/classification.lua
-    weights, activations, grads, predicted_idx, score = gradcam_backend(estimator, doc, targets, activation_layer)
+    values = gradcam_backend(estimator, doc, targets, activation_layer)
+    weights, activations, grads, predicted_idx, predicted_val = values
     heatmap = gradcam(weights, activations)
 
-    print('Predicted class: %d' % predicted_idx)
-    print('With probability: %f' % score)
+    # classify predicted_val as either a probability or a score
+    proba = None
+    score = None
+    if _outputs_proba(estimator):
+        proba = predicted_val
+    else:
+        score = predicted_val 
 
     doc = doc[0] # rank 4 batch -> rank 3 single image
     image = keras.preprocessing.image.array_to_img(doc) # -> RGB Pillow image
     image = image.convert(mode='RGBA')
+
 
     return Explanation(
         estimator.name,
         description=DESCRIPTION_KERAS,
         error='',
         method='Grad-CAM',
+        image=image, # RGBA Pillow image
+        targets=[TargetExplanation(
+            predicted_idx,
+            feature_weights=empty_feature_weights,
+            proba=proba,
+            score=score,
+            heatmap=heatmap, # 2D [0, 1] numpy array
+        )],
         is_regression=False, # might be relevant later when explaining for regression tasks
         highlight_spaces=None, # might be relevant later when explaining text models
-        image=image, # RGBA Pillow image
-        heatmap=heatmap, # 2D [0, 1] numpy array
     )
 
 
@@ -218,3 +234,13 @@ def _is_suitable_activation_layer(estimator, layer):
     rank = len(layer.output_shape)
     required_rank = len(estimator.input_shape)
     return rank == required_rank
+
+
+def _outputs_proba(estimator):
+    """
+    Check whether ``estimator`` gives probabilities as its output.
+    """
+    output_layer = estimator.get_layer(index=-1)
+    # we check if the network's output is put through softmax
+    # we assume that only softmax can output 'probabilities'
+    return output_layer.activation is keras.activations.softmax
