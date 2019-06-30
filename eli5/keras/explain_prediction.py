@@ -128,7 +128,6 @@ def explain_prediction_keras(estimator, # type: Model
     image = keras.preprocessing.image.array_to_img(doc) # -> RGB Pillow image
     image = image.convert(mode='RGBA')
 
-
     return Explanation(
         estimator.name,
         description=DESCRIPTION_KERAS,
@@ -237,6 +236,7 @@ def _is_suitable_activation_layer(estimator, layer):
 
 
 def _outputs_proba(estimator):
+    # type: (Model) -> bool
     """
     Check whether ``estimator`` gives probabilities as its output.
     """
