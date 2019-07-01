@@ -96,14 +96,14 @@ def explain_prediction_keras(estimator, # type: Model
 
     Returns
     -------
-    expl : Explanation
-        A :class:`eli5.base.Explanation` object 
-        with the ``image`` attribute set and a
-        ``heatmap`` attribute inside ``targets``.
-
-        ``image`` is a Pillow image with mode RGBA.
-
-        ``heatmap`` is a rank 2 numpy array with the localization map values.
+    expl : eli5.base.Explanation
+        An ``Explanation`` object with the following attributes set
+        (some inside ``targets``):
+            * ``image`` a Pillow image with mode RGBA.
+            * ``heatmap`` a rank 2 numpy array with the localization map values.
+            * ``target`` ID of target class.
+            * ``proba`` output for target class for ``softmax`` or ``sigmoid`` outputs.
+            * ``score`` output for target class for other activations.
     """
     _validate_doc(estimator, doc)
     activation_layer = _get_activation_layer(estimator, layer)
@@ -243,8 +243,12 @@ def _outputs_proba(estimator):
     output_layer = estimator.get_layer(index=-1)
     # we check if the network's output is put through softmax
     # we assume that only softmax can output 'probabilities'
+
     try:
-        return output_layer.activation is keras.activations.softmax
+        actv = output_layer.activation 
     except AttributeError:
         # output layer does not support activation function
         return False
+    else:
+        return (actv is keras.activations.softmax or 
+                actv is keras.activations.sigmoid)
