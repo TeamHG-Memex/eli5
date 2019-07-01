@@ -151,8 +151,9 @@ class WeightedSpans(object):
 
 
 WeightedSpan = Tuple[
-    Feature,
-    List[Tuple[int, int]],  # list of spans (start, end) for this feature
+    Feature, # feature name - i.e. token name such as 'john', 'software', 'sky'
+    List[Tuple[int, int]],  # list of spans [start, end) for this feature
+                            # indices into the document
     float,  # feature weight
 ]
 
