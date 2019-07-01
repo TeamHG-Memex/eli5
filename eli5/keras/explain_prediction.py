@@ -65,7 +65,7 @@ def explain_prediction_keras(estimator, # type: Model
         :raises ValueError: if ``doc`` shape does not match.
 
     :param target_names `list, optional`:
-        *Not Implemented*. 
+        *Not Implemented*.
 
         Names for classes in the final output layer.
 
@@ -97,8 +97,7 @@ def explain_prediction_keras(estimator, # type: Model
     Returns
     -------
     expl : eli5.base.Explanation
-        An ``Explanation`` object with the following attributes set
-        (some inside ``targets``):
+        An ``Explanation`` object with the following attributes set (some inside ``targets``)
             * ``image`` a Pillow image with mode RGBA.
             * ``heatmap`` a rank 2 numpy array with the localization map values.
             * ``target`` ID of target class.
