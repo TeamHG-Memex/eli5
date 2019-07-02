@@ -8,9 +8,15 @@ import keras.backend as K # type: ignore
 from keras.models import Model # type: ignore
 from keras.layers import Layer # type: ignore
 
-from eli5.base import Explanation, TargetExplanation, empty_feature_weights
+from eli5.base import (
+    Explanation, 
+    TargetExplanation, 
+    empty_feature_weights,
+    WeightedSpans,
+    DocWeightedSpans,
+)
 from eli5.explain import explain_prediction
-from .gradcam import gradcam, gradcam_backend
+from .gradcam import gradcam, gradcam_backend, compute_weights
 
 
 DESCRIPTION_KERAS = """Grad-CAM visualization for image classification; 
@@ -25,6 +31,11 @@ def explain_prediction_keras(estimator, # type: Model
                              target_names=None,
                              targets=None, # type: Optional[list]
                              layer=None, # type: Optional[Union[int, str, Layer]]
+                             tokens=None, # tokens corresponding to doc (will be used for formatting)
+                                     # should be WITHOUT padding?
+                                     # FIXME: move this to formatter func?
+                                     # FIXME: separator chars?
+                             pad_idx=None, # starting padding id
                             ):
     # type: (...) -> Explanation
     # FIXME: in docs rendered param order is "type, required (paramname)", should be other way around
@@ -106,13 +117,14 @@ def explain_prediction_keras(estimator, # type: Model
     """
     _validate_doc(estimator, doc)
     activation_layer = _get_activation_layer(estimator, layer)
-    
     # TODO: maybe do the sum / loss calculation in this function and pass it to gradcam.
     # This would be consistent with what is done in
     # https://github.com/ramprs/grad-cam/blob/master/misc/utils.lua
     # and https://github.com/ramprs/grad-cam/blob/master/classification.lua
     values = gradcam_backend(estimator, doc, targets, activation_layer)
-    weights, activations, grads, predicted_idx, predicted_val = values
+    activations, grads, predicted_idx, predicted_val = values
+    # FIXME: hardcoding for conv layers, i.e. their shapes
+    weights = compute_weights(activations)
     heatmap = gradcam(weights, activations)
 
     # classify predicted_val as either a probability or a score
@@ -123,9 +135,37 @@ def explain_prediction_keras(estimator, # type: Model
     else:
         score = predicted_val 
 
-    doc = doc[0] # rank 4 batch -> rank 3 single image
-    image = keras.preprocessing.image.array_to_img(doc) # -> RGB Pillow image
-    image = image.convert(mode='RGBA')
+    # specific for images
+    # doc = doc[0] # rank 4 batch -> rank 3 single image
+    # image = keras.preprocessing.image.array_to_img(doc) # -> RGB Pillow image
+    # image = image.convert(mode='RGBA')
+    image = None # hard code for text
+
+    # TODO: cut off padding from text
+    # what about images? pass 2 tuple?
+    if pad_idx is None:
+        pass
+    else:
+        pass
+
+    feature_weights = empty_feature_weights
+    if image is not None:
+        weighted_spans = None
+    else:
+        spans = []
+        running = 0
+        for (token, weight) in zip(tokens, heatmap): # FIXME: weight can be renamed
+            i = running
+            N = len(token)
+            j = i+N
+            span = tuple([token, [tuple([i, j])], weight])
+            running = j+1 # exclude space
+            # print(N, token, weight, i, j)
+            spans.append(span)
+        document = ' '.join(tokens)
+        weighted_spans = WeightedSpans([
+            DocWeightedSpans(document, spans=spans)
+        ]) # why list?
 
     return Explanation(
         estimator.name,
@@ -135,7 +175,8 @@ def explain_prediction_keras(estimator, # type: Model
         image=image, # RGBA Pillow image
         targets=[TargetExplanation(
             predicted_idx,
-            feature_weights=empty_feature_weights,
+            feature_weights=feature_weights,
+            weighted_spans=weighted_spans,
             proba=proba,
             score=score,
             heatmap=heatmap, # 2D [0, 1] numpy array
@@ -150,11 +191,15 @@ def _validate_doc(estimator, doc):
     """
     Check that the input ``doc`` is suitable for ``estimator``.
     """
+    # FIXME: is this validation worth it? Just use Keras validation?
+    # Do we make any extra assumptions about doc?
+    # https://github.com/keras-team/keras/issues/1641
     if not isinstance(doc, np.ndarray):
         raise TypeError('doc must be a numpy.ndarray, got: {}'.format(doc))
     input_sh = estimator.input_shape
     doc_sh = doc.shape
     if len(input_sh) == 4:
+        # FIXME: need better check for images (an attribute)
         # rank 4 with (batch, ...) shape
         # check that we have only one image (batch size 1)
         single_batch = (1,) + input_sh[1:]
@@ -164,9 +209,23 @@ def _validate_doc(estimator, doc):
                              'got: {}'.format(single_batch, doc_sh))
     else:
         # other shapes
-        if doc_sh != input_sh:
-            raise ValueError('Input and doc shapes do not match.'
+        if not eq_shapes(input_sh, doc_sh):
+            raise ValueError('Input and doc shapes do not match. '
                              'input: {}, doc: {}'.format(input_sh, doc_sh))
+
+
+def eq_shapes(required, other):
+    """
+    Check that ``other`` shape satisfies shape of ``required``
+
+    For example::
+        eq_shapes((None, 20), (1, 20)) # -> True
+    """
+    matching = [(d1 == d2) # check that same number of dims 
+            if (d1 is not None) # if required takes a specific shape for a dim (not None)
+            else (1 <= d2) # else just check that the other shape has a valid shape for a dim
+            for d1, d2 in zip(required, other)]
+    return all(matching)
 
 
 def _get_activation_layer(estimator, layer):
@@ -174,9 +233,11 @@ def _get_activation_layer(estimator, layer):
     """
     Get an instance of the desired activation layer in ``estimator``,
     as specified by ``layer``.
-    """        
+    """
+    # PR FIXME: Would be good to include retrieved layer as an attribute
     if layer is None:
         # Automatically get the layer if not provided
+        # TODO: search forwards for text models
         activation_layer = _search_layer_backwards(estimator, _is_suitable_activation_layer)
         return activation_layer
 
@@ -193,6 +254,8 @@ def _get_activation_layer(estimator, layer):
 
     if _is_suitable_activation_layer(estimator, activation_layer):
         # final validation step
+        # FIXME: this should not be done for text
+        # PR FIXME: decouple layer search (no arg) vs simple layer retrieval (arg)
         return activation_layer
     else:
         raise ValueError('Can not perform Grad-CAM on the retrieved activation layer')
@@ -229,9 +292,20 @@ def _is_suitable_activation_layer(estimator, layer):
     # check layer name
 
     # a check that asks "can we resize this activation layer over the image?"
+
+    # text FIXME: matching rank is not a good way to check if layer is valid
+    # input has rank 2 (sequence)
+    # output often has rank 2 (batch and units)
+    # input wrpt output???
+
     rank = len(layer.output_shape)
-    required_rank = len(estimator.input_shape)
-    return rank == required_rank
+    if rank == 4:
+        # only for 'images'
+        required_rank = len(estimator.input_shape)
+        return rank == required_rank
+    else:
+        # no check yet
+        return True
 
 
 def _outputs_proba(estimator):
