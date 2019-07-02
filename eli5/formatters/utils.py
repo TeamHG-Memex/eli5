@@ -70,7 +70,7 @@ def should_highlight_spaces(explanation):
     if explanation.targets:
         hl_spaces = hl_spaces or any(
             _has_invisible_spaces(fw.feature)
-            for target in explanation.targets
+            for target in explanation.targets if target.feature_weights is not None
             for weights in [target.feature_weights.pos, target.feature_weights.neg]
             for fw in weights)
     return hl_spaces
@@ -90,7 +90,9 @@ def has_any_values_for_weights(explanation):
     # type: (Explanation) -> bool
     if explanation.targets:
         return any(fw.value is not None
-                   for t in explanation.targets for fw in chain(
+                   for t in explanation.targets
+            if t.feature_weights is not None 
+            for fw in chain(
             t.feature_weights.pos, t.feature_weights.neg))
     else:
         return False

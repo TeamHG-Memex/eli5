@@ -135,7 +135,7 @@ def explain_prediction_keras(estimator, # type: Model
         image=image, # RGBA Pillow image
         targets=[TargetExplanation(
             predicted_idx,
-            feature_weights=empty_feature_weights,
+            # feature_weights=empty_feature_weights,
             proba=proba,
             score=score,
             heatmap=heatmap, # 2D [0, 1] numpy array

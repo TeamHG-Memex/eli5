@@ -202,6 +202,7 @@ def _targets_lines(explanation,  # type: Explanation
             col_align = 'rl'
 
         w = target.feature_weights
+        assert w is not None
         table = tabulate(
             [table_line(fw) for fw in chain(w.pos, reversed(w.neg))],
             header=table_header,

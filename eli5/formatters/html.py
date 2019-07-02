@@ -104,7 +104,8 @@ def format_as_html(explanation,  # type: Explanation
             abs(fw.weight) for fw in explanation.feature_importances.importances)
         if explanation.feature_importances else 0,
         target_weight_range=max_or_0(
-            get_weight_range(t.feature_weights) for t in targets),
+            get_weight_range(t.feature_weights) for t in targets 
+        if t.feature_weights is not None),
         other_weight_range=max_or_0(
             get_weight_range(other)
             for other in weighted_spans_others if other),
