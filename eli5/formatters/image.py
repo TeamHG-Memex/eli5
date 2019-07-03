@@ -28,6 +28,12 @@ def format_as_image(expl, # type: Explanation
         It also must have a ``heatmap`` attribute that is a numpy array with rank 2,
         with float values in the interval [0, 1].
 
+
+        :raises TypeError: if ``heatmap`` is not a numpy array.
+        :raises ValueError: if ``heatmap`` does not contain values as floats in the interval [0, 1].
+        :raises TypeError: if ``image`` is not a Pillow image.
+        :raises ValueError: if ``image`` does not have mode 'RGBA'.
+
     
     :param interpolation `int, optional`:
         Interpolation ID or Pillow filter to use when resizing the image.
@@ -86,12 +92,20 @@ def format_as_image(expl, # type: Explanation
         PIL image instance of the heatmap blended over the image.
     """
     image = expl.image
+    # validate image
+    if not isinstance(image, Image.Image):
+        raise TypeError('Explanation image must be a PIL.Image.Image instance. '
+                        'Got: {}'.format(image))
+    if image.mode != 'RGBA':
+        raise ValueError('Explanation image must have mode "RGBA". '
+                         'Got image with mode: %s' % image.mode)
+
     if not expl.targets:
         # no heatmaps
         return image
     else:
         heatmap = expl.targets[0].heatmap
-    # TODO: might want to do some validation of image and heatmap here
+        _validate_heatmap(heatmap)
     
     # The order of our operations is: 1. colorize 2. resize
     # as opposed: 1. resize 2. colorize
@@ -103,7 +117,6 @@ def format_as_image(expl, # type: Explanation
 
     # make the alpha intensity correspond to the grayscale heatmap values
     # cap the intensity so that it's not too opaque when near maximum value
-    
     _update_alpha(heatmap, starting_array=heatvals, alpha_limit=alpha_limit)
 
     heatmap = expand_heatmap(heatmap, image, interpolation=interpolation)
@@ -123,9 +136,10 @@ def heatmap_to_image(heatmap):
         with values in interval [0, 1] as floats.
 
 
-    :raises TypeError: if heatmap is not a numpy array.
-    :raises ValueError: if rank is neither 2 or 3.
-    :raises ValueError: if rank 3 heatmap does not have 4 (RGBA) or 3 (RGB) channels.
+    :raises TypeError: if ``heatmap`` is not a numpy array.
+    :raises ValueError: if ``heatmap`` does not contain values as floats in the interval [0, 1].
+    :raises ValueError: if ``heatmap`` rank is neither 2 nor 3.
+    :raises ValueError: if rank 3 ``heatmap`` does not have 4 (RGBA) or 3 (RGB) channels.
 
 
     Returns
@@ -133,9 +147,7 @@ def heatmap_to_image(heatmap):
     heatmap_image : PIL.Image.Image
         Heatmap as an image with a suitable mode.
     """
-    if not isinstance(heatmap, np.ndarray):
-        raise TypeError('heatmap must be a numpy array. '
-                        'Got: {}'.format(heatmap))
+    _validate_heatmap(heatmap)
     rank = len(heatmap.shape)
     if rank == 2:
         mode = 'L'
@@ -150,11 +162,26 @@ def heatmap_to_image(heatmap):
                              'or 3 channels (RGB). '
                              'Got shape with {} channels'.format(channels))
     else:
-        raise ValueError('heatmap array must have rank 2 (L, grayscale)' 
-                         'or rank 3 (RGBA, colored).'
+        raise ValueError('heatmap must have rank 2 (L, grayscale) ' 
+                         'or rank 3 (RGBA, colored). '
                          'Got: %d' % rank)
     heatmap = (heatmap*255).astype('uint8') # -> [0, 255] int
     return Image.fromarray(heatmap, mode=mode)
+
+
+def _validate_heatmap(heatmap):
+    """Check that ``heatmap`` is a numpy array
+    with float values between 0 and 1."""
+    if not isinstance(heatmap, np.ndarray):
+        raise TypeError('heatmap must be a numpy.ndarray instance. '
+                        'Got: {}'.format(heatmap))
+    mi = np.min(heatmap)
+    ma = np.max(heatmap)
+    if not (0 <= mi and ma <= 1):
+        raise ValueError('heatmap must contain float values '
+                        'between 0 and 1 inclusive. '
+                        'Got array with minimum: {} ' 
+                        'and maximum: {}'.format(mi, ma))
 
 
 def _colorize(heatmap, colormap):
@@ -215,7 +242,8 @@ def expand_heatmap(heatmap, image, interpolation):
     # type: (np.ndarray, Image, Union[None, int]) -> Image
     """ 
     Resize the ``heatmap`` image array to fit over the original ``image``,
-    using the specified ``interpolation`` method.
+    using the specified ``interpolation`` method. 
+    The heatmap is converted to an image in the process.
     
     Parameters
     ----------
@@ -230,12 +258,18 @@ def expand_heatmap(heatmap, image, interpolation):
 
         See :func:`eli5.format_as_image` for more details on the `interpolation` parameter.
 
+    
+    :raises TypeError: if ``image`` is not a Pillow image instance.
+
 
     Returns
     -------
     resized_heatmap : PIL.Image.Image
         The heatmap, resized, as a PIL image.
     """
+    if not isinstance(image, Image.Image):
+        raise TypeError('image must be a PIL.Image.Image instance. '
+                        'Got: {}'.format(image))
     heatmap = heatmap_to_image(heatmap)
     spatial_dimensions = (image.width, image.height)
     heatmap = heatmap.resize(spatial_dimensions, resample=interpolation)
@@ -247,19 +281,7 @@ def _overlay_heatmap(heatmap, image):
     """
     Blend (combine) ``heatmap`` over ``image``, 
     using alpha channel values appropriately.
-
-    Parameters
-    ----------
-    heatmap : PIL.Image.Image
-        The heatmap image, mode 'RGBA'.
-
-    image: PIL.Image.Image
-        The original image, mode 'RGBA'.
-    
-    Returns
-    -------
-    overlayed_image : PIL.Image.Image
-        A blended PIL image, mode 'RGBA'.
+    Input and output images have mode 'RGBA'.
     """
     # note that the order of alpha_composite arguments matters
     overlayed_image = Image.alpha_composite(image, heatmap)
