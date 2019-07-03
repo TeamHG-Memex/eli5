@@ -22,7 +22,7 @@ def format_as_image(expl, # type: Explanation
     Note that this formatter requires ``matplotlib`` and ``Pillow`` optional dependencies.
     
 
-    :param expl `Explanation`:
+    :param Explanation expl:
         Explanation object to be formatted.
         It must have a ``image`` attribute that is a Pillow image with mode RGBA.
         It also must have a ``heatmap`` attribute that is a numpy array with rank 2,
@@ -34,8 +34,7 @@ def format_as_image(expl, # type: Explanation
         :raises TypeError: if ``image`` is not a Pillow image.
         :raises ValueError: if ``image`` does not have mode 'RGBA'.
 
-    
-    :param interpolation `int, optional`:
+    :param interpolation:
         Interpolation ID or Pillow filter to use when resizing the image.
         
         Example filters from PIL.Image
@@ -51,9 +50,9 @@ def format_as_image(expl, # type: Explanation
         *Note that these attributes are integer values*.
 
         Default is ``PIL.Image.LANCZOS``.
+    :type interpolation: int, optional
 
-
-    :param colormap `callable, optional`:
+    :param colormap:
         Colormap scheme to be applied when converting the heatmap from grayscale to RGB.
         Either a colormap from matplotlib.cm, 
         or a callable that takes a rank 2 array and 
@@ -67,10 +66,9 @@ def format_as_image(expl, # type: Explanation
         See also https://matplotlib.org/gallery/color/colormap_reference.html.
 
         Default is ``matplotlib.cm.viridis`` (green/blue to yellow).
+    :type colormap: callable, optional
 
-
-
-    :param alpha_limit `float or int, optional`:
+    :param alpha_limit:
         Maximum alpha (transparency / opacity) value allowed 
         for the alpha channel pixels in the RGBA heatmap image.
 
@@ -84,6 +82,7 @@ def format_as_image(expl, # type: Explanation
 
         :raises ValueError: if ``alpha_limit`` is outside the [0, 1] interval.
         :raises TypeError: if ``alpha_limit`` is not float, int, or None.
+    :type alpha_limit: float or int, optional
 
 
     Returns
