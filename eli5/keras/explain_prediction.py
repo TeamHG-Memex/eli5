@@ -8,7 +8,7 @@ import keras.backend as K # type: ignore
 from keras.models import Model # type: ignore
 from keras.layers import Layer # type: ignore
 
-from eli5.base import Explanation, TargetExplanation, empty_feature_weights
+from eli5.base import Explanation, TargetExplanation
 from eli5.explain import explain_prediction
 from .gradcam import gradcam, gradcam_backend
 
@@ -135,7 +135,6 @@ def explain_prediction_keras(estimator, # type: Model
         image=image, # RGBA Pillow image
         targets=[TargetExplanation(
             predicted_idx,
-            # feature_weights=empty_feature_weights,
             proba=proba,
             score=score,
             heatmap=heatmap, # 2D [0, 1] numpy array

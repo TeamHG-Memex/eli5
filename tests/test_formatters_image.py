@@ -7,7 +7,7 @@ matplotlib = pytest.importorskip('matplotlib')
 
 import numpy as np
 
-from eli5.base import Explanation, TargetExplanation, empty_feature_weights
+from eli5.base import Explanation, TargetExplanation
 from eli5.formatters.image import (
     format_as_image,
     heatmap_to_image,
@@ -147,7 +147,6 @@ def mock_expl(catdog_rgba):
         'mock estimator', 
         image=catdog_rgba, 
         targets=[TargetExplanation(-1, 
-            empty_feature_weights, 
             heatmap=np.zeros((7, 7))
     )])
 

@@ -130,12 +130,6 @@ class FeatureWeight(object):
         self.value = value
 
 
-empty_feature_weights = FeatureWeights(
-        [FeatureWeight('null', float('+inf'))],
-        [FeatureWeight('null', float('-inf'))],
-)
-
-
 @attrs
 class WeightedSpans(object):
     """ Holds highlighted spans for parts of document - a DocWeightedSpans
