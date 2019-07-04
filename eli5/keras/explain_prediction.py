@@ -30,11 +30,15 @@ def explain_prediction_keras(estimator, # type: Model
                              target_names=None,
                              targets=None, # type: Optional[list]
                              layer=None, # type: Optional[Union[int, str, Layer]]
+                             image=None, # type: PIL.Image.Image # FIXME if TYPE_CHECKING
+                                # original image                             
                              tokens=None, # tokens corresponding to doc (will be used for formatting)
                                      # should be WITHOUT padding?
                                      # FIXME: move this to formatter func?
                                      # FIXME: separator chars?
                              pad_idx=None, # starting padding id
+                             document=None, # type: str
+                                    # TODO: full document, untokenized, for highlighting
                             ):
     # type: (...) -> Explanation
     """
@@ -97,7 +101,7 @@ def explain_prediction_keras(estimator, # type: Model
         a valid keras layer name, layer index, or an instance of a Keras layer.
         
         If None, a suitable layer is attempted to be retrieved. 
-        See :func:`eli5.keras._search_layer_backwards` for details.
+        See :func:`eli5.keras._search_layer` for details.
 
 
         :raises TypeError: if ``layer`` is not None, str, int, or keras.layers.Layer instance.
@@ -117,7 +121,22 @@ def explain_prediction_keras(estimator, # type: Model
             * ``score`` output for target class for other activations.
     """
     _validate_doc(estimator, doc)
-    activation_layer = _get_activation_layer(estimator, layer)
+
+    if image is None and len(doc.shape) == 4:
+        # FIXME
+        # for back compatibility
+        # might not be good - some rank 4 things may not be images!
+        # conversion might be more complicated / might fail!
+        # automatically try get image from doc
+        # specific for images
+        # rank 4 batch -> rank 3 single image
+        image = keras.preprocessing.image.array_to_img(doc[0]) # -> RGB Pillow image
+        image = image.convert(mode='RGBA')
+
+    if image is not None:
+        activation_layer = _get_activation_layer(estimator, layer, _backward_layers, _is_suitable_image_layer)
+    else:
+        activation_layer = _get_activation_layer(estimator, layer, _forward_layers, _is_suitable_text_layer)
     # TODO: maybe do the sum / loss calculation in this function and pass it to gradcam.
     # This would be consistent with what is done in
     # https://github.com/ramprs/grad-cam/blob/master/misc/utils.lua
@@ -125,7 +144,7 @@ def explain_prediction_keras(estimator, # type: Model
     values = gradcam_backend(estimator, doc, targets, activation_layer)
     activations, grads, predicted_idx, predicted_val = values
     # FIXME: hardcoding for conv layers, i.e. their shapes
-    weights = compute_weights(activations)
+    weights = compute_weights(grads)
     heatmap = gradcam(weights, activations)
 
     # classify predicted_val as either a probability or a score
@@ -136,12 +155,6 @@ def explain_prediction_keras(estimator, # type: Model
     else:
         score = predicted_val 
 
-    # specific for images
-    # doc = doc[0] # rank 4 batch -> rank 3 single image
-    # image = keras.preprocessing.image.array_to_img(doc) # -> RGB Pillow image
-    # image = image.convert(mode='RGBA')
-    image = None # hard code for text
-
     # TODO: cut off padding from text
     # what about images? pass 2 tuple?
     if pad_idx is None:
@@ -149,7 +162,6 @@ def explain_prediction_keras(estimator, # type: Model
     else:
         pass
 
-    feature_weights = empty_feature_weights
     if image is not None:
         weighted_spans = None
     else:
@@ -186,6 +198,28 @@ def explain_prediction_keras(estimator, # type: Model
     )
 
 
+def explain_prediction_keras_image(estimator,
+                                   doc,
+                                   image,
+                                   target_names=None,
+                                   targets=None,
+                                   layer=None,
+    ):
+    pass
+
+
+def explain_prediction_keras_text(estimator,
+                                  doc,
+                                  tokens,
+                                  target_names=None,
+                                  targets=None,
+                                  layer=None,
+                                  document=None,
+                                  pad_idx=None,
+                                  ):
+    pass
+
+
 def _validate_doc(estimator, doc):
     # type: (Model, np.ndarray) -> None
     """
@@ -196,6 +230,11 @@ def _validate_doc(estimator, doc):
     # https://github.com/keras-team/keras/issues/1641
     if not isinstance(doc, np.ndarray):
         raise TypeError('doc must be a numpy.ndarray, got: {}'.format(doc))
+    batch_size = doc.shape[0]
+    if batch_size != 1:
+        raise ValueError('doc batch must have size 1. Got: %d' % batch_size)
+
+    # FIXME....
     input_sh = estimator.input_shape
     doc_sh = doc.shape
     if len(input_sh) == 4:
@@ -204,9 +243,8 @@ def _validate_doc(estimator, doc):
         # check that we have only one image (batch size 1)
         single_batch = (1,) + input_sh[1:]
         if doc_sh != single_batch:
-            raise ValueError('Batch size does not match (must be 1). ' 
-                             'doc must be of shape: {}, '
-                             'got: {}'.format(single_batch, doc_sh))
+            raise ValueError('doc must be of shape: {}. '
+                             'Got: {}'.format(single_batch, doc_sh))
     else:
         # other shapes
         if not eq_shapes(input_sh, doc_sh):
@@ -228,9 +266,9 @@ def eq_shapes(required, other):
     return all(matching)
 
 
-def _get_activation_layer(estimator, layer):
+def _get_activation_layer(estimator, layer, layers_generator, condition):
     # type: (Model, Union[None, int, str, Layer]) -> Layer
-    """
+    """ 
     Get an instance of the desired activation layer in ``estimator``,
     as specified by ``layer``.
     """
@@ -238,7 +276,7 @@ def _get_activation_layer(estimator, layer):
     if layer is None:
         # Automatically get the layer if not provided
         # TODO: search forwards for text models
-        activation_layer = _search_layer_backwards(estimator, _is_suitable_activation_layer)
+        activation_layer = _search_layer(estimator, layers_generator, condition)
         return activation_layer
 
     if isinstance(layer, Layer):
@@ -261,19 +299,37 @@ def _get_activation_layer(estimator, layer):
         raise ValueError('Can not perform Grad-CAM on the retrieved activation layer')
 
 
-def _search_layer_backwards(estimator, condition):
+def _search_layer(estimator, layers, condition):
     # type: (Model, Callable[[Model, int], bool]) -> Layer
     """
     Search for a layer in ``estimator``, backwards (starting from the output layer),
     checking if the layer is suitable with the callable ``condition``,
     """
     # linear search in reverse through the flattened layers
-    for layer in estimator.layers[::-1]:
+    for layer in layers(estimator):
         if condition(estimator, layer):
             # linear search succeeded
             return layer
     # linear search ended with no results
     raise ValueError('Could not find a suitable target layer automatically.')        
+
+
+def _forward_layers(estimator):
+    return (estimator.get_layer(index=i) for i in range(1, len(estimator.layers), 1))
+    # TODO: input layer. adversarial noise example.
+
+def _backward_layers(estimator):
+    return (estimator.get_layer(index=i) for i in range(len(estimator.layers)-1, -1, -1))
+
+
+def _is_suitable_image_layer(estimator, layer):
+    rank = len(layer.output_shape)
+    required_rank = len(estimator.input_shape)
+    return rank == required_rank
+
+
+def _is_suitable_text_layer(estimator, layer):
+    return True # FIXME
 
 
 def _is_suitable_activation_layer(estimator, layer):

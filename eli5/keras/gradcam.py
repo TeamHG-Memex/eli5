@@ -54,13 +54,17 @@ def gradcam(weights, activations):
     # there does not seem to be an easy way to do this:
     # see: https://stackoverflow.com/questions/30031828/multiply-numpy-ndarray-with-1d-array-along-a-given-axis
     # spatial_shape = activations.shape[:2] # -> (dim1, dim2)
-    spatial_shape = activations.shape[:1] # FIXME: hard coded for text
+    spatial_shape = activations.shape[1:-1]
     lmap = np.zeros(spatial_shape, dtype=np.float64)
+
+    # lmap = lmap[0, ...]
+    weights = weights[0, ...]
+    activations = activations[0, ...]
+
     # iterate through each activation map
     for i, w in enumerate(weights): 
         # weight * spatial map
         # add result to the entire localization map (NOT pixel by pixel)
-        # breakpoint()
         lmap += w * activations[..., i]
 
     lmap = np.maximum(lmap, 0) # ReLU
@@ -70,6 +74,34 @@ def gradcam(weights, activations):
     # this also means that lmap max will be slightly less than the 'true' max
     lmap = lmap / (np.max(lmap)+K.epsilon())
     return lmap
+
+
+def compute_weights(grads): # made public for transparency
+    """
+    Calculate weights, pooling over ``grads``.
+    """
+    # Global Average Pooling of gradients to get the weights
+    # note that axes are in range [-rank(x), rank(x)) (we start from 1, not 0)
+    # TODO: decide whether this should go in gradcam_backend() or gradcam()
+    
+    # TEXT FIXME: conv1d vs conv2d (diff axis counts)
+    # rank 0 = batch
+    # rank 1 = dim
+    # rank 2 ...
+    # rank n = mapno
+    # use np just because Keras backend / tensorflow is harder
+    # https://stackoverflow.com/questions/48082900/in-tensorflow-what-is-the-argument-axis-in-the-function-tf-one-hot
+    # https://medium.com/@aerinykim/tensorflow-101-what-does-it-mean-to-reduce-axis-9f39e5c6dea2
+    # https://www.tensorflow.org/guide/tensors
+    # weights = K.mean(grads, axis=(1, 2)) # +1 axis num because we have batch still?
+    shape = [(axis_no, dim) for (axis_no, dim) in enumerate(grads.shape)]
+    # ignore batch
+    # ignore last (number of maps)
+    # FIXME: hardcoded shape
+    pooling_axes = shape[1:-1]
+    axes = [axis_no for (axis_no, dim) in pooling_axes]
+    weights = np.mean(grads, axis=tuple(axes))
+    return weights
 
 
 def gradcam_backend(estimator, # type: Model
@@ -126,34 +158,7 @@ def gradcam_backend(estimator, # type: Model
     # FIXME: batch assumptions should be removed
     predicted_val = predicted_val[0]
     predicted_idx = predicted_idx[0]
-    activations = activations[0, ...]
-    grads = grads[0, ...]
     return activations, grads, predicted_idx, predicted_val
-
-
-def compute_weights(grads): # made public for transparency
-    """
-    Calculate weights, pooling over ``grads``.
-    """
-    # Global Average Pooling of gradients to get the weights
-    # note that axes are in range [-rank(x), rank(x)) (we start from 1, not 0)
-    # TODO: decide whether this should go in gradcam_backend() or gradcam()
-    
-    # TEXT FIXME: conv1d vs conv2d (diff axis counts)
-    # rank 0 = batch
-    # rank 1 = dim
-    # rank 2 ...
-    # rank n = mapno
-    # use np just because Keras backend / tensorflow is harder
-    # https://stackoverflow.com/questions/48082900/in-tensorflow-what-is-the-argument-axis-in-the-function-tf-one-hot
-    # https://medium.com/@aerinykim/tensorflow-101-what-does-it-mean-to-reduce-axis-9f39e5c6dea2
-    # https://www.tensorflow.org/guide/tensors
-    # weights = K.mean(grads, axis=(1, 2)) # +1 axis num because we have batch still?
-    shape = [(axis_no, dim) for (axis_no, dim) in enumerate(grads.shape)]
-    pooling_axes = shape[:1] # FIXME: hardcoded for text
-    axes = [axis_no for (axis_no, dim) in pooling_axes]
-    weights = np.mean(grads, axis=tuple(axes))
-    return weights
 
 
 def _calc_gradient(ys, xs):
