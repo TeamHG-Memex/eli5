@@ -104,26 +104,15 @@ def gradcam_backend(estimator, # type: Model
     (weights, activations, gradients, predicted_idx, predicted_val) : (numpy.ndarray, ..., int, float)
         Values of variables.
     """
-    output = estimator.output
+    # score for class in targets
     predicted_idx = _get_target_prediction(targets, estimator)
-    predicted_val = K.gather(output[0,:], predicted_idx) # access value by index
+    predicted_val = K.gather(estimator.output[0,:], predicted_idx) # access value by index
 
-    # output of target layer, i.e. activation maps of a convolutional layer
+    # output of target activation layer, i.e. activation maps of a convolutional layer
     activation_output = activation_layer.output 
 
-    # differentiate ys (scalar) with respect to each of xs (python list of variables)
-    # FIXME: this might have issues in certain cases
-    # See https://github.com/jacobgil/keras-grad-cam/issues/17
-    # a fix is the following piece of code:
-    # grads = [grad if grad is not None else K.zeros_like(var) 
-    #         for (var, grad) in zip([activation_output], grads)]
-    grads = K.gradients(predicted_val, [activation_output])
-
-    # grads gives a python list with a tensor (containing the derivatives) for each xs
-    # to use grads with other operations and with K.function
-    # we need to work with the actual tensors and not the python list
-    grads, = grads # grads should be a singleton list (because xs is a singleton)
-    grads =  K.l2_normalize(grads) # this seems to make the heatmap less noisy
+    # score for class w.r.p.t. activation layer
+    grads = _calc_gradient(predicted_val, [activation_output])
 
     # Global Average Pooling of gradients to get the weights
     # note that axes are in range [-rank(x), rank(x)) (we start from 1, not 0)
@@ -131,10 +120,10 @@ def gradcam_backend(estimator, # type: Model
     weights = K.mean(grads, axis=(1, 2))
 
     evaluate = K.function([estimator.input], 
-        [weights, activation_output, grads, output, predicted_val, predicted_idx]
+        [weights, activation_output, grads, predicted_val, predicted_idx]
     )
     # evaluate the graph / do actual computations
-    weights, activations, grads, output, predicted_val, predicted_idx = evaluate([doc])
+    weights, activations, grads, predicted_val, predicted_idx = evaluate([doc])
     
     # put into suitable form
     weights = weights[0]
@@ -143,6 +132,35 @@ def gradcam_backend(estimator, # type: Model
     activations = activations[0, ...]
     grads = grads[0, ...]
     return weights, activations, grads, predicted_idx, predicted_val
+
+
+def _calc_gradient(ys, xs):
+    # (K.variable, list) -> K.variable
+    """
+    Return the gradient of scalar ``ys`` with respect to each of list ``xs``,
+    (must be singleton)
+    and apply grad normalization.
+    """
+    # differentiate ys (scalar) with respect to each variable in xs
+    grads = K.gradients(ys, xs)
+
+    # grads gives a python list with a tensor (containing the derivatives) for each xs
+    # to use grads with other operations and with K.function
+    # we need to work with the actual tensors and not the python list
+    grads, = grads # grads should be a singleton list (because xs is a singleton)
+
+    # validate that the gradients were calculated successfully (no None's)
+    # https://github.com/jacobgil/keras-grad-cam/issues/17#issuecomment-423057265
+    # https://github.com/tensorflow/tensorflow/issues/783#issuecomment-175824168
+    if grads is None:
+        raise ValueError('Gradient calculation resulted in None values. '
+                         'Check that the model is differentiate and try again. '
+                         'ys: {}. xs: {}. grads: {}'.format(
+                            ys, xs, grads))
+
+    # this seems to make the heatmap less noisy
+    grads =  K.l2_normalize(grads) 
+    return grads
 
 
 def _get_target_prediction(targets, estimator):
