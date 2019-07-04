@@ -11,7 +11,6 @@ from keras.layers import Layer # type: ignore
 from eli5.base import (
     Explanation, 
     TargetExplanation, 
-    empty_feature_weights,
     WeightedSpans,
     DocWeightedSpans,
 )
@@ -38,7 +37,6 @@ def explain_prediction_keras(estimator, # type: Model
                              pad_idx=None, # starting padding id
                             ):
     # type: (...) -> Explanation
-    # FIXME: in docs rendered param order is "type, required (paramname)", should be other way around
     """
     Explain the prediction of a Keras image classifier.
 
@@ -50,12 +48,12 @@ def explain_prediction_keras(estimator, # type: Model
     ``doc``, ``target_names``, and ``targets`` parameters.
 
     
-    :param estimator `keras.models.Model`:
+    :param keras.models.Model estimator:
         Instance of a Keras neural network model, 
         whose predictions are to be explained.
 
 
-    :param doc `numpy.ndarray`:
+    :param numpy.ndarray doc:
         An input image as a tensor to ``estimator``, 
         from which prediction will be done and explained.
 
@@ -75,12 +73,12 @@ def explain_prediction_keras(estimator, # type: Model
         :raises TypeError: if ``doc`` is not a numpy array.
         :raises ValueError: if ``doc`` shape does not match.
 
-    :param target_names `list, optional`:
+    :param target_names:         
         *Not Implemented*.
-
         Names for classes in the final output layer.
+    :type target_names: list, optional
 
-    :param targets `list[int], optional`:
+    :param targets:
         Prediction ID's to focus on.
 
         *Currently only the first prediction from the list is explained*. 
@@ -90,10 +88,11 @@ def explain_prediction_keras(estimator, # type: Model
         is taken as the target automatically.
 
 
-        :raises ValueError: if targets is a list with more than one item.
-        :raises TypeError: if targets is not list or None.
+        :raises ValueError: if ``targets`` is a list with more than one item.
+        :raises TypeError: if ``targets`` is not list or None.
+    :type targets: list[int], optional
 
-    :param layer `int or str or keras.layers.Layer, optional`:
+    :param layer:
         The activation layer in the model to perform Grad-CAM on,
         a valid keras layer name, layer index, or an instance of a Keras layer.
         
@@ -103,6 +102,8 @@ def explain_prediction_keras(estimator, # type: Model
 
         :raises TypeError: if ``layer`` is not None, str, int, or keras.layers.Layer instance.
         :raises ValueError: if suitable layer can not be found.
+        :raises ValueError: if differentiation fails with respect to retrieved ``layer``. 
+    :type layer: int or str or keras.layers.Layer, optional
 
 
     Returns
@@ -175,7 +176,6 @@ def explain_prediction_keras(estimator, # type: Model
         image=image, # RGBA Pillow image
         targets=[TargetExplanation(
             predicted_idx,
-            feature_weights=feature_weights,
             weighted_spans=weighted_spans,
             proba=proba,
             score=score,

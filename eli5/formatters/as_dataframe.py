@@ -140,6 +140,7 @@ def _targets_to_df(targets):
     columns = ['target', 'feature', 'weight', 'std', 'value']
     df_data = {f: [] for f in columns}  # type: Dict[str, List[Any]]
     for target in targets:
+        assert target.feature_weights is not None
         for fw in chain(target.feature_weights.pos,
                         reversed(target.feature_weights.neg)):
             df_data['target'].append(target.target)

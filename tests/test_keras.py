@@ -6,8 +6,16 @@ import pytest
 
 keras = pytest.importorskip('keras')
 
-from keras.models import Sequential
-from keras.layers import Dense, Activation, Conv2D, GlobalAveragePooling2D
+import keras.backend as K
+from keras.models import Sequential, Model
+from keras.layers import (
+    Dense, 
+    Activation, 
+    Conv2D, 
+    GlobalAveragePooling2D, 
+    Input, 
+    Lambda,
+)
 from keras.backend import epsilon
 import numpy as np
 
@@ -19,6 +27,7 @@ from eli5.keras.explain_prediction import (
 )
 from eli5.keras.gradcam import (
     _get_target_prediction,
+    _calc_gradient,
     gradcam,
 )
 
@@ -132,6 +141,36 @@ def test_explain_prediction_score(simple_seq):
     expl = explain_prediction(simple_seq, np.zeros((1, 32, 32, 1)))
     assert expl.targets[0].score is not None
     assert expl.targets[0].proba is None
+
+
+@pytest.fixture(scope='module')
+def differentiable_model():
+    inpt = Input(shape=(1,))
+    op = Lambda(lambda x: x)(inpt) # identity function
+    model = Model(inpt, op)
+    model.summary()
+    return model
+
+
+@pytest.fixture(scope='module')
+def nondifferentiable_model():
+    inpt = Input(shape=(1,))
+    op = Lambda(lambda x: K.constant(0) if x == 0 
+        else K.constant(1))(inpt) # piecewise function
+    model = Model(inpt, op)
+    model.summary()
+    return model
+
+
+def test_calc_gradient(differentiable_model):
+    _calc_gradient(differentiable_model.output, 
+        [differentiable_model.input])
+
+
+def test_calc_gradient_nondifferentiable(nondifferentiable_model):
+    with pytest.raises(ValueError):
+        grads = _calc_gradient(nondifferentiable_model.output, 
+            [nondifferentiable_model.input])
 
 
 def test_gradcam_zeros():

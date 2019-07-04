@@ -145,19 +145,11 @@ def show_prediction(estimator, doc, **kwargs):
     customize formatting in a single call.
 
 
-    (*New in x.y.z* ) # TODO
     If :func:`explain_prediction` returns an :class:`base.Explanation` object with
     the ``image`` attribute not set to None, i.e. if explaining image based models,
     then formatting is dispatched to an image display implementation, 
     and image explanations are shown in an IPython cell.
-    Any extra keyword arguments are passed to :func:`eli5.format_as_image`.
-
-    To display the image in a loop, function, or other case, 
-    use IPython.display.display::
-
-        from IPython.display import display
-        for cls_idx in [0, 432]:
-            display(eli5.show_prediction(clf, doc, targets=[cls_idx]))
+    Extra keyword arguments are passed to :func:`eli5.format_as_image`.
 
     Note that this image display implementation 
     requires ``matplotlib`` and ``Pillow`` as extra dependencies.
@@ -298,6 +290,18 @@ def show_prediction(estimator, doc, **kwargs):
             from IPython.display import display
             display(eli5.show_weights(clf1))
             display(eli5.show_weights(clf2))
+
+    PIL.Image.Image
+        Image with a heatmap overlay, *if explaining image based models*.
+        The image is shown in an IPython notebook cell
+        if it is the last thing returned.
+        To display the image in a loop, function, or other case, 
+        use IPython.display.display::
+
+            from IPython.display import display
+            for cls_idx in [0, 432]:
+                display(eli5.show_prediction(clf, doc, targets=[cls_idx]))
+
     """
     format_kwargs, explain_kwargs = _split_kwargs(kwargs)
     expl = explain_prediction(estimator, doc, **explain_kwargs)

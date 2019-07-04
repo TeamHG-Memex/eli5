@@ -1,5 +1,5 @@
 from __future__ import absolute_import
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple
+from typing import Any, Union, Callable, Dict, List, Optional, Set, Tuple
 
 from sklearn.feature_extraction.text import VectorizerMixin  # type: ignore
 from sklearn.pipeline import FeatureUnion  # type: ignore
@@ -13,10 +13,11 @@ from eli5.sklearn._span_analyzers import build_span_analyzer
 
 
 def get_weighted_spans(doc, vec, feature_weights):
-    # type: (Any, Any, FeatureWeights) -> Optional[WeightedSpans]
+    # type: (Any, Any, Union[FeatureWeights, None]) -> Optional[WeightedSpans]
     """ If possible, return a dict with preprocessed document and a list
     of spans with weights, corresponding to features in the document.
     """
+    assert feature_weights is not None
     if isinstance(vec, FeatureUnion):
         return _get_weighted_spans_from_union(doc, vec, feature_weights)
     else:

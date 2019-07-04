@@ -76,7 +76,7 @@ class TargetExplanation(object):
     """
     def __init__(self,
                  target,  # type: Union[str, int]
-                 feature_weights,  # type: FeatureWeights
+                 feature_weights=None,  # type: Optional[FeatureWeights]
                  proba=None,  # type: Optional[float]
                  score=None,  # type: Optional[float]
                  weighted_spans=None,  # type: Optional[WeightedSpans]
@@ -128,12 +128,6 @@ class FeatureWeight(object):
         self.weight = weight
         self.std = std
         self.value = value
-
-
-empty_feature_weights = FeatureWeights(
-        [FeatureWeight('null', float('+inf'))],
-        [FeatureWeight('null', float('-inf'))],
-)
 
 
 @attrs

@@ -404,7 +404,7 @@ Examining the structure of the ``Explanation`` object:
 
 .. parsed-literal::
 
-    Explanation(estimator='mobilenetv2_1.00_224', description='Grad-CAM visualization for image classification; \noutput is explanation object that contains input image \nand heatmap image for a target.\n', error='', method='Grad-CAM', is_regression=False, targets=[TargetExplanation(target=243, feature_weights=FeatureWeights(pos=[FeatureWeight(feature='null', weight=inf, std=None, value=None)], neg=[FeatureWeight(feature='null', weight=-inf, std=None, value=None)], pos_remaining=0, neg_remaining=0), proba=0.80967486, score=None, weighted_spans=None, heatmap=array([[0.        , 0.34700299, 0.81830269, 0.80335707, 0.90060232,
+    Explanation(estimator='mobilenetv2_1.00_224', description='Grad-CAM visualization for image classification; \noutput is explanation object that contains input image \nand heatmap image for a target.\n', error='', method='Grad-CAM', is_regression=False, targets=[TargetExplanation(target=243, feature_weights=None, proba=0.80967486, score=None, weighted_spans=None, heatmap=array([[0.        , 0.34700299, 0.81830269, 0.80335707, 0.90060232,
             0.11643575, 0.01095222],
            [0.01533252, 0.38341222, 0.80703666, 0.85117042, 0.95316512,
             0.28513835, 0.        ],
@@ -417,7 +417,7 @@ Examining the structure of the ``Explanation`` object:
            [0.        , 0.        , 0.        , 0.        , 0.        ,
             0.        , 0.05308532],
            [0.        , 0.        , 0.        , 0.        , 0.        ,
-            0.01124774, 0.06864653]]))], feature_importances=None, decision_tree=None, highlight_spaces=None, transition_features=None, image=<PIL.Image.Image image mode=RGBA size=224x224 at 0x7FDF9EB14C18>)
+            0.01124774, 0.06864653]]))], feature_importances=None, decision_tree=None, highlight_spaces=None, transition_features=None, image=<PIL.Image.Image image mode=RGBA size=224x224 at 0x7F4C52B9EEF0>)
 
 
 We can check the score (raw value) or probability (normalized score) of
@@ -425,155 +425,9 @@ the neuron for the predicted class, and get the class ID itself:
 
 .. code:: ipython3
 
-    # we can either
-    # 1. display the explanation as HTML in an IPython cell (ignore the table entries for feature weights)
-    display(expl)
-    
-    # or 2. access the score and probability values directly
+    # access the score and probability values as attributes of a target
+    # for each target (default is 1) we have an entry in the targets list
     print((expl.targets[0].target, expl.targets[0].score, expl.targets[0].proba))
-
-
-
-.. raw:: html
-
-    
-        <style>
-        table.eli5-weights tr:hover {
-            filter: brightness(85%);
-        }
-    </style>
-    
-    
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-    
-        
-    
-        
-    
-        
-    
-        
-            
-    
-        
-    
-            
-                
-                    
-                    
-        
-            <p style="margin-bottom: 0.5em; margin-top: 0em">
-                <b>
-        
-            y=243
-        
-    </b>
-    
-        
-        (probability <b>0.810</b>)
-    
-    top features
-            </p>
-        
-        <table class="eli5-weights"
-               style="border-collapse: collapse; border: none; margin-top: 0em; table-layout: auto; margin-bottom: 2em;">
-            <thead>
-            <tr style="border: none;">
-                
-                    <th style="padding: 0 1em 0 0.5em; text-align: right; border: none;" title="Feature weights. Note that weights do not account for feature value scales, so if feature values have different scales, features with highest weights might not be the most important.">
-                        Weight<sup>?</sup>
-                    </th>
-                
-                <th style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">Feature</th>
-                
-            </tr>
-            </thead>
-            <tbody>
-            
-                <tr style="background-color: hsl(120, 100.00%, nan%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            +inf
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            null
-        </td>
-        
-    </tr>
-            
-            
-    
-            
-            
-                <tr style="background-color: hsl(0, 100.00%, nan%); border: none;">
-        <td style="padding: 0 1em 0 0.5em; text-align: right; border: none;">
-            -inf
-        </td>
-        <td style="padding: 0 0.5em 0 0.5em; text-align: left; border: none;">
-            null
-        </td>
-        
-    </tr>
-            
-    
-            </tbody>
-        </table>
-    
-                
-            
-    
-            
-    
-    
-    
-        
-    
-        
-    
-        
-    
-        
-    
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-    
-    
-
 
 
 .. parsed-literal::
