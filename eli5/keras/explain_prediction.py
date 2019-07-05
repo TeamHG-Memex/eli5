@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
-from typing import Union, Optional, Callable, Tuple, List, TYPE_CHECKING
+from typing import Union, Optional, Callable, Tuple, List, Generator, TYPE_CHECKING
 
 import numpy as np # type: ignore
 import keras # type: ignore
@@ -161,6 +161,7 @@ def explain_prediction_keras(estimator, # type: Model
         activation_layer = _get_activation_layer(estimator, layer, _backward_layers, _is_suitable_image_layer)
     else:
         activation_layer = _get_activation_layer(estimator, layer, _forward_layers, _is_suitable_text_layer)
+    
     # TODO: maybe do the sum / loss calculation in this function and pass it to gradcam.
     # This would be consistent with what is done in
     # https://github.com/ramprs/grad-cam/blob/master/misc/utils.lua
@@ -203,6 +204,7 @@ def explain_prediction_keras(estimator, # type: Model
         error='',
         method='Grad-CAM',
         image=image, # RGBA Pillow image
+        # PR FIXME: Would be good to include retrieved layer as an attribute
         targets=[TargetExplanation(
             predicted_idx,
             weighted_spans=weighted_spans,
@@ -307,7 +309,7 @@ def _get_activation_layer(estimator, layer, layers_generator, condition):
     Get an instance of the desired activation layer in ``estimator``,
     as specified by ``layer``.
     """
-    # PR FIXME: Would be good to include retrieved layer as an attribute
+    # PR FIXME: decouple layer search (no arg) vs simple layer retrieval (arg)
     if layer is None:
         # Automatically get the layer if not provided
         # TODO: search forwards for text models
@@ -315,10 +317,11 @@ def _get_activation_layer(estimator, layer, layers_generator, condition):
         return activation_layer
 
     if isinstance(layer, Layer):
-        activation_layer = layer
+        return layer
+
     # get_layer() performs a bottom-up horizontal graph traversal
     # it can raise ValueError if the layer index / name specified is not found
-    elif isinstance(layer, int):
+    if isinstance(layer, int):
         activation_layer = estimator.get_layer(index=layer)
     elif isinstance(layer, str):
         activation_layer = estimator.get_layer(name=layer)
@@ -328,14 +331,14 @@ def _get_activation_layer(estimator, layer, layers_generator, condition):
     if _is_suitable_activation_layer(estimator, activation_layer):
         # final validation step
         # FIXME: this should not be done for text
-        # PR FIXME: decouple layer search (no arg) vs simple layer retrieval (arg)
+        # this should be moved out
         return activation_layer
     else:
         raise ValueError('Can not perform Grad-CAM on the retrieved activation layer')
 
 
 def _search_layer(estimator, layers, condition):
-    # type: (Model, Callable[[Model, int], bool]) -> Layer ### FIXME
+    # type: (Model, Generator[Layer, None, None], Callable[[Model, int], bool]) -> Layer ### FIXME
     """
     Search for a layer in ``estimator``, backwards (starting from the output layer),
     checking if the layer is suitable with the callable ``condition``,
@@ -351,52 +354,37 @@ def _search_layer(estimator, layers, condition):
 
 def _forward_layers(estimator):
     return (estimator.get_layer(index=i) for i in range(1, len(estimator.layers), 1))
-    # TODO: input layer. adversarial noise example.
+
 
 def _backward_layers(estimator):
     return (estimator.get_layer(index=i) for i in range(len(estimator.layers)-1, -1, -1))
 
 
 def _is_suitable_image_layer(estimator, layer):
+    """Check whether the layer ``layer`` matches what is required 
+    by ``estimator`` to do Grad-CAM on ``layer``.
+
+    Matching Criteria:
+    * Rank of the layer's output tensor."""
+    # type: (Model, Layer) -> bool
+    # TODO: experiment with this, using many models and images, to find what works best
+    # Some ideas: 
+    # check layer type, i.e.: isinstance(l, keras.layers.Conv2D)
+    # check layer name
+    # input wrpt output
+
+    # a check that asks "can we resize this activation layer over the image?"
     rank = len(layer.output_shape)
     required_rank = len(estimator.input_shape)
     return rank == required_rank
 
 
 def _is_suitable_text_layer(estimator, layer):
-    return True # FIXME
-
-
-def _is_suitable_activation_layer(estimator, layer):
-    # type: (Model, Layer) -> bool
-    """
-    Check whether the layer ``layer`` matches what is required 
+    """Check whether the layer ``layer`` matches what is required 
     by ``estimator`` to do Grad-CAM on ``layer``.
-    Returns a boolean.
-    
-    Matching Criteria:
-        * Rank of the layer's output tensor.
     """
-    # TODO: experiment with this, using many models and images, to find what works best
-    # Some ideas: 
-    # check layer type, i.e.: isinstance(l, keras.layers.Conv2D)
-    # check layer name
-
-    # a check that asks "can we resize this activation layer over the image?"
-
-    # text FIXME: matching rank is not a good way to check if layer is valid
-    # input has rank 2 (sequence)
-    # output often has rank 2 (batch and units)
-    # input wrpt output???
-
-    rank = len(layer.output_shape)
-    if rank == 4:
-        # only for 'images'
-        required_rank = len(estimator.input_shape)
-        return rank == required_rank
-    else:
-        # no check yet
-        return True
+    # type: (Model, Layer) -> bool
+    return isinstance(layer, keras.layers.Conv1D)
 
 
 def _outputs_proba(estimator):
