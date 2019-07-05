@@ -328,13 +328,14 @@ def _get_activation_layer(estimator, layer, layers_generator, condition):
     else:
         raise TypeError('Invalid layer (must be str, int, keras.layers.Layer, or None): %s' % layer)
 
-    if _is_suitable_activation_layer(estimator, activation_layer):
-        # final validation step
-        # FIXME: this should not be done for text
-        # this should be moved out
-        return activation_layer
-    else:
-        raise ValueError('Can not perform Grad-CAM on the retrieved activation layer')
+    return activation_layer
+    # if _is_suitable_activation_layer(estimator, activation_layer):
+    #     # final validation step
+    #     # FIXME: this should not be done for text
+    #     # this should be moved out
+    #     return activation_layer
+    # else:
+    #     raise ValueError('Can not perform Grad-CAM on the retrieved activation layer')
 
 
 def _search_layer(estimator, layers, condition):
