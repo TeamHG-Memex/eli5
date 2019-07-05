@@ -1,6 +1,14 @@
 Changelog
 =========
 
+0.9.2 (2019-07-05)
+------------------
+
+* CatBoost support: show feature importances of CatBoostClassifier,
+  CatBoostRegressor and catboost.CatBoost.
+* Test fixes: fixes for scikit-learn 0.21+, use xenial base on Travis
+* Catch exceptions from improperly installed LightGBM
+
 0.8.2 (2019-04-04)
 ------------------
 
