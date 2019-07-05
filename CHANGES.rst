@@ -1,7 +1,7 @@
 Changelog
 =========
 
-0.9.2 (2019-07-05)
+0.9.0 (2019-07-05)
 ------------------
 
 * CatBoost support: show feature importances of CatBoostClassifier,
