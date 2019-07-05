@@ -17,5 +17,20 @@ from source checkout.
 
 We like high test coverage and mypy_ type annotations.
 
+Making releases
+---------------
+
+Note: releases are made from master by eli5 maintainers.
+When contributing a pull request, please do not update release notes
+or package version.
+
+To make a new release:
+
+* Write a summary of changes to CHANGES.rst
+* Bump version in ``eli5/__init__.py``
+* Make a release on PyPI using twine_
+* Tag a commit in git and push it
+
 .. _tox: https://tox.readthedocs.io/en/latest/
 .. _mypy: https://github.com/python/mypy
+.. _twine: https://pypi.org/project/twine/
