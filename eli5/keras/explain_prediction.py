@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
-from typing import Union, Optional, Callable, Tuple, List
+from typing import Union, Optional, Callable, Tuple, List, TYPE_CHECKING
 
 import numpy as np # type: ignore
 import keras # type: ignore
@@ -18,6 +18,10 @@ from eli5.explain import explain_prediction
 from .gradcam import gradcam, gradcam_backend, compute_weights
 
 
+if TYPE_CHECKING:
+    import PIL
+
+
 DESCRIPTION_KERAS = """Grad-CAM visualization for image classification; 
 output is explanation object that contains input image 
 and heatmap image for a target.
@@ -30,15 +34,11 @@ def explain_prediction_keras(estimator, # type: Model
                              target_names=None,
                              targets=None, # type: Optional[list]
                              layer=None, # type: Optional[Union[int, str, Layer]]
-                             image=None, # type: PIL.Image.Image # FIXME if TYPE_CHECKING
-                                # original image                             
-                             tokens=None, # tokens corresponding to doc (will be used for formatting)
-                                     # should be WITHOUT padding?
-                                     # FIXME: move this to formatter func?
-                                     # FIXME: separator chars?
-                             pad_idx=None, # starting padding id
-                             document=None, # type: str
-                                    # TODO: full document, untokenized, for highlighting
+                             image=None, # type: Optional[PIL.Image.Image]
+                             tokens=None, # type: Optional[List[str]]
+                             document=None, # type: Optional[str]
+                             pad_idx=None, # type: Optional[int]
+                             padding=None, # type: Optional[str]
                             ):
     # type: (...) -> Explanation
     """
@@ -109,13 +109,37 @@ def explain_prediction_keras(estimator, # type: Model
         :raises ValueError: if differentiation fails with respect to retrieved ``layer``. 
     :type layer: int or str or keras.layers.Layer, optional
 
+    :param image:
+        Image over which to overlay the heatmap.
+    :type image: PIL.Image.Image, optional
+
+    :param tokens:
+        List of input tokens that correspond to doc (may be padded).
+        Will be highlighted for text-based explanations.
+    :type tokens: list[str], optional
+
+    :param document:
+       Full text document for highlighting. 
+       Not tokenized and without padding.
+    :type document: str, optional
+
+    :param pad_idx:
+        Starting index for padding. Will be cut off in the heatmap and tokens.
+
+        *Not supported for images.*
+    :type pad_idx: int, optional
+
+    :param padding:
+        Padding position, 'pre' (before sequence) 
+        or 'post' (after sequence).
+    :type padding: str, optional
+
 
     Returns
     -------
     expl : eli5.base.Explanation
-        An ``Explanation`` object with the following attributes set (some inside ``targets``)
-            * ``image`` a Pillow image with mode RGBA.
-            * ``heatmap`` a rank 2 numpy array with the localization map values.
+        An ``Explanation`` object that includes the following attributes (some inside ``targets``)
+            * ``heatmap`` a numpy array with the localization map values.
             * ``target`` ID of target class.
             * ``proba`` output for target class for ``softmax`` or ``sigmoid`` outputs.
             * ``score`` output for target class for other activations.
