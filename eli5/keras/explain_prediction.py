@@ -264,28 +264,24 @@ def _validate_doc(estimator, doc):
     # FIXME: is this validation worth it? Just use Keras validation?
     # Do we make any extra assumptions about doc?
     # https://github.com/keras-team/keras/issues/1641
+    # https://github.com/TeamHG-Memex/eli5/pull/315#discussion_r292402171
+    # (later we should be able to take tf / backend tensors)
     if not isinstance(doc, np.ndarray):
-        raise TypeError('doc must be a numpy.ndarray, got: {}'.format(doc))
-    batch_size = doc.shape[0]
-    if batch_size != 1:
-        raise ValueError('doc batch must have size 1. Got: %d' % batch_size)
-
-    # FIXME....
-    input_sh = estimator.input_shape
+        raise TypeError('doc must be an instace of numpy.ndarray. ' 
+                        'Got: {}'.format(doc))
     doc_sh = doc.shape
-    if len(input_sh) == 4:
-        # FIXME: need better check for images (an attribute)
-        # rank 4 with (batch, ...) shape
-        # check that we have only one image (batch size 1)
-        single_batch = (1,) + input_sh[1:]
-        if doc_sh != single_batch:
-            raise ValueError('doc must be of shape: {}. '
-                             'Got: {}'.format(single_batch, doc_sh))
-    else:
-        # other shapes
-        if not eq_shapes(input_sh, doc_sh):
-            raise ValueError('Input and doc shapes do not match. '
-                             'input: {}, doc: {}'.format(input_sh, doc_sh))
+    batch_size = doc_sh[0]
+
+    # check maching dims
+    input_sh = estimator.input_shape
+    if not eq_shapes(input_sh, doc_sh):
+        raise ValueError('doc must have shape: {}. '
+                         'Got: {}'.format(input_sh, doc_sh))
+
+    # check that batch=1 (will be removed later)
+    if batch_size != 1:
+        raise ValueError('doc batch size must be 1. '
+                         'Got doc with batch size: %d' % batch_size)
 
 
 def eq_shapes(required, other):
@@ -295,6 +291,9 @@ def eq_shapes(required, other):
     For example::
         eq_shapes((None, 20), (1, 20)) # -> True
     """
+    if len(required) != len(other):
+        # short circuit based on length
+        return False
     matching = [(d1 == d2) # check that same number of dims 
             if (d1 is not None) # if required takes a specific shape for a dim (not None)
             else (1 <= d2) # else just check that the other shape has a valid shape for a dim

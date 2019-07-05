@@ -89,23 +89,23 @@ def test_get_activation_layer_invalid(simple_seq):
 def test_validate_doc(simple_seq):
     # should raise no errors
     _validate_doc(simple_seq, np.zeros((1, 32, 32, 1)))
+    # wrong type
+    with pytest.raises(TypeError):
+        _validate_doc(simple_seq, 10)
     # batch has more than one sample
     with pytest.raises(ValueError):
         _validate_doc(simple_seq, np.zeros((3, 32, 32, 1)))
-    # type is wrong
-    with pytest.raises(TypeError):
-        _validate_doc(simple_seq, 10)
-    # incorrect dimensions
+    # incorrect dimensions (missing batch)
     with pytest.raises(ValueError):
-        _validate_doc(simple_seq, np.zeros((5, 5)))
+        _validate_doc(simple_seq, np.zeros((32, 32, 1)))
 
 
-def test_validate_doc_custom():
-    # model with custom (not rank 4) input shape
+def test_validate_doc_2d():
+    # model with custom (rank 2/3, sequence) input shape
     model = Sequential([Dense(1, input_shape=(2, 3))])
     # not matching shape
     with pytest.raises(ValueError):
-        _validate_doc(model, np.zeros((5, 3)))
+        _validate_doc(model, np.zeros((1, 5, 3)))
 
  
 def test_get_target_prediction_invalid(simple_seq):
