@@ -20,6 +20,10 @@ We like high test coverage and mypy_ type annotations.
 Making releases
 ---------------
 
+Note: releases are made from master by eli5 maintainers.
+When contributing a pull request, please do not update release notes
+or package version.
+
 To make a new release:
 
 * Write a summary of changes to CHANGES.rst
