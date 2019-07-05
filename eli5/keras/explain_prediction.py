@@ -189,20 +189,13 @@ def explain_prediction_keras(estimator, # type: Model
     if image is not None:
         weighted_spans = None
     else:
-        spans = []
-        running = 0
-        for (token, weight) in zip(tokens, heatmap): # FIXME: weight can be renamed
-            i = running
-            N = len(token)
-            j = i+N
-            span = tuple([token, [tuple([i, j])], weight])
-            running = j+1 # exclude space
-            # print(N, token, weight, i, j)
-            spans.append(span)
-        document = ' '.join(tokens)
+        if document is None:
+            document = construct_document(tokens)
+        spans = build_spans(tokens, heatmap, document)
         weighted_spans = WeightedSpans([
             DocWeightedSpans(document, spans=spans)
-        ]) # why list?
+        ]) # why list? - for each vectorized - don't need multiple vectorizers?
+           # multiple highlights? - could do positive and negative expl?
 
     return Explanation(
         estimator.name,
@@ -220,6 +213,25 @@ def explain_prediction_keras(estimator, # type: Model
         is_regression=False, # might be relevant later when explaining for regression tasks
         highlight_spaces=None, # might be relevant later when explaining text models
     )
+
+
+def construct_document(tokens):
+    return ' '.join(tokens)
+
+
+def build_spans(tokens, heatmap, document):
+    # FIXME: use document arg
+    spans = []
+    running = 0
+    for (token, weight) in zip(tokens, heatmap): # FIXME: weight can be renamed?
+        t_len = len(token)
+        t_start = running
+        t_end = t_start + t_len
+        span = tuple([token, [tuple([t_start, t_end])], weight]) # why start and end is list of tuples?
+        running = t_end + 1 # exclude space
+        # print(N, token, weight, i, j)
+        spans.append(span)
+    return spans
 
 
 def explain_prediction_keras_image(estimator,
@@ -291,7 +303,7 @@ def eq_shapes(required, other):
 
 
 def _get_activation_layer(estimator, layer, layers_generator, condition):
-    # type: (Model, Union[None, int, str, Layer]) -> Layer
+    # type: (Model, Union[None, int, str, Layer]) -> Layer   ##### FIXME
     """ 
     Get an instance of the desired activation layer in ``estimator``,
     as specified by ``layer``.
@@ -324,7 +336,7 @@ def _get_activation_layer(estimator, layer, layers_generator, condition):
 
 
 def _search_layer(estimator, layers, condition):
-    # type: (Model, Callable[[Model, int], bool]) -> Layer
+    # type: (Model, Callable[[Model, int], bool]) -> Layer ### FIXME
     """
     Search for a layer in ``estimator``, backwards (starting from the output layer),
     checking if the layer is suitable with the callable ``condition``,
