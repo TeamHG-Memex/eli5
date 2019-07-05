@@ -144,6 +144,7 @@ class WeightedSpans(object):
         self.other = other
 
 
+# FIXME: can this be replaced with namedtuple?
 WeightedSpan = Tuple[
     Feature, # feature name - i.e. token name such as 'john', 'software', 'sky'
     List[Tuple[int, int]],  # list of spans [start, end) for this feature
