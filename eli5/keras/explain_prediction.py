@@ -116,7 +116,7 @@ def explain_prediction_keras(estimator, # type: Model
     weights, activations, grads, predicted_idx, predicted_val = values
     heatmap = gradcam(weights, activations)
 
-    doc = doc[0] # rank 4 batch -> rank 3 single image
+    doc, = doc # rank 4 batch -> rank 3 single image
     image = keras.preprocessing.image.array_to_img(doc) # -> RGB Pillow image
     image = image.convert(mode='RGBA')
 
