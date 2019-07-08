@@ -37,7 +37,7 @@ def explain_prediction_keras(estimator, # type: Model
                              image=None, # type: Optional[PIL.Image.Image]
                              tokens=None, # type: Optional[List[str]]
                              document=None, # type: Optional[str]
-                             pad_idx=None, # type: Optional[int]
+                             pad_x=None, # type: Optional[int]
                              padding=None, # type: Optional[str]
                             ):
     # type: (...) -> Explanation
@@ -123,15 +123,17 @@ def explain_prediction_keras(estimator, # type: Model
        Not tokenized and without padding.
     :type document: str, optional
 
-    :param pad_idx:
-        Starting index for padding. Will be cut off in the heatmap and tokens.
+    :param pad_x:
+        Character for padding.
 
         *Not supported for images.*
-    :type pad_idx: int, optional
+    :type pad_x: int, optional
 
     :param padding:
         Padding position, 'pre' (before sequence) 
         or 'post' (after sequence).
+        
+        Padding characters will be cut off from the heatmap and tokens.
     :type padding: str, optional
 
 
@@ -174,10 +176,14 @@ def explain_prediction_keras(estimator, # type: Model
 
     # TODO: cut off padding from text
     # what about images? pass 2 tuple?
-    if pad_idx is None:
-        pass
-    else:
-        pass
+    if pad_x is not None:
+        values, indices = np.where(doc == pad_x)
+        if padding == 'post':
+            pad_idx = indices[0] # leave +1 just to highlight effect of padding?
+            tokens = tokens[:pad_idx]
+            heatmap = heatmap[:pad_idx]
+        # TODO: pre padding
+        # TODO: check that there's no padding characters inside the text
 
     if image is not None:
         weighted_spans = None
