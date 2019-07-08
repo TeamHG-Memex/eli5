@@ -168,6 +168,7 @@ def explain_prediction_keras(estimator, # type: Model
     # and https://github.com/ramprs/grad-cam/blob/master/classification.lua
     values = gradcam_backend(estimator, doc, targets, activation_layer)
     activations, grads, predicted_idx, predicted_val = values
+    # grads = -grads # negate for a "counterfactual explanation"
     # FIXME: hardcoding for conv layers, i.e. their shapes
     weights = compute_weights(grads)
     heatmap = gradcam(weights, activations)
