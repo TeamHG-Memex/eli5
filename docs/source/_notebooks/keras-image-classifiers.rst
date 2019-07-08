@@ -205,7 +205,7 @@ that classification:
 
 .. parsed-literal::
 
-    [[('n02108422', 'bull_mastiff', 0.80967486), ('n02108089', 'boxer', 0.09835993), ('n02123045', 'tabby', 0.006650372), ('n02123159', 'tiger_cat', 0.004808707), ('n02110958', 'pug', 0.0039409893)]]
+    [[('n02108422', 'bull_mastiff', 0.80967486), ('n02108089', 'boxer', 0.098359644), ('n02123045', 'tabby', 0.0066504036), ('n02123159', 'tiger_cat', 0.0048087277), ('n02110958', 'pug', 0.0039409986)]]
     [243 242 281 282 254]
 
 
@@ -404,20 +404,20 @@ Examining the structure of the ``Explanation`` object:
 
 .. parsed-literal::
 
-    Explanation(estimator='mobilenetv2_1.00_224', description='Grad-CAM visualization for image classification; \noutput is explanation object that contains input image \nand heatmap image for a target.\n', error='', method='Grad-CAM', is_regression=False, targets=[TargetExplanation(target=243, feature_weights=None, proba=0.80967486, score=None, weighted_spans=None, heatmap=array([[0.        , 0.34700299, 0.81830269, 0.80335707, 0.90060232,
-            0.11643575, 0.01095222],
-           [0.01533252, 0.38341222, 0.80703666, 0.85117042, 0.95316512,
-            0.28513835, 0.        ],
-           [0.0070803 , 0.20260035, 0.77189877, 0.77733782, 0.99999996,
-            0.30238817, 0.        ],
-           [0.        , 0.04289364, 0.44958732, 0.30086692, 0.25115591,
-            0.06772003, 0.        ],
-           [0.01483668, 0.        , 0.        , 0.        , 0.        ,
-            0.00579807, 0.01929005],
+    Explanation(estimator='mobilenetv2_1.00_224', description='Grad-CAM visualization for image classification; \noutput is explanation object that contains input image \nand heatmap image for a target.\n', error='', method='Grad-CAM', is_regression=False, targets=[TargetExplanation(target=243, feature_weights=None, proba=None, score=0.80967486, weighted_spans=None, heatmap=array([[0.        , 0.34700435, 0.8183038 , 0.8033579 , 0.90060294,
+            0.11643614, 0.01095222],
+           [0.01533252, 0.3834133 , 0.80703807, 0.85117225, 0.95316563,
+            0.28513838, 0.        ],
+           [0.00708034, 0.20260051, 0.77189916, 0.77733763, 0.99999996,
+            0.30238836, 0.        ],
+           [0.        , 0.04289413, 0.4495872 , 0.30086699, 0.2511554 ,
+            0.06771996, 0.        ],
+           [0.0148367 , 0.        , 0.        , 0.        , 0.        ,
+            0.00579786, 0.01928998],
            [0.        , 0.        , 0.        , 0.        , 0.        ,
-            0.        , 0.05308532],
+            0.        , 0.05308531],
            [0.        , 0.        , 0.        , 0.        , 0.        ,
-            0.01124774, 0.06864653]]))], feature_importances=None, decision_tree=None, highlight_spaces=None, transition_features=None, image=<PIL.Image.Image image mode=RGBA size=224x224 at 0x7F4C52B9EEF0>)
+            0.01124764, 0.06864655]]))], feature_importances=None, decision_tree=None, highlight_spaces=None, transition_features=None, image=<PIL.Image.Image image mode=RGBA size=224x224 at 0x7F81836F2CF8>)
 
 
 We can check the score (raw value) or probability (normalized score) of
@@ -425,17 +425,16 @@ the neuron for the predicted class, and get the class ID itself:
 
 .. code:: ipython3
 
-    # access the score and probability values as attributes of a target
-    # for each target (default is 1) we have an entry in the targets list
+    # we can access the various attributes of a target being explained
     print((expl.targets[0].target, expl.targets[0].score, expl.targets[0].proba))
 
 
 .. parsed-literal::
 
-    (243, None, 0.80967486)
+    (243, 0.80967486, None)
 
 
-We can also access the original image and the Grad-CAM produced heatmap:
+We can also access the original image and the Grad-CAM heatmap:
 
 .. code:: ipython3
 
@@ -452,20 +451,20 @@ We can also access the original image and the Grad-CAM produced heatmap:
 
 .. parsed-literal::
 
-    [[0.         0.34700299 0.81830269 0.80335707 0.90060232 0.11643575
+    [[0.         0.34700435 0.8183038  0.8033579  0.90060294 0.11643614
       0.01095222]
-     [0.01533252 0.38341222 0.80703666 0.85117042 0.95316512 0.28513835
+     [0.01533252 0.3834133  0.80703807 0.85117225 0.95316563 0.28513838
       0.        ]
-     [0.0070803  0.20260035 0.77189877 0.77733782 0.99999996 0.30238817
+     [0.00708034 0.20260051 0.77189916 0.77733763 0.99999996 0.30238836
       0.        ]
-     [0.         0.04289364 0.44958732 0.30086692 0.25115591 0.06772003
+     [0.         0.04289413 0.4495872  0.30086699 0.2511554  0.06771996
       0.        ]
-     [0.01483668 0.         0.         0.         0.         0.00579807
-      0.01929005]
+     [0.0148367  0.         0.         0.         0.         0.00579786
+      0.01928998]
      [0.         0.         0.         0.         0.         0.
-      0.05308532]
-     [0.         0.         0.         0.         0.         0.01124774
-      0.06864653]]
+      0.05308531]
+     [0.         0.         0.         0.         0.         0.01124764
+      0.06864655]]
 
 
 Visualizing the heatmap:

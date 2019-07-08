@@ -103,8 +103,7 @@ def explain_prediction_keras(estimator, # type: Model
             * ``image`` a Pillow image with mode RGBA.
             * ``heatmap`` a rank 2 numpy array with the localization map values.
             * ``target`` ID of target class.
-            * ``proba`` output for target class for ``softmax`` or ``sigmoid`` outputs.
-            * ``score`` output for target class for other activations.
+            * ``score`` value for predicted class.
     """
     _validate_doc(estimator, doc)
     activation_layer = _get_activation_layer(estimator, layer)
@@ -116,14 +115,6 @@ def explain_prediction_keras(estimator, # type: Model
     values = gradcam_backend(estimator, doc, targets, activation_layer)
     weights, activations, grads, predicted_idx, predicted_val = values
     heatmap = gradcam(weights, activations)
-
-    # classify predicted_val as either a probability or a score
-    proba = None
-    score = None
-    if _outputs_proba(estimator):
-        proba = predicted_val
-    else:
-        score = predicted_val 
 
     doc = doc[0] # rank 4 batch -> rank 3 single image
     image = keras.preprocessing.image.array_to_img(doc) # -> RGB Pillow image
@@ -137,8 +128,7 @@ def explain_prediction_keras(estimator, # type: Model
         image=image, # RGBA Pillow image
         targets=[TargetExplanation(
             predicted_idx,
-            proba=proba,
-            score=score,
+            score=predicted_val, # for now we keep the prediction in the .score field (not .proba)
             heatmap=heatmap, # 2D [0, 1] numpy array
         )],
         is_regression=False, # might be relevant later when explaining for regression tasks
@@ -233,22 +223,3 @@ def _is_suitable_activation_layer(estimator, layer):
     rank = len(layer.output_shape)
     required_rank = len(estimator.input_shape)
     return rank == required_rank
-
-
-def _outputs_proba(estimator):
-    # type: (Model) -> bool
-    """
-    Check whether ``estimator`` gives probabilities as its output.
-    """
-    output_layer = estimator.get_layer(index=-1)
-    # we check if the network's output is put through softmax
-    # we assume that only softmax can output 'probabilities'
-
-    try:
-        actv = output_layer.activation 
-    except AttributeError:
-        # output layer does not support activation function
-        return False
-    else:
-        return (actv is keras.activations.softmax or 
-                actv is keras.activations.sigmoid)
