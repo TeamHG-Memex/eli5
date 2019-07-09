@@ -3,6 +3,7 @@ from __future__ import absolute_import
 from typing import Union, Optional, Callable, Tuple, List, Generator, TYPE_CHECKING
 
 import numpy as np # type: ignore
+from scipy.signal import resample # type: ignore
 import keras # type: ignore
 import keras.backend as K # type: ignore
 from keras.models import Model # type: ignore
@@ -212,7 +213,7 @@ def explain_prediction_keras_image(estimator,
 
 def explain_prediction_keras_text(estimator,
                                   doc,
-                                  tokens,
+                                  tokens, # TODO: take as list or numpy array
                                   targets=None,
                                   layer=None,
                                   pad_x=None,
@@ -227,6 +228,8 @@ def explain_prediction_keras_text(estimator,
     activation_layer = _get_activation_layer(estimator, layer, _forward_layers, _is_suitable_text_layer)
     
     heatmap, predicted_idx, predicted_val = _explanation_backend(estimator, doc, targets, activation_layer)
+
+    heatmap = resize_1d(heatmap, tokens) # might want to do this when formatting the explanation?
 
     # TODO: cut off padding from text
     if pad_x is not None:
@@ -403,6 +406,31 @@ def _explanation_backend(estimator, doc, targets, activation_layer):
     weights = compute_weights(grads)
     heatmap = gradcam(weights, activations)
     return heatmap, predicted_idx, predicted_val
+
+
+def resize_1d(heatmap, tokens):
+    """Resize heatmap to match the length of tokens.
+    For example, upscale/upsample a (400,) heatmap 
+    to match (500,) array of tokens."""
+    width = len(tokens)
+
+    # 1. solution with Pillow image resizing
+    # import PIL
+    # heatmap = np.expand_dims(heatmap, axis=-1)
+    # im = PIL.Image.fromarray(heatmap, mode="F")
+    # im = im.resize((width, 1), resample=PIL.Image.LANCZOS)
+    # heatmap = np.array(im, dtype='float32')
+    # heatmap = heatmap[0, ...]
+
+    # 2. solution with scipy signal resampling
+    # apparently this is very slow?
+    heatmap = resample(heatmap, width)
+
+    ## other possibilities
+    # https://stackoverflow.com/questions/29085268/resample-a-numpy-array - numpy and scipy interpolation
+    # https://machinelearningmastery.com/resample-interpolate-time-series-data-python/ - pandas interpolation
+
+    return heatmap
 
 
 def construct_document(tokens):
