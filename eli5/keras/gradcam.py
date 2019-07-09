@@ -169,6 +169,9 @@ def _calc_gradient(ys, xs):
     and apply grad normalization.
     """
     # differentiate ys (scalar) with respect to each variable in xs
+    # K.gradients tends to produce bigger values than tf.gradients
+    # Note that gradients also point to the direction of the greatest increase in ys
+    # Meaning that the class score is maximized if we move in the direction of the gradient.
     grads = K.gradients(ys, xs)
 
     # grads gives a python list with a tensor (containing the derivatives) for each xs

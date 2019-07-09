@@ -394,7 +394,7 @@ def _is_suitable_text_layer(estimator, layer):
     return isinstance(layer, keras.layers.Conv1D)
 
 
-def _explanation_backend(estimator, doc, targets, activation_layer):
+def _explanation_backend(estimator, doc, targets, activation_layer, ):
     # TODO: maybe do the sum / loss calculation in this function and pass it to gradcam.
     # This would be consistent with what is done in
     # https://github.com/ramprs/grad-cam/blob/master/misc/utils.lua
@@ -402,6 +402,7 @@ def _explanation_backend(estimator, doc, targets, activation_layer):
     values = gradcam_backend(estimator, doc, targets, activation_layer)
     activations, grads, predicted_idx, predicted_val = values
     # grads = -grads # negate for a "counterfactual explanation"
+    # to get negative
     # FIXME: hardcoding for conv layers, i.e. their shapes
     weights = compute_weights(grads)
     heatmap = gradcam(weights, activations)
@@ -424,6 +425,8 @@ def resize_1d(heatmap, tokens):
 
     # 2. solution with scipy signal resampling
     # apparently this is very slow?
+    # can also use resample_poly
+    # https://docs.scipy.org/doc/scipy-1.3.0/reference/generated/scipy.signal.resample_poly.html#scipy.signal.resample_poly
     heatmap = resample(heatmap, width)
 
     ## other possibilities
