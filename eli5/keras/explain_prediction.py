@@ -31,7 +31,6 @@ and heatmap image for a target.
 @explain_prediction.register(Model)
 def explain_prediction_keras(estimator, # type: Model
                              doc, # type: np.ndarray
-                             target_names=None,
                              targets=None, # type: Optional[list]
                              layer=None, # type: Optional[Union[int, str, Layer]]
                              image=None, # type: Optional[PIL.Image.Image]
@@ -77,11 +76,6 @@ def explain_prediction_keras(estimator, # type: Model
         :raises TypeError: if ``doc`` is not a numpy array.
         :raises ValueError: if ``doc`` shape does not match.
 
-    :param target_names:         
-        *Not Implemented*.
-        Names for classes in the final output layer.
-    :type target_names: list, optional
-
     :param targets:
         Prediction ID's to focus on.
 
@@ -118,11 +112,6 @@ def explain_prediction_keras(estimator, # type: Model
         Will be highlighted for text-based explanations.
     :type tokens: list[str], optional
 
-    :param document:
-       Full text document for highlighting. 
-       Not tokenized and without padding.
-    :type document: str, optional
-
     :param pad_x:
         Character for padding.
 
@@ -145,6 +134,11 @@ def explain_prediction_keras(estimator, # type: Model
             * ``target`` ID of target class.
             * ``score`` value for predicted class.
     """
+    # TODO: implement target_names
+    # :param target_names:         
+    #     *Not Implemented*.
+    #     Names for classes in the final output layer.
+    # :type target_names: list, optional
     _validate_doc(estimator, doc)
 
     if image is None and len(doc.shape) == 4:
@@ -157,45 +151,49 @@ def explain_prediction_keras(estimator, # type: Model
         doc, = doc # rank 4 batch -> rank 3 single image
         image = keras.preprocessing.image.array_to_img(doc[0]) # -> RGB Pillow image
         image = image.convert(mode='RGBA')
+        # TODO: support taking images that are not 'RGBA' -> 'RGB' as well (happens with keras load_img)
 
     if image is not None:
-        activation_layer = _get_activation_layer(estimator, layer, _backward_layers, _is_suitable_image_layer)
+        return explain_prediction_keras_image(estimator, 
+                                       doc, 
+                                       image, 
+                                       targets=targets, 
+                                       layer=layer,
+        )
+    elif tokens is not None:
+        return explain_prediction_keras_text(estimator, 
+                                      doc, 
+                                      tokens,
+                                      targets=targets,
+                                      layer=layer,
+                                      pad_x=pad_x,
+                                      padding=padding,
+        )
+        
     else:
-        activation_layer = _get_activation_layer(estimator, layer, _forward_layers, _is_suitable_text_layer)
-    
-    # TODO: maybe do the sum / loss calculation in this function and pass it to gradcam.
-    # This would be consistent with what is done in
-    # https://github.com/ramprs/grad-cam/blob/master/misc/utils.lua
-    # and https://github.com/ramprs/grad-cam/blob/master/classification.lua
-    values = gradcam_backend(estimator, doc, targets, activation_layer)
-    activations, grads, predicted_idx, predicted_val = values
-    # grads = -grads # negate for a "counterfactual explanation"
-    # FIXME: hardcoding for conv layers, i.e. their shapes
-    weights = compute_weights(grads)
-    heatmap = gradcam(weights, activations)
+        return explain_prediction_keras_not_supported(estimator, doc)
 
-    # TODO: cut off padding from text
-    # what about images? pass 2 tuple?
-    if pad_x is not None:
-        values, indices = np.where(doc == pad_x)
-        if padding == 'post':
-            pad_idx = indices[0] # leave +1 just to highlight effect of padding?
-            tokens = tokens[:pad_idx]
-            heatmap = heatmap[:pad_idx]
-        # TODO: pre padding
-        # TODO: check that there's no padding characters inside the text
 
-    if image is not None:
-        weighted_spans = None
-    else:
-        if document is None:
-            document = construct_document(tokens)
-        spans = build_spans(tokens, heatmap, document)
-        weighted_spans = WeightedSpans([
-            DocWeightedSpans(document, spans=spans)
-        ]) # why list? - for each vectorized - don't need multiple vectorizers?
-           # multiple highlights? - could do positive and negative expl?
-    
+def explain_prediction_keras_not_supported(estimator,
+                                           doc
+                                           ):
+    """Can not do an explanation based on the passed arguments."""
+    return Explanation(
+        estimator=estimator.name,
+        error='estimator "{}" is not supported, '
+              'missing "image" or "tokens" argument.'.format(estimator.name),
+    )
+
+
+def explain_prediction_keras_image(estimator,
+                                   doc,
+                                   image,
+                                   targets=None,
+                                   layer=None,
+    ):
+    activation_layer = _get_activation_layer(estimator, layer, _backward_layers, _is_suitable_image_layer)
+    heatmap, predicted_idx, predicted_val = _explanation_backend(estimator, doc, targets, activation_layer)
+    # TODO: image padding cut off. pass 2-tuple?
     return Explanation(
         estimator.name,
         description=DESCRIPTION_KERAS,
@@ -205,6 +203,55 @@ def explain_prediction_keras(estimator, # type: Model
         # PR FIXME: Would be good to include retrieved layer as an attribute
         targets=[TargetExplanation(
             predicted_idx,
+            score=predicted_val, # for now we keep the prediction in the .score field (not .proba)
+            heatmap=heatmap, # 2D [0, 1] numpy array
+        )],
+        is_regression=False, # might be relevant later when explaining for regression tasks
+    )
+
+
+def explain_prediction_keras_text(estimator,
+                                  doc,
+                                  tokens,
+                                  targets=None,
+                                  layer=None,
+                                  pad_x=None,
+                                  padding=None,
+                                  ):
+    # TODO: implement document vectorizer
+    #  :param document:
+    #    Full text document for highlighting. 
+    #    Not tokenized and without padding.
+    #    * TODO: implement this*
+    # :type document: str, optional
+    activation_layer = _get_activation_layer(estimator, layer, _forward_layers, _is_suitable_text_layer)
+    
+    heatmap, predicted_idx, predicted_val = _explanation_backend(estimator, doc, targets, activation_layer)
+
+    # TODO: cut off padding from text
+    if pad_x is not None:
+        values, indices = np.where(doc == pad_x)
+        if padding == 'post':
+            pad_idx = indices[0] # leave +1 just to highlight effect of padding?
+            tokens = tokens[:pad_idx]
+            heatmap = heatmap[:pad_idx]
+        # TODO: pre padding
+        # TODO: check that there's no padding characters inside the text
+    # TODO: later support document as argument
+    document = construct_document(tokens)
+    spans = build_spans(tokens, heatmap, document)
+    weighted_spans = WeightedSpans([
+        DocWeightedSpans(document, spans=spans)
+    ]) # why list? - for each vectorized - don't need multiple vectorizers?
+       # multiple highlights? - could do positive and negative expl?
+
+    return Explanation(
+        estimator.name,
+        description=DESCRIPTION_KERAS,
+        error='',
+        method='Grad-CAM',
+        targets=[TargetExplanation(
+            predicted_idx,
             weighted_spans=weighted_spans,
             score=predicted_val, # for now we keep the prediction in the .score field (not .proba)
             heatmap=heatmap, # 2D [0, 1] numpy array
@@ -212,47 +259,6 @@ def explain_prediction_keras(estimator, # type: Model
         is_regression=False, # might be relevant later when explaining for regression tasks
         highlight_spaces=None, # might be relevant later when explaining text models
     )
-
-
-def construct_document(tokens):
-    return ' '.join(tokens)
-
-
-def build_spans(tokens, heatmap, document):
-    # FIXME: use document arg
-    spans = []
-    running = 0
-    for (token, weight) in zip(tokens, heatmap): # FIXME: weight can be renamed?
-        t_len = len(token)
-        t_start = running
-        t_end = t_start + t_len
-        span = tuple([token, [tuple([t_start, t_end])], weight]) # why start and end is list of tuples?
-        running = t_end + 1 # exclude space
-        # print(N, token, weight, i, j)
-        spans.append(span)
-    return spans
-
-
-def explain_prediction_keras_image(estimator,
-                                   doc,
-                                   image,
-                                   target_names=None,
-                                   targets=None,
-                                   layer=None,
-    ):
-    pass
-
-
-def explain_prediction_keras_text(estimator,
-                                  doc,
-                                  tokens,
-                                  target_names=None,
-                                  targets=None,
-                                  layer=None,
-                                  document=None,
-                                  pad_idx=None,
-                                  ):
-    pass
 
 
 def _validate_doc(estimator, doc):
@@ -273,7 +279,7 @@ def _validate_doc(estimator, doc):
 
     # check maching dims
     input_sh = estimator.input_shape
-    if not eq_shapes(input_sh, doc_sh):
+    if not _eq_shapes(input_sh, doc_sh):
         raise ValueError('doc must have shape: {}. '
                          'Got: {}'.format(input_sh, doc_sh))
 
@@ -283,12 +289,12 @@ def _validate_doc(estimator, doc):
                          'Got doc with batch size: %d' % batch_size)
 
 
-def eq_shapes(required, other):
+def _eq_shapes(required, other):
     """
     Check that ``other`` shape satisfies shape of ``required``
 
     For example::
-        eq_shapes((None, 20), (1, 20)) # -> True
+        _eq_shapes((None, 20), (1, 20)) # -> True
     """
     if len(required) != len(other):
         # short circuit based on length
@@ -359,12 +365,12 @@ def _backward_layers(estimator):
 
 
 def _is_suitable_image_layer(estimator, layer):
+    # type: (Model, Layer) -> bool
     """Check whether the layer ``layer`` matches what is required 
     by ``estimator`` to do Grad-CAM on ``layer``.
 
     Matching Criteria:
     * Rank of the layer's output tensor."""
-    # type: (Model, Layer) -> bool
     # TODO: experiment with this, using many models and images, to find what works best
     # Some ideas: 
     # check layer type, i.e.: isinstance(l, keras.layers.Conv2D)
@@ -378,8 +384,41 @@ def _is_suitable_image_layer(estimator, layer):
 
 
 def _is_suitable_text_layer(estimator, layer):
+    # type: (Model, Layer) -> bool
     """Check whether the layer ``layer`` matches what is required 
     by ``estimator`` to do Grad-CAM on ``layer``.
     """
-    # type: (Model, Layer) -> bool
     return isinstance(layer, keras.layers.Conv1D)
+
+
+def _explanation_backend(estimator, doc, targets, activation_layer):
+    # TODO: maybe do the sum / loss calculation in this function and pass it to gradcam.
+    # This would be consistent with what is done in
+    # https://github.com/ramprs/grad-cam/blob/master/misc/utils.lua
+    # and https://github.com/ramprs/grad-cam/blob/master/classification.lua
+    values = gradcam_backend(estimator, doc, targets, activation_layer)
+    activations, grads, predicted_idx, predicted_val = values
+    # grads = -grads # negate for a "counterfactual explanation"
+    # FIXME: hardcoding for conv layers, i.e. their shapes
+    weights = compute_weights(grads)
+    heatmap = gradcam(weights, activations)
+    return heatmap, predicted_idx, predicted_val
+
+
+def construct_document(tokens):
+    return ' '.join(tokens)
+
+
+def build_spans(tokens, heatmap, document):
+    # FIXME: use document arg
+    spans = []
+    running = 0
+    for (token, weight) in zip(tokens, heatmap): # FIXME: weight can be renamed?
+        t_len = len(token)
+        t_start = running
+        t_end = t_start + t_len
+        span = tuple([token, [tuple([t_start, t_end])], weight]) # why start and end is list of tuples?
+        running = t_end + 1 # exclude space
+        # print(N, token, weight, i, j)
+        spans.append(span)
+    return spans
