@@ -9,7 +9,7 @@ from keras.models import Model # type: ignore
 from keras.layers import Layer # type: ignore
 
 
-def gradcam(weights, activations):
+def gradcam(weights, activations, norelu=False):
     # type: (np.ndarray, np.ndarray) -> np.ndarray
     """
     Generate a localization map (heatmap) using Gradient-weighted Class Activation Mapping 
@@ -67,7 +67,8 @@ def gradcam(weights, activations):
         # add result to the entire localization map (NOT pixel by pixel)
         lmap += w * activations[..., i]
 
-    lmap = np.maximum(lmap, 0) # ReLU
+    if not norelu:
+        lmap = np.maximum(lmap, 0) # ReLU
 
     # normalize lmap to [0, 1] ndarray
     # add eps to avoid division by zero in case lmap is 0's
@@ -107,7 +108,8 @@ def compute_weights(grads): # made public for transparency
 def gradcam_backend(estimator, # type: Model
     doc, # type: np.ndarray
     targets, # type: Optional[List[int]]
-    activation_layer # type: Layer
+    activation_layer, # type: Layer
+    counterfactual=False,
     ):
     # type: (...) -> Tuple[np.ndarray, np.ndarray, np.ndarray, int, float]
     """
@@ -147,6 +149,11 @@ def gradcam_backend(estimator, # type: Model
 
     # score for class w.r.p.t. activation layer
     grads = _calc_gradient(predicted_val, [activation_output])
+    if counterfactual:
+        grads = -grads
+        # grads = -grads # negate for a "counterfactual explanation"
+        # to get negative
+        # can equivalently calculate gradients w.r.p.t. negated loss scalar (ys)
 
     evaluate = K.function([estimator.input], 
         [activation_output, grads, predicted_val, predicted_idx]

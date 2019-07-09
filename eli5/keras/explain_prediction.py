@@ -39,6 +39,8 @@ def explain_prediction_keras(estimator, # type: Model
                              document=None, # type: Optional[str]
                              pad_x=None, # type: Optional[int]
                              padding=None, # type: Optional[str]
+                             norelu=False, # type: bool
+                             counterfactual=False, # type: bool
                             ):
     # type: (...) -> Explanation
     """
@@ -126,6 +128,17 @@ def explain_prediction_keras(estimator, # type: Model
         Padding characters will be cut off from the heatmap and tokens.
     :type padding: str, optional
 
+    :param norelu:
+        Whether to apply ReLU on the heatmap.
+        Useful for seeing the "negative" of a class.
+    :type norelu: bool, optional
+
+    :param counterfactual:
+        Whether to negate gradients during
+        the heatmap calculation.
+        Useful for highlighting what makes
+        the prediction or class score go down.
+    :type counterfactual: bool, optional
 
     Returns
     -------
@@ -160,6 +173,8 @@ def explain_prediction_keras(estimator, # type: Model
                                        image, 
                                        targets=targets, 
                                        layer=layer,
+                                       norelu=norelu,
+                                       counterfactual=counterfactual,
         )
     elif tokens is not None:
         return explain_prediction_keras_text(estimator, 
@@ -167,10 +182,12 @@ def explain_prediction_keras(estimator, # type: Model
                                       tokens,
                                       targets=targets,
                                       layer=layer,
+                                      norelu=norelu,
+                                      counterfactual=counterfactual,
                                       pad_x=pad_x,
                                       padding=padding,
         )
-        
+        # TODO: pass kwargs instead of copy-paste
     else:
         return explain_prediction_keras_not_supported(estimator, doc)
 
@@ -191,9 +208,15 @@ def explain_prediction_keras_image(estimator,
                                    image,
                                    targets=None,
                                    layer=None,
+                                   norelu=False, # TODO: consider changing to 'relu=True'
+                                   counterfactual=False,
     ):
     activation_layer = _get_activation_layer(estimator, layer, _backward_layers, _is_suitable_image_layer)
-    heatmap, predicted_idx, predicted_val = _explanation_backend(estimator, doc, targets, activation_layer)
+    heatmap, predicted_idx, predicted_val = _explanation_backend(estimator, doc, targets, 
+        activation_layer,
+        norelu=norelu, # TODO: where should 'gradcam modifier' arguments be acted on?
+        counterfactual=counterfactual,
+    )
     # TODO: image padding cut off. pass 2-tuple?
     return Explanation(
         estimator.name,
@@ -218,6 +241,8 @@ def explain_prediction_keras_text(estimator,
                                   layer=None,
                                   pad_x=None,
                                   padding=None,
+                                  norelu=False,
+                                  counterfactual=False,
                                   ):
     # TODO: implement document vectorizer
     #  :param document:
@@ -227,7 +252,11 @@ def explain_prediction_keras_text(estimator,
     # :type document: str, optional
     activation_layer = _get_activation_layer(estimator, layer, _forward_layers, _is_suitable_text_layer)
     
-    heatmap, predicted_idx, predicted_val = _explanation_backend(estimator, doc, targets, activation_layer)
+    heatmap, predicted_idx, predicted_val = _explanation_backend(estimator, doc, targets, 
+        activation_layer,
+        norelu=norelu,
+        counterfactual=counterfactual,
+    )
 
     heatmap = resize_1d(heatmap, tokens) # might want to do this when formatting the explanation?
 
@@ -394,18 +423,16 @@ def _is_suitable_text_layer(estimator, layer):
     return isinstance(layer, keras.layers.Conv1D)
 
 
-def _explanation_backend(estimator, doc, targets, activation_layer, ):
+def _explanation_backend(estimator, doc, targets, activation_layer, norelu=False, counterfactual=False):
     # TODO: maybe do the sum / loss calculation in this function and pass it to gradcam.
     # This would be consistent with what is done in
     # https://github.com/ramprs/grad-cam/blob/master/misc/utils.lua
     # and https://github.com/ramprs/grad-cam/blob/master/classification.lua
-    values = gradcam_backend(estimator, doc, targets, activation_layer)
+    values = gradcam_backend(estimator, doc, targets, activation_layer, counterfactual=counterfactual)
     activations, grads, predicted_idx, predicted_val = values
-    # grads = -grads # negate for a "counterfactual explanation"
-    # to get negative
     # FIXME: hardcoding for conv layers, i.e. their shapes
     weights = compute_weights(grads)
-    heatmap = gradcam(weights, activations)
+    heatmap = gradcam(weights, activations, norelu=norelu)
     return heatmap, predicted_idx, predicted_val
 
 
