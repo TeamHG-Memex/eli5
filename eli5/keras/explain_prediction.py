@@ -143,8 +143,10 @@ def explain_prediction_keras(estimator, # type: Model
     Returns
     -------
     expl : eli5.base.Explanation
-        An ``Explanation`` object that includes the following attributes (some inside ``targets``)
-            * ``heatmap`` a numpy array with the localization map values.
+        An ``Explanation`` object with the following attributes set (some inside ``targets``)
+            * ``image`` a Pillow image with mode RGBA.
+            * ``heatmap`` a rank 2 numpy array with floats in interval [0, 1] \
+                with the localization map values.
             * ``target`` ID of target class.
             * ``score`` value for predicted class.
     """
