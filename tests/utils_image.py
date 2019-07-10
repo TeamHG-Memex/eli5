@@ -16,4 +16,4 @@ def assert_pixel_by_pixel_equal(im1, im2):
     diff = PIL.ImageChops.difference(im1, im2)
     # if no difference, array is all 0's
     diffa = np.array(diff)
-    assert np.sum(diffa) == 0
+    assert np.count_nonzero(diffa) == 0
