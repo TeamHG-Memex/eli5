@@ -47,7 +47,7 @@ def explain_prediction_keras(estimator, # type: Model
         An input image as a tensor to ``estimator``, 
         from which prediction will be done and explained.
 
-        For example a ``numpy.ndarray``.
+        Currently only numpy arrays are supported.
 
         The tensor must be of suitable shape for the ``estimator``. 
 

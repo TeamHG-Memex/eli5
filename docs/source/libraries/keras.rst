@@ -34,7 +34,7 @@ Important arguments to :func:`eli5.explain_prediction` for ``Model`` and ``Seque
 
 * ``doc`` is an image as a tensor that can be inputted to the model.
     
-    - The type is a ``numpy.ndarray``.
+    - The tensor must be an instance of ``numpy.ndarray``.
 
     - Usually the tensor has the format `(batch, dims, ..., channels)` (channels last format, `dims=(height, width)`, `batch=1`, one image), i.e. `BHWC`.
     
