@@ -422,7 +422,7 @@ def _is_suitable_text_layer(estimator, layer):
     """Check whether the layer ``layer`` matches what is required 
     by ``estimator`` to do Grad-CAM on ``layer``.
     """
-    return isinstance(layer, keras.layers.Conv1D)
+    return isinstance(layer, keras.layers.Conv1D) # FIXME
 
 
 def _explanation_backend(estimator, doc, targets, activation_layer, norelu=False, counterfactual=False):

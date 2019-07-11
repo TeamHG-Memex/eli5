@@ -54,18 +54,26 @@ def gradcam(weights, activations, norelu=False):
     # there does not seem to be an easy way to do this:
     # see: https://stackoverflow.com/questions/30031828/multiply-numpy-ndarray-with-1d-array-along-a-given-axis
     # spatial_shape = activations.shape[:2] # -> (dim1, dim2)
-    spatial_shape = activations.shape[1:-1]
-    lmap = np.zeros(spatial_shape, dtype=np.float64)
+    activations = activations[0, ...] # batch -> single
+    if len(activations.shape) == 1:
+        spatial_shape = activations.shape
+    else:
+        spatial_shape = activations.shape[1:-1]
+        weights = weights[0, ...]
+        
 
+    lmap = np.zeros(spatial_shape, dtype=np.float64)
     # lmap = lmap[0, ...]
-    weights = weights[0, ...]
-    activations = activations[0, ...]
 
     # iterate through each activation map
     for i, w in enumerate(weights): 
         # weight * spatial map
         # add result to the entire localization map (NOT pixel by pixel)
-        lmap += w * activations[..., i]
+        if len(activations.shape) == 1:
+            activation_map = activations[i]
+        else:
+            activation_map = activations[..., i]
+        lmap += w * activation_map
 
     if not norelu:
         lmap = np.maximum(lmap, 0) # ReLU
@@ -100,8 +108,11 @@ def compute_weights(grads): # made public for transparency
     # ignore last (number of maps)
     # FIXME: hardcoded shape
     pooling_axes = shape[1:-1]
-    axes = [axis_no for (axis_no, dim) in pooling_axes]
-    weights = np.mean(grads, axis=tuple(axes))
+    if len(pooling_axes) == 0:
+        weights = grads # no need to average
+    else:
+        axes = [axis_no for (axis_no, dim) in pooling_axes]
+        weights = np.mean(grads, axis=tuple(axes))
     return weights
 
 
