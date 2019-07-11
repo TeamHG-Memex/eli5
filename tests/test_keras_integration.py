@@ -124,14 +124,19 @@ def test_image_classification(keras_clf, cat_dog_image, area, targets):
 
 
 @pytest.fixture(scope="function")
-def show_nodeps():
-    # set up
+def show_nodeps(request):
+    # register tear down
     old_format_as_image = eli5.ipython.format_as_image
+    def fin():
+        # tear down
+        eli5.ipython.format_as_image = old_format_as_image
+    request.addfinalizer(fin)
+
+    # set up
     eli5.ipython.format_as_image = ImportError('mock test')
+
     # object return
     yield eli5.show_prediction
-    # tear down
-    eli5.ipython.format_as_image = old_format_as_image
 
 
 def test_show_prediction_nodeps(show_nodeps, keras_clf, cat_dog_image):
