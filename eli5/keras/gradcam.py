@@ -154,7 +154,7 @@ def _calc_gradient(ys, xs):
     # https://github.com/tensorflow/tensorflow/issues/783#issuecomment-175824168
     if grads is None:
         raise ValueError('Gradient calculation resulted in None values. '
-                         'Check that the model is differentiate and try again. '
+                         'Check that the model is differentiable and try again. '
                          'ys: {}. xs: {}. grads: {}'.format(
                             ys, xs, grads))
 
