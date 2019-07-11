@@ -164,7 +164,7 @@ def _calc_gradient(ys, xs):
 
 
 def _get_target_prediction(targets, estimator):
-    # type: (Union[None, list], Model) -> K.variable
+    # type: (Optional[list], Model) -> K.variable
     """
     Get a prediction ID based on ``targets``, 
     from the model ``estimator`` (with a rank 2 tensor for its final layer).
