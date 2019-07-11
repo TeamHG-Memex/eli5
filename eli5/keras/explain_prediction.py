@@ -83,11 +83,13 @@ def explain_prediction_keras(estimator, # type: Model
     :type targets: list[int], optional
 
     :param layer:
-        The activation layer in the model to perform Grad-CAM on,
+        The activation layer in the model to perform Grad-CAM on:
         a valid keras layer name, layer index, or an instance of a Keras layer.
         
         If None, a suitable layer is attempted to be retrieved. 
-        See :func:`eli5.keras._search_layer_backwards` for details.
+        The layer is searched for going backwards from the output layer, 
+        checking that the rank of the layer's output 
+        equals to the rank of the input.
 
 
         :raises TypeError: if ``layer`` is not None, str, int, or keras.layers.Layer instance.
