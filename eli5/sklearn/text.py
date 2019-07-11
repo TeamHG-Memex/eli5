@@ -13,11 +13,10 @@ from eli5.sklearn._span_analyzers import build_span_analyzer
 
 
 def get_weighted_spans(doc, vec, feature_weights):
-    # type: (Any, Any, Union[FeatureWeights, None]) -> Optional[WeightedSpans]
+    # type: (Any, Any, FeatureWeights) -> Optional[WeightedSpans]
     """ If possible, return a dict with preprocessed document and a list
     of spans with weights, corresponding to features in the document.
     """
-    assert feature_weights is not None
     if isinstance(vec, FeatureUnion):
         return _get_weighted_spans_from_union(doc, vec, feature_weights)
     else:
@@ -39,6 +38,7 @@ def add_weighted_spans(doc, vec, vectorized, target_expl):
     if vec is None or vectorized:
         return
 
+    assert target_expl.feature_weights is not None
     weighted_spans = get_weighted_spans(doc, vec, target_expl.feature_weights)
     if weighted_spans:
         target_expl.weighted_spans = weighted_spans
