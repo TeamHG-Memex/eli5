@@ -10,12 +10,12 @@ from eli5.base import Explanation
 
 
 def format_as_image(expl, # type: Explanation
-    interpolation=Image.LANCZOS, # type: int
+    resampling_filter=Image.LANCZOS, # type: int
     colormap=matplotlib.cm.viridis, # type: Callable[[np.ndarray], np.ndarray]
     alpha_limit=0.65, # type: Optional[Union[float, int]]
     ):
     # type: (...) -> Image
-    """format_as_image(expl, interpolation=Image.LANCZOS, colormap=matplotlib.cm.viridis, alpha_limit=0.65)
+    """format_as_image(expl, resampling_filter=Image.LANCZOS, colormap=matplotlib.cm.viridis, alpha_limit=0.65)
 
     Format a :class:`eli5.base.Explanation` object as an image.
 
@@ -34,7 +34,7 @@ def format_as_image(expl, # type: Explanation
         :raises TypeError: if ``image`` is not a Pillow image.
         :raises ValueError: if ``image`` does not have mode 'RGBA'.
 
-    :param interpolation:
+    :param resampling_filter:
         Interpolation ID or Pillow filter to use when resizing the image.
         
         Example filters from PIL.Image
@@ -50,7 +50,7 @@ def format_as_image(expl, # type: Explanation
         *Note that these attributes are integer values*.
 
         Default is ``PIL.Image.LANCZOS``.
-    :type interpolation: int, optional
+    :type resampling_filter: int, optional
 
     :param colormap:
         Colormap scheme to be applied when converting the heatmap from grayscale to RGB.
@@ -118,7 +118,7 @@ def format_as_image(expl, # type: Explanation
     # cap the intensity so that it's not too opaque when near maximum value
     _update_alpha(heatmap, starting_array=heatvals, alpha_limit=alpha_limit)
 
-    heatmap = expand_heatmap(heatmap, image, interpolation=interpolation)
+    heatmap = expand_heatmap(heatmap, image, resampling_filter=resampling_filter)
     overlay = _overlay_heatmap(heatmap, image)
     return overlay
 
@@ -237,11 +237,11 @@ def _cap_alpha(alpha_arr, alpha_limit):
                         'got: {}'.format(alpha_limit))
 
 
-def expand_heatmap(heatmap, image, interpolation):
+def expand_heatmap(heatmap, image, resampling_filter=Image.LANCZOS):
     # type: (np.ndarray, Image, Union[None, int]) -> Image
     """ 
     Resize the ``heatmap`` image array to fit over the original ``image``,
-    using the specified ``interpolation`` method. 
+    using the specified ``resampling_filter`` method. 
     The heatmap is converted to an image in the process.
     
     Parameters
@@ -252,10 +252,10 @@ def expand_heatmap(heatmap, image, interpolation):
     image : PIL.Image.Image
         The image whose dimensions will be resized to.
 
-    interpolation : int or None
+    resampling_filter : int or None
         Interpolation to use when resizing.
 
-        See :func:`eli5.format_as_image` for more details on the `interpolation` parameter.
+        See :func:`eli5.format_as_image` for more details on the `resampling_filter` parameter.
 
     
     :raises TypeError: if ``image`` is not a Pillow image instance.
@@ -271,7 +271,7 @@ def expand_heatmap(heatmap, image, interpolation):
                         'Got: {}'.format(image))
     heatmap = heatmap_to_image(heatmap)
     spatial_dimensions = (image.width, image.height)
-    heatmap = heatmap.resize(spatial_dimensions, resample=interpolation)
+    heatmap = heatmap.resize(spatial_dimensions, resample=resampling_filter)
     return heatmap
 
 

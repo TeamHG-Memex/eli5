@@ -78,7 +78,7 @@ def assert_attention_over_area(expl, area):
     heatmap = expl.targets[0].heatmap
 
     # fit heatmap over image
-    heatmap = expand_heatmap(heatmap, image, interpolation=Image.LANCZOS)
+    heatmap = expand_heatmap(heatmap, image, Image.LANCZOS)
     heatmap = np.array(heatmap)
 
     # get a slice of the area

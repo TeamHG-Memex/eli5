@@ -417,7 +417,7 @@ Examining the structure of the ``Explanation`` object:
            [0.        , 0.        , 0.        , 0.        , 0.        ,
             0.        , 0.05308531],
            [0.        , 0.        , 0.        , 0.        , 0.        ,
-            0.01124764, 0.06864655]]))], feature_importances=None, decision_tree=None, highlight_spaces=None, transition_features=None, image=<PIL.Image.Image image mode=RGBA size=224x224 at 0x7F81836F2CF8>)
+            0.01124764, 0.06864655]]))], feature_importances=None, decision_tree=None, highlight_spaces=None, transition_features=None, image=<PIL.Image.Image image mode=RGBA size=224x224 at 0x7FCA6FD17CC0>)
 
 
 We can check the score (raw value) or probability (normalized score) of
@@ -484,11 +484,12 @@ activation/feature maps in the last layers of the network. What Grad-CAM
 produces is only a rough approximation.
 
 Let's resize the heatmap (we have to pass the heatmap and the image with
-the required dimensions as Pillow images, and the interpolation method):
+the required dimensions as Pillow images, and the filter for
+resampling):
 
 .. code:: ipython3
 
-    heatmap_im = eli5.formatters.image.expand_heatmap(heatmap, image, Image.BOX)
+    heatmap_im = eli5.formatters.image.expand_heatmap(heatmap, image, resampling_filter=Image.BOX)
     display(heatmap_im)
 
 
@@ -535,7 +536,7 @@ The ``colormap`` argument is a function (callable) that does the
 colorisation of the heatmap. See ``matplotlib.cm`` for some options.
 Pick your favourite color!
 
-Another optional argument is ``interpolation``. The default is
+Another optional argument is ``resampling_filter``. The default is
 ``PIL.Image.LANCZOS`` (shown here). You have already seen
 ``PIL.Image.BOX``.
 
