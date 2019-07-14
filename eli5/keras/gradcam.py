@@ -202,7 +202,7 @@ def _calc_gradient(ys, xs):
     # https://github.com/tensorflow/tensorflow/issues/783#issuecomment-175824168
     if grads is None:
         raise ValueError('Gradient calculation resulted in None values. '
-                         'Check that the model is differentiate and try again. '
+                         'Check that the model is differentiable and try again. '
                          'ys: {}. xs: {}. grads: {}'.format(
                             ys, xs, grads))
 
@@ -212,7 +212,7 @@ def _calc_gradient(ys, xs):
 
 
 def _get_target_prediction(targets, estimator):
-    # type: (Union[None, list], Model) -> K.variable
+    # type: (Optional[list], Model) -> K.variable
     """
     Get a prediction ID based on ``targets``, 
     from the model ``estimator`` (with a rank 2 tensor for its final layer).

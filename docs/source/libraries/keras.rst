@@ -19,7 +19,8 @@ explain_prediction
 Currently ELI5 supports :func:`eli5.explain_prediction` for Keras image classifiers.
 :func:`eli5.explain_prediction` explains image classifications through `Grad-CAM <https://arxiv.org/pdf/1610.02391.pdf>`_.
 
-The returned :class:`eli5.base.Explanation` instance contains some important objects (as attributes or properties of each :class:`eli5.base.TargetExplanation` in ``targets`` attribute):
+=======
+The returned :class:`eli5.base.Explanation` instance contains some important objects:
 
 * ``image`` represents the image input into the model.
 
@@ -34,7 +35,7 @@ Important arguments to :func:`eli5.explain_prediction` for ``Model`` and ``Seque
 
 * ``doc`` is an image as a tensor that can be inputted to the model.
     
-    - The type is a ``numpy.ndarray``.
+    - The tensor must be an instance of ``numpy.ndarray``.
 
     - Usually the tensor has the format `(batch, dims, ..., channels)` (channels last format, `dims=(height, width)`, `batch=1`, one image), i.e. `BHWC`.
     

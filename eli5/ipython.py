@@ -19,7 +19,7 @@ FORMAT_KWARGS = {'include_styles', 'force_weights',
                  'highlight_spaces', 'horizontal_layout',
                  'show_feature_values',
                  # kwargs for image formatter
-                 'interpolation', 'colormap', 
+                 'resampling_filter', 'colormap', 
                  'alpha_limit',
 }
 # TODO: automatically get FORMAT_KWARGS from function signatures
