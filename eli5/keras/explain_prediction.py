@@ -22,7 +22,8 @@ from .gradcam import gradcam, gradcam_backend, compute_weights
 if TYPE_CHECKING:
     import PIL # type: ignore
     # question - do we need to check types of things we ignore?
-    # is mypy good for "visual documentation", or is it the opposite?
+    # is mypy good for "type documentation"
+    # or is it the opposite? (needs maintenance)
 
 
 DESCRIPTION_KERAS = """Grad-CAM visualization for image classification; 
@@ -193,6 +194,7 @@ def explain_prediction_keras(estimator, # type: Model
                                       padding=padding,
         )
         # TODO: pass kwargs instead of copy-paste
+        # but shared vs unique args problem?
     else:
         return explain_prediction_keras_not_supported(estimator, doc)
 
@@ -431,7 +433,8 @@ def _is_suitable_text_layer(estimator, layer):
     """Check whether the layer ``layer`` matches what is required 
     by ``estimator`` to do Grad-CAM on ``layer``.
     """
-    return isinstance(layer, keras.layers.Conv1D) # FIXME
+    # return isinstance(layer, keras.layers.Conv1D) # FIXME
+    return True
 
 
 def _explanation_backend(estimator, doc, targets, activation_layer, relu, counterfactual):
@@ -446,6 +449,8 @@ def _explanation_backend(estimator, doc, targets, activation_layer, relu, counte
     heatmap = gradcam(weights, activations, relu)
     return heatmap, predicted_idx, predicted_val
 
+
+# TODO: move functions to separate text module
 
 def resize_1d(heatmap, tokens):
     """Resize heatmap to match the length of tokens.
