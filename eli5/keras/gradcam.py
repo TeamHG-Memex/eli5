@@ -9,8 +9,8 @@ from keras.models import Model # type: ignore
 from keras.layers import Layer # type: ignore
 
 
-def gradcam(weights, activations, norelu=False):
-    # type: (np.ndarray, np.ndarray) -> np.ndarray
+def gradcam(weights, activations, relu):
+    # type: (np.ndarray, np.ndarray, bool) -> np.ndarray
     """
     Generate a localization map (heatmap) using Gradient-weighted Class Activation Mapping 
     (Grad-CAM) (https://arxiv.org/pdf/1610.02391.pdf).
@@ -78,7 +78,7 @@ def gradcam(weights, activations, norelu=False):
             activation_map = activations[..., i]
         lmap += w * activation_map
 
-    if not norelu:
+    if relu:
         lmap = np.maximum(lmap, 0) # ReLU
 
     # normalize lmap to [0, 1] ndarray
@@ -125,7 +125,7 @@ def gradcam_backend(estimator, # type: Model
     activation_layer, # type: Layer
     counterfactual=False,
     ):
-    # type: (...) -> Tuple[np.ndarray, np.ndarray, np.ndarray, int, float]
+    # type: (...) -> Tuple[np.ndarray, np.ndarray, int, float]
     """
     Compute the terms and by-products required by the Grad-CAM formula.
     
@@ -151,7 +151,8 @@ def gradcam_backend(estimator, # type: Model
 
     Returns
     -------
-    (weights, activations, gradients, predicted_idx, predicted_val) : (numpy.ndarray, ..., int, float)
+    # FIXME: long line
+    (activations, gradients, predicted_idx, predicted_val) : (numpy.ndarray, numpy.ndarray, int, float)
         Values of variables.
     """
     # score for class in targets

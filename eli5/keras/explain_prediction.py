@@ -20,7 +20,9 @@ from .gradcam import gradcam, gradcam_backend, compute_weights
 
 
 if TYPE_CHECKING:
-    import PIL
+    import PIL # type: ignore
+    # question - do we need to check types of things we ignore?
+    # is mypy good for "visual documentation", or is it the opposite?
 
 
 DESCRIPTION_KERAS = """Grad-CAM visualization for image classification; 
@@ -39,7 +41,7 @@ def explain_prediction_keras(estimator, # type: Model
                              document=None, # type: Optional[str]
                              pad_x=None, # type: Optional[int]
                              padding=None, # type: Optional[str]
-                             norelu=False, # type: bool
+                             relu=True, # type: bool
                              counterfactual=False, # type: bool
                             ):
     # type: (...) -> Explanation
@@ -130,10 +132,10 @@ def explain_prediction_keras(estimator, # type: Model
         Padding characters will be cut off from the heatmap and tokens.
     :type padding: str, optional
 
-    :param norelu:
+    :param relu:
         Whether to apply ReLU on the heatmap.
-        Useful for seeing the "negative" of a class.
-    :type norelu: bool, optional
+        Set to `False` to see the "negative" of a class.
+    :type relu: bool, optional
 
     :param counterfactual:
         Whether to negate gradients during
@@ -176,7 +178,7 @@ def explain_prediction_keras(estimator, # type: Model
                                        image, 
                                        targets=targets, 
                                        layer=layer,
-                                       norelu=norelu,
+                                       relu=relu,
                                        counterfactual=counterfactual,
         )
     elif tokens is not None:
@@ -185,7 +187,7 @@ def explain_prediction_keras(estimator, # type: Model
                                       tokens,
                                       targets=targets,
                                       layer=layer,
-                                      norelu=norelu,
+                                      relu=relu,
                                       counterfactual=counterfactual,
                                       pad_x=pad_x,
                                       padding=padding,
@@ -211,13 +213,13 @@ def explain_prediction_keras_image(estimator,
                                    image,
                                    targets=None,
                                    layer=None,
-                                   norelu=False, # TODO: consider changing to 'relu=True'
+                                   relu=True,
                                    counterfactual=False,
     ):
     activation_layer = _get_activation_layer(estimator, layer, _backward_layers, _is_suitable_image_layer)
     heatmap, predicted_idx, predicted_val = _explanation_backend(estimator, doc, targets, 
         activation_layer,
-        norelu=norelu, # TODO: where should 'gradcam modifier' arguments be acted on?
+        relu=relu, # TODO: where should 'gradcam modifier' arguments be acted on?
         counterfactual=counterfactual,
     )
     # TODO: image padding cut off. pass 2-tuple?
@@ -244,7 +246,7 @@ def explain_prediction_keras_text(estimator,
                                   layer=None,
                                   pad_x=None,
                                   padding=None,
-                                  norelu=False,
+                                  relu=False,
                                   counterfactual=False,
                                   ):
     # TODO: implement document vectorizer
@@ -257,7 +259,7 @@ def explain_prediction_keras_text(estimator,
     
     heatmap, predicted_idx, predicted_val = _explanation_backend(estimator, doc, targets, 
         activation_layer,
-        norelu=norelu,
+        relu=relu,
         counterfactual=counterfactual,
     )
 
@@ -341,8 +343,12 @@ def _eq_shapes(required, other):
     return all(matching)
 
 
-def _get_activation_layer(estimator, layer, layers_generator, condition):
-    # type: (Model, Union[None, int, str, Layer]) -> Layer   ##### FIXME
+def _get_activation_layer(estimator, # type: Model
+    layer, # type: Union[None, int, str, Layer]
+    layers_generator, # type: layers_arg
+    condition # type: condition_arg
+    ): 
+    # type: (...) -> Layer
     """ 
     Get an instance of the desired activation layer in ``estimator``,
     as specified by ``layer``.
@@ -375,8 +381,11 @@ def _get_activation_layer(estimator, layer, layers_generator, condition):
         raise ValueError('Can not perform Grad-CAM on the retrieved activation layer')
 
 
+layers_arg = Callable[[Model], Generator[Layer, None, None]]
+condition_arg = Callable[[Model, int], bool]
+
 def _search_layer(estimator, layers, condition):
-    # type: (Model, Generator[Layer, None, None], Callable[[Model, int], bool]) -> Layer ### FIXME
+    # type: (Model, layers_arg, condition_arg) -> Layer
     """
     Search for a layer in ``estimator``, backwards (starting from the output layer),
     checking if the layer is suitable with the callable ``condition``,
@@ -425,7 +434,7 @@ def _is_suitable_text_layer(estimator, layer):
     return isinstance(layer, keras.layers.Conv1D) # FIXME
 
 
-def _explanation_backend(estimator, doc, targets, activation_layer, norelu=False, counterfactual=False):
+def _explanation_backend(estimator, doc, targets, activation_layer, relu, counterfactual):
     # TODO: maybe do the sum / loss calculation in this function and pass it to gradcam.
     # This would be consistent with what is done in
     # https://github.com/ramprs/grad-cam/blob/master/misc/utils.lua
@@ -434,7 +443,7 @@ def _explanation_backend(estimator, doc, targets, activation_layer, norelu=False
     activations, grads, predicted_idx, predicted_val = values
     # FIXME: hardcoding for conv layers, i.e. their shapes
     weights = compute_weights(grads)
-    heatmap = gradcam(weights, activations, norelu=norelu)
+    heatmap = gradcam(weights, activations, relu)
     return heatmap, predicted_idx, predicted_val
 
 
