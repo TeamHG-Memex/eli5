@@ -166,8 +166,7 @@ def explain_prediction_keras(estimator, # type: Model
         # conversion might be more complicated / might fail!
         # automatically try get image from doc
         # specific for images
-        doc, = doc # rank 4 batch -> rank 3 single image
-        image = keras.preprocessing.image.array_to_img(doc[0]) # -> RGB Pillow image
+        image = keras.preprocessing.image.array_to_img(doc[0]) # -> RGB Pillow image from rank 3 single image
         image = image.convert(mode='RGBA')
         # TODO: support taking images that are not 'RGBA' -> 'RGB' as well (happens with keras load_img)
 
@@ -367,14 +366,13 @@ def _get_activation_layer(estimator, layer, layers_generator, condition):
     else:
         raise TypeError('Invalid layer (must be str, int, keras.layers.Layer, or None): %s' % layer)
 
-    return activation_layer
-    # if _is_suitable_activation_layer(estimator, activation_layer):
-    #     # final validation step
-    #     # FIXME: this should not be done for text
-    #     # this should be moved out
-    #     return activation_layer
-    # else:
-    #     raise ValueError('Can not perform Grad-CAM on the retrieved activation layer')
+    # final validation step
+    if condition(estimator, activation_layer):
+        return activation_layer
+    else:
+        # FIXME: this might not be a useful error message, and the method may be flawed
+        # search vs. validation
+        raise ValueError('Can not perform Grad-CAM on the retrieved activation layer')
 
 
 def _search_layer(estimator, layers, condition):

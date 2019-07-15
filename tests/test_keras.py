@@ -23,6 +23,10 @@ from eli5.keras.explain_prediction import (
     explain_prediction,
     _validate_doc,
     _get_activation_layer,
+    _forward_layers,
+    _backward_layers,
+    _is_suitable_image_layer,
+    _is_suitable_text_layer,
 )
 from eli5.keras.gradcam import (
     _get_target_prediction,
@@ -62,27 +66,32 @@ def simple_seq():
 ])
 def test_get_activation_layer(simple_seq, layer, expected_layer):
     """Test different ways to specify activation layer, and automatic activation layer getter"""
-    assert _get_activation_layer(simple_seq, layer) == simple_seq.get_layer(name=expected_layer)
+    assert _get_activation_layer(simple_seq, layer, 
+        _backward_layers, _is_suitable_image_layer) == simple_seq.get_layer(name=expected_layer)
 
 
 def test_get_activation_layer_invalid(simple_seq):
     # invalid layer shape
     with pytest.raises(ValueError):
         # GAP has rank 2 shape, need rank 4
-        _get_activation_layer(simple_seq, 'layer3')
+        _get_activation_layer(simple_seq, 'layer3', _backward_layers, _is_suitable_image_layer)
     # invalid layer type
     with pytest.raises(TypeError):
-        _get_activation_layer(simple_seq, 2.5)
+        _get_activation_layer(simple_seq, 2.5, _backward_layers, _is_suitable_image_layer)
     # can not find activation layer automatically
     # this is handled by _search_layer_backwards function
     with pytest.raises(ValueError):
         _get_activation_layer(
             Sequential(), # a model with no layers
             None,
+            _backward_layers, _is_suitable_image_layer
         )
     
     # note that cases where an invalid layer index or name is passed are 
     # handled by the underlying keras get_layer method()
+
+# FIXME: _get_activation_layer takes way too many arguments -> decouple get from auto-search
+# TODO: _get_activation_layer with text layer search
 
 
 def test_validate_doc(simple_seq):
@@ -161,16 +170,16 @@ def test_calc_gradient_nondifferentiable(nondifferentiable_model):
 
 
 def test_gradcam_zeros():
-    activations = np.zeros((2, 2, 3)) # three 2x2 maps
-    weights = np.zeros((3,)) # weight for each map
+    activations = np.zeros((1, 2, 2, 3)) # three 2x2 maps
+    weights = np.zeros((1, 3)) # weight for each map
     lmap = gradcam(weights, activations)
     # all zeroes
     assert np.count_nonzero(lmap) == 0
 
 
 def test_gradcam_ones():
-    activations = np.ones((1, 1, 2))
-    weights = np.ones((2,))
+    activations = np.ones((1, 1, 1, 2))
+    weights = np.ones((1, 2))
     lmap = gradcam(weights, activations)
     # all within eps distance to one
     assert np.isclose(lmap, np.ones((1, 1)), rtol=epsilon())

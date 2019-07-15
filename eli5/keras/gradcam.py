@@ -22,11 +22,11 @@ def gradcam(weights, activations, norelu=False):
     ----------
     weights : numpy.ndarray
         Activation weights, vector with one weight per map, 
-        rank 1.
+        rank 2 (batch size included).
 
     activations : numpy.ndarray
         Forward activation map values, vector of matrices, 
-        rank 3.
+        rank 4 (batch size included).
     
     Returns
     -------
@@ -48,21 +48,24 @@ def gradcam(weights, activations, norelu=False):
     # For reusability, this function should only use numpy operations
     # Instead of backend library operations
     
+    # TODO: this requires massive refactoring
+
     # Perform a weighted linear combination
     # we need to multiply (dim1, dim2, maps,) by (maps,) over the first two axes
     # and add each result to (dim1, dim2,) results array
     # there does not seem to be an easy way to do this:
     # see: https://stackoverflow.com/questions/30031828/multiply-numpy-ndarray-with-1d-array-along-a-given-axis
-    # spatial_shape = activations.shape[:2] # -> (dim1, dim2)
+    
+    ### activations includes batch dimension
+    ### weights includes batch dimension
     activations = activations[0, ...] # batch -> single
     if len(activations.shape) == 1:
-        spatial_shape = activations.shape
+        lmap_shape = activations.shape
     else:
-        spatial_shape = activations.shape[1:-1]
-        weights = weights[0, ...]
-        
+        lmap_shape = activations.shape[:-1] # -> (dim1, dim2)
+        weights = weights[0, ...] # batch -> single
 
-    lmap = np.zeros(spatial_shape, dtype=np.float64)
+    lmap = np.zeros(lmap_shape, dtype=np.float64)
     # lmap = lmap[0, ...]
 
     # iterate through each activation map
@@ -105,7 +108,7 @@ def compute_weights(grads): # made public for transparency
     # weights = K.mean(grads, axis=(1, 2)) # +1 axis num because we have batch still?
     shape = [(axis_no, dim) for (axis_no, dim) in enumerate(grads.shape)]
     # ignore batch
-    # ignore last (number of maps)
+    # ignore last (number of maps / channels)
     # FIXME: hardcoded shape
     pooling_axes = shape[1:-1]
     if len(pooling_axes) == 0:
