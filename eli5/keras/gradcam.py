@@ -9,7 +9,7 @@ from keras.models import Model # type: ignore
 from keras.layers import Layer # type: ignore
 
 
-def gradcam(weights, activations, relu):
+def gradcam(weights, activations, relu=True):
     # type: (np.ndarray, np.ndarray, bool) -> np.ndarray
     """
     Generate a localization map (heatmap) using Gradient-weighted Class Activation Mapping 

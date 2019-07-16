@@ -44,11 +44,12 @@ def cat_dog_image():
     # Note that 'jpg' images can have RGB data
     # which is fine in the case of this model (requires three channels)
     img_path = 'tests/images/cat_dog.jpg'
-    im = keras.preprocessing.image.load_img(img_path, target_size=(224, 224))
-    doc = keras.preprocessing.image.img_to_array(im)
+    im = keras.preprocessing.image.load_img(img_path, target_size=(224, 224), color_mode='rgba')
+    doc_im = im.convert(mode='RGB') # TODO: might be good idea to take any mode image, not just rgba
+    doc = keras.preprocessing.image.img_to_array(doc_im)
     doc = np.expand_dims(doc, axis=0)
     mobilenet_v2.preprocess_input(doc) # because we our classifier is mobilenet_v2
-    return doc
+    return doc, im
 
 
 def assert_good_external_format(expl, overlay):
@@ -111,7 +112,8 @@ def assert_attention_over_area(expl, area):
 ])
 def test_image_classification(keras_clf, cat_dog_image, area, targets):
     # check explanation
-    res = eli5.explain_prediction(keras_clf, cat_dog_image, targets=targets)
+    res = eli5.explain_prediction(keras_clf, cat_dog_image[0], 
+        image=cat_dog_image[1], targets=targets)
     assert_attention_over_area(res, area)
     
     # check formatting
@@ -119,7 +121,8 @@ def test_image_classification(keras_clf, cat_dog_image, area, targets):
     assert_good_external_format(res, overlay)
 
     # check show function
-    show_overlay = eli5.show_prediction(keras_clf, cat_dog_image, targets=targets)
+    show_overlay = eli5.show_prediction(keras_clf, cat_dog_image[0], 
+        image=cat_dog_image[1], targets=targets)
     assert_pixel_by_pixel_equal(overlay, show_overlay)
 
 
@@ -141,5 +144,5 @@ def show_nodeps(request):
 
 def test_show_prediction_nodeps(show_nodeps, keras_clf, cat_dog_image):
     with pytest.warns(UserWarning):
-        expl = show_nodeps(keras_clf, cat_dog_image)
+        expl = show_nodeps(keras_clf, cat_dog_image[0], image=cat_dog_image[1])
     assert isinstance(expl, Explanation)

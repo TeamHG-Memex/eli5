@@ -162,16 +162,16 @@ def explain_prediction_keras(estimator, # type: Model
     # :type target_names: list, optional
     _validate_doc(estimator, doc)
 
-    if image is None and len(doc.shape) == 4:
-        # FIXME
-        # for back compatibility
-        # might not be good - some rank 4 things may not be images!
-        # conversion might be more complicated / might fail!
-        # automatically try get image from doc
-        # specific for images
-        image = keras.preprocessing.image.array_to_img(doc[0]) # -> RGB Pillow image from rank 3 single image
-        image = image.convert(mode='RGBA')
-        # TODO: support taking images that are not 'RGBA' -> 'RGB' as well (happens with keras load_img)
+    # if image is None and len(doc.shape) == 4:
+    #     # FIXME
+    #     # for back compatibility
+    #     # might not be good - some rank 4 things may not be images!
+    #     # conversion might be more complicated / might fail!
+    #     # automatically try get image from doc
+    #     # specific for images
+    #     image = keras.preprocessing.image.array_to_img(doc[0]) # -> RGB Pillow image from rank 3 single image
+    #     image = image.convert(mode='RGBA')
+    #     # TODO: support taking images that are not 'RGBA' -> 'RGB' as well (happens with keras load_img)
 
     if image is not None:
         return explain_prediction_keras_image(estimator, 
@@ -446,7 +446,8 @@ def _explanation_backend(estimator, doc, targets, activation_layer, relu, counte
     activations, grads, predicted_idx, predicted_val = values
     # FIXME: hardcoding for conv layers, i.e. their shapes
     weights = compute_weights(grads)
-    heatmap = gradcam(weights, activations, relu)
+    heatmap = gradcam(weights, activations, relu=relu)
+    # TODO: fix arguments going so deep into function calls
     return heatmap, predicted_idx, predicted_val
 
 

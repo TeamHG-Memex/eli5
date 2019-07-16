@@ -134,7 +134,7 @@ def test_get_target_prediction_invalid(simple_seq):
 
 
 def test_explain_prediction_score(simple_seq):
-    expl = explain_prediction(simple_seq, np.zeros((1, 32, 32, 1)))
+    expl = explain_prediction(simple_seq, np.zeros((1, 32, 32, 1)), image=True) # TODO: dummy image
     assert expl.targets[0].score is not None
     assert expl.targets[0].proba is None
 
