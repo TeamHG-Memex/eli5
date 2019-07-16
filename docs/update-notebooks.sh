@@ -69,8 +69,11 @@ sed -i '' 's/``eli5.show_prediction``/:func:`eli5.show_prediction`/g' \
 
 
 # Keras Grad-CAM (keras-image-classifiers)
-jupyter nbconvert \
+# we execute the notebook as a form of testing
+PYTHONPATH=$PWD/.. jupyter nbconvert \
         --to rst \
+        --ExecutePreprocessor.timeout=180 \
+        --execute \
         '../notebooks/keras-image-classifiers.ipynb'
 mv ../notebooks/keras-image-classifiers.rst \
     source/_notebooks/

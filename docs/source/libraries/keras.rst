@@ -19,7 +19,6 @@ explain_prediction
 Currently ELI5 supports :func:`eli5.explain_prediction` for Keras image classifiers.
 :func:`eli5.explain_prediction` explains image classifications through `Grad-CAM <https://arxiv.org/pdf/1610.02391.pdf>`_.
 
-=======
 The returned :class:`eli5.base.Explanation` instance contains some important objects:
 
 * ``image`` represents the image input into the model.
