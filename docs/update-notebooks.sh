@@ -82,3 +82,7 @@ mv ../notebooks/keras-image-classifiers_files/ \
     source/_notebooks/
 sed -i 's&.. image:: keras-image-classifiers_files/&.. image:: ../_notebooks/keras-image-classifiers_files/&g' \
     source/_notebooks/keras-image-classifiers.rst
+
+
+# to only execute one section: (replace # Keras with section comment)
+# sed -n '/# Keras/,/^$/p' update-notebooks.sh
