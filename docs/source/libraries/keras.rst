@@ -32,6 +32,8 @@ The returned :class:`eli5.base.Explanation` instance contains some important obj
 
 Important arguments to :func:`eli5.explain_prediction` for ``Model`` and ``Sequential``:
 
+* ``model`` is the neural network model to be explained.
+
 * ``doc`` is an image as a tensor that can be inputted to the model.
     
     - The tensor must be an instance of ``numpy.ndarray``.

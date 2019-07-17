@@ -34,7 +34,7 @@ output is explanation object that contains a heatmap.
 
 # note that keras.models.Sequential subclasses keras.models.Model
 @explain_prediction.register(Model)
-def explain_prediction_keras(estimator, # type: Model
+def explain_prediction_keras(model, # type: Model
                              doc, # type: np.ndarray
                              targets=None, # type: Optional[list]
                              layer=None, # type: Optional[Union[int, str, Layer]]
@@ -52,22 +52,22 @@ def explain_prediction_keras(estimator, # type: Model
 
     We make an explicity assumption that the model's task is classification, i.e. final output is class scores.
 
-    See :func:`eli5.explain_prediction` for more information about the ``estimator``,
+    See :func:`eli5.explain_prediction` for more information about the ``model``,
     ``doc``, and ``targets`` parameters.
     
     These arguments are shared by image and text explanations.
     
-    :param keras.models.Model estimator:
+    :param keras.models.Model model:
         Instance of a Keras neural network model, 
         whose predictions are to be explained.
 
     :param numpy.ndarray doc:
-        An input image as a tensor to ``estimator``, 
+        An input image as a tensor to ``model``, 
         from which prediction will be done and explained.
 
         Currently only numpy arrays are supported.
 
-        The tensor must be of suitable shape for the ``estimator``. 
+        The tensor must be of suitable shape for the ``model``. 
 
         For example, some models require input images to be 
         rank 4 in format `(batch_size, dims, ..., channels)` (channels last)
@@ -75,7 +75,7 @@ def explain_prediction_keras(estimator, # type: Model
         where `dims` is usually in order `height, width`
         and `batch_size` is 1 for a single image.
 
-        Check ``estimator.input_shape`` to confirm the required dimensions of the input tensor.
+        Check ``model.input_shape`` to confirm the required dimensions of the input tensor.
 
 
         :raises TypeError: if ``doc`` is not a numpy array.
@@ -141,9 +141,9 @@ def explain_prediction_keras(estimator, # type: Model
 
     # check that only one of image or tokens is passed
     assert image is None or tokens is None
-    
+
     if image is not None:
-        return explain_prediction_keras_image(estimator, 
+        return explain_prediction_keras_image(model, 
                                        doc,
                                        image=image,
                                        targets=targets, 
@@ -152,7 +152,7 @@ def explain_prediction_keras(estimator, # type: Model
                                        counterfactual=counterfactual,
         )
     elif tokens is not None:
-        return explain_prediction_keras_text(estimator, 
+        return explain_prediction_keras_text(model, 
                                       doc, 
                                       tokens=tokens,
                                       document=document,
@@ -164,21 +164,21 @@ def explain_prediction_keras(estimator, # type: Model
                                       counterfactual=counterfactual,
         )
     else:
-        return explain_prediction_keras_not_supported(estimator, doc)
+        return explain_prediction_keras_not_supported(model, doc)
 
 
-def explain_prediction_keras_not_supported(estimator, # TODO: rename estimator to model?
+def explain_prediction_keras_not_supported(model,
                                            doc,
                                            ):
     """Can not do an explanation based on the passed arguments."""
     return Explanation(
-        estimator=estimator.name,
-        error='estimator "{}" is not supported, '
-              'missing "image" or "tokens" argument.'.format(estimator.name),
+        model=model.name,
+        error='model "{}" is not supported, '
+              'missing "image" or "tokens" argument.'.format(model.name),
     )
 
 
-def explain_prediction_keras_image(estimator,
+def explain_prediction_keras_image(model,
                                    doc,
                                    image=None, # type: Optional[PIL.Image.Image]
                                    targets=None,
@@ -204,17 +204,17 @@ def explain_prediction_keras_image(estimator,
             * ``heatmap`` rank 2 (2D) numpy array.
     """
     # TODO: support taking images that are not 'RGBA' -> 'RGB' as well (happens with keras load_img)
-    _validate_doc(estimator, doc)
+    _validate_doc(model, doc)
 
-    activation_layer = _get_activation_layer(estimator, layer, _backward_layers, _is_suitable_image_layer)
-    heatmap, predicted_idx, predicted_val = _explanation_backend(estimator, doc, targets, 
+    activation_layer = _get_activation_layer(model, layer, _backward_layers, _is_suitable_image_layer)
+    heatmap, predicted_idx, predicted_val = _explanation_backend(model, doc, targets, 
         activation_layer,
         relu=relu, # TODO: where should 'gradcam modifier' arguments be acted on?
         counterfactual=counterfactual,
     )
     # TODO: image padding cut off. pass 2-tuple?
     return Explanation(
-        estimator.name,
+        model.name,
         description=DESCRIPTION_KERAS,
         error='',
         method='Grad-CAM',
@@ -229,7 +229,7 @@ def explain_prediction_keras_image(estimator,
     )
 
 
-def explain_prediction_keras_text(estimator,
+def explain_prediction_keras_text(model,
                                   doc,
                                   tokens, # type: Optional[List[str]] # TODO: take as list or numpy array
                                   document=None, # type: Optional[str]
@@ -277,11 +277,11 @@ def explain_prediction_keras_text(estimator,
     #    Not tokenized and without padding.
     #    * TODO: implement this*
     # :type document: str, optional
-    _validate_doc(estimator, doc)
+    _validate_doc(model, doc)
 
-    activation_layer = _get_activation_layer(estimator, layer, _forward_layers, _is_suitable_text_layer)
+    activation_layer = _get_activation_layer(model, layer, _forward_layers, _is_suitable_text_layer)
     
-    heatmap, predicted_idx, predicted_val = _explanation_backend(estimator, doc, targets, 
+    heatmap, predicted_idx, predicted_val = _explanation_backend(model, doc, targets, 
         activation_layer,
         relu=relu,
         counterfactual=counterfactual,
@@ -307,7 +307,7 @@ def explain_prediction_keras_text(estimator,
        # multiple highlights? - could do positive and negative expl?
 
     return Explanation(
-        estimator.name,
+        model.name,
         description=DESCRIPTION_KERAS,
         error='',
         method='Grad-CAM',
@@ -334,10 +334,10 @@ def explain_prediction_keras_text(estimator,
 # If you have a better solution, send a PR / open an issue on GitHub.
 
 
-def _validate_doc(estimator, doc):
+def _validate_doc(model, doc):
     # type: (Model, np.ndarray) -> None
     """
-    Check that the input ``doc`` is suitable for ``estimator``.
+    Check that the input ``doc`` is suitable for ``model``.
     """
     # FIXME: is this validation worth it? Just use Keras validation?
     # Do we make any extra assumptions about doc?
@@ -351,7 +351,7 @@ def _validate_doc(estimator, doc):
     batch_size = doc_sh[0]
 
     # check maching dims
-    input_sh = estimator.input_shape
+    input_sh = model.input_shape
     if not _eq_shapes(input_sh, doc_sh):
         raise ValueError('doc must have shape: {}. '
                          'Got: {}'.format(input_sh, doc_sh))
@@ -379,21 +379,21 @@ def _eq_shapes(required, other):
     return all(matching)
 
 
-def _get_activation_layer(estimator, # type: Model
+def _get_activation_layer(model, # type: Model
     layer, # type: Union[None, int, str, Layer]
     layers_generator, # type: layers_arg
     condition # type: condition_arg
     ): 
     # type: (...) -> Layer
     """ 
-    Get an instance of the desired activation layer in ``estimator``,
+    Get an instance of the desired activation layer in ``model``,
     as specified by ``layer``.
     """
     # PR FIXME: decouple layer search (no arg) vs simple layer retrieval (arg)
     if layer is None:
         # Automatically get the layer if not provided
         # TODO: search forwards for text models
-        activation_layer = _search_layer(estimator, layers_generator, condition)
+        activation_layer = _search_layer(model, layers_generator, condition)
         return activation_layer
 
     if isinstance(layer, Layer):
@@ -402,14 +402,14 @@ def _get_activation_layer(estimator, # type: Model
     # get_layer() performs a bottom-up horizontal graph traversal
     # it can raise ValueError if the layer index / name specified is not found
     if isinstance(layer, int):
-        activation_layer = estimator.get_layer(index=layer)
+        activation_layer = model.get_layer(index=layer)
     elif isinstance(layer, str):
-        activation_layer = estimator.get_layer(name=layer)
+        activation_layer = model.get_layer(name=layer)
     else:
         raise TypeError('Invalid layer (must be str, int, keras.layers.Layer, or None): %s' % layer)
 
     # final validation step
-    if condition(estimator, activation_layer):
+    if condition(model, activation_layer):
         return activation_layer
     else:
         # FIXME: this might not be a useful error message, and the method may be flawed
@@ -420,33 +420,33 @@ def _get_activation_layer(estimator, # type: Model
 layers_arg = Callable[[Model], Generator[Layer, None, None]]
 condition_arg = Callable[[Model, int], bool]
 
-def _search_layer(estimator, layers, condition):
+def _search_layer(model, layers, condition):
     # type: (Model, layers_arg, condition_arg) -> Layer
     """
-    Search for a layer in ``estimator``, backwards (starting from the output layer),
+    Search for a layer in ``model``, backwards (starting from the output layer),
     checking if the layer is suitable with the callable ``condition``,
     """
     # linear search in reverse through the flattened layers
-    for layer in layers(estimator):
-        if condition(estimator, layer):
+    for layer in layers(model):
+        if condition(model, layer):
             # linear search succeeded
             return layer
     # linear search ended with no results
     raise ValueError('Could not find a suitable target layer automatically.')        
 
 
-def _forward_layers(estimator):
-    return (estimator.get_layer(index=i) for i in range(1, len(estimator.layers), 1))
+def _forward_layers(model):
+    return (model.get_layer(index=i) for i in range(1, len(model.layers), 1))
 
 
-def _backward_layers(estimator):
-    return (estimator.get_layer(index=i) for i in range(len(estimator.layers)-1, -1, -1))
+def _backward_layers(model):
+    return (model.get_layer(index=i) for i in range(len(model.layers)-1, -1, -1))
 
 
-def _is_suitable_image_layer(estimator, layer):
+def _is_suitable_image_layer(model, layer):
     # type: (Model, Layer) -> bool
     """Check whether the layer ``layer`` matches what is required 
-    by ``estimator`` to do Grad-CAM on ``layer``.
+    by ``model`` to do Grad-CAM on ``layer``.
 
     Matching Criteria:
     * Rank of the layer's output tensor."""
@@ -458,25 +458,25 @@ def _is_suitable_image_layer(estimator, layer):
 
     # a check that asks "can we resize this activation layer over the image?"
     rank = len(layer.output_shape)
-    required_rank = len(estimator.input_shape)
+    required_rank = len(model.input_shape)
     return rank == required_rank
 
 
-def _is_suitable_text_layer(estimator, layer):
+def _is_suitable_text_layer(model, layer):
     # type: (Model, Layer) -> bool
     """Check whether the layer ``layer`` matches what is required 
-    by ``estimator`` to do Grad-CAM on ``layer``.
+    by ``model`` to do Grad-CAM on ``layer``.
     """
     # return isinstance(layer, keras.layers.Conv1D) # FIXME
     return True
 
 
-def _explanation_backend(estimator, doc, targets, activation_layer, relu, counterfactual):
+def _explanation_backend(model, doc, targets, activation_layer, relu, counterfactual):
     # TODO: maybe do the sum / loss calculation in this function and pass it to gradcam.
     # This would be consistent with what is done in
     # https://github.com/ramprs/grad-cam/blob/master/misc/utils.lua
     # and https://github.com/ramprs/grad-cam/blob/master/classification.lua
-    values = gradcam_backend(estimator, doc, targets, activation_layer, counterfactual=counterfactual)
+    values = gradcam_backend(model, doc, targets, activation_layer, counterfactual=counterfactual)
     activations, grads, predicted_idx, predicted_val = values
     # FIXME: hardcoding for conv layers, i.e. their shapes
     weights = compute_weights(grads)
