@@ -175,6 +175,7 @@ def explain_prediction_keras_not_supported(model,
         error='model "{}" is not supported, '
               'missing "image" or "tokens" argument.'.format(model.name),
     )
+    # TODO (open issue): implement 'other'/differentiable network type explanations
 
 
 def explain_prediction_keras_image(model,
@@ -203,6 +204,7 @@ def explain_prediction_keras_image(model,
             * ``heatmap`` rank 2 (2D) numpy array.
     """
     # TODO (open issue): support taking images that are not 'RGBA' -> 'RGB' as well (happens with keras load_img)
+    # and grayscale too
     _validate_doc(model, doc)
 
     activation_layer = _get_activation_layer(model, layer, _backward_layers, _is_suitable_image_layer)
@@ -215,7 +217,7 @@ def explain_prediction_keras_image(model,
     )
     heatmap, predicted_idx, predicted_val = values
 
-    # TODO: image padding cut off. pass 2-tuple?
+    # TODO (open issue): image padding cut off. pass 2-tuple?
     
     return Explanation(
         model.name,
@@ -279,7 +281,6 @@ def explain_prediction_keras_text(model,
     #  :param document:
     #    Full text document for highlighting. 
     #    Not tokenized and without padding.
-    #    * TODO: implement this*
     # :type document: str, optional
     _validate_doc(model, doc)
 
@@ -295,10 +296,11 @@ def explain_prediction_keras_text(model,
 
     heatmap = resize_1d(heatmap, tokens) # might want to do this when formatting the explanation?
 
-    # TODO: cut off padding from text
     if pad_x is not None:
+        # cut off padding
         values, indices = np.where(doc == pad_x)
         if padding == 'post':
+            # FIXME: error if no padding is found
             pad_idx = indices[0] # leave +1 just to highlight effect of padding?
             tokens = tokens[:pad_idx]
             heatmap = heatmap[:pad_idx]
@@ -356,7 +358,6 @@ def _explanation_backend(model, doc, targets, activation_layer, relu, counterfac
     # FIXME: hardcoding for conv layers, i.e. their shapes
     weights = compute_weights(grads)
     heatmap = gradcam(weights, activations, relu=relu)
-    # TODO: fix arguments going so deep into function calls
     return heatmap, predicted_idx, predicted_val
 
 

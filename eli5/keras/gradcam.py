@@ -94,7 +94,6 @@ def compute_weights(grads): # made public for transparency
     """
     # Global Average Pooling of gradients to get the weights
     # note that axes are in range [-rank(x), rank(x)) (we start from 1, not 0)
-    # TODO: decide whether this should go in gradcam_backend() or gradcam()
     
     # TEXT FIXME: conv1d vs conv2d (diff axis counts)
     # rank 0 = batch
