@@ -21,15 +21,16 @@ from .gradcam import gradcam, gradcam_backend, compute_weights
 
 if TYPE_CHECKING:
     import PIL # type: ignore
-    # question - do we need to check types of things we ignore?
+    # FIXME: do we need to check types of things we ignore?
     # is mypy good for "type documentation"
     # or is it the opposite? (needs maintenance)
 
 
-DESCRIPTION_KERAS = """Grad-CAM visualization for image classification; 
-output is explanation object that contains input image 
-and heatmap image for a target.
+DESCRIPTION_KERAS = """
+Grad-CAM visualization for classification tasks; 
+output is explanation object that contains a heatmap.
 """
+
 
 # note that keras.models.Sequential subclasses keras.models.Model
 @explain_prediction.register(Model)
@@ -121,29 +122,26 @@ def explain_prediction_keras(estimator, # type: Model
         the prediction or class score go down.
     :type counterfactual: bool, optional
 
+    
+    Other arguments are passed to the concrete implementations
+    for image or text explanations.
+
+
     Returns
     -------
     expl : eli5.base.Explanation
         An ``Explanation`` object with the following attributes set (some inside ``targets``)
-            * ``image`` a Pillow image with mode RGBA.
-            * ``heatmap`` a rank 2 numpy array with floats in interval [0, 1] \
+            * ``heatmap`` a numpy array with floats in interval [0, 1] \
                 with the localization map values.
             * ``target`` ID of target class.
             * ``score`` value for predicted class.
     """
-    _validate_doc(estimator, doc)
+    # Note that this function should only do dispatch 
+    # and no other processing
 
-    # if image is None and len(doc.shape) == 4:
-    #     # FIXME
-    #     # for back compatibility
-    #     # might not be good - some rank 4 things may not be images!
-    #     # conversion might be more complicated / might fail!
-    #     # automatically try get image from doc
-    #     # specific for images
-    #     image = keras.preprocessing.image.array_to_img(doc[0]) # -> RGB Pillow image from rank 3 single image
-    #     image = image.convert(mode='RGBA')
-    #     # TODO: support taking images that are not 'RGBA' -> 'RGB' as well (happens with keras load_img)
-
+    # check that only one of image or tokens is passed
+    assert image is None or tokens is None
+    
     if image is not None:
         return explain_prediction_keras_image(estimator, 
                                        doc,
@@ -197,7 +195,17 @@ def explain_prediction_keras_image(estimator,
     :param image:
         Image over which to overlay the heatmap.
     :type image: PIL.Image.Image, optional
+
+    Returns
+    -------
+    expl : eli5.base.Explanation
+        An ``Explanation`` object containing the following additional attributes
+            * ``image`` the original Pillow image with mode RGBA.
+            * ``heatmap`` rank 2 (2D) numpy array.
     """
+    # TODO: support taking images that are not 'RGBA' -> 'RGB' as well (happens with keras load_img)
+    _validate_doc(estimator, doc)
+
     activation_layer = _get_activation_layer(estimator, layer, _backward_layers, _is_suitable_image_layer)
     heatmap, predicted_idx, predicted_val = _explanation_backend(estimator, doc, targets, 
         activation_layer,
@@ -255,6 +263,13 @@ def explain_prediction_keras_text(estimator,
         
         Padding characters will be cut off from the heatmap and tokens.
     :type padding: str, optional
+
+    Returns
+    -------
+    expl : eli5.base.Explanation
+        An ``Explanation`` object containing the following additional attributes
+            * ``weighted_spans`` weights for parts of text to be highlighted.
+            * ``heatmap`` rank 1 (1D) numpy array.
     """
     # TODO: implement document vectorizer
     #  :param document:
@@ -262,6 +277,8 @@ def explain_prediction_keras_text(estimator,
     #    Not tokenized and without padding.
     #    * TODO: implement this*
     # :type document: str, optional
+    _validate_doc(estimator, doc)
+
     activation_layer = _get_activation_layer(estimator, layer, _forward_layers, _is_suitable_text_layer)
     
     heatmap, predicted_idx, predicted_val = _explanation_backend(estimator, doc, targets, 
@@ -297,8 +314,8 @@ def explain_prediction_keras_text(estimator,
         targets=[TargetExplanation(
             predicted_idx,
             weighted_spans=weighted_spans,
-            score=predicted_val, # for now we keep the prediction in the .score field (not .proba)
-            heatmap=heatmap, # 2D [0, 1] numpy array
+            score=predicted_val,
+            heatmap=heatmap, # 1D [0, 1] numpy array
         )],
         is_regression=False, # might be relevant later when explaining for regression tasks
         highlight_spaces=None, # might be relevant later when explaining text models
