@@ -27,6 +27,9 @@ def gradcam(weights, activations, relu=True):
     activations : numpy.ndarray
         Forward activation map values, vector of matrices, 
         rank 4 (batch size included).
+
+    relu: boolean
+        Whether to apply ReLU to the final heatmap (remove negatives).
     
     Returns
     -------
@@ -79,12 +82,9 @@ def gradcam(weights, activations, relu=True):
         lmap += w * activation_map
 
     if relu:
-        lmap = np.maximum(lmap, 0) # ReLU
+        # apply ReLU
+        lmap = np.maximum(lmap, 0) 
 
-    # normalize lmap to [0, 1] ndarray
-    # add eps to avoid division by zero in case lmap is 0's
-    # this also means that lmap max will be slightly less than the 'true' max
-    lmap = lmap / (np.max(lmap)+K.epsilon())
     return lmap
 
 
@@ -123,7 +123,6 @@ def gradcam_backend(model, # type: Model
     doc, # type: np.ndarray
     targets, # type: Optional[List[int]]
     activation_layer, # type: Layer
-    counterfactual=False,
     ):
     # type: (...) -> Tuple[np.ndarray, np.ndarray, int, float]
     """
@@ -164,11 +163,6 @@ def gradcam_backend(model, # type: Model
 
     # score for class w.r.p.t. activation layer
     grads = _calc_gradient(predicted_val, [activation_output])
-    if counterfactual:
-        grads = -grads
-        # grads = -grads # negate for a "counterfactual explanation"
-        # to get negative
-        # can equivalently calculate gradients w.r.p.t. negated loss scalar (ys)
 
     evaluate = K.function([model.input], 
         [activation_output, grads, predicted_val, predicted_idx]

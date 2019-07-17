@@ -131,8 +131,7 @@ def explain_prediction_keras(model, # type: Model
     -------
     expl : eli5.base.Explanation
         An ``Explanation`` object with the following attributes set (some inside ``targets``)
-            * ``heatmap`` a numpy array with floats in interval [0, 1] \
-                with the localization map values.
+            * ``heatmap`` a numpy array with the localization map values.
             * ``target`` ID of target class.
             * ``score`` value for predicted class.
     """
@@ -203,16 +202,21 @@ def explain_prediction_keras_image(model,
             * ``image`` the original Pillow image with mode RGBA.
             * ``heatmap`` rank 2 (2D) numpy array.
     """
-    # TODO: support taking images that are not 'RGBA' -> 'RGB' as well (happens with keras load_img)
+    # TODO (open issue): support taking images that are not 'RGBA' -> 'RGB' as well (happens with keras load_img)
     _validate_doc(model, doc)
 
     activation_layer = _get_activation_layer(model, layer, _backward_layers, _is_suitable_image_layer)
-    heatmap, predicted_idx, predicted_val = _explanation_backend(model, doc, targets, 
-        activation_layer,
-        relu=relu, # TODO: where should 'gradcam modifier' arguments be acted on?
-        counterfactual=counterfactual,
+    values = _explanation_backend(model,
+                                  doc,
+                                  targets,
+                                  activation_layer,
+                                  relu=relu,
+                                  counterfactual=counterfactual,
     )
+    heatmap, predicted_idx, predicted_val = values
+
     # TODO: image padding cut off. pass 2-tuple?
+    
     return Explanation(
         model.name,
         description=DESCRIPTION_KERAS,
@@ -223,7 +227,7 @@ def explain_prediction_keras_image(model,
         targets=[TargetExplanation(
             predicted_idx,
             score=predicted_val, # for now we keep the prediction in the .score field (not .proba)
-            heatmap=heatmap, # 2D [0, 1] numpy array
+            heatmap=heatmap, # 2D numpy array
         )],
         is_regression=False, # might be relevant later when explaining for regression tasks
     )
@@ -271,7 +275,7 @@ def explain_prediction_keras_text(model,
             * ``weighted_spans`` weights for parts of text to be highlighted.
             * ``heatmap`` rank 1 (1D) numpy array.
     """
-    # TODO: implement document vectorizer
+    # TODO (open issue): implement document vectorizer
     #  :param document:
     #    Full text document for highlighting. 
     #    Not tokenized and without padding.
@@ -280,12 +284,14 @@ def explain_prediction_keras_text(model,
     _validate_doc(model, doc)
 
     activation_layer = _get_activation_layer(model, layer, _forward_layers, _is_suitable_text_layer)
-    
-    heatmap, predicted_idx, predicted_val = _explanation_backend(model, doc, targets, 
-        activation_layer,
-        relu=relu,
-        counterfactual=counterfactual,
+    values = _explanation_backend(model,
+                                  doc,
+                                  targets,
+                                  activation_layer,
+                                  relu=relu,
+                                  counterfactual=counterfactual,
     )
+    heatmap, predicted_idx, predicted_val = values
 
     heatmap = resize_1d(heatmap, tokens) # might want to do this when formatting the explanation?
 
@@ -315,7 +321,7 @@ def explain_prediction_keras_text(model,
             predicted_idx,
             weighted_spans=weighted_spans,
             score=predicted_val,
-            heatmap=heatmap, # 1D [0, 1] numpy array
+            heatmap=heatmap, # 1D numpy array
         )],
         is_regression=False, # might be relevant later when explaining for regression tasks
         highlight_spaces=None, # might be relevant later when explaining text models
@@ -334,49 +340,24 @@ def explain_prediction_keras_text(model,
 # If you have a better solution, send a PR / open an issue on GitHub.
 
 
-def _validate_doc(model, doc):
-    # type: (Model, np.ndarray) -> None
-    """
-    Check that the input ``doc`` is suitable for ``model``.
-    """
-    # FIXME: is this validation worth it? Just use Keras validation?
-    # Do we make any extra assumptions about doc?
-    # https://github.com/keras-team/keras/issues/1641
-    # https://github.com/TeamHG-Memex/eli5/pull/315#discussion_r292402171
-    # (later we should be able to take tf / backend tensors)
-    if not isinstance(doc, np.ndarray):
-        raise TypeError('doc must be an instace of numpy.ndarray. ' 
-                        'Got: {}'.format(doc))
-    doc_sh = doc.shape
-    batch_size = doc_sh[0]
+def _explanation_backend(model, doc, targets, activation_layer, relu, counterfactual):
+    # TODO: maybe do the sum / loss calculation in this function and pass it to gradcam.
+    # This would be consistent with what is done in
+    # https://github.com/ramprs/grad-cam/blob/master/misc/utils.lua
+    # and https://github.com/ramprs/grad-cam/blob/master/classification.lua
+    values = gradcam_backend(model, doc, targets, activation_layer)
+    activations, grads, predicted_idx, predicted_val = values
+    
+    if counterfactual:
+        # negate grads for a "counterfactual explanation"
+        # can equivalently negate ys loss scalar in gradcam_backend
+        grads = -grads
 
-    # check maching dims
-    input_sh = model.input_shape
-    if not _eq_shapes(input_sh, doc_sh):
-        raise ValueError('doc must have shape: {}. '
-                         'Got: {}'.format(input_sh, doc_sh))
-
-    # check that batch=1 (will be removed later)
-    if batch_size != 1:
-        raise ValueError('doc batch size must be 1. '
-                         'Got doc with batch size: %d' % batch_size)
-
-
-def _eq_shapes(required, other):
-    """
-    Check that ``other`` shape satisfies shape of ``required``
-
-    For example::
-        _eq_shapes((None, 20), (1, 20)) # -> True
-    """
-    if len(required) != len(other):
-        # short circuit based on length
-        return False
-    matching = [(d1 == d2) # check that same number of dims 
-            if (d1 is not None) # if required takes a specific shape for a dim (not None)
-            else (1 <= d2) # else just check that the other shape has a valid shape for a dim
-            for d1, d2 in zip(required, other)]
-    return all(matching)
+    # FIXME: hardcoding for conv layers, i.e. their shapes
+    weights = compute_weights(grads)
+    heatmap = gradcam(weights, activations, relu=relu)
+    # TODO: fix arguments going so deep into function calls
+    return heatmap, predicted_idx, predicted_val
 
 
 def _get_activation_layer(model, # type: Model
@@ -471,18 +452,49 @@ def _is_suitable_text_layer(model, layer):
     return True
 
 
-def _explanation_backend(model, doc, targets, activation_layer, relu, counterfactual):
-    # TODO: maybe do the sum / loss calculation in this function and pass it to gradcam.
-    # This would be consistent with what is done in
-    # https://github.com/ramprs/grad-cam/blob/master/misc/utils.lua
-    # and https://github.com/ramprs/grad-cam/blob/master/classification.lua
-    values = gradcam_backend(model, doc, targets, activation_layer, counterfactual=counterfactual)
-    activations, grads, predicted_idx, predicted_val = values
-    # FIXME: hardcoding for conv layers, i.e. their shapes
-    weights = compute_weights(grads)
-    heatmap = gradcam(weights, activations, relu=relu)
-    # TODO: fix arguments going so deep into function calls
-    return heatmap, predicted_idx, predicted_val
+def _validate_doc(model, doc):
+    # type: (Model, np.ndarray) -> None
+    """
+    Check that the input ``doc`` is suitable for ``model``.
+    """
+    # FIXME: is this validation worth it? Just use Keras validation?
+    # Do we make any extra assumptions about doc?
+    # https://github.com/keras-team/keras/issues/1641
+    # https://github.com/TeamHG-Memex/eli5/pull/315#discussion_r292402171
+    # (later we should be able to take tf / backend tensors)
+    if not isinstance(doc, np.ndarray):
+        raise TypeError('doc must be an instace of numpy.ndarray. ' 
+                        'Got: {}'.format(doc))
+    doc_sh = doc.shape
+    batch_size = doc_sh[0]
+
+    # check maching dims
+    input_sh = model.input_shape
+    if not _eq_shapes(input_sh, doc_sh):
+        raise ValueError('doc must have shape: {}. '
+                         'Got: {}'.format(input_sh, doc_sh))
+
+    # check that batch=1 (will be removed later)
+    if batch_size != 1:
+        raise ValueError('doc batch size must be 1. '
+                         'Got doc with batch size: %d' % batch_size)
+
+
+def _eq_shapes(required, other):
+    """
+    Check that ``other`` shape satisfies shape of ``required``
+
+    For example::
+        _eq_shapes((None, 20), (1, 20)) # -> True
+    """
+    if len(required) != len(other):
+        # short circuit based on length
+        return False
+    matching = [(d1 == d2) # check that same number of dims 
+            if (d1 is not None) # if required takes a specific shape for a dim (not None)
+            else (1 <= d2) # else just check that the other shape has a valid shape for a dim
+            for d1, d2 in zip(required, other)]
+    return all(matching)
 
 
 # TODO: move functions to separate text module

@@ -20,7 +20,8 @@ import eli5
 from eli5.base import Explanation
 from eli5 import format_as_image
 from eli5.formatters.image import (
-    expand_heatmap
+    expand_heatmap,
+    _normalize_heatmap,
 )
 from .utils_image import assert_pixel_by_pixel_equal
 
@@ -79,6 +80,7 @@ def assert_attention_over_area(expl, area):
     heatmap = expl.targets[0].heatmap
 
     # fit heatmap over image
+    heatmap = _normalize_heatmap(heatmap)
     heatmap = expand_heatmap(heatmap, image, Image.LANCZOS)
     heatmap = np.array(heatmap)
 

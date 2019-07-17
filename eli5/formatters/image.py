@@ -25,12 +25,10 @@ def format_as_image(expl, # type: Explanation
     :param Explanation expl:
         Explanation object to be formatted.
         It must have a ``image`` attribute that is a Pillow image with mode RGBA.
-        It also must have a ``heatmap`` attribute that is a numpy array with rank 2,
-        with float values in the interval [0, 1].
+        It also must have a ``heatmap`` attribute that is a numpy array with rank 2.
 
 
         :raises TypeError: if ``heatmap`` is not a numpy array.
-        :raises ValueError: if ``heatmap`` does not contain values as floats in the interval [0, 1].
         :raises TypeError: if ``image`` is not a Pillow image.
         :raises ValueError: if ``image`` does not have mode 'RGBA'.
 
@@ -104,8 +102,11 @@ def format_as_image(expl, # type: Explanation
         return image
     else:
         heatmap = expl.targets[0].heatmap
-        _validate_heatmap(heatmap)
-    
+        if not isinstance(heatmap, np.ndarray):
+            raise TypeError('heatmap must be a numpy.ndarray instance. '
+                            'Got: {}'.format(heatmap))
+        heatmap = _normalize_heatmap(heatmap)
+
     # The order of our operations is: 1. colorize 2. resize
     # as opposed: 1. resize 2. colorize
 
@@ -169,8 +170,8 @@ def heatmap_to_image(heatmap):
 
 
 def _validate_heatmap(heatmap):
-    """Check that ``heatmap`` is a numpy array
-    with float values between 0 and 1."""
+    """Check that ``heatmap`` is a numpy array 
+    with float values in interval [0, 1]."""
     if not isinstance(heatmap, np.ndarray):
         raise TypeError('heatmap must be a numpy.ndarray instance. '
                         'Got: {}'.format(heatmap))
@@ -181,6 +182,18 @@ def _validate_heatmap(heatmap):
                         'between 0 and 1 inclusive. '
                         'Got array with minimum: {} ' 
                         'and maximum: {}'.format(mi, ma))
+
+
+def _normalize_heatmap(h, epsilon=1e-07):
+    """
+    Normalize heatmap ``h`` values to be in the interval [0, 1],
+    adding ``epsilon`` to the heatmap in case it's all zeroes.
+    """
+    # use min-max normalization
+    # https://datascience.stackexchange.com/questions/5885/how-to-scale-an-array-of-signed-integers-to-range-from-0-to-1
+    # add eps to avoid division by zero in case heatmap is all 0's
+    # this also means that lmap max will be slightly less than the 'true' max
+    return (h - h.min()) / (h.max() - h.min() + epsilon)
 
 
 def _colorize(heatmap, colormap):
@@ -248,6 +261,7 @@ def expand_heatmap(heatmap, image, resampling_filter=Image.LANCZOS):
     ----------
     heatmap : numpy.ndarray
         Heatmap that is to be resized, as an array.
+        Will be converted to image using :func:`eli5.formatters.image.heatmap_to_image`.
 
     image : PIL.Image.Image
         The image whose dimensions will be resized to.

@@ -170,7 +170,7 @@ def test_calc_gradient_nondifferentiable(nondifferentiable_model):
 
 
 def test_gradcam_zeros():
-    activations = np.zeros((1, 2, 2, 3)) # three 2x2 maps
+    activations = np.ones((1, 2, 2, 3)) # three 2x2 maps
     weights = np.zeros((1, 3)) # weight for each map
     lmap = gradcam(weights, activations)
     # all zeroes
@@ -181,5 +181,6 @@ def test_gradcam_ones():
     activations = np.ones((1, 1, 1, 2))
     weights = np.ones((1, 2))
     lmap = gradcam(weights, activations)
-    # all within eps distance to one
-    assert np.isclose(lmap, np.ones((1, 1)), rtol=epsilon())
+    expected = np.ones((1, 1))*2 # 2 because we *add* each map
+    # all within eps distance
+    assert np.isclose(lmap, expected, rtol=epsilon())

@@ -23,7 +23,7 @@ The returned :class:`eli5.base.Explanation` instance contains some important obj
 
 * ``image`` represents the image input into the model.
 
-* ``heatmap``  is a grayscale "localization map" (rank 2 (2D) numpy array, with float values in the interval `[0, 1]`). The numbers indicate how important the region in the image is for the target class (even if the target class was not the predicted class). Higher numbers mean that the region tends to increase the predicted value for a class. Lower numbers mean that the region has smaller effect on the predicted class score.
+* ``heatmap``  is a grayscale "localization map" (a numpy array with float values). The numbers indicate how important the region in the image is for the target class (even if the target class was not the predicted class). Higher numbers mean that the region tends to increase the predicted value for a class. Lower numbers mean that the region has smaller effect on the predicted class score.
 
 * ``target`` the integer ID of the class (same as the argument to ``targets`` if one was passed, or the predicted class ID if no argument was passed).
 
