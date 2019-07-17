@@ -85,4 +85,4 @@ sed -i 's&.. image:: keras-image-classifiers_files/&.. image:: ../_notebooks/ker
 
 
 # to only execute one section: (replace # Keras with section comment)
-# sed -n '/# Keras/,/^$/p' update-notebooks.sh
+# sed -n '/# Keras/,/^$/p' update-notebooks.sh | bash

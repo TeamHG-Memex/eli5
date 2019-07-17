@@ -199,7 +199,7 @@ def explain_prediction_keras(estimator, # type: Model
         return explain_prediction_keras_not_supported(estimator, doc)
 
 
-def explain_prediction_keras_not_supported(estimator,
+def explain_prediction_keras_not_supported(estimator, # TODO: rename estimator to model?
                                            doc
                                            ):
     """Can not do an explanation based on the passed arguments."""
