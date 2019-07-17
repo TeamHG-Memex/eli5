@@ -42,7 +42,6 @@ def explain_prediction_keras(model, # type: Model
                              counterfactual=False, # type: bool
                              image=None,
                              tokens=None,
-                             document=None,
                              pad_x=None,
                              padding=None,
                             ):
@@ -154,7 +153,6 @@ def explain_prediction_keras(model, # type: Model
         return explain_prediction_keras_text(model, 
                                       doc, 
                                       tokens=tokens,
-                                      document=document,
                                       pad_x=pad_x,
                                       padding=padding,
                                       targets=targets,
@@ -171,7 +169,7 @@ def explain_prediction_keras_not_supported(model,
                                            ):
     """Can not do an explanation based on the passed arguments."""
     return Explanation(
-        model=model.name,
+        model.name,
         error='model "{}" is not supported, '
               'missing "image" or "tokens" argument.'.format(model.name),
     )
@@ -205,6 +203,7 @@ def explain_prediction_keras_image(model,
     """
     # TODO (open issue): support taking images that are not 'RGBA' -> 'RGB' as well (happens with keras load_img)
     # and grayscale too
+    assert image is not None
     _validate_doc(model, doc)
 
     activation_layer = _get_activation_layer(model, layer, _backward_layers, _is_suitable_image_layer)
@@ -237,8 +236,7 @@ def explain_prediction_keras_image(model,
 
 def explain_prediction_keras_text(model,
                                   doc,
-                                  tokens, # type: Optional[List[str]] # TODO: take as list or numpy array
-                                  document=None, # type: Optional[str]
+                                  tokens=None, # type: Optional[List[str]] # TODO: take as list or numpy array
                                   pad_x=None, # type: Optional[int]
                                   padding=None, # type: Optional[str]
                                   targets=None,
@@ -282,6 +280,7 @@ def explain_prediction_keras_text(model,
     #    Full text document for highlighting. 
     #    Not tokenized and without padding.
     # :type document: str, optional
+    assert tokens is not None
     _validate_doc(model, doc)
 
     activation_layer = _get_activation_layer(model, layer, _forward_layers, _is_suitable_text_layer)
