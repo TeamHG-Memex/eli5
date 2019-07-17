@@ -52,7 +52,7 @@ def explain_prediction_keras(estimator, # type: Model
     We make an explicity assumption that the model's task is classification, i.e. final output is class scores.
 
     See :func:`eli5.explain_prediction` for more information about the ``estimator``,
-    ``doc``, ``target_names``, and ``targets`` parameters.
+    ``doc``, and ``targets`` parameters.
     
     These arguments are shared by image and text explanations.
     
@@ -131,11 +131,6 @@ def explain_prediction_keras(estimator, # type: Model
             * ``target`` ID of target class.
             * ``score`` value for predicted class.
     """
-    # TODO: implement target_names
-    # :param target_names:         
-    #     *Not Implemented*.
-    #     Names for classes in the final output layer.
-    # :type target_names: list, optional
     _validate_doc(estimator, doc)
 
     # if image is None and len(doc.shape) == 4:
