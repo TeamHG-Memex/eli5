@@ -37,30 +37,28 @@ def explain_prediction_keras(estimator, # type: Model
                              doc, # type: np.ndarray
                              targets=None, # type: Optional[list]
                              layer=None, # type: Optional[Union[int, str, Layer]]
-                             image=None, # type: Optional[PIL.Image.Image]
-                             tokens=None, # type: Optional[List[str]]
-                             document=None, # type: Optional[str]
-                             pad_x=None, # type: Optional[int]
-                             padding=None, # type: Optional[str]
                              relu=True, # type: bool
                              counterfactual=False, # type: bool
+                             image=None,
+                             tokens=None,
+                             document=None,
+                             pad_x=None,
+                             padding=None,
                             ):
     # type: (...) -> Explanation
     """
     Explain the prediction of a Keras image classifier.
 
-    We make two explicit assumptions
-        * The input is images.
-        * The model's task is classification, i.e. final output is class scores.
+    We make an explicity assumption that the model's task is classification, i.e. final output is class scores.
 
     See :func:`eli5.explain_prediction` for more information about the ``estimator``,
     ``doc``, ``target_names``, and ``targets`` parameters.
-
+    
+    These arguments are shared by image and text explanations.
     
     :param keras.models.Model estimator:
         Instance of a Keras neural network model, 
         whose predictions are to be explained.
-
 
     :param numpy.ndarray doc:
         An input image as a tensor to ``estimator``, 
@@ -111,28 +109,6 @@ def explain_prediction_keras(estimator, # type: Model
         :raises ValueError: if differentiation fails with respect to retrieved ``layer``. 
     :type layer: int or str or keras.layers.Layer, optional
 
-    :param image:
-        Image over which to overlay the heatmap.
-    :type image: PIL.Image.Image, optional
-
-    :param tokens:
-        List of input tokens that correspond to doc (may be padded).
-        Will be highlighted for text-based explanations.
-    :type tokens: list[str], optional
-
-    :param pad_x:
-        Character for padding.
-
-        *Not supported for images.*
-    :type pad_x: int, optional
-
-    :param padding:
-        Padding position, 'pre' (before sequence) 
-        or 'post' (after sequence).
-        
-        Padding characters will be cut off from the heatmap and tokens.
-    :type padding: str, optional
-
     :param relu:
         Whether to apply ReLU on the heatmap.
         Set to `False` to see the "negative" of a class.
@@ -175,8 +151,8 @@ def explain_prediction_keras(estimator, # type: Model
 
     if image is not None:
         return explain_prediction_keras_image(estimator, 
-                                       doc, 
-                                       image, 
+                                       doc,
+                                       image=image,
                                        targets=targets, 
                                        layer=layer,
                                        relu=relu,
@@ -185,22 +161,21 @@ def explain_prediction_keras(estimator, # type: Model
     elif tokens is not None:
         return explain_prediction_keras_text(estimator, 
                                       doc, 
-                                      tokens,
+                                      tokens=tokens,
+                                      document=document,
+                                      pad_x=pad_x,
+                                      padding=padding,
                                       targets=targets,
                                       layer=layer,
                                       relu=relu,
                                       counterfactual=counterfactual,
-                                      pad_x=pad_x,
-                                      padding=padding,
         )
-        # TODO: pass kwargs instead of copy-paste
-        # but shared vs unique args problem?
     else:
         return explain_prediction_keras_not_supported(estimator, doc)
 
 
 def explain_prediction_keras_not_supported(estimator, # TODO: rename estimator to model?
-                                           doc
+                                           doc,
                                            ):
     """Can not do an explanation based on the passed arguments."""
     return Explanation(
@@ -212,12 +187,22 @@ def explain_prediction_keras_not_supported(estimator, # TODO: rename estimator t
 
 def explain_prediction_keras_image(estimator,
                                    doc,
-                                   image,
+                                   image=None, # type: Optional[PIL.Image.Image]
                                    targets=None,
                                    layer=None,
                                    relu=True,
                                    counterfactual=False,
     ):
+    """
+    Explain an image-based model.
+
+    See :func:`eli5.explain_prediction_keras` for description of ``targets``, 
+    ``layer``, ``relu``, and ``counterfactual`` parameters.
+
+    :param image:
+        Image over which to overlay the heatmap.
+    :type image: PIL.Image.Image, optional
+    """
     activation_layer = _get_activation_layer(estimator, layer, _backward_layers, _is_suitable_image_layer)
     heatmap, predicted_idx, predicted_val = _explanation_backend(estimator, doc, targets, 
         activation_layer,
@@ -243,14 +228,39 @@ def explain_prediction_keras_image(estimator,
 
 def explain_prediction_keras_text(estimator,
                                   doc,
-                                  tokens, # TODO: take as list or numpy array
+                                  tokens, # type: Optional[List[str]] # TODO: take as list or numpy array
+                                  document=None, # type: Optional[str]
+                                  pad_x=None, # type: Optional[int]
+                                  padding=None, # type: Optional[str]
                                   targets=None,
                                   layer=None,
-                                  pad_x=None,
-                                  padding=None,
-                                  relu=False,
+                                  relu=True,
                                   counterfactual=False,
                                   ):
+    """
+    Explain a text-based model.
+
+    See :func:`eli5.explain_prediction_keras` for description of ``targets``, 
+    ``layer``, ``relu``, and ``counterfactual`` parameters.
+
+    :param tokens:
+        List of input tokens that correspond to doc (may be padded).
+        Will be highlighted for text-based explanations.
+    :type tokens: list[str], optional
+
+    :param pad_x:
+        Character for padding.
+
+        *Not supported for images.*
+    :type pad_x: int, optional
+
+    :param padding:
+        Padding position, 'pre' (before sequence) 
+        or 'post' (after sequence).
+        
+        Padding characters will be cut off from the heatmap and tokens.
+    :type padding: str, optional
+    """
     # TODO: implement document vectorizer
     #  :param document:
     #    Full text document for highlighting. 
@@ -298,6 +308,18 @@ def explain_prediction_keras_text(estimator,
         is_regression=False, # might be relevant later when explaining for regression tasks
         highlight_spaces=None, # might be relevant later when explaining text models
     )
+
+
+# There is a problem with repeated arguments to the explain_prediction_keras* functions
+# Some arguments are shared, some are unique to each "concrete" explain_prediction*
+# An attempt was to make use of **kwargs
+# But it led to statements like arg = kwargs.get('arg', None)
+# When making changes to argument lists, watch the following:
+# * What arguments the "dispatcher" takes
+# * With what arguments the "dispatcher" calls the "concrete" functions
+# * What arguments the "concrete" functions take
+# * Do default values for repeated arguments match
+# If you have a better solution, send a PR / open an issue on GitHub.
 
 
 def _validate_doc(estimator, doc):
