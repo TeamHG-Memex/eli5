@@ -294,7 +294,9 @@ def explain_prediction_keras_text(model,
     )
     heatmap, predicted_idx, predicted_val = values
 
-    heatmap = resize_1d(heatmap, tokens) # might want to do this when formatting the explanation?
+    # we resize before cutting off padding?
+    # FIXME: might want to do this when formatting the explanation?
+    heatmap = resize_1d(heatmap, tokens)
 
     if pad_x is not None:
         # cut off padding
@@ -528,7 +530,13 @@ def resize_1d(heatmap, tokens):
 
 
 def construct_document(tokens):
-    return ' '.join(tokens)
+    if ' ' in tokens:
+        # probably character-based
+        sep = ''
+    else:
+        # word-based
+        sep = ' '
+    return sep.join(tokens)
 
 
 def build_spans(tokens, heatmap, document):
