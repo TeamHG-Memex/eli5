@@ -22,7 +22,8 @@ import numpy as np
 from eli5.keras.explain_prediction import (
     explain_prediction,
     _validate_doc,
-    _get_activation_layer,
+    _get_layer,
+    _search_activation_layer,
     _forward_layers,
     _backward_layers,
     _is_suitable_image_layer,
@@ -56,42 +57,40 @@ def simple_seq():
     return model
 
 
-# layer is the argument to _get_activation_layer
+# layer is the argument to _get_layer
 # expected_layer is a unique layer name
 @pytest.mark.parametrize('layer, expected_layer', [
     (-3, 'layer1'), # index backwards
     ('layer0', 'layer0'), # name
     (conv_layer, 'layer1'), # instance
-    (None, 'layer2'), # automatic, first matching layer going back from output layer
 ])
-def test_get_activation_layer(simple_seq, layer, expected_layer):
+def test_get_layer(simple_seq, layer, expected_layer):
     """Test different ways to specify activation layer, and automatic activation layer getter"""
-    assert _get_activation_layer(simple_seq, layer, 
-        _backward_layers, _is_suitable_image_layer) == simple_seq.get_layer(name=expected_layer)
+    assert _get_layer(simple_seq, layer) == simple_seq.get_layer(name=expected_layer)
 
 
-def test_get_activation_layer_invalid(simple_seq):
-    # invalid layer shape
-    with pytest.raises(ValueError):
-        # GAP has rank 2 shape, need rank 4
-        _get_activation_layer(simple_seq, 'layer3', _backward_layers, _is_suitable_image_layer)
+def test_get_layer_invalid(simple_seq):
     # invalid layer type
     with pytest.raises(TypeError):
-        _get_activation_layer(simple_seq, 2.5, _backward_layers, _is_suitable_image_layer)
-    # can not find activation layer automatically
-    # this is handled by _search_layer_backwards function
-    with pytest.raises(ValueError):
-        _get_activation_layer(
-            Sequential(), # a model with no layers
-            None,
-            _backward_layers, _is_suitable_image_layer
-        )
-    
+        _get_layer(simple_seq, 2.5)
     # note that cases where an invalid layer index or name is passed are 
-    # handled by the underlying keras get_layer method()
+    # handled by the underlying keras get_layer() method
 
-# FIXME: _get_activation_layer takes way too many arguments -> decouple get from auto-search
-# TODO: _get_activation_layer with text layer search
+
+def test_search_activation_layer(simple_seq):
+    l = _search_activation_layer(simple_seq, _backward_layers, _is_suitable_image_layer)
+    assert l.name == 'layer2' # first matching layer going back from output layer
+
+    # can not find activation layer automatically
+    with pytest.raises(ValueError):
+        _search_activation_layer(
+            Sequential(), # a model with no layers
+            _backward_layers, 
+            _is_suitable_image_layer
+        )
+
+
+# TODO: _search_activation_layer with text layer search
 
 
 def test_validate_doc(simple_seq):

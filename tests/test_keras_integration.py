@@ -98,8 +98,8 @@ def assert_attention_over_area(expl, area):
     crop_intensity = np.sum(crop)
     p = total_intensity / 100 # -> 1% of total_intensity
     crop_p = crop_intensity / p # -> intensity %
-    # at least 50% (need to experiment with this number)
-    assert 50 < crop_p
+    n = 40 # at least n% (need to experiment with this number)
+    assert n < crop_p
 
     # Alternatively, check that the intensity over area 
     # is greater than all other intensity:
@@ -120,6 +120,7 @@ def test_image_classification(keras_clf, cat_dog_image, area, targets):
     
     # check formatting
     overlay = format_as_image(res)
+    # import matplotlib.pyplot as plt; plt.imshow(overlay); plt.show()
     assert_good_external_format(res, overlay)
 
     # check show function
