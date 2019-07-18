@@ -43,7 +43,7 @@ def explain_prediction_keras(model, # type: Model
                              image=None,
                              tokens=None,
                              pad_x=None,
-                             padding=None,
+                             padding_type=None,
                             ):
     # type: (...) -> Explanation
     """
@@ -162,7 +162,7 @@ def explain_prediction_keras(model, # type: Model
                                       doc, 
                                       tokens=tokens,
                                       pad_x=pad_x,
-                                      padding=padding,
+                                      padding_type=padding_type,
                                       targets=targets,
                                       layer=layer,
                                       relu=relu,
@@ -251,7 +251,7 @@ def explain_prediction_keras_text(model,
                                   doc,
                                   tokens=None, # type: Optional[List[str]] # TODO: take as list or numpy array
                                   pad_x=None, # type: Optional[int]
-                                  padding=None, # type: Optional[str]
+                                  padding_type=None, # type: Optional[str]
                                   targets=None,
                                   layer=None,
                                   relu=True,
@@ -269,17 +269,18 @@ def explain_prediction_keras_text(model,
     :type tokens: list[str], optional
 
     :param pad_x:
-        Character for padding.
+        Character for padding. If given, cuts padding off.
+        Do not pass this to see the effect of padding.
 
         *Not supported for images.*
     :type pad_x: int, optional
 
-    :param padding:
+    :param padding_type:
         Padding position, 'pre' (before sequence) 
         or 'post' (after sequence).
         
         Padding characters will be cut off from the heatmap and tokens.
-    :type padding: str, optional
+    :type padding_type: str, optional
 
     Returns
     -------
@@ -295,6 +296,7 @@ def explain_prediction_keras_text(model,
     # :type document: str, optional
     assert tokens is not None
     _validate_doc(model, doc)
+    # TODO: validate doc and tokens is same
 
     if layer is not None:
         activation_layer = _get_layer(model, layer)
@@ -316,15 +318,9 @@ def explain_prediction_keras_text(model,
     heatmap = resize_1d(heatmap, tokens)
 
     if pad_x is not None:
-        # cut off padding
-        values, indices = np.where(doc == pad_x)
-        if padding == 'post':
-            # FIXME: error if no padding is found
-            pad_idx = indices[0] # leave +1 just to highlight effect of padding?
-            tokens = tokens[:pad_idx]
-            heatmap = heatmap[:pad_idx]
-        # TODO: pre padding
-        # TODO: check that there's no padding characters inside the text
+        # remove padding
+        tokens, heatmap = _trim_padding(pad_x, padding_type, doc,
+                                        tokens, heatmap)
     # TODO: later support document as argument
     document = construct_document(tokens)
     spans = build_spans(tokens, heatmap, document)
@@ -453,7 +449,7 @@ def _is_suitable_text_layer(model, layer):
     """
     # check the type
     # FIXME: this is not an exhaustive list
-    desired_layers = (keras.layers.Conv1D, 
+    desired_layers = (keras.layers.Conv1D,
                       keras.layers.RNN,
                       keras.layers.LSTM,
                       keras.layers.GRU, # TODO: test this
@@ -571,3 +567,27 @@ def build_spans(tokens, heatmap, document):
         # print(N, token, weight, i, j)
         spans.append(span)
     return spans
+
+
+def _trim_padding(pad_x, padding_type, doc, tokens, heatmap):
+    """Removing padding from ``tokens`` and ``heatmap``."""
+    # FIXME: if pad_x is something other than the padding number, behaviour is unknown
+    values, indices = np.where(doc == pad_x) # -> all positions with padding character
+    if 0 < len(indices):
+        # found some padding characters
+        if padding_type == 'post':
+            # `word word pad pad`
+            first_pad_idx = indices[0]
+            tokens = tokens[:first_pad_idx]
+            heatmap = heatmap[:first_pad_idx]
+        elif padding_type == 'pre':
+            # `pad pad word word`
+            last_pad_idx = indices[-1]
+            tokens = tokens[last_pad_idx+1:]
+            heatmap = heatmap[last_pad_idx+1:]
+        else:
+            raise ValueError('padding_type must be "post" or "pre". '
+                             'Got: {}'.format(padding_type))
+    # TODO: check that there's no padding characters inside the text
+    # might want to pass pad_x as a token, not doc number?
+    return tokens, heatmap
