@@ -163,6 +163,7 @@ def gradcam_backend(model, # type: Model
     # score for class w.r.p.t. activation layer
     grads = _calc_gradient(predicted_val, [activation_output])
 
+    # TODO: gradcam on input layer
     evaluate = K.function([model.input], 
         [activation_output, grads, predicted_val, predicted_idx]
     )

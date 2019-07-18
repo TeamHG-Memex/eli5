@@ -214,7 +214,12 @@ def explain_prediction_keras_image(model,
     assert image is not None
     _validate_doc(model, doc)
 
-    activation_layer = _get_activation_layer(model, layer, _backward_layers, _is_suitable_image_layer)
+    if layer is not None:
+        activation_layer = _get_layer(model, layer)
+    else:
+        activation_layer = _search_activation_layer(model, 
+            _backward_layers, _is_suitable_image_layer)
+
     values = _explanation_backend(model,
                                   doc,
                                   targets,
@@ -291,7 +296,12 @@ def explain_prediction_keras_text(model,
     assert tokens is not None
     _validate_doc(model, doc)
 
-    activation_layer = _get_activation_layer(model, layer, _forward_layers, _is_suitable_text_layer)
+    if layer is not None:
+        activation_layer = _get_layer(model, layer)
+    else:
+        activation_layer = _search_activation_layer(model, 
+            _forward_layers, _is_suitable_text_layer)
+    
     values = _explanation_backend(model,
                                   doc,
                                   targets,
@@ -370,56 +380,38 @@ def _explanation_backend(model, doc, targets, activation_layer, relu, counterfac
     return heatmap, predicted_idx, predicted_val
 
 
-def _get_activation_layer(model, # type: Model
-    layer, # type: Union[None, int, str, Layer]
-    layers_generator, # type: layers_arg
-    condition # type: condition_arg
-    ): 
-    # type: (...) -> Layer
+def _get_layer(model,layer): 
+    # type: (Model, Union[int, str, Layer]) -> Layer
     """ 
-    Get an instance of the desired activation layer in ``model``,
-    as specified by ``layer``.
+    Wrapper around ``model.get_layer()`` for int, str, or Layer argument``.
+    Return a keras Layer instance.
     """
-    # PR FIXME: decouple layer search (no arg) vs simple layer retrieval (arg)
-    if layer is None:
-        # Automatically get the layer if not provided
-        # TODO: search forwards for text models
-        activation_layer = _search_layer(model, layers_generator, condition)
-        return activation_layer
-
-    if isinstance(layer, Layer):
-        return layer
-
     # get_layer() performs a bottom-up horizontal graph traversal
     # it can raise ValueError if the layer index / name specified is not found
-    if isinstance(layer, int):
-        activation_layer = model.get_layer(index=layer)
+
+    # currently we don't do any validation on the retrieved layer
+    if isinstance(layer, Layer):
+        return layer
+    elif isinstance(layer, int):
+        return model.get_layer(index=layer)
     elif isinstance(layer, str):
-        activation_layer = model.get_layer(name=layer)
+        return model.get_layer(name=layer)
     else:
-        raise TypeError('Invalid layer (must be str, int, keras.layers.Layer, or None): %s' % layer)
-    return activation_layer
-    # # final validation step
-    # if condition(model, activation_layer):
-    #     return activation_layer
-    # else:
-    #     # FIXME: this might not be a useful error message, and the method may be flawed
-    #     # search vs. validation
-    #     raise ValueError('Can not perform Grad-CAM on the retrieved activation layer')
+        raise TypeError('Invalid layer (must be str, int, or keras.layers.Layer): %s' % layer)
 
 
-layers_arg = Callable[[Model], Generator[Layer, None, None]]
-condition_arg = Callable[[Model, int], bool]
-
-def _search_layer(model, layers, condition):
-    # type: (Model, layers_arg, condition_arg) -> Layer
+def _search_activation_layer(model, # type: Model
+    layers_generator, # type: Callable[[Model], Generator[Layer, None, None]]
+    layer_condition, # type: Callable[[Model, Layer], bool]
+    ):
     """
-    Search for a layer in ``model``, backwards (starting from the output layer),
-    checking if the layer is suitable with the callable ``condition``,
+    Search for a layer in ``model``, iterating through layers in the order specified by
+    ``layers_generator``, returning the first layer that matches ``layer_condition``.
     """
+    # TODO: separate search for image and text - best-results based, not just simple lsearch
     # linear search in reverse through the flattened layers
-    for layer in layers(model):
-        if condition(model, layer):
+    for layer in layers_generator(model):
+        if layer_condition(model, layer):
             # linear search succeeded
             return layer
     # linear search ended with no results
@@ -427,7 +419,7 @@ def _search_layer(model, layers, condition):
 
 
 def _forward_layers(model):
-    return (model.get_layer(index=i) for i in range(1, len(model.layers), 1))
+    return (model.get_layer(index=i) for i in range(0, len(model.layers), 1))
 
 
 def _backward_layers(model):
@@ -437,10 +429,11 @@ def _backward_layers(model):
 def _is_suitable_image_layer(model, layer):
     # type: (Model, Layer) -> bool
     """Check whether the layer ``layer`` matches what is required 
-    by ``model`` to do Grad-CAM on ``layer``.
+    by ``model`` to do Grad-CAM on ``layer``, for image-based models.
 
     Matching Criteria:
-    * Rank of the layer's output tensor."""
+    * Rank of the layer's output tensor.
+    """
     # TODO: experiment with this, using many models and images, to find what works best
     # Some ideas: 
     # check layer type, i.e.: isinstance(l, keras.layers.Conv2D)
@@ -458,8 +451,25 @@ def _is_suitable_text_layer(model, layer):
     """Check whether the layer ``layer`` matches what is required 
     by ``model`` to do Grad-CAM on ``layer``.
     """
-    # return isinstance(layer, keras.layers.Conv1D) # FIXME
-    return True
+    # check the type
+    # FIXME: this is not an exhaustive list
+    desired_layers = (keras.layers.Conv1D, 
+                      keras.layers.RNN,
+                      keras.layers.LSTM,
+                      keras.layers.GRU, # TODO: test this
+                      keras.layers.Embedding,
+                      keras.layers.MaxPooling1D,
+                      keras.layers.AveragePooling1D,
+    )
+    return isinstance(layer, desired_layers) 
+
+
+def _search_layer_image(model):
+    raise NotImplementedError
+
+
+def _search_layer_text(model):
+    raise NotImplementedError
 
 
 def _validate_doc(model, doc):
