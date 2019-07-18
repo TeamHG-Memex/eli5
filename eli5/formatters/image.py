@@ -113,12 +113,13 @@ def format_as_image(expl, # type: Explanation
     # save the original heatmap values
     heatvals = heatmap
     # apply colours to the grayscale array
-    heatmap = _colorize(heatmap, colormap=colormap) # -> rank 3 RGBA array
+    heatmap = _colorize(heatmap, colormap=colormap) # -> original dims + RGBA channels
 
     # make the alpha intensity correspond to the grayscale heatmap values
     # cap the intensity so that it's not too opaque when near maximum value
     _update_alpha(heatmap, starting_array=heatvals, alpha_limit=alpha_limit)
 
+    # -> RGBA with equal dims
     heatmap = expand_heatmap(heatmap, image, resampling_filter=resampling_filter)
     overlay = _overlay_heatmap(heatmap, image)
     return overlay
@@ -150,6 +151,7 @@ def heatmap_to_image(heatmap):
     _validate_heatmap(heatmap)
     rank = len(heatmap.shape)
     if rank == 2:
+        # FIXME: unclear if rank 2 means (width, height) OR (dim, channels) ???
         mode = 'L'
     elif rank == 3:
         channels = heatmap.shape[2]
@@ -222,11 +224,11 @@ def _update_alpha(image_array, starting_array=None, alpha_limit=None):
         alpha = starting_array
     else:
         # take the alpha channel as is
-        alpha = image_array[:,:,3]
+        alpha = image_array[..., 3]
     # set maximum alpha value
     alpha = _cap_alpha(alpha, alpha_limit)
     # update alpha channel in the original image
-    image_array[:,:,3] = alpha
+    image_array[..., 3] = alpha
 
 
 def _cap_alpha(alpha_arr, alpha_limit):
@@ -255,7 +257,7 @@ def expand_heatmap(heatmap, image, resampling_filter=Image.LANCZOS):
     """ 
     Resize the ``heatmap`` image array to fit over the original ``image``,
     using the specified ``resampling_filter`` method. 
-    The heatmap is converted to an image in the process.
+    The heatmap is converted to an RGBA image in the process.
     
     Parameters
     ----------
@@ -278,7 +280,7 @@ def expand_heatmap(heatmap, image, resampling_filter=Image.LANCZOS):
     Returns
     -------
     resized_heatmap : PIL.Image.Image
-        The heatmap, resized, as a PIL image.
+        The heatmap, resized, as a PIL image, with mode 'RGBA'.
     """
     if not isinstance(image, Image.Image):
         raise TypeError('image must be a PIL.Image.Image instance. '
@@ -286,6 +288,8 @@ def expand_heatmap(heatmap, image, resampling_filter=Image.LANCZOS):
     heatmap = heatmap_to_image(heatmap)
     spatial_dimensions = (image.width, image.height)
     heatmap = heatmap.resize(spatial_dimensions, resample=resampling_filter)
+    if heatmap.mode != 'RGBA':
+        heatmap =  heatmap.convert('RGBA')
     return heatmap
 
 

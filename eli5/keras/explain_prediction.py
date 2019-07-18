@@ -51,6 +51,8 @@ def explain_prediction_keras(model, # type: Model
 
     We make an explicity assumption that the model's task is classification, i.e. final output is class scores.
 
+    We also explicitly assume that the data format is "channels_last".
+
     See :func:`eli5.explain_prediction` for more information about the ``model``,
     ``doc``, and ``targets`` parameters.
     
@@ -102,6 +104,12 @@ def explain_prediction_keras(model, # type: Model
         The layer is searched for going backwards from the output layer, 
         checking that the rank of the layer's output 
         equals to the rank of the input.
+        
+        For best results, pick a layer that:
+            * has spatial or temporal information (conv, recurrent, pool, embedding).
+            * can be intuitively resized (not dense layers).
+            * shows high level features.
+            * has large enough dimensions for resizing over input to work.
 
 
         :raises TypeError: if ``layer`` is not None, str, int, or keras.layers.Layer instance.
@@ -356,9 +364,9 @@ def _explanation_backend(model, doc, targets, activation_layer, relu, counterfac
         # can equivalently negate ys loss scalar in gradcam_backend
         grads = -grads
 
-    # FIXME: hardcoding for conv layers, i.e. their shapes
     weights = compute_weights(grads)
     heatmap = gradcam(weights, activations, relu=relu)
+    heatmap, = heatmap # FIXME: hard-code batch=1 for now
     return heatmap, predicted_idx, predicted_val
 
 
@@ -390,14 +398,14 @@ def _get_activation_layer(model, # type: Model
         activation_layer = model.get_layer(name=layer)
     else:
         raise TypeError('Invalid layer (must be str, int, keras.layers.Layer, or None): %s' % layer)
-
-    # final validation step
-    if condition(model, activation_layer):
-        return activation_layer
-    else:
-        # FIXME: this might not be a useful error message, and the method may be flawed
-        # search vs. validation
-        raise ValueError('Can not perform Grad-CAM on the retrieved activation layer')
+    return activation_layer
+    # # final validation step
+    # if condition(model, activation_layer):
+    #     return activation_layer
+    # else:
+    #     # FIXME: this might not be a useful error message, and the method may be flawed
+    #     # search vs. validation
+    #     raise ValueError('Can not perform Grad-CAM on the retrieved activation layer')
 
 
 layers_arg = Callable[[Model], Generator[Layer, None, None]]
@@ -520,6 +528,8 @@ def resize_1d(heatmap, tokens):
     # can also use resample_poly
     # https://docs.scipy.org/doc/scipy-1.3.0/reference/generated/scipy.signal.resample_poly.html#scipy.signal.resample_poly
     heatmap = resample(heatmap, width)
+    # FIXME: resizing for single value heatmap, i.e. final node in sentiment classification?
+    # only highlights first token
 
     ## other possibilities
     # https://stackoverflow.com/questions/29085268/resample-a-numpy-array - numpy and scipy interpolation

@@ -25,8 +25,8 @@ def gradcam(weights, activations, relu=True):
         rank 2 (batch size included).
 
     activations : numpy.ndarray
-        Forward activation map values, vector of matrices, 
-        rank 4 (batch size included).
+        Forward activation map values, vector of tensors, 
+        rank n (batch size included).
 
     relu: boolean
         Whether to apply ReLU to the final heatmap (remove negatives).
@@ -35,7 +35,7 @@ def gradcam(weights, activations, relu=True):
     -------
     lmap : numpy.ndarray
         A Grad-CAM localization map,
-        rank 2, with values normalized in the interval [0, 1].
+        with shape like the dimension portion of ``activations``.
 
     Notes
     -----
@@ -49,43 +49,43 @@ def gradcam(weights, activations, relu=True):
         * Kotikalapudi, Raghavendra and contributors for "https://github.com/raghakot/keras-vis".
     """
     # For reusability, this function should only use numpy operations
-    # Instead of backend library operations
+    # No library specific operations
     
-    # TODO: this requires massive refactoring
-
-    # Perform a weighted linear combination
-    # we need to multiply (dim1, dim2, maps,) by (maps,) over the first two axes
-    # and add each result to (dim1, dim2,) results array
+    # we need to multiply (dim1, ..., dimn, maps,) by (maps,) over the dimension axes
+    # and add each result to (dim1, ..., dimn) results array
     # there does not seem to be an easy way to do this:
     # see: https://stackoverflow.com/questions/30031828/multiply-numpy-ndarray-with-1d-array-along-a-given-axis
     
-    ### activations includes batch dimension
-    ### weights includes batch dimension
-    activations = activations[0, ...] # batch -> single
-    if len(activations.shape) == 1:
+    # activations shapes (channels last):
+    # conv: (batch, ..., channels)
+    # recurrent: (batch, timesteps, units)
+    if len(activations.shape) == 2:
+        # vector (with batch)
         lmap_shape = activations.shape
     else:
-        lmap_shape = activations.shape[:-1] # -> (dim1, dim2)
-        weights = weights[0, ...] # batch -> single
-
+        # higher rank
+        # last dimension is assumed to be the channels (for convnets)
+        lmap_shape = activations.shape[:-1] # -> (batch, dim1, dim2)
     lmap = np.zeros(lmap_shape, dtype=np.float64)
-    # lmap = lmap[0, ...]
 
-    # iterate through each activation map
-    for i, w in enumerate(weights): 
-        # weight * spatial map
+    # weighted linear combination
+    for activation_map, weight in _generate_maps_weights(activations, weights):
         # add result to the entire localization map (NOT pixel by pixel)
-        if len(activations.shape) == 1:
-            activation_map = activations[i]
-        else:
-            activation_map = activations[..., i]
-        lmap += w * activation_map
+        lmap += activation_map * weight
 
     if relu:
         # apply ReLU
         lmap = np.maximum(lmap, 0) 
-
     return lmap
+
+
+def _generate_maps_weights(activations, weights):
+    """Yield tuples of (activation_map, weight) 
+    from ``activations`` and ``weights``."""
+    assert activations.shape[-1] == weights.shape[-1]
+    num_maps = weights.shape[-1]
+    return ((activations[..., i], weights[..., i]) 
+                for i in range(num_maps))
 
 
 def compute_weights(grads): # made public for transparency
