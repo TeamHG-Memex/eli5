@@ -321,9 +321,8 @@ def explain_prediction_keras_text(model,
         # remove padding
         tokens, heatmap = _trim_padding(pad_x, padding_type, doc,
                                         tokens, heatmap)
-    # TODO: later support document as argument
-    document = construct_document(tokens)
-    spans = build_spans(tokens, heatmap, document)
+    document = _construct_document(tokens)
+    spans = _build_spans(tokens, heatmap, document)
     weighted_spans = WeightedSpans([
         DocWeightedSpans(document, spans=spans)
     ]) # why list? - for each vectorized - don't need multiple vectorizers?
@@ -372,7 +371,7 @@ def _explanation_backend(model, doc, targets, activation_layer, relu, counterfac
 
     weights = compute_weights(grads)
     heatmap = gradcam(weights, activations, relu=relu)
-    heatmap, = heatmap # FIXME: hard-code batch=1 for now
+    heatmap, = heatmap # FIXME: hardcode batch=1 for now
     return heatmap, predicted_idx, predicted_val
 
 
@@ -516,37 +515,51 @@ def _eq_shapes(required, other):
 # TODO: move functions to separate text module
 
 def resize_1d(heatmap, tokens):
-    """Resize heatmap to match the length of tokens.
+    """
+    Resize heatmap to match the length of tokens.
     For example, upscale/upsample a (400,) heatmap 
-    to match (500,) array of tokens."""
+    to match (500,) array of tokens.
+    """
     width = len(tokens)
 
-    # 1. solution with Pillow image resizing
-    # import PIL
-    # heatmap = np.expand_dims(heatmap, axis=-1)
-    # im = PIL.Image.fromarray(heatmap, mode="F")
-    # im = im.resize((width, 1), resample=PIL.Image.LANCZOS)
-    # heatmap = np.array(im, dtype='float32')
-    # heatmap = heatmap[0, ...]
+    if len(heatmap.shape) == 1 and heatmap.shape[0] == 1:
+        # single weight
+        # FIXME (with resample func): resizing for single value heatmap, 
+        # i.e. final node in sentiment classification?
+        # only highlights first token
+        # FIXME: this still gives varied highlighting
+        heatmap = heatmap.repeat(width)
+    else:
+        # 1. solution with Pillow image resizing
+        # import PIL
+        # heatmap = np.expand_dims(heatmap, axis=-1)
+        # im = PIL.Image.fromarray(heatmap, mode="F")
+        # im = im.resize((width, 1), resample=PIL.Image.LANCZOS)
+        # heatmap = np.array(im, dtype='float32')
+        # heatmap = heatmap[0, ...]
 
-    # 2. solution with scipy signal resampling
-    # apparently this is very slow?
-    # can also use resample_poly
-    # https://docs.scipy.org/doc/scipy-1.3.0/reference/generated/scipy.signal.resample_poly.html#scipy.signal.resample_poly
-    heatmap = resample(heatmap, width)
-    # FIXME: resizing for single value heatmap, i.e. final node in sentiment classification?
-    # only highlights first token
+        # 2. solution with scipy signal resampling
+        # apparently this is very slow?
+        # can also use resample_poly
+        # https://docs.scipy.org/doc/scipy-1.3.0/reference/generated/scipy.signal.resample_poly.html#scipy.signal.resample_poly
+        # FIXME: resample assumes "signal is periodic"
+        heatmap = resample(heatmap, width)
 
-    ## other possibilities
-    # https://stackoverflow.com/questions/29085268/resample-a-numpy-array - numpy and scipy interpolation
-    # https://machinelearningmastery.com/resample-interpolate-time-series-data-python/ - pandas interpolation
+        # gives poor quality
+        # import scipy
+        # heatmap = scipy.signal.resample_poly(heatmap, width, 1)
+
+        ## other possibilities
+        # https://stackoverflow.com/questions/29085268/resample-a-numpy-array - numpy and scipy interpolation
+        # https://machinelearningmastery.com/resample-interpolate-time-series-data-python/ - pandas interpolation
 
     return heatmap
 
 
-def construct_document(tokens):
+def _construct_document(tokens):
+    """Create a document string by joining ``tokens``."""
     if ' ' in tokens:
-        # probably character-based
+        # character-based (probably)
         sep = ''
     else:
         # word-based
@@ -554,18 +567,20 @@ def construct_document(tokens):
     return sep.join(tokens)
 
 
-def build_spans(tokens, heatmap, document):
-    # FIXME: use document arg
+def _build_spans(tokens, heatmap, document):
+    """Highlight ``tokens`` in ``document``, with weights from ``heatmap``."""
+    assert len(tokens) == len(heatmap)
     spans = []
-    running = 0
+    running = 0 # where to start looking for token in document
     for (token, weight) in zip(tokens, heatmap): # FIXME: weight can be renamed?
-        t_len = len(token)
-        t_start = running
-        t_end = t_start + t_len
+        # find first occurrence of token, on or after running count
+        t_start = document.index(token, running)
+        # create span
+        t_end = t_start + len(token)
         span = tuple([token, [tuple([t_start, t_end])], weight]) # why start and end is list of tuples?
-        running = t_end + 1 # exclude space
-        # print(N, token, weight, i, j)
         spans.append(span)
+        # update run
+        running = t_end 
     return spans
 
 
