@@ -231,16 +231,13 @@ def explain_prediction_keras_image(model,
         activation_layer = _search_activation_layer(model, 
             _backward_layers, _is_suitable_image_layer)
 
-    values = _explanation_backend(model,
-                                  doc,
-                                  targets,
-                                  activation_layer,
-                                  relu=relu,
-                                  counterfactual=counterfactual,
+    activations, grads, predicted_idx, predicted_val = gradcam_backend(model, 
+                                            doc, targets, activation_layer)
+    heatmap = gradcam_heatmap(activations,
+                              grads,
+                              relu=relu,
+                              counterfactual=counterfactual,
     )
-    heatmap, predicted_idx, predicted_val = values
-
-    # TODO (open issue): image padding cut off. pass 2-tuple?
     
     return Explanation(
         model.name,
@@ -314,30 +311,17 @@ def explain_prediction_keras_text(model,
     else:
         activation_layer = _search_activation_layer(model, 
             _forward_layers, _is_suitable_text_layer)
-    
-    values = _explanation_backend(model,
-                                  doc,
-                                  targets,
-                                  activation_layer,
-                                  relu=relu,
-                                  counterfactual=counterfactual,
+
+    activations, grads, predicted_idx, predicted_val = gradcam_backend(model, 
+                                            doc, targets, activation_layer)
+    heatmap = gradcam_heatmap(activations,
+                              grads,
+                              relu=relu,
+                              counterfactual=counterfactual,
     )
-    heatmap, predicted_idx, predicted_val = values
-
-    # we resize before cutting off padding?
-    # FIXME: might want to do this when formatting the explanation?
-    heatmap = resize_1d(heatmap, tokens)
-
-    if pad_x is not None:
-        # remove padding
-        tokens, heatmap = _trim_padding(pad_x, padding_type, doc,
-                                        tokens, heatmap)
-    document = _construct_document(tokens)
-    spans = _build_spans(tokens, heatmap, document)
-    weighted_spans = WeightedSpans([
-        DocWeightedSpans(document, spans=spans)
-    ]) # why list? - for each vectorized - don't need multiple vectorizers?
-       # multiple highlights? - could do positive and negative expl?
+    tokens, heatmap, weighted_spans = gradcam_text_spans(heatmap, 
+                                        tokens, doc, pad_x, padding_type
+    )
 
     return Explanation(
         model.name,
@@ -365,25 +349,6 @@ def explain_prediction_keras_text(model,
 # * What arguments the "concrete" functions take
 # * Do default values for repeated arguments match
 # If you have a better solution, send a PR / open an issue on GitHub.
-
-
-def _explanation_backend(model, doc, targets, activation_layer, relu, counterfactual):
-    # TODO: maybe do the sum / loss calculation in this function and pass it to gradcam.
-    # This would be consistent with what is done in
-    # https://github.com/ramprs/grad-cam/blob/master/misc/utils.lua
-    # and https://github.com/ramprs/grad-cam/blob/master/classification.lua
-    values = gradcam_backend(model, doc, targets, activation_layer)
-    activations, grads, predicted_idx, predicted_val = values
-    
-    if counterfactual:
-        # negate grads for a "counterfactual explanation"
-        # can equivalently negate ys loss scalar in gradcam_backend
-        grads = -grads
-
-    weights = compute_weights(grads)
-    heatmap = gradcam(weights, activations, relu=relu)
-    heatmap, = heatmap # FIXME: hardcode batch=1 for now
-    return heatmap, predicted_idx, predicted_val
 
 
 def _get_layer(model,layer): 

@@ -45,6 +45,10 @@ def gradcam_backend(model, # type: Model
         Values of variables.
     """
     # score for class in targets
+    # TODO: maybe do the sum / loss calculation in this function and pass it to gradcam.
+    # This would be consistent with what is done in
+    # https://github.com/ramprs/grad-cam/blob/master/misc/utils.lua
+    # and https://github.com/ramprs/grad-cam/blob/master/classification.lua
     predicted_idx = _get_target_prediction(targets, model)
     predicted_val = K.gather(model.output[0,:], predicted_idx) # access value by index
 

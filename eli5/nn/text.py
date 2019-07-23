@@ -3,6 +3,8 @@ import numpy as np # type: ignore
 from scipy.signal import resample # type: ignore
 
 
+# TODO: remove gradcam references. Keep this as a text module for neural nets in general
+
 def resize_1d(heatmap, tokens):
     """
     Resize heatmap to match the length of tokens.
@@ -42,7 +44,6 @@ def resize_1d(heatmap, tokens):
         ## other possibilities
         # https://stackoverflow.com/questions/29085268/resample-a-numpy-array - numpy and scipy interpolation
         # https://machinelearningmastery.com/resample-interpolate-time-series-data-python/ - pandas interpolation
-
     return heatmap
 
 
@@ -77,6 +78,7 @@ def _build_spans(tokens, heatmap, document):
 def _trim_padding(pad_x, padding_type, doc, tokens, heatmap):
     """Removing padding from ``tokens`` and ``heatmap``."""
     # FIXME: if pad_x is something other than the padding number, behaviour is unknown
+    # TODO (open issue): image padding cut off. pass 2-tuple?
     values, indices = np.where(doc == pad_x) # -> all positions with padding character
     if 0 < len(indices):
         # found some padding characters
