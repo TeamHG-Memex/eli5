@@ -29,10 +29,12 @@ from eli5.keras.explain_prediction import (
     _is_suitable_image_layer,
     _is_suitable_text_layer,
 )
+from eli5.gradcam import (
+    gradcam,
+)
 from eli5.keras.gradcam import (
     _get_target_prediction,
     _calc_gradient,
-    gradcam,
 )
 
 

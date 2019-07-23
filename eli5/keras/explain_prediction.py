@@ -15,10 +15,12 @@ from eli5.base import (
     DocWeightedSpans,
 )
 from eli5.explain import explain_prediction
-from .gradcam import (
+from eli5.gradcam import (
     gradcam,
-    gradcam_backend,
     compute_weights,
+)
+from .gradcam import (
+    gradcam_backend,
 )
 from .text import (
     resize_1d,
