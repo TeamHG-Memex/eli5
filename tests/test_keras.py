@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-
-"""Keras unit tests"""
+"""Keras unit tests for helpers and Grad-CAM backend"""
 
 import pytest
 
@@ -28,9 +27,6 @@ from eli5.keras.explain_prediction import (
     _backward_layers,
     _is_suitable_image_layer,
     _is_suitable_text_layer,
-)
-from eli5.nn.gradcam import (
-    gradcam_heatmap,
 )
 from eli5.keras.gradcam import (
     _get_target_prediction,
@@ -117,6 +113,9 @@ def test_validate_doc_2d():
     with pytest.raises(ValueError):
         _validate_doc(model, np.zeros((1, 5, 3)))
 
+
+# TODO: test validate tokens and doc for text
+
  
 def test_get_target_prediction_invalid(simple_seq):
     # only list of targets is currently supported
@@ -174,22 +173,3 @@ def test_calc_gradient_nondifferentiable(nondifferentiable_model):
     with pytest.raises(ValueError):
         grads = _calc_gradient(nondifferentiable_model.output, 
             [nondifferentiable_model.input])
-
-
-def test_gradcam_zeros():
-    shape = (1, 2, 2, 3)
-    activations = np.ones(shape) # three 2x2 maps
-    grads = np.zeros(shape) # grad for each map
-    heatmap = gradcam_heatmap(grads, activations)
-    # all zeroes
-    assert np.count_nonzero(heatmap) == 0
-
-
-def test_gradcam_ones():
-    shape = (1, 1, 1, 2)
-    activations = np.ones(shape)
-    grads = np.ones(shape)
-    heatmap = gradcam_heatmap(grads, activations)
-    expected = np.ones((1, 1))*2 # 2 because we *add* each map
-    # all within eps distance
-    assert np.isclose(heatmap, expected, rtol=epsilon())

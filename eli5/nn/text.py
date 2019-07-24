@@ -9,7 +9,12 @@ from eli5.base import (
 
 
 # TODO: remove gradcam references. Keep this as a text module for neural nets in general??
-def gradcam_text_spans(heatmap, tokens, doc, pad_x, padding_type):
+def gradcam_text_spans(heatmap, tokens, doc, pad_x=None, padding_type=None):
+    """
+    Create text spans from a Grad-CAM ``heatmap`` imposed over ``tokens``.
+    Optionally cut off the padding from the explanation 
+    with the ``pad_x`` and ``padding_type`` arguments.
+    """
     # we resize before cutting off padding?
     # FIXME: might want to do this when formatting the explanation?
     heatmap = resize_1d(heatmap, tokens)
@@ -69,17 +74,6 @@ def resize_1d(heatmap, tokens):
     return heatmap
 
 
-def _construct_document(tokens):
-    """Create a document string by joining ``tokens``."""
-    if ' ' in tokens:
-        # character-based (probably)
-        sep = ''
-    else:
-        # word-based
-        sep = ' '
-    return sep.join(tokens)
-
-
 def _build_spans(tokens, heatmap, document):
     """Highlight ``tokens`` in ``document``, with weights from ``heatmap``."""
     assert len(tokens) == len(heatmap)
@@ -95,6 +89,17 @@ def _build_spans(tokens, heatmap, document):
         # update run
         running = t_end 
     return spans
+
+
+def _construct_document(tokens):
+    """Create a document string by joining ``tokens``."""
+    if ' ' in tokens:
+        # character-based (probably)
+        sep = ''
+    else:
+        # word-based
+        sep = ' '
+    return sep.join(tokens)
 
 
 def _trim_padding(pad_x, padding_type, doc, tokens, heatmap):

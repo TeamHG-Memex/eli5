@@ -308,7 +308,9 @@ def explain_prediction_keras_text(model,
                               counterfactual=counterfactual,
     )
     tokens, heatmap, weighted_spans = gradcam_text_spans(heatmap, 
-                                        tokens, doc, pad_x, padding_type
+                                        tokens, doc, 
+                                        pad_x=pad_x, 
+                                        padding_type=padding_type,
     )
 
     return Explanation(

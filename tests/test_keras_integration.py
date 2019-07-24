@@ -149,3 +149,6 @@ def test_show_prediction_nodeps(show_nodeps, keras_clf, cat_dog_image):
     with pytest.warns(UserWarning):
         expl = show_nodeps(keras_clf, cat_dog_image[0], image=cat_dog_image[1])
     assert isinstance(expl, Explanation)
+
+
+# TODO: test no relu and counterfactual explanations
