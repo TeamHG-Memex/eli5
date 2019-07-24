@@ -11,28 +11,24 @@ from keras.layers import Layer # type: ignore
 from eli5.base import (
     Explanation, 
     TargetExplanation, 
-    WeightedSpans,
-    DocWeightedSpans,
 )
 from eli5.explain import explain_prediction
-from eli5.gradcam import (
-    gradcam,
-    compute_weights,
+from eli5.nn.gradcam import (
+    gradcam_heatmap,
+)
+from eli5.nn.text import (
+    gradcam_text_spans,
 )
 from .gradcam import (
     gradcam_backend,
-)
-from .text import (
-    resize_1d,
-    _trim_padding,
-    _construct_document,
-    _build_spans,
 )
 
 
 if TYPE_CHECKING:
     import PIL # type: ignore
-    # FIXME: do we need to check types of things we ignore?
+    # https://docs.python.org/3/library/typing.html#typing.TYPE_CHECKING
+    # https://mypy.readthedocs.io/en/latest/common_issues.html#import-cycles
+    # Question: do we need to check types of things we ignore?
     # is mypy good for "type documentation"
     # or is it the opposite? (needs maintenance)
 
