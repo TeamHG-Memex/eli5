@@ -15,6 +15,7 @@ from eli5.base import (
 from eli5.explain import explain_prediction
 from eli5.nn.gradcam import (
     gradcam_heatmap,
+    DESCRIPTION_GRADCAM
 )
 from eli5.nn.text import (
     gradcam_text_spans,
@@ -31,12 +32,6 @@ if TYPE_CHECKING:
     # Question: do we need to check types of things we ignore?
     # is mypy good for "type documentation"
     # or is it the opposite? (needs maintenance)
-
-
-DESCRIPTION_KERAS = """
-Grad-CAM visualization for classification tasks; 
-output is explanation object that contains a heatmap.
-"""
 
 
 # note that keras.models.Sequential subclasses keras.models.Model
@@ -237,7 +232,7 @@ def explain_prediction_keras_image(model,
     
     return Explanation(
         model.name,
-        description=DESCRIPTION_KERAS,
+        description=DESCRIPTION_GRADCAM,
         error='',
         method='Grad-CAM',
         image=image, # RGBA Pillow image
@@ -321,7 +316,7 @@ def explain_prediction_keras_text(model,
 
     return Explanation(
         model.name,
-        description=DESCRIPTION_KERAS,
+        description=DESCRIPTION_GRADCAM,
         error='',
         method='Grad-CAM',
         targets=[TargetExplanation(
