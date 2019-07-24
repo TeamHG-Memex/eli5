@@ -19,8 +19,8 @@ from keras.layers import (
 from keras.backend import epsilon
 import numpy as np
 
+import eli5
 from eli5.keras.explain_prediction import (
-    explain_prediction,
     _validate_doc,
     _get_layer,
     _search_activation_layer,
@@ -29,8 +29,8 @@ from eli5.keras.explain_prediction import (
     _is_suitable_image_layer,
     _is_suitable_text_layer,
 )
-from eli5.gradcam import (
-    gradcam,
+from eli5.nn.gradcam import (
+    gradcam_heatmap,
 )
 from eli5.keras.gradcam import (
     _get_target_prediction,
@@ -135,7 +135,9 @@ def test_get_target_prediction_invalid(simple_seq):
 
 
 def test_explain_prediction_score(simple_seq):
-    expl = explain_prediction(simple_seq, np.zeros((1, 32, 32, 1)), image=True) # TODO: dummy image
+    expl = eli5.explain_prediction(simple_seq, 
+                                   np.zeros((1, 32, 32, 1)), 
+                                   image=True) # TODO: dummy image
     assert expl.targets[0].score is not None
     assert expl.targets[0].proba is None
 
@@ -171,17 +173,19 @@ def test_calc_gradient_nondifferentiable(nondifferentiable_model):
 
 
 def test_gradcam_zeros():
-    activations = np.ones((1, 2, 2, 3)) # three 2x2 maps
-    weights = np.zeros((1, 3)) # weight for each map
-    lmap = gradcam(weights, activations)
+    shape = (1, 2, 2, 3)
+    activations = np.ones(shape) # three 2x2 maps
+    grads = np.zeros(shape) # grad for each map
+    heatmap = gradcam_heatmap(grads, activations)
     # all zeroes
-    assert np.count_nonzero(lmap) == 0
+    assert np.count_nonzero(heatmap) == 0
 
 
 def test_gradcam_ones():
-    activations = np.ones((1, 1, 1, 2))
-    weights = np.ones((1, 2))
-    lmap = gradcam(weights, activations)
+    shape = (1, 1, 1, 2)
+    activations = np.ones(shape)
+    grads = np.ones(shape)
+    heatmap = gradcam_heatmap(grads, activations)
     expected = np.ones((1, 1))*2 # 2 because we *add* each map
     # all within eps distance
-    assert np.isclose(lmap, expected, rtol=epsilon())
+    assert np.isclose(heatmap, expected, rtol=epsilon())

@@ -2,25 +2,8 @@
 import numpy as np # type: ignore
 
 
-def gradcam_text_spans(heatmap, tokens, doc, pad_x, padding_type):
-    # we resize before cutting off padding?
-    # FIXME: might want to do this when formatting the explanation?
-    heatmap = resize_1d(heatmap, tokens)
-
-    if pad_x is not None:
-        # remove padding
-        tokens, heatmap = _trim_padding(pad_x, padding_type, doc,
-                                        tokens, heatmap)
-    document = _construct_document(tokens)
-    spans = _build_spans(tokens, heatmap, document)
-    weighted_spans = WeightedSpans([
-        DocWeightedSpans(document, spans=spans)
-    ]) # why list? - for each vectorized - don't need multiple vectorizers?
-       # multiple highlights? - could do positive and negative expl?
-    return tokens, heatmap, weighted_spans
-
-
-def gradcam_heatmap(activations, grads, relu, counterfactual):
+def gradcam_heatmap(activations, grads, relu=True, counterfactual=False):
+    # type: (np.ndarray, np.ndarray, bool, bool) -> np.ndarray
     if counterfactual:
         # negate grads for a "counterfactual explanation"
         # can equivalently negate ys loss scalar in gradcam_backend

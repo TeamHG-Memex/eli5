@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
-from typing import Union, Optional, Tuple, List
+from typing import Optional, Tuple, List
 
 import numpy as np # type: ignore
 import keras # type: ignore

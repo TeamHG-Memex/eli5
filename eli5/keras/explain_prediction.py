@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
-from typing import Union, Optional, Callable, Tuple, List, Generator, TYPE_CHECKING
+from typing import Union, Optional, Callable, List, Generator, TYPE_CHECKING
 
 import numpy as np # type: ignore
 import keras # type: ignore
@@ -197,7 +197,7 @@ def explain_prediction_keras_not_supported(model,
 
 def explain_prediction_keras_image(model,
                                    doc,
-                                   image=None, # type: Optional[PIL.Image.Image]
+                                   image=None, # type: Optional['PIL.Image.Image']
                                    targets=None,
                                    layer=None,
                                    relu=True,
