@@ -34,6 +34,7 @@ from eli5.nn.gradcam import (
 )
 from eli5.keras.gradcam import (
     _get_target_prediction,
+    _autoget_target_prediction,
     _calc_gradient,
 )
 
@@ -132,6 +133,9 @@ def test_get_target_prediction_invalid(simple_seq):
     # target index must correctly reference one of the nodes in the final layer
     with pytest.raises(ValueError):
         _get_target_prediction([20], simple_seq)
+
+
+# TODO: test_autoget_target_prediction with multiple maximum values, etc
 
 
 def test_explain_prediction_score(simple_seq):

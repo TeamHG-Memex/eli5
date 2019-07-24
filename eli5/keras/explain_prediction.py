@@ -149,34 +149,31 @@ def explain_prediction_keras(model, # type: Model
 
     # check that only one of image or tokens is passed
     assert image is None or tokens is None
-
     if image is not None:
         return explain_prediction_keras_image(model, 
-                                       doc,
-                                       image=image,
-                                       targets=targets, 
-                                       layer=layer,
-                                       relu=relu,
-                                       counterfactual=counterfactual,
+                                              doc,
+                                              image=image,
+                                              targets=targets, 
+                                              layer=layer,
+                                              relu=relu,
+                                              counterfactual=counterfactual,
         )
     elif tokens is not None:
         return explain_prediction_keras_text(model, 
-                                      doc, 
-                                      tokens=tokens,
-                                      pad_x=pad_x,
-                                      padding_type=padding_type,
-                                      targets=targets,
-                                      layer=layer,
-                                      relu=relu,
-                                      counterfactual=counterfactual,
+                                             doc, 
+                                             tokens=tokens,
+                                             pad_x=pad_x,
+                                             padding_type=padding_type,
+                                             targets=targets,
+                                             layer=layer,
+                                             relu=relu,
+                                             counterfactual=counterfactual,
         )
     else:
         return explain_prediction_keras_not_supported(model, doc)
 
 
-def explain_prediction_keras_not_supported(model,
-                                           doc,
-                                           ):
+def explain_prediction_keras_not_supported(model, doc):
     """Can not do an explanation based on the passed arguments."""
     return Explanation(
         model.name,
@@ -335,26 +332,25 @@ def explain_prediction_keras_text(model,
 # An attempt was to make use of **kwargs
 # But it led to statements like arg = kwargs.get('arg', None)
 # When making changes to argument lists, watch the following:
-# * What arguments the "dispatcher" takes
-# * With what arguments the "dispatcher" calls the "concrete" functions
-# * What arguments the "concrete" functions take
-# * Do default values for repeated arguments match
+# * What arguments the "dispatcher" takes?
+# * With what arguments the "dispatcher" calls the "concrete" functions?
+# * What arguments the "concrete" functions take?
+# * Do default values for repeated arguments match?
 # If you have a better solution, send a PR / open an issue on GitHub.
 
 
-def _get_layer(model,layer): 
+def _get_layer(model, layer): 
     # type: (Model, Union[int, str, Layer]) -> Layer
     """ 
     Wrapper around ``model.get_layer()`` for int, str, or Layer argument``.
     Return a keras Layer instance.
     """
-    # get_layer() performs a bottom-up horizontal graph traversal
-    # it can raise ValueError if the layer index / name specified is not found
-
     # currently we don't do any validation on the retrieved layer
     if isinstance(layer, Layer):
         return layer
     elif isinstance(layer, int):
+        # keras.get_layer() performs a bottom-up horizontal graph traversal
+        # the function raises ValueError if the layer index / name specified is not found
         return model.get_layer(index=layer)
     elif isinstance(layer, str):
         return model.get_layer(name=layer)
@@ -363,8 +359,8 @@ def _get_layer(model,layer):
 
 
 def _search_activation_layer(model, # type: Model
-    layers_generator, # type: Callable[[Model], Generator[Layer, None, None]]
-    layer_condition, # type: Callable[[Model, Layer], bool]
+                             layers_generator, # type: Callable[[Model], Generator[Layer, None, None]]
+                             layer_condition, # type: Callable[[Model, Layer], bool]
     ):
     """
     Search for a layer in ``model``, iterating through layers in the order specified by
@@ -415,6 +411,7 @@ def _is_suitable_text_layer(model, layer):
     """
     # check the type
     # FIXME: this is not an exhaustive list
+    # FIXME: optimisation - this tuple is defined on each call
     desired_layers = (keras.layers.Conv1D,
                       keras.layers.RNN,
                       keras.layers.LSTM,

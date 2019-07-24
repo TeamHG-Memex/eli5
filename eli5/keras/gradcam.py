@@ -49,7 +49,10 @@ def gradcam_backend(model, # type: Model
     # This would be consistent with what is done in
     # https://github.com/ramprs/grad-cam/blob/master/misc/utils.lua
     # and https://github.com/ramprs/grad-cam/blob/master/classification.lua
-    predicted_idx = _get_target_prediction(targets, model)
+    if targets is not None:
+        predicted_idx = _get_target_prediction(targets, model)
+    else:
+        predicted_idx = _autoget_target_prediction(model)
     predicted_val = K.gather(model.output[0,:], predicted_idx) # access value by index
 
     # output of target activation layer, i.e. activation maps of a convolutional layer
@@ -74,6 +77,7 @@ def gradcam_backend(model, # type: Model
 
 def _calc_gradient(ys, xs):
     # (K.variable, list) -> K.variable
+    # FIXME: K.variable is not the right type to use?
     """
     Return the gradient of scalar ``ys`` with respect to each of list ``xs``,
     (must be singleton)
@@ -105,7 +109,7 @@ def _calc_gradient(ys, xs):
 
 
 def _get_target_prediction(targets, model):
-    # type: (Optional[list], Model) -> K.variable
+    # type: (list, Model) -> K.variable
     """
     Get a prediction ID based on ``targets``, 
     from the model ``model`` (with a rank 2 tensor for its final layer).
@@ -116,17 +120,21 @@ def _get_target_prediction(targets, model):
         if len(targets) == 1:
             target = targets[0]
             _validate_target(target, model.output_shape)
-            predicted_idx = K.constant([target], dtype='int64')
+            return K.constant([target], dtype='int64')
         else:
             raise ValueError('More than one prediction target '
                              'is currently not supported ' 
                              '(found a list that is not length 1): '
                              '{}'.format(targets))
-    elif targets is None:
-        predicted_idx = K.argmax(model.output, axis=-1)
     else:
         raise TypeError('Invalid argument "targets" (must be list or None): %s' % targets)
-    return predicted_idx
+
+
+def _autoget_target_prediction(model):
+    # type: (Model) -> K.variable
+    """Automatically get the highest value prediction from ``model``"""
+    output = model.output
+    return K.argmax(output, axis=-1)
 
 
 # FIXME: should this be moved to general gradcam package?
