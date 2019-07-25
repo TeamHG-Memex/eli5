@@ -45,7 +45,7 @@ def explain_prediction_keras(model, # type: Model
                              image=None,
                              tokens=None,
                              pad_x=None,
-                             padding_type=None,
+                             padding=None,
                             ):
     # type: (...) -> Explanation
     """
@@ -163,7 +163,7 @@ def explain_prediction_keras(model, # type: Model
                                              doc, 
                                              tokens=tokens,
                                              pad_x=pad_x,
-                                             padding_type=padding_type,
+                                             padding=padding,
                                              targets=targets,
                                              layer=layer,
                                              relu=relu,
@@ -247,7 +247,7 @@ def explain_prediction_keras_text(model,
                                   doc,
                                   tokens=None, # type: Optional[List[str]] # TODO: take as list or numpy array
                                   pad_x=None, # type: Optional[int]
-                                  padding_type=None, # type: Optional[str]
+                                  padding=None, # type: Optional[str]
                                   targets=None,
                                   layer=None,
                                   relu=True,
@@ -271,12 +271,12 @@ def explain_prediction_keras_text(model,
         *Not supported for images.*
     :type pad_x: int, optional
 
-    :param padding_type:
+    :param padding:
         Padding position, 'pre' (before sequence) 
         or 'post' (after sequence).
         
         Padding characters will be cut off from the heatmap and tokens.
-    :type padding_type: str, optional
+    :type padding: str, optional
 
     Returns
     -------
@@ -310,7 +310,7 @@ def explain_prediction_keras_text(model,
     tokens, heatmap, weighted_spans = gradcam_text_spans(heatmap, 
                                         tokens, doc, 
                                         pad_x=pad_x, 
-                                        padding_type=padding_type,
+                                        padding=padding,
     )
 
     return Explanation(
