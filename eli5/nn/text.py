@@ -36,8 +36,8 @@ def resize_1d(heatmap, tokens):
     """
     Resize heatmap to match the length of tokens.
     
-    For example, upscale/upsample a (400,) heatmap 
-    to match (500,) array of tokens.
+    For example, upscale/upsample a length=400 heatmap 
+    to match length=500 array of tokens.
     """
     width = len(tokens)
 

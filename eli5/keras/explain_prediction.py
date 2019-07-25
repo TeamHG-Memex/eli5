@@ -260,7 +260,10 @@ def explain_prediction_keras_text(model,
     ``layer``, ``relu``, and ``counterfactual`` parameters.
 
     :param tokens:
-        List of input tokens that correspond to doc (may be padded).
+        Tokens that correspond to ``doc``.
+        With padding if ``doc`` has padding.
+        Either a Python list if ``doc`` batch size is 1 (single sample),
+        or a numpy array with the same shape as ``doc``.
         Will be highlighted for text-based explanations.
     :type tokens: list[str], optional
 
@@ -292,7 +295,7 @@ def explain_prediction_keras_text(model,
     # :type document: str, optional
     assert tokens is not None
     _validate_doc(model, doc)
-    # TODO: validate doc and tokens is same
+    tokens = _validate_tokens(doc, tokens) # FIXME: batch assumptions, _validate does multiple things
 
     if layer is not None:
         activation_layer = _get_layer(model, layer)
@@ -476,3 +479,22 @@ def _eq_shapes(required, other):
             else (1 <= d2) # else just check that the other shape has a valid shape for a dim
             for d1, d2 in zip(required, other)]
     return all(matching)
+
+
+def _validate_tokens(doc, tokens):
+    batch_size, temporal_len = doc.shape
+    if isinstance(tokens, np.ndarray):
+        if doc.shape != tokens.shape:
+            raise ValueError('"tokens" and "doc" numpy array shapes must be the same.')
+        tokens = tokens[0, ...] # batch -> sample1
+    elif isinstance(tokens, list):
+        if batch_size != 1:
+            raise ValueError('If passing tokens in a Python list, '
+                             'doc must have batch size 1.')
+    else:
+        raise TypeError('"tokens" must be list or np.ndarray. '
+                        'Got {}.'.format(tokens))
+    tokens_len = len(tokens)
+    if temporal_len != tokens_len:
+        raise ValueError('"tokens" must have same temporal length as "doc".')
+    return tokens
