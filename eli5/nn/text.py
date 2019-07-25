@@ -9,19 +9,20 @@ from eli5.base import (
 
 
 # TODO: remove gradcam references. Keep this as a text module for neural nets in general??
-def gradcam_text_spans(heatmap, tokens, doc, pad_x=None, padding=None):
+def gradcam_text_spans(heatmap, tokens, doc, pad_value=None, padding=None):
     """
     Create text spans from a Grad-CAM ``heatmap`` imposed over ``tokens``.
     Optionally cut off the padding from the explanation 
-    with the ``pad_x`` and ``padding`` arguments.
+    with the ``pad_value`` and ``padding`` arguments.
     """
     # we resize before cutting off padding?
     # FIXME: might want to do this when formatting the explanation?
     heatmap = resize_1d(heatmap, tokens)
 
-    if pad_x is not None:
+    if pad_value is not None:
         # remove padding
-        tokens, heatmap = _trim_padding(pad_x, padding, doc,
+        padding_indices = _find_padding(pad_value, doc, tokens)
+        tokens, heatmap = _trim_padding(padding_indices, padding,
                                         tokens, heatmap)
     document = _construct_document(tokens)
     spans = _build_spans(tokens, heatmap, document)
@@ -102,26 +103,38 @@ def _construct_document(tokens):
     return sep.join(tokens)
 
 
-def _trim_padding(pad_x, padding, doc, tokens, heatmap):
+def _find_padding(pad_value, doc, tokens):
+    """Find padding tokens or values, returning indices containing padding characters."""
+    # If pad_value is not the actual padding value, behaviour is unknown
+    if isinstance(pad_value, int):
+        # in doc
+        values, indices = np.where(doc == pad_value) # -> all positions with padding character
+    elif isinstance(pad_value, str):
+        # in tokens
+        indices = [idx for idx, token in enumerate(tokens) if token == pad_value]
+    else:
+        raise TypeError('"pad_value" must be int or str. ' 
+                        'Got: {}'.format(pad_value))
+    return indices
+    # TODO: warn if indices is empty - passed wrong padding char/value?
+
+
+def _trim_padding(pad_indices, padding, tokens, heatmap):
     """Removing padding from ``tokens`` and ``heatmap``."""
-    # FIXME: if pad_x is something other than the padding number, behaviour is unknown
-    # TODO (open issue): image padding cut off. pass 2-tuple?
-    values, indices = np.where(doc == pad_x) # -> all positions with padding character
-    if 0 < len(indices):
+    if 0 < len(pad_indices):
         # found some padding characters
         if padding == 'post':
             # `word word pad pad`
-            first_pad_idx = indices[0]
+            first_pad_idx = pad_indices[0]
             tokens = tokens[:first_pad_idx]
             heatmap = heatmap[:first_pad_idx]
         elif padding == 'pre':
             # `pad pad word word`
-            last_pad_idx = indices[-1]
+            last_pad_idx = pad_indices[-1]
             tokens = tokens[last_pad_idx+1:]
             heatmap = heatmap[last_pad_idx+1:]
         else:
             raise ValueError('padding must be "post" or "pre". '
                              'Got: {}'.format(padding))
     # TODO: check that there's no padding characters inside the text
-    # might want to pass pad_x as a token, not doc number?
     return tokens, heatmap

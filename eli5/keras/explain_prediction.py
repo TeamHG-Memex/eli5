@@ -44,7 +44,7 @@ def explain_prediction_keras(model, # type: Model
                              counterfactual=False, # type: bool
                              image=None,
                              tokens=None,
-                             pad_x=None,
+                             pad_value=None,
                              padding=None,
                             ):
     # type: (...) -> Explanation
@@ -162,7 +162,7 @@ def explain_prediction_keras(model, # type: Model
         return explain_prediction_keras_text(model, 
                                              doc, 
                                              tokens=tokens,
-                                             pad_x=pad_x,
+                                             pad_value=pad_value,
                                              padding=padding,
                                              targets=targets,
                                              layer=layer,
@@ -227,6 +227,7 @@ def explain_prediction_keras_image(model,
                               counterfactual=counterfactual,
     )
     
+    # TODO (open issue): image padding cut off. pass 2-tuple?
     return Explanation(
         model.name,
         description=DESCRIPTION_GRADCAM,
@@ -245,8 +246,8 @@ def explain_prediction_keras_image(model,
 
 def explain_prediction_keras_text(model,
                                   doc,
-                                  tokens=None, # type: Optional[List[str]] # TODO: take as list or numpy array
-                                  pad_x=None, # type: Optional[int]
+                                  tokens=None, # type: Optional[Union[List[str], np.ndarray]]
+                                  pad_value=None, # type: Optional[Union[int, str]]
                                   padding=None, # type: Optional[str]
                                   targets=None,
                                   layer=None,
@@ -262,17 +263,22 @@ def explain_prediction_keras_text(model,
     :param tokens:
         Tokens that correspond to ``doc``.
         With padding if ``doc`` has padding.
+
         Either a Python list if ``doc`` batch size is 1 (single sample),
         or a numpy array with the same shape as ``doc``.
-        Will be highlighted for text-based explanations.
+
+        These tokens will be highlighted for text-based explanations.
     :type tokens: list[str], optional
 
-    :param pad_x:
+    :param pad_value:
         Character for padding. If given, cuts padding off.
-        Do not pass this to see the effect of padding.
+        
+        Either an integer value in ``doc``, or a string token in ``tokens``.
 
+        Do not pass this to see the effect of padding on the prediction
+        (explain padding).
         *Not supported for images.*
-    :type pad_x: int, optional
+    :type pad_value: int or str, optional
 
     :param padding:
         Padding position, 'pre' (before sequence) 
@@ -312,7 +318,7 @@ def explain_prediction_keras_text(model,
     )
     tokens, heatmap, weighted_spans = gradcam_text_spans(heatmap, 
                                         tokens, doc, 
-                                        pad_x=pad_x, 
+                                        pad_value=pad_value, 
                                         padding=padding,
     )
 
