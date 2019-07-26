@@ -99,7 +99,7 @@ def test_sentiment_classification(imdb_sentiment_clf, imdb_index, imdb_sample_in
     word_index = imdb_index[0]
     doc, tokens = imdb_sample_input[:2]
     expl = eli5.explain_prediction(model, doc, tokens=tokens, 
-                                    pad_x=word_index['<PAD>'],
+                                    pad_value=word_index['<PAD>'],
                                     padding='post',
     )
     # assert_spans_value_close_to(1)
