@@ -9,6 +9,7 @@ from eli5.base import (
 
 
 # TODO: remove gradcam references. Keep this as a text module for neural nets in general??
+# FIXME: migth want to move this to nn.gradcam?
 def gradcam_text_spans(heatmap, tokens, doc, pad_value=None, padding=None):
     """
     Create text spans from a Grad-CAM ``heatmap`` imposed over ``tokens``.
@@ -17,12 +18,14 @@ def gradcam_text_spans(heatmap, tokens, doc, pad_value=None, padding=None):
     """
     # we resize before cutting off padding?
     # FIXME: might want to do this when formatting the explanation?
-    heatmap = resize_1d(heatmap, tokens)
+    width = _get_temporal_length(tokens)
+    heatmap = resize_1d(heatmap, width)
 
     if pad_value is not None:
         # remove padding
-        padding_indices = _find_padding(pad_value, doc, tokens)
-        tokens, heatmap = _trim_padding(padding_indices, padding,
+        pad_indices = _find_padding(pad_value, doc, tokens)
+        # If pad_value is not the actual padding value, behaviour is unknown
+        tokens, heatmap = _trim_padding(pad_indices, padding,
                                         tokens, heatmap)
     document = _construct_document(tokens)
     spans = _build_spans(tokens, heatmap, document)
@@ -33,15 +36,27 @@ def gradcam_text_spans(heatmap, tokens, doc, pad_value=None, padding=None):
     return tokens, heatmap, weighted_spans
 
 
-def resize_1d(heatmap, tokens):
-    """
-    Resize heatmap to match the length of tokens.
-    
-    For example, upscale/upsample a length=400 heatmap 
-    to match length=500 array of tokens.
-    """
-    width = len(tokens)
+def _get_temporal_length(tokens):
+    if isinstance(tokens, np.ndarray):
+        if len(tokens.shape) == 1:
+            # no batch size
+            return tokens.shape[0]
+        elif len(tokens.shape) == 2:
+            # possible batch size
+            return tokens.shape[1]
+        else:
+            raise ValueError('"tokens" shape is ambiguous.')
+    elif isinstance(tokens, list):
+        return len(tokens)
 
+
+def resize_1d(heatmap, width):
+    """
+    Resize heatmap to match the specified width.
+    
+    For example, upscale/upsample a heatmap with length 400
+    to have width=500.
+    """
     if len(heatmap.shape) == 1 and heatmap.shape[0] == 1:
         # single weight
         # FIXME (with resample func): resizing for single value heatmap, 
@@ -103,33 +118,43 @@ def _construct_document(tokens):
     return sep.join(tokens)
 
 
-def _find_padding(pad_value, doc, tokens):
-    """Find padding tokens or values, returning indices containing padding characters."""
-    # If pad_value is not the actual padding value, behaviour is unknown
-    if isinstance(pad_value, int):
-        # in doc
-        values, indices = np.where(doc == pad_value) # -> all positions with padding character
-    elif isinstance(pad_value, str):
-        # in tokens
-        indices = [idx for idx, token in enumerate(tokens) if token == pad_value]
+def _find_padding(pad_value, doc=None, tokens=None):
+    """Find padding in input ``doc`` or ``tokens`` based on ``pad_value``,
+    returning a numpy array of indices where padding was found."""
+    if isinstance(pad_value, (int, float)) and doc is not None:
+        indices = _find_doc_padding(pad_value, doc)
+    elif isinstance(pad_value, str) and tokens is not None:
+        indices = _find_tokens_padding(pad_value, tokens)
     else:
-        raise TypeError('"pad_value" must be int or str. ' 
+        raise TypeError('Pass "doc" and "pad_value" as int or float, '
+                        'or "tokens" and "pad_value" as str. '
                         'Got: {}'.format(pad_value))
     return indices
     # TODO: warn if indices is empty - passed wrong padding char/value?
 
 
+def _find_doc_padding(pad_value, doc):
+    values, indices = np.where(doc == pad_value)
+    return indices
+
+
+def _find_tokens_padding(pad_value, tokens):
+    indices = [idx for idx, token in enumerate(tokens) if token == pad_value]
+    return np.array(indices)
+
+
 def _trim_padding(pad_indices, padding, tokens, heatmap):
     """Removing padding from ``tokens`` and ``heatmap``."""
+    # heatmap and tokens must be same length?
     if 0 < len(pad_indices):
         # found some padding characters
         if padding == 'post':
-            # `word word pad pad`
+            # `word word pad pad` -> 'word word'
             first_pad_idx = pad_indices[0]
             tokens = tokens[:first_pad_idx]
             heatmap = heatmap[:first_pad_idx]
         elif padding == 'pre':
-            # `pad pad word word`
+            # `pad pad word word` -> 'word word'
             last_pad_idx = pad_indices[-1]
             tokens = tokens[last_pad_idx+1:]
             heatmap = heatmap[last_pad_idx+1:]

@@ -9,7 +9,7 @@ from keras.models import Model # type: ignore
 from keras.layers import Layer # type: ignore
 
 
-def gradcam_backend(model, # type: Model
+def gradcam_backend_keras(model, # type: Model
     doc, # type: np.ndarray
     targets, # type: Optional[List[int]]
     activation_layer, # type: Layer

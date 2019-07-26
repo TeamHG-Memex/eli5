@@ -19,9 +19,10 @@ from eli5.nn.gradcam import (
 )
 from eli5.nn.text import (
     gradcam_text_spans,
+    _get_temporal_length,
 )
 from .gradcam import (
-    gradcam_backend,
+    gradcam_backend_keras,
 )
 
 
@@ -219,7 +220,7 @@ def explain_prediction_keras_image(model,
         activation_layer = _search_activation_layer(model, 
             _backward_layers, _is_suitable_image_layer)
 
-    activations, grads, predicted_idx, predicted_val = gradcam_backend(model, 
+    activations, grads, predicted_idx, predicted_val = gradcam_backend_keras(model, 
                                             doc, targets, activation_layer)
     heatmap = gradcam_heatmap(activations,
                               grads,
@@ -300,8 +301,8 @@ def explain_prediction_keras_text(model,
     #    Not tokenized and without padding.
     # :type document: str, optional
     assert tokens is not None
-    _validate_doc(model, doc)
-    tokens = _validate_tokens(doc, tokens) # FIXME: batch assumptions, _validate does multiple things
+    _validate_doc(model, doc) # should validate that doc is 2D array (temporal/series data?)
+    _validate_tokens(doc, tokens)
 
     if layer is not None:
         activation_layer = _get_layer(model, layer)
@@ -309,7 +310,7 @@ def explain_prediction_keras_text(model,
         activation_layer = _search_activation_layer(model, 
             _forward_layers, _is_suitable_text_layer)
 
-    activations, grads, predicted_idx, predicted_val = gradcam_backend(model, 
+    activations, grads, predicted_idx, predicted_val = gradcam_backend_keras(model, 
                                             doc, targets, activation_layer)
     heatmap = gradcam_heatmap(activations,
                               grads,
@@ -488,11 +489,9 @@ def _eq_shapes(required, other):
 
 
 def _validate_tokens(doc, tokens):
-    batch_size, temporal_len = doc.shape
     if isinstance(tokens, np.ndarray):
         if doc.shape != tokens.shape:
             raise ValueError('"tokens" and "doc" numpy array shapes must be the same.')
-        tokens = tokens[0, ...] # batch -> sample1
     elif isinstance(tokens, list):
         if batch_size != 1:
             raise ValueError('If passing tokens in a Python list, '
@@ -500,7 +499,7 @@ def _validate_tokens(doc, tokens):
     else:
         raise TypeError('"tokens" must be list or np.ndarray. '
                         'Got {}.'.format(tokens))
-    tokens_len = len(tokens)
-    if temporal_len != tokens_len:
+    batch_size, doc_len = doc.shape
+    tokens_len = _get_temporal_length(tokens)
+    if doc_len != tokens_len:
         raise ValueError('"tokens" must have same temporal length as "doc".')
-    return tokens

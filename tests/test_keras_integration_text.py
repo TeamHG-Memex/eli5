@@ -102,10 +102,14 @@ def test_sentiment_classification(imdb_sentiment_clf, imdb_index, imdb_sample_in
                                     pad_x=word_index['<PAD>'],
                                     padding='post',
     )
+    # assert_spans_value_close_to(1)
+    # assert_spans_value_close_to(-1)
+    # assert_spans_value_close_to(0)
 
 
 # FIXME: smaller model sizes. Combine RNN + conv. Combine tasks (multiclass cover sentiment?)
-# token level and char level.
+# 1: token level RNN + conv sentiment analysis
+# 2: char level RNN + conv multiclass
 
 
 # TODO: test with a multiclass model
