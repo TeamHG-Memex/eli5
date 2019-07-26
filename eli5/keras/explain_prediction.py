@@ -47,6 +47,7 @@ def explain_prediction_keras(model, # type: Model
                              tokens=None,
                              pad_value=None,
                              padding=None,
+                             interpolation_kind='linear',
                             ):
     # type: (...) -> Explanation
     """
@@ -165,6 +166,7 @@ def explain_prediction_keras(model, # type: Model
                                              tokens=tokens,
                                              pad_value=pad_value,
                                              padding=padding,
+                                             interpolation_kind=interpolation_kind,
                                              targets=targets,
                                              layer=layer,
                                              relu=relu,
@@ -250,6 +252,7 @@ def explain_prediction_keras_text(model,
                                   tokens=None, # type: Optional[Union[List[str], np.ndarray]]
                                   pad_value=None, # type: Optional[Union[int, str]]
                                   padding=None, # type: Optional[str]
+                                  interpolation_kind='linear',
                                   targets=None,
                                   layer=None,
                                   relu=True,
@@ -288,6 +291,11 @@ def explain_prediction_keras_text(model,
         Padding characters will be cut off from the heatmap and tokens.
     :type padding: str, optional
 
+    :param interpolation_kind:
+        scipy interpolation to use when resizing the 1D heatmap array.
+        Default: 'linear'.
+    :type interpolation_kind: str or int, optional
+
     Returns
     -------
     expl : eli5.base.Explanation
@@ -321,8 +329,9 @@ def explain_prediction_keras_text(model,
                                         tokens, doc, 
                                         pad_value=pad_value, 
                                         padding=padding,
+                                        interpolation_kind=interpolation_kind,
     )
-
+    print(heatmap)
     return Explanation(
         model.name,
         description=DESCRIPTION_GRADCAM,
@@ -489,6 +498,7 @@ def _eq_shapes(required, other):
 
 
 def _validate_tokens(doc, tokens):
+    batch_size, doc_len = doc.shape
     if isinstance(tokens, np.ndarray):
         if doc.shape != tokens.shape:
             raise ValueError('"tokens" and "doc" numpy array shapes must be the same.')
@@ -499,7 +509,7 @@ def _validate_tokens(doc, tokens):
     else:
         raise TypeError('"tokens" must be list or np.ndarray. '
                         'Got {}.'.format(tokens))
-    batch_size, doc_len = doc.shape
+    
     tokens_len = _get_temporal_length(tokens)
     if doc_len != tokens_len:
         raise ValueError('"tokens" must have same temporal length as "doc".')

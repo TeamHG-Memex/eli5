@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import numpy as np # type: ignore
-from scipy.signal import resample # type: ignore
+from scipy.interpolate import interp1d # type: ignore
 
 from eli5.base import (
     WeightedSpans,
@@ -10,7 +10,7 @@ from eli5.base import (
 
 # TODO: remove gradcam references. Keep this as a text module for neural nets in general??
 # FIXME: migth want to move this to nn.gradcam?
-def gradcam_text_spans(heatmap, tokens, doc, pad_value=None, padding=None):
+def gradcam_text_spans(heatmap, tokens, doc, pad_value=None, padding=None, interpolation_kind='linear'):
     """
     Create text spans from a Grad-CAM ``heatmap`` imposed over ``tokens``.
     Optionally cut off the padding from the explanation 
@@ -19,7 +19,7 @@ def gradcam_text_spans(heatmap, tokens, doc, pad_value=None, padding=None):
     # we resize before cutting off padding?
     # FIXME: might want to do this when formatting the explanation?
     width = _get_temporal_length(tokens)
-    heatmap = resize_1d(heatmap, width)
+    heatmap = resize_1d(heatmap, width, interpolation_kind=interpolation_kind)
 
     if pad_value is not None:
         # remove padding
@@ -48,45 +48,35 @@ def _get_temporal_length(tokens):
             raise ValueError('"tokens" shape is ambiguous.')
     elif isinstance(tokens, list):
         return len(tokens)
+    else:
+        raise TypeError('"tokens" must be an instance of list or numpy.ndarray. '
+                        'Got: {}'.format(tokens))
 
 
-def resize_1d(heatmap, width):
+def resize_1d(heatmap, width, interpolation_kind='linear'):
     """
-    Resize heatmap to match the specified width.
+    Resize heatmap 1D array to match the specified ``width``.
     
     For example, upscale/upsample a heatmap with length 400
-    to have width=500.
+    to have length 500.
     """
     if len(heatmap.shape) == 1 and heatmap.shape[0] == 1:
-        # single weight
-        # FIXME (with resample func): resizing for single value heatmap, 
-        # i.e. final node in sentiment classification?
-        # only highlights first token
-        # FIXME: this still gives varied highlighting
+        # single weight, no batch
         heatmap = heatmap.repeat(width)
     else:
-        # 1. solution with Pillow image resizing
-        # import PIL
-        # heatmap = np.expand_dims(heatmap, axis=-1)
-        # im = PIL.Image.fromarray(heatmap, mode="F")
-        # im = im.resize((width, 1), resample=PIL.Image.LANCZOS)
-        # heatmap = np.array(im, dtype='float32')
-        # heatmap = heatmap[0, ...]
+        # more than length 1
 
-        # 2. solution with scipy signal resampling
-        # apparently this is very slow?
-        # can also use resample_poly
-        # https://docs.scipy.org/doc/scipy-1.3.0/reference/generated/scipy.signal.resample_poly.html#scipy.signal.resample_poly
-        # FIXME: resample assumes "signal is periodic"
-        heatmap = resample(heatmap, width)
+        # scipy.interpolate solution
+        # https://stackoverflow.com/questions/29085268/resample-a-numpy-array
+        # interp1d requires at least length 2 array
+        y = heatmap # data to interpolate
+        x = np.linspace(0, 1, heatmap.size) # array matching y
+        interpolant = interp1d(x, y, kind=interpolation_kind) # approximates y = f(x)
+        z = np.linspace(0, 1, width) # points where to interpolate
+        heatmap = interpolant(z) # interpolation result
 
-        # gives poor quality
-        # import scipy
-        # heatmap = scipy.signal.resample_poly(heatmap, width, 1)
-
-        ## other possibilities
-        # https://stackoverflow.com/questions/29085268/resample-a-numpy-array - numpy and scipy interpolation
-        # https://machinelearningmastery.com/resample-interpolate-time-series-data-python/ - pandas interpolation
+        # other solutions include scipy.signal.resample (periodic, so doesn't apply)
+        # and Pillow image fromarray with mode 'F'/etc and resizing (didn't seem to work)
     return heatmap
 
 

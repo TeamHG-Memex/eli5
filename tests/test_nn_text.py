@@ -15,20 +15,19 @@ from eli5.nn.text import (
 
 @pytest.mark.parametrize('tokens, expected_length', [
     (np.array([[0, 1, 2]]), 3), # batch
-    (np.array([0, 1, 2, 3]), 4), # array with no batch
+    (np.array([0, 1, 2, 3]), 4), # no batch
     ([0, 1], 2),
 ])
 def test_get_temporal_length(tokens, expected_length):
     assert _get_temporal_length(tokens) == expected_length
 
 
-# TODO: test resize_1d with a single element - should be it repeated
 @pytest.mark.parametrize('heatmap, width, expected', [
     (np.array([0]), 3, np.array([0, 0, 0])),
-    # (np.array([0, 1]), 3, np.array([0, 0.5, 1])),
+    (np.array([0, 1]), 3, np.array([0, 0.5, 1])),
 ])
 def test_resize_1d(heatmap, width, expected):
-    resized = resize_1d(heatmap, width)
+    resized = resize_1d(heatmap, width, interpolation_kind='linear')
     assert np.array_equal(resized, expected)
 
 
