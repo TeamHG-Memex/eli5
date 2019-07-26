@@ -6,4 +6,4 @@ from .explain_prediction import (
     explain_prediction_keras_image,
     explain_prediction_keras_text,
 )
-from .gradcam import gradcam_backend
+from .gradcam import gradcam_backend_keras

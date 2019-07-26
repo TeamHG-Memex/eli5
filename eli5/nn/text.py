@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from typing import Optional, Union, Tuple, List
+
 import numpy as np # type: ignore
 from scipy.interpolate import interp1d # type: ignore
 
@@ -10,7 +12,14 @@ from eli5.base import (
 
 # TODO: remove gradcam references. Keep this as a text module for neural nets in general??
 # FIXME: migth want to move this to nn.gradcam?
-def gradcam_text_spans(heatmap, tokens, doc, pad_value=None, padding=None, interpolation_kind='linear'):
+def gradcam_text_spans(heatmap, # type: np.ndarray
+                       tokens, # type: Union[np.ndarray, list]
+                       doc, # type: np.ndarray
+                       pad_value=None, # type: Optional[Union[str, int, float]]
+                       padding='post', # type: str
+                       interpolation_kind='linear' # type: Union[str, int]
+    ):
+    # type: (...) -> Tuple[Union[np.ndarray, list], np.ndarray, WeightedSpans]
     """
     Create text spans from a Grad-CAM ``heatmap`` imposed over ``tokens``.
     Optionally cut off the padding from the explanation 
@@ -37,6 +46,7 @@ def gradcam_text_spans(heatmap, tokens, doc, pad_value=None, padding=None, inter
 
 
 def _get_temporal_length(tokens):
+    # type: (Union[np.ndarray, list]) -> int
     if isinstance(tokens, np.ndarray):
         if len(tokens.shape) == 1:
             # no batch size
@@ -54,6 +64,7 @@ def _get_temporal_length(tokens):
 
 
 def resize_1d(heatmap, width, interpolation_kind='linear'):
+    # type: (np.ndarray, int, Union[str, int]) -> np.ndarray
     """
     Resize heatmap 1D array to match the specified ``width``.
     
@@ -80,7 +91,10 @@ def resize_1d(heatmap, width, interpolation_kind='linear'):
     return heatmap
 
 
-def _build_spans(tokens, heatmap, document):
+def _build_spans(tokens, # type: Union[np.ndarray, list]
+                 heatmap, # type: np.ndarray
+                 document, # type: str
+    ):
     """Highlight ``tokens`` in ``document``, with weights from ``heatmap``."""
     assert len(tokens) == len(heatmap)
     spans = []
@@ -90,7 +104,8 @@ def _build_spans(tokens, heatmap, document):
         t_start = document.index(token, running)
         # create span
         t_end = t_start + len(token)
-        span = tuple([token, [tuple([t_start, t_end])], weight]) # why start and end is list of tuples?
+        # why start and end is list of tuples?
+        span = tuple([token, [(t_start, t_end,)], weight])
         spans.append(span)
         # update run
         running = t_end 
@@ -98,6 +113,7 @@ def _build_spans(tokens, heatmap, document):
 
 
 def _construct_document(tokens):
+    # type: (Union[list, np.ndarray]) -> str
     """Create a document string by joining ``tokens``."""
     if ' ' in tokens:
         # character-based (probably)
@@ -109,6 +125,7 @@ def _construct_document(tokens):
 
 
 def _find_padding(pad_value, doc=None, tokens=None):
+    # (Union[str, int], Optional[np.ndarray], Optional[np.ndarray, list]) -> np.ndarray
     """Find padding in input ``doc`` or ``tokens`` based on ``pad_value``,
     returning a numpy array of indices where padding was found."""
     if isinstance(pad_value, (int, float)) and doc is not None:
@@ -124,16 +141,23 @@ def _find_padding(pad_value, doc=None, tokens=None):
 
 
 def _find_doc_padding(pad_value, doc):
+    # type: (int, np.ndarray) -> np.ndarray
     values, indices = np.where(doc == pad_value)
     return indices
 
 
 def _find_tokens_padding(pad_value, tokens):
+    # type: (str, Union[list, np.ndarray]) -> np.ndarray
     indices = [idx for idx, token in enumerate(tokens) if token == pad_value]
     return np.array(indices)
 
 
-def _trim_padding(pad_indices, padding, tokens, heatmap):
+def _trim_padding(pad_indices, # type: np.ndarray
+                  padding, # type: str
+                  tokens, # type: Union[list, np.ndarray]
+                  heatmap, # type: np.ndarray
+    ): 
+    # type: (...) -> Tuple[Union[list, np.ndarray], np.ndarray]
     """Removing padding from ``tokens`` and ``heatmap``."""
     # heatmap and tokens must be same length?
     if 0 < len(pad_indices):

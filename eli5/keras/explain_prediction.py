@@ -46,7 +46,7 @@ def explain_prediction_keras(model, # type: Model
                              image=None,
                              tokens=None,
                              pad_value=None,
-                             padding=None,
+                             padding='post',
                              interpolation_kind='linear',
                             ):
     # type: (...) -> Explanation
@@ -251,8 +251,8 @@ def explain_prediction_keras_text(model,
                                   doc,
                                   tokens=None, # type: Optional[Union[List[str], np.ndarray]]
                                   pad_value=None, # type: Optional[Union[int, str]]
-                                  padding=None, # type: Optional[str]
-                                  interpolation_kind='linear',
+                                  padding='post', # type: str
+                                  interpolation_kind='linear', # type: Union[str, int]
                                   targets=None,
                                   layer=None,
                                   relu=True,
@@ -288,6 +288,8 @@ def explain_prediction_keras_text(model,
         Padding position, 'pre' (before sequence) 
         or 'post' (after sequence).
         
+        Default: 'post'.
+
         Padding characters will be cut off from the heatmap and tokens.
     :type padding: str, optional
 

@@ -9,6 +9,9 @@ from eli5.nn.gradcam import (
 )
 
 
+epsilon = 1e-07
+
+
 def test_gradcam_zeros():
     shape = (1, 2, 2, 3)
     activations = np.ones(shape) # three 2x2 maps
@@ -25,7 +28,7 @@ def test_gradcam_ones():
     heatmap = gradcam_heatmap(grads, activations)
     expected = np.ones((1, 1))*2 # 2 because we *add* each map
     # all within eps distance
-    assert np.isclose(heatmap, expected, rtol=epsilon())
+    assert np.isclose(heatmap, expected, rtol=epsilon)
 
 
 # TODO: test compute_weights with different shapes
