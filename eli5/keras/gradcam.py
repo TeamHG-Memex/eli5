@@ -49,11 +49,12 @@ def gradcam_backend_keras(model, # type: Model
     # This would be consistent with what is done in
     # https://github.com/ramprs/grad-cam/blob/master/misc/utils.lua
     # and https://github.com/ramprs/grad-cam/blob/master/classification.lua
+    # TODO: as in pytorch PR, separate out classification tensor code
     if targets is not None:
         predicted_idx = _get_target_prediction(targets, model)
     else:
         predicted_idx = _autoget_target_prediction(model)
-    predicted_val = K.gather(model.output[0,:], predicted_idx) # access value by index
+    predicted_val = K.gather(model.output[0, :], predicted_idx) # access value by index
 
     # output of target activation layer, i.e. activation maps of a convolutional layer
     activation_output = activation_layer.output 
@@ -61,12 +62,14 @@ def gradcam_backend_keras(model, # type: Model
     # score for class w.r.p.t. activation layer
     grads = _calc_gradient(predicted_val, [activation_output])
 
+    output = model.output
+
     # TODO: gradcam on input layer
     evaluate = K.function([model.input], 
-        [activation_output, grads, predicted_val, predicted_idx]
+        [activation_output, grads, predicted_val, predicted_idx, output]
     )
     # evaluate the graph / do actual computations
-    activations, grads, predicted_val, predicted_idx = evaluate([doc])
+    activations, grads, predicted_val, predicted_idx, output = evaluate([doc])
 
     # put into suitable form
     # FIXME: batch assumptions should be removed

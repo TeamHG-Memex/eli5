@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from typing import Tuple, Generator
 import numpy as np # type: ignore
 
 
@@ -81,27 +82,28 @@ def get_localization_map(weights, activations, relu=True):
 
     # initialize localization map to all 0's
     lmap = np.zeros(lmap_shape, dtype=np.float64)
-
+    
     # take weighted linear combinations
     for activation_map, weight in _generate_maps_weights(activations, weights):
         # add result to the entire localization map (NOT pixel by pixel)
         combination = activation_map * weight
         lmap += combination
-
+    print(lmap)
     if relu:
         # apply ReLU
         lmap = np.maximum(lmap, 0) 
+        # give user warning if result is all 0's - might be something wrong
     return lmap
 
 
 def _generate_maps_weights(activations, weights):
+    # type: (np.ndarray, np.ndarray) -> Generator[Tuple[np.ndarray, np.ndarray], None, None]
     """
     Yield tuples of (activation_map, weight) 
     from ``activations`` and ``weights``,
     both with shape (batch, dim...).
     """
     assert activations.shape[-1] == weights.shape[-1]
-    num_maps = weights.shape[-1]
     dims = len(activations.shape)
     if dims < 3:
         # (batch, dim1)
@@ -109,14 +111,18 @@ def _generate_maps_weights(activations, weights):
         # else we are setting all of heatmap to the same value 
         # by adding length 1 results
         # generator with a single item
-        g = ((activations, weights),)
+        # FIXME: might want to use yield instead of return
+        yield (activations, weights,)
     else:
         # (batch, dim1, ..., dimn, channels)
-        g = ((activations[..., i], weights[..., i]) for i in range(num_maps))
-    return g
+        # where activations and weights may have differing number of dims
+        num_maps = weights.shape[-1]
+        for i in range(num_maps):
+            yield (activations[..., i], weights[..., i],)
 
 
 def compute_weights(grads): # made public for transparency
+    # type: (np.ndarray) -> np.ndarray
     """
     Calculate weights, pooling over ``grads``.
     """

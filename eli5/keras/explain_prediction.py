@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
-from typing import Union, Optional, Callable, List, Generator, TYPE_CHECKING
+from typing import Union, Optional, Callable, List, Tuple, Generator, TYPE_CHECKING
 
 import numpy as np # type: ignore
 import keras # type: ignore
@@ -48,7 +48,7 @@ def explain_prediction_keras(model, # type: Model
                              pad_value=None,
                              padding='post',
                              interpolation_kind='linear',
-                            ):
+                             ):
     # type: (...) -> Explanation
     """
     Explain the prediction of a Keras image classifier.
@@ -250,7 +250,7 @@ def explain_prediction_keras_image(model,
 def explain_prediction_keras_text(model,
                                   doc,
                                   tokens=None, # type: Optional[Union[List[str], np.ndarray]]
-                                  pad_value=None, # type: Optional[Union[int, str]]
+                                  pad_value=None, # type: Optional[Union[int, float, str]]
                                   padding='post', # type: str
                                   interpolation_kind='linear', # type: Union[str, int]
                                   targets=None,
@@ -386,6 +386,7 @@ def _search_activation_layer(model, # type: Model
                              layers_generator, # type: Callable[[Model], Generator[Layer, None, None]]
                              layer_condition, # type: Callable[[Model, Layer], bool]
     ):
+    # type: (...) -> Layer
     """
     Search for a layer in ``model``, iterating through layers in the order specified by
     ``layers_generator``, returning the first layer that matches ``layer_condition``.
@@ -401,10 +402,12 @@ def _search_activation_layer(model, # type: Model
 
 
 def _forward_layers(model):
+    # type: (Model) -> Generator[Layer, None, None]
     return (model.get_layer(index=i) for i in range(0, len(model.layers), 1))
 
 
 def _backward_layers(model):
+    # type: (Model) -> Generator[Layer, None, None]
     return (model.get_layer(index=i) for i in range(len(model.layers)-1, -1, -1))
 
 
@@ -484,6 +487,7 @@ def _validate_doc(model, doc):
 
 
 def _eq_shapes(required, other):
+    # type: (Tuple[int], Tuple[int]) -> bool
     """
     Check that ``other`` shape satisfies shape of ``required``
 
@@ -501,6 +505,7 @@ def _eq_shapes(required, other):
 
 
 def _validate_tokens(doc, tokens):
+    # type: (np.ndarray, Union[np.ndarray, list]) -> None
     batch_size, doc_len = doc.shape
     if isinstance(tokens, np.ndarray):
         if doc.shape != tokens.shape:

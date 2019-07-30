@@ -125,7 +125,7 @@ def _construct_document(tokens):
 
 
 def _find_padding(pad_value, doc=None, tokens=None):
-    # (Union[str, int], Optional[np.ndarray], Optional[np.ndarray, list]) -> np.ndarray
+    # (Union[str, int, float], Optional[np.ndarray], Optional[np.ndarray, list]) -> np.ndarray
     """Find padding in input ``doc`` or ``tokens`` based on ``pad_value``,
     returning a numpy array of indices where padding was found."""
     if isinstance(pad_value, (int, float)) and doc is not None:
@@ -141,7 +141,7 @@ def _find_padding(pad_value, doc=None, tokens=None):
 
 
 def _find_doc_padding(pad_value, doc):
-    # type: (int, np.ndarray) -> np.ndarray
+    # type: (Union[int, float], np.ndarray) -> np.ndarray
     values, indices = np.where(doc == pad_value)
     return indices
 
