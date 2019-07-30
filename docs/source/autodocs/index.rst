@@ -16,6 +16,7 @@ API documentation is auto-generated.
    ./lightgbm
    ./catboost
    ./permutation_importance
+   ./nn
    ./keras
    ./base
    
