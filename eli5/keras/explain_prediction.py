@@ -333,7 +333,8 @@ def explain_prediction_keras_text(model,
                                         padding=padding,
                                         interpolation_kind=interpolation_kind,
     )
-    print(heatmap)
+    # FIXME: highlighting is a bit off, eg: all green if is the 0.2 only value in heatmap
+    # constrain heatmap in [0, 1] or [-1, 1] and get highlighting to do the same for best results?
     return Explanation(
         model.name,
         description=DESCRIPTION_GRADCAM,

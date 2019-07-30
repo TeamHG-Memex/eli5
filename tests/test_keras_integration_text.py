@@ -108,8 +108,8 @@ def test_sentiment_classification(imdb_sentiment_clf, imdb_index, imdb_sample_in
 
 
 # FIXME: smaller model sizes. Combine RNN + conv. Combine tasks (multiclass cover sentiment?)
-# 1: token level RNN + conv sentiment analysis
-# 2: char level RNN + conv multiclass
+# 1: token level + LSTM masked + sentiment analysis + non-fixed len
+# 2: char level + conv + multiclass + fixed len
 
 
 # TODO: test with a multiclass model

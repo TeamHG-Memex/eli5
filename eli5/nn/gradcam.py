@@ -14,7 +14,6 @@ def gradcam_heatmap(activations, grads, relu=True, counterfactual=False):
         # negate grads for a "counterfactual explanation"
         # can equivalently negate ys loss scalar in gradcam_backend
         grads = -grads
-
     weights = compute_weights(grads)
     heatmap = get_localization_map(weights, activations, relu=relu)
     heatmap, = heatmap # FIXME: hardcode batch=1 for now
@@ -63,14 +62,15 @@ def get_localization_map(weights, activations, relu=True):
     # For reusability, this function should only use numpy operations
     # No library specific operations
     
-    # we need to multiply (dim1, ..., dimn, maps,) by (maps,) over the dimension axes
-    # and add each result to (dim1, ..., dimn) results array
+    # we need to multiply (batch, dim1, ..., dimn, maps,) by (batch, maps,) over the dimension axes
+    # and add each result to (batch, dim1, ..., dimn) results array
     # there does not seem to be an easy way to do this:
     # see: https://stackoverflow.com/questions/30031828/multiply-numpy-ndarray-with-1d-array-along-a-given-axis
     
-    # activations shapes (channels last):
-    # conv: (batch, ..., channels)
-    # recurrent: (batch, timesteps, units)
+    # shapes:
+    # spatial: (batch, dim1, dim2, channels)
+    # temporal: (batch, timesteps, units)
+    # no shape: (batch, units)
     if len(activations.shape) == 2:
         # vector (with batch)
         lmap_shape = activations.shape
@@ -78,12 +78,15 @@ def get_localization_map(weights, activations, relu=True):
         # higher rank
         # last dimension is assumed to be the channels (for convnets)
         lmap_shape = activations.shape[:-1] # -> (batch, dim1, dim2)
+
+    # initialize localization map to all 0's
     lmap = np.zeros(lmap_shape, dtype=np.float64)
 
-    # weighted linear combination
+    # take weighted linear combinations
     for activation_map, weight in _generate_maps_weights(activations, weights):
         # add result to the entire localization map (NOT pixel by pixel)
-        lmap += activation_map * weight
+        combination = activation_map * weight
+        lmap += combination
 
     if relu:
         # apply ReLU
@@ -92,12 +95,25 @@ def get_localization_map(weights, activations, relu=True):
 
 
 def _generate_maps_weights(activations, weights):
-    """Yield tuples of (activation_map, weight) 
-    from ``activations`` and ``weights``."""
+    """
+    Yield tuples of (activation_map, weight) 
+    from ``activations`` and ``weights``,
+    both with shape (batch, dim...).
+    """
     assert activations.shape[-1] == weights.shape[-1]
     num_maps = weights.shape[-1]
-    return ((activations[..., i], weights[..., i]) 
-                for i in range(num_maps))
+    dims = len(activations.shape)
+    if dims < 3:
+        # (batch, dim1)
+        # take as is, there are no "maps"
+        # else we are setting all of heatmap to the same value 
+        # by adding length 1 results
+        # generator with a single item
+        g = ((activations, weights),)
+    else:
+        # (batch, dim1, ..., dimn, channels)
+        g = ((activations[..., i], weights[..., i]) for i in range(num_maps))
+    return g
 
 
 def compute_weights(grads): # made public for transparency
