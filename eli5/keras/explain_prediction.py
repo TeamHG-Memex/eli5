@@ -281,7 +281,6 @@ def explain_prediction_keras_text(model,
 
         Do not pass this to see the effect of padding on the prediction
         (explain padding).
-        *Not supported for images.*
     :type pad_value: int or str, optional
 
     :param padding:
