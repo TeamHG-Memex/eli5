@@ -22,6 +22,9 @@ Currently ELI5 supports :func:`eli5.explain_prediction` for Keras image and text
 Explanations are done using the GradCAM_ technique. Using it, we differentiate the model's output with respect to a hidden layer. This results in a tensor of gradients. We take a linear combination of those gradients with the hidden layer's activations (output), getting a Grad-CAM "heatmap" (or "localization map"). The heatmap highlights what parts of the input (the hidden layer but resized) contributed to the prediction.
 
 
+# TODO: show Grad-CAM "formula"
+
+
 Important arguments to :func:`eli5.explain_prediction` when using with ``Model`` and ``Sequential``:
 
 * ``model`` is the neural network model to be explained.
@@ -63,8 +66,8 @@ Important arguments to :func:`eli5.explain_prediction` when using with ``Model``
     - Set to `True` to produce counterfactual explanations.
 
 
-Extra arguments if explaining image-based networks:
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Extra arguments for image-based explanations:
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 * ``image`` Pillow image, corresponds to ``doc`` input.
 
@@ -75,18 +78,20 @@ Extra arguments if explaining image-based networks:
 Image explanations are dispatched to :func:`eli5.keras.explain_prediction.explain_prediction_keras_image`.
 
 
-Extra arguments if explaining text-based networks:
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Extra arguments for text-based explanations:
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 * ``tokens`` array of strings, corresponding to ``doc`` input.
 
-    - **Must be passed for text explanations.**
+    - **Must be passed for text explanations.** This is what will be highlighted for text explanations. Each token should correspond to an integer in ``doc``.
 
-    - List or numpy array of strings. For example, `['a', 'sample', 'input']`.
+    - List or numpy array containing strings. For example, ``['a', 'sample', 'input']`` 
 
-    - **Must be the same length as ``doc``.**
+    - May have a batch dimension (i.e. numpy array with shape (numsamples, len), or a list of lists). *Note that only the first sample in the batch is currently explained.*
 
-    - **If passing as a list, ``doc`` must have batch size 1.**
+    - **Must be the same length as** ``doc``.
+
+    - **If passing without batch dimension,** ``doc`` **must have batch size 1.**
 
     - May have padding if ``doc`` has padding.
 
@@ -102,7 +107,7 @@ Extra arguments if explaining text-based networks:
 
     - Either ``post`` for padding after the actual text starts, or ``pre`` for padding before the text starts.
 
-* ``interpolation_kind`` method for resizing 1D array.
+* ``interpolation_kind`` method for resizing the heatmap to fit over input.
 
     - ``scipy`` interpolation method as a string.
 

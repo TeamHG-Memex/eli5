@@ -51,26 +51,25 @@ def explain_prediction_keras(model, # type: Model
                              ):
     # type: (...) -> Explanation
     """
-    Explain the prediction of a Keras image classifier.
-
-    We make an explicity assumption that the model's task is classification, i.e. final output is class scores.
-
-    We also explicitly assume that the data format is "channels_last".
-
-    See :func:`eli5.explain_prediction` for more information about the ``model``,
-    ``doc``, and ``targets`` parameters.
+    Explain the prediction of a Keras classifier with the Grad-CAM technique.
     
-    These arguments are shared by image and text explanations.
+    # TODO: explain Grad-CAM
+
+    We explicitly assume that the model's task is classification, i.e. final output is class scores.
     
     :param keras.models.Model model:
         Instance of a Keras neural network model, 
         whose predictions are to be explained.
+
+
+        :raises ValueError: if ``model`` can not be differentiated.
 
     :param numpy.ndarray doc:
         An input image as a tensor to ``model``, 
         from which prediction will be done and explained.
 
         Currently only numpy arrays are supported.
+        Also the only data format supported is "channels last".
 
         The tensor must be of suitable shape for the ``model``. 
 
@@ -92,12 +91,14 @@ def explain_prediction_keras(model, # type: Model
         *Currently only the first prediction from the list is explained*. 
         The list must be length one.
 
-        If None, the model is fed the input image and its top prediction 
+        If None, the model is fed the input ``doc`` and the top prediction 
         is taken as the target automatically.
 
 
         :raises ValueError: if ``targets`` is a list with more than one item.
         :raises TypeError: if ``targets`` is not list or None.
+        :raises TypeError: if ``targets`` does not contain an integer target.
+        :raises ValueError: if integer target is not in the classes that ``model`` predicts.
     :type targets: list[int], optional
 
     :param layer:
@@ -105,13 +106,10 @@ def explain_prediction_keras(model, # type: Model
         a valid keras layer name, layer index, or an instance of a Keras layer.
         
         If None, a suitable layer is attempted to be retrieved. 
-        The layer is searched for going backwards from the output layer, 
-        checking that the rank of the layer's output 
-        equals to the rank of the input.
         
         For best results, pick a layer that:
-            * has spatial or temporal information (conv, recurrent, pool, embedding).
-            * can be intuitively resized (not dense layers).
+            * has spatial or temporal information (conv, recurrent, pool, embedding)
+              (not dense layers).
             * shows high level features.
             * has large enough dimensions for resizing over input to work.
 
@@ -122,26 +120,33 @@ def explain_prediction_keras(model, # type: Model
     :type layer: int or str or keras.layers.Layer, optional
 
     :param relu:
-        Whether to apply ReLU on the heatmap.
+        Whether to apply ReLU on the resulting heatmap.
+
         Set to `False` to see the "negative" of a class.
+
+        Default is `True`.
     :type relu: bool, optional
 
     :param counterfactual:
-        Whether to negate gradients during
-        the heatmap calculation.
-        Useful for highlighting what makes
-        the prediction or class score go down.
+        Whether to negate gradients during the heatmap calculation.
+        Useful for highlighting what makes the prediction or class score go down.
+
+        Default is `False`.
     :type counterfactual: bool, optional
 
+
+    See :func:`eli5.explain_prediction` for more information about the ``model``,
+    ``doc``, and ``targets`` parameters.
+
     
-    Other arguments are passed to the concrete implementations
-    for image or text explanations.
+    Other arguments are passed to concrete implementations
+    for image and text explanations.
 
 
     Returns
     -------
     expl : eli5.base.Explanation
-        An ``Explanation`` object with the following attributes set (some inside ``targets``)
+        An :class:`eli5.base.Explanation` object with the following attributes set (some inside ``targets``)
             * ``heatmap`` a numpy array with the localization map values.
             * ``target`` ID of target class.
             * ``score`` value for predicted class.
@@ -177,7 +182,10 @@ def explain_prediction_keras(model, # type: Model
 
 
 def explain_prediction_keras_not_supported(model, doc):
-    """Can not do an explanation based on the passed arguments."""
+    """
+    Can not do an explanation based on the passed arguments.
+    Did you pass either "image" or "tokens"?
+    """
     return Explanation(
         model.name,
         error='model "{}" is not supported, '
@@ -195,19 +203,23 @@ def explain_prediction_keras_image(model,
                                    counterfactual=False,
     ):
     """
-    Explain an image-based model.
+    Explain an image-based model, highlighting what contributed in the image.
 
-    See :func:`eli5.explain_prediction_keras` for description of ``targets``, 
-    ``layer``, ``relu``, and ``counterfactual`` parameters.
+    See :func:`eli5.keras.explain_prediction.explain_prediction_keras` 
+    for a description of ``targets``, ``layer``, ``relu``, and ``counterfactual`` parameters.
 
     :param image:
-        Image over which to overlay the heatmap.
+        Pillow image over which to overlay the heatmap.
+
+        Corresponds to the input ``doc``.
+
+        Must have mode 'RGBA'.
     :type image: PIL.Image.Image, optional
 
     Returns
     -------
     expl : eli5.base.Explanation
-        An ``Explanation`` object containing the following additional attributes
+        An :class:`eli5.base.Explanation` object containing the following additional attributes
             * ``image`` the original Pillow image with mode RGBA.
             * ``heatmap`` rank 2 (2D) numpy array.
     """
@@ -229,7 +241,8 @@ def explain_prediction_keras_image(model,
                               relu=relu,
                               counterfactual=counterfactual,
     )
-    
+    heatmap, = heatmap # FIXME: hardcode batch=1 for now
+
     # TODO (open issue): image padding cut off. pass 2-tuple?
     return Explanation(
         model.name,
@@ -259,16 +272,18 @@ def explain_prediction_keras_text(model,
                                   counterfactual=False,
                                   ):
     """
-    Explain a text-based model.
+    Explain a text-based model, highlighting parts of text that contributed to the prediction.
 
-    See :func:`eli5.explain_prediction_keras` for description of ``targets``, 
+    In the case of binary classification, this highlights what makes the output go up.
+
+    See :func:`eli5.keras.explain_prediction.explain_prediction_keras` for description of ``targets``, 
     ``layer``, ``relu``, and ``counterfactual`` parameters.
 
     :param tokens:
         Tokens that correspond to ``doc``.
         With padding if ``doc`` has padding.
 
-        A Python list or a numpy array of strings. With the same shape as ``doc``.
+        A Python list or a numpy array of strings. With the same length as ``doc``.
         If ``doc`` has batch size = 1, batch dimension from tokens may be omitted.
 
         These tokens will be highlighted for text-based explanations.
@@ -276,7 +291,7 @@ def explain_prediction_keras_text(model,
 
     :param pad_value:
         Character for padding. If given, cuts padding off.
-        
+
         Either an integer value in ``doc``, or a string token in ``tokens``.
 
         Do not pass this to see the effect of padding on the prediction
@@ -284,9 +299,9 @@ def explain_prediction_keras_text(model,
     :type pad_value: int or str, optional
 
     :param padding:
-        Padding position, 'pre' (before sequence) 
+        Padding position, either 'pre' (before sequence)
         or 'post' (after sequence).
-        
+
         Default: 'post'.
 
         Padding characters will be cut off from the heatmap and tokens.
@@ -300,8 +315,9 @@ def explain_prediction_keras_text(model,
     Returns
     -------
     expl : eli5.base.Explanation
-        An ``Explanation`` object containing the following additional attributes
-            * ``weighted_spans`` weights for parts of text to be highlighted.
+        An :class:`eli5.base.Explanation` object containing the following additional attributes
+            * ``weighted_spans`` a :class:`eli5.base.WeightedSpans` object
+                with weights for parts of text to be highlighted.
             * ``heatmap`` rank 1 (1D) numpy array.
     """
     # TODO (open issue): implement document vectorizer
@@ -334,6 +350,8 @@ def explain_prediction_keras_text(model,
                                         padding=padding,
                                         interpolation_kind=interpolation_kind,
                                         )
+    heatmap, = heatmap
+
     # FIXME: highlighting is a bit off, eg: all green if is the 0.2 only value in heatmap
     # constrain heatmap in [0, 1] or [-1, 1] and get highlighting to do the same for best results?
     return Explanation(
@@ -404,18 +422,20 @@ def _search_activation_layer(model, # type: Model
 
 
 def _forward_layers(model):
+    """Return layers going from input to output."""
     # type: (Model) -> Generator[Layer, None, None]
     return (model.get_layer(index=i) for i in range(0, len(model.layers), 1))
 
 
 def _backward_layers(model):
+    """Return layers going from output to input (backwards)."""
     # type: (Model) -> Generator[Layer, None, None]
     return (model.get_layer(index=i) for i in range(len(model.layers)-1, -1, -1))
 
 
 def _is_suitable_image_layer(model, layer):
     # type: (Model, Layer) -> bool
-    """Check whether the layer ``layer`` matches what is required 
+    """Check whether the layer ``layer`` matches what is required
     by ``model`` to do Grad-CAM on ``layer``, for image-based models.
 
     Matching Criteria:
@@ -435,8 +455,8 @@ def _is_suitable_image_layer(model, layer):
 
 def _is_suitable_text_layer(model, layer):
     # type: (Model, Layer) -> bool
-    """Check whether the layer ``layer`` matches what is required 
-    by ``model`` to do Grad-CAM on ``layer``.
+    """Check whether ``layer`` is suitable for
+    ``model`` to do Grad-CAM on, for text-based models.
     """
     # check the type
     # FIXME: this is not an exhaustive list
@@ -491,7 +511,7 @@ def _validate_doc(model, doc):
 def _eq_shapes(required, other):
     # type: (Tuple[int], Tuple[int]) -> bool
     """
-    Check that ``other`` shape satisfies shape of ``required``
+    Check that ``other`` shape satisfies shape of ``required``.
 
     For example::
         _eq_shapes((None, 20), (1, 20)) # -> True
@@ -507,6 +527,7 @@ def _eq_shapes(required, other):
 
 
 def _validate_tokens(doc, tokens):
+    """Check that ``tokens`` contains correct items and matches ``doc``."""
     # type: (np.ndarray, Union[np.ndarray, list]) -> None
     batch_size, doc_len = doc.shape
     if not isinstance(tokens, (list, np.ndarray)):
@@ -545,7 +566,7 @@ def _validate_tokens(doc, tokens):
 
 
 def _unbatch_tokens(tokens):
-    """If tokens has batch size, take out the first sample from the batch."""
+    """If ``tokens`` has batch size, take out the first sample from the batch."""
     an_entry = tokens[0]
     if isinstance(an_entry, str):
         # not batched

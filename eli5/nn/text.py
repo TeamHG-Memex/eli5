@@ -24,6 +24,39 @@ def gradcam_text_spans(heatmap, # type: np.ndarray
     Create text spans from a Grad-CAM ``heatmap`` imposed over ``tokens``.
     Optionally cut off the padding from the explanation 
     with the ``pad_value`` and ``padding`` arguments.
+
+    Parameters
+    ----------
+    heatmap : numpy.ndarray
+        Heatmap of weights. May be resized to match the length of tokens.
+
+    tokens : numpy.ndarray or list
+        Tokens that will be highlighted using weights from ``heatmap``.
+
+    doc: numpy.ndarray
+        Original input to the network, from which ``heatmap`` was created.
+
+    pad_value: str or int or float, optional
+        Padding symbol into ``tokens`` or ``doc``.
+
+        Pass to cut off padding.
+
+    padding: str, optional
+        Whether padding is `pre` (before text) or `post` (after text).
+
+        Default is `post`.
+
+    interpolation_kind: str or int, optional
+        Interpolation method passed to the underlying ``scipy.interpolate.interp1d``
+        function. Used when resizing ``heatmap`` to the length of ``tokens``.
+
+        Default is `linear`.
+
+    Returns
+    -------
+    (tokens, heatmap, weighted_spans) : (list or numpy.ndarray, numpy.ndarray, WeightedSpans)
+        ``tokens`` and ``heatmap`` optionally cut from padding.
+        A :class:`eli5.base.WeightedSpans` object with a weight for each token.
     """
     # we resize before cutting off padding?
     # FIXME: might want to do this when formatting the explanation?
@@ -66,11 +99,33 @@ def _get_temporal_length(tokens):
 def resize_1d(heatmap, width, interpolation_kind='linear'):
     # type: (np.ndarray, int, Union[str, int]) -> np.ndarray
     """
-    Resize heatmap 1D array to match the specified ``width``.
+    Resize the ``heatmap`` 1D array to match the specified ``width``.
     
     For example, upscale/upsample a heatmap with length 400
     to have length 500.
+
+    Parameters
+    ----------
+
+    heatmap : numpy.ndarray
+        Heatmap to be resized.
+
+    width : int
+        Required length.
+
+    interpolation_kind : str or int, optional
+        Interpolation method used by ``scipy.interpolate.interp1d``.
+
+        Default is `linear`.
+        # FIXME: instead of repeating descriptions.
+        Pass links. Then do a more in-depth description in final location.
+
+    Returns
+    -------
+    heatmap : numpy.ndarray
+        The heatmap resized.
     """
+    # FIXME: rename 'width' to 'length'?
     if len(heatmap.shape) == 1 and heatmap.shape[0] == 1:
         # single weight, no batch
         heatmap = heatmap.repeat(width)
@@ -112,6 +167,7 @@ def _build_spans(tokens, # type: Union[np.ndarray, list]
     return spans
 
 
+# TODO: make this public?
 def _construct_document(tokens):
     # type: (Union[list, np.ndarray]) -> str
     """Create a document string by joining ``tokens``."""

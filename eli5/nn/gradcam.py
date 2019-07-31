@@ -9,65 +9,88 @@ output is explanation object that contains a heatmap.
 """
 
 
+# FIXME: rename functions
 def gradcam_heatmap(activations, grads, relu=True, counterfactual=False):
     # type: (np.ndarray, np.ndarray, bool, bool) -> np.ndarray
+    """
+    Build a Gradient-weighted Class Activation Mapping (Grad-CAM)
+    (https://arxiv.org/pdf/1610.02391.pdf) heatmap using the required terms.
+
+    See Grad-CAM "backends" to obtain the required terms.
+
+    # TODO: explain gradcam
+
+    Parameters
+    ----------
+    activations : numpy.ndarray
+        Activations of a target layer.
+
+    grads : numpy.ndarray
+        Gradients of output with respect to activations.
+
+    relu : bool, optional
+        Whether to apply ReLU to the produced heatmap.
+
+        Default is `True`.
+
+    counterfactual : bool, optional
+        Whether to negate gradients to produce a counterfactual explanation.
+
+        Default is `False`.
+
+    Returns
+    -------
+    heatmap : numpy.ndarray
+        The resulting heatmap as an array, shape of the spatial dimensions of activations.
+        May have batch size.
+    """
     if counterfactual:
         # negate grads for a "counterfactual explanation"
         # can equivalently negate ys loss scalar in gradcam_backend
         grads = -grads
     weights = compute_weights(grads)
     heatmap = get_localization_map(weights, activations, relu=relu)
-    heatmap, = heatmap # FIXME: hardcode batch=1 for now
     return heatmap
 
 
 def get_localization_map(weights, activations, relu=True):
     # type: (np.ndarray, np.ndarray, bool) -> np.ndarray
     """
-    Generate a localization map (heatmap) using Gradient-weighted Class Activation Mapping 
-    (Grad-CAM) (https://arxiv.org/pdf/1610.02391.pdf).
-    
-    The values for the parameters can be obtained from
-    :func:`eli5.keras.gradcam.gradcam_backend`.
+    Generate a localization map (heatmap) using weights and activations.
 
     Parameters
     ----------
     weights : numpy.ndarray
-        Activation weights, vector with one weight per map, 
-        rank 2 (batch size included).
+        Activation weights, vector with one weight per map,
+        (batch size included).
 
     activations : numpy.ndarray
-        Forward activation map values, vector of tensors, 
-        rank n (batch size included).
+        Forward activation map values, vector of tensors,
+        (batch size included).
 
     relu: boolean
         Whether to apply ReLU to the final heatmap (remove negatives).
-    
+
     Returns
     -------
     lmap : numpy.ndarray
         A Grad-CAM localization map,
-        with shape like the dimension portion of ``activations``.
+        with shape like the spatial portion of ``activations``.
 
     Notes
     -----
     We currently make two assumptions in this implementation
         * We are dealing with images as our input to ``model``.
         * We are doing a classification. ``model``'s output is a class scores or probabilities vector.
-
-    Credits
-        * Jacob Gildenblat for "https://github.com/jacobgil/keras-grad-cam".
-        * Author of "https://github.com/PowerOfCreation/keras-grad-cam" for fixes to Jacob's implementation.
-        * Kotikalapudi, Raghavendra and contributors for "https://github.com/raghakot/keras-vis".
     """
     # For reusability, this function should only use numpy operations
     # No library specific operations
-    
+
     # we need to multiply (batch, dim1, ..., dimn, maps,) by (batch, maps,) over the dimension axes
     # and add each result to (batch, dim1, ..., dimn) results array
     # there does not seem to be an easy way to do this:
     # see: https://stackoverflow.com/questions/30031828/multiply-numpy-ndarray-with-1d-array-along-a-given-axis
-    
+
     # shapes:
     # spatial: (batch, dim1, dim2, channels)
     # temporal: (batch, timesteps, units)
@@ -82,7 +105,7 @@ def get_localization_map(weights, activations, relu=True):
 
     # initialize localization map to all 0's
     lmap = np.zeros(lmap_shape, dtype=np.float64)
-    
+
     # take weighted linear combinations
     for activation_map, weight in _generate_maps_weights(activations, weights):
         # add result to the entire localization map (NOT pixel by pixel)
@@ -98,7 +121,7 @@ def get_localization_map(weights, activations, relu=True):
 def _generate_maps_weights(activations, weights):
     # type: (np.ndarray, np.ndarray) -> Generator[Tuple[np.ndarray, np.ndarray], None, None]
     """
-    Yield tuples of (activation_map, weight) 
+    Yield tuples of (activation_map, weight)
     from ``activations`` and ``weights``,
     both with shape (batch, dim...).
     """
@@ -123,7 +146,20 @@ def _generate_maps_weights(activations, weights):
 def compute_weights(grads): # made public for transparency
     # type: (np.ndarray) -> np.ndarray
     """
-    Calculate weights, pooling over ``grads``.
+    Calculate weights, global average pooling (taking the mean) over 
+    spatial dimensions of ``grads``.
+
+    Parameters
+    ----------
+
+    grads : numpy.ndarray
+        Gradients to pool.
+
+    Returns
+    -------
+
+    weights : numpy.ndarray
+        Gradients pooled.
     """
     # Global Average Pooling of gradients to get the weights
     # note that axes are in range [-rank(x), rank(x)) (we start from 1, not 0)

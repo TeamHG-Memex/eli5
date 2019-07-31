@@ -1,4 +1,11 @@
 # -*- coding: utf-8 -*-
+"""
+Credits
+    * Jacob Gildenblat for "https://github.com/jacobgil/keras-grad-cam".
+    * Author of "https://github.com/PowerOfCreation/keras-grad-cam" for fixes to Jacob's implementation.
+    * Kotikalapudi, Raghavendra and contributors for "https://github.com/raghakot/keras-vis".
+"""
+
 from __future__ import absolute_import
 from typing import Optional, Tuple, List
 
@@ -29,19 +36,19 @@ def gradcam_backend_keras(model, # type: Model
     targets : list, optional
         Index into the network's output,
         indicating the output node that will be
-        used as the "loss" during differentiation.
+        used as the "loss" or scalar target during differentiation.
 
     activation_layer : keras.layers.Layer
         Keras layer instance to differentiate with respect to.
-    
 
-    See :func:`eli5.keras.explain_prediction` for description of the 
-    ``model``, ``doc``, ``targets`` parameters.
+
+    See :func:`eli5.keras.explain_prediction` for description of the
+    ``model``, ``doc``, and ``targets`` parameters.
 
     Returns
     -------
-    # FIXME: long line
-    (activations, gradients, predicted_idx, predicted_val) : (numpy.ndarray, numpy.ndarray, int, float)
+    (activations, gradients, predicted_idx, predicted_val) :
+        (numpy.ndarray, numpy.ndarray, int, float)
         Values of variables.
     """
     # score for class in targets
@@ -111,6 +118,7 @@ def _calc_gradient(ys, xs):
     return grads
 
 
+# FIXME: rename functions
 def _get_target_prediction(targets, model):
     # type: (list, Model) -> K.variable
     """
@@ -135,7 +143,8 @@ def _get_target_prediction(targets, model):
 
 def _autoget_target_prediction(model):
     # type: (Model) -> K.variable
-    """Automatically get the highest value prediction from ``model``"""
+    """Automatically get the index with 
+    the highest predicted output from ``model``"""
     output = model.output
     return K.argmax(output, axis=-1)
 
@@ -144,8 +153,8 @@ def _autoget_target_prediction(model):
 def _validate_target(target, output_shape):
     # type: (int, tuple) -> None
     """
-    Check whether ``target``, 
-    an integer index into the model's output
+    Check whether ``target``,
+    an integer index into the model's output,
     is valid for the given ``output_shape``.
     """
     if isinstance(target, int):
