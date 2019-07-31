@@ -2,6 +2,7 @@
 from __future__ import print_function
 
 import pytest
+from pytest import approx
 
 keras = pytest.importorskip('keras')
 from keras.datasets import imdb
@@ -10,112 +11,143 @@ from keras.preprocessing.text import text_to_word_sequence
 import numpy as np
 
 import eli5
+from .estimators import keras_sentiment_classifier
 
 
-MULTICONV_IMDB_SENTIMENT_CLASSIFIER = 'tests/estimators/keras_multiconv_imdb_sentiment_classifier.h5'
-
-
-# TODO: test show_prediction with a model
-# would need approximate truth techniques
-# samples can be just individual words, but watch model size - should be specifically for testing
-
-
-def decode(doc, reversed_word_index):
-    # TODO: return numpy array
-    return [reversed_word_index.get(x, '?')  
-                for vec in doc 
-                for x in vec]
-
-
-def vectorize(tokens, word_index):
-    num_words = len(word_index)
-    vec = [word_index['<START>']]
-    for token in tokens:
-        x = word_index.get(token, word_index['<UNK>'])
-        if num_words <= x:
-            x = word_index['<UNK>']
-        vec.append(x)
-    return vec
-
-
-# FIXME: this is very verbose
+# model 1: ~100,000 parameters
+# embedding -> masking -> bidirectional LSTM -> dense
+# token level + sentiment (binary) classification + non-fixed length input
+KERAS_SENTIMENT_CLASSIFIER = 'tests/estimators/keras_sentiment_classifier.h5'
 
 
 @pytest.fixture(scope='module')
-def imdb_sentiment_clf():
-    model = keras.models.load_model(MULTICONV_IMDB_SENTIMENT_CLASSIFIER)
+def sentiment_clf():
+    model = keras.models.load_model(KERAS_SENTIMENT_CLASSIFIER)
     print('Summary of classifier:')
     model.summary()
-    maxlen = 500
-    return model, maxlen
+    return model
 
 
 @pytest.fixture(scope='module')
-def imdb_index():
-    num_words = 10000
-    word_index = imdb.get_word_index()
-
-    # add special tokens
-    # FIXME: probably need to retrain using this set up
-    word_index = {k:(v+2) for k, v in word_index.items()}
-    word_index['<PAD>'] = 0
-    word_index['<START>'] = 1
-    word_index['<UNK>'] = 2
-
-    # set maximum word number
-    word_index = {k: v for k, v in word_index.items() if v < num_words}
-    reversed_word_index = {v:k for k, v in word_index.items()}
-    return word_index, reversed_word_index
+def sentiment_input():
+    sample = "good and bad"
+    doc, tokens = keras_sentiment_classifier.string_to_vectorized(sample)
+    print('Input:', sample, doc, tokens, sep='\n')
+    return doc, tokens
 
 
 @pytest.fixture(scope='module')
-def imdb_sample_input(imdb_index, imdb_sentiment_clf):
-    word_index, reversed_word_index = imdb_index
-    maxlen = imdb_sentiment_clf[1]
-
-    sample = 'good story but bad acting'
-    tokens = text_to_word_sequence(sample) # to tokens
-    doc = vectorize(tokens, word_index)
-    doc = np.expand_dims(doc, axis=0) # add batch dimension
-    doc = pad_sequences(doc, maxlen=maxlen, 
-                        padding='post', truncating='post',
-                        value=word_index['<PAD>']
-    )
-    # update tokens
-    tokens = decode(doc, reversed_word_index)
-    # tokens, = tokens # FIXME
-
-    print('Input:')
-    print(sample)
-    print(tokens)
-    print(doc)
-    return doc, tokens, sample
+def sentiment_input_all_pad():
+    sample = ""
+    doc, tokens = keras_sentiment_classifier.string_to_vectorized(sample, pad=True)
+    print('Input:', sample, doc, tokens, sep='\n')
+    return doc, tokens
 
 
-# TODO: test no relu and counterfactual (sentiment analysis positive and negative words)
-# TODO: test with and without padding
-def test_sentiment_classification(imdb_sentiment_clf, imdb_index, imdb_sample_input):
-    model = imdb_sentiment_clf[0]
-    word_index = imdb_index[0]
-    doc, tokens = imdb_sample_input[:2]
-    expl = eli5.explain_prediction(model, doc, tokens=tokens, 
-                                    pad_value=word_index['<PAD>'],
-                                    padding='post',
-    )
-    # assert_spans_value_close_to(1)
-    # assert_spans_value_close_to(-1)
-    # assert_spans_value_close_to(0)
+def assert_near_zero(val):
+    """
+    0.1 -> False. 
+    0.09 -> True.
+    """
+    assert val == approx(0, abs=0.09)
 
 
-# FIXME: smaller model sizes. Combine RNN + conv. Combine tasks (multiclass cover sentiment?)
-# 1: token level + LSTM masked + sentiment analysis + non-fixed len
-# 2: char level + conv + multiclass + fixed len
+def get_docs_weighted_spans(expl):
+    """Get document and spans from explanation object."""
+    # TODO: hard-coded for only 1 target
+    ws = expl.targets[0].weighted_spans.docs_weighted_spans[0]
+    spans = ws.spans  # -> list of ('token', [(start,end)...], weight) tuples
+    document = ws.document
+    print('WeightedSpans:', spans, sep='\n')
+    print('Document:', document, sep='\n')
+    print('Document indices:')
+    for (i, ch) in enumerate(document):
+        print(i, ch)
+    return spans, document
 
 
-# TODO: test with a multiclass model
+def span_in(span, start, end):
+    """Check that span's indices are between start and end inclusive."""
+    # FIXME: we assume that a span only contains 1 tuple for its indices
+    span_start, span_end = span[1][0]
+    return start <= span_start and span_end <= end
 
 
-# TODO: test with multilabel model
+def total_weight(spans):
+    """Sum all weights of a list of spans."""
+    return sum([span[2] for span in spans])
 
 
-# TODO: test char level model
+def sum_weights_over_ranges(spans, ranges):
+    """Sum weights of spans whose indices are in the list of ranges."""
+    total = 0
+    for (start, end) in ranges:
+        spans_in_range = list(filter(lambda span: span_in(span, start, end), spans))
+        w = total_weight(spans_in_range)
+        print('Spans in range:', spans_in_range, sep='\n')
+        print('Weight for range:', w, sep='\n')
+        total += w
+    return total
+
+
+# check that explain+format == show
+def test_end_to_end_explanation(sentiment_clf, sentiment_input):
+    model = sentiment_clf
+    doc, tokens = sentiment_input
+    res = eli5.explain_prediction(model, doc, tokens=tokens)
+    formatted = eli5.format_as_html(res, 
+                                    force_weights=False, 
+                                    show=eli5.formatters.fields.WEIGHTS
+                                    )  # -> rendered template (str)
+    ipython = eli5.show_prediction(model, doc, tokens=tokens) # -> display object
+    ipython_html = ipython.data  # -> str
+    assert formatted == ipython_html
+
+
+# positive, negative, neutral are lists of (start, end) tuples
+# (indices into the document str, representing a "range")
+# that indicate what kind of values the weights should have for the range
+@pytest.mark.parametrize('relu, counterfactual, '
+                         'positive, negative, neutral', [
+    (True, False, [(8, 12)], [], [(0, 7), (13, 20)]),  # positive class
+    (True, True, [(17, 20)], [], [(0, 17)]),  # negative class
+    (False, False, [(8, 12)], [(17, 20)], [(0, 7), (13, 16)]),  # both classes
+])
+def test_sentiment_classification(sentiment_clf, 
+                                  sentiment_input,
+                                  relu,
+                                  counterfactual,
+                                  positive,
+                                  negative,
+                                  neutral,
+                                  ):
+    model = sentiment_clf
+    doc, tokens = sentiment_input
+    print('Explaining with relu={} and counterfactual={}'.format(relu, counterfactual))
+    res = eli5.explain_prediction(model, doc, tokens=tokens, relu=relu, counterfactual=counterfactual)
+    spans, document = get_docs_weighted_spans(res)
+
+    if positive:
+        pos = sum_weights_over_ranges(spans, positive)
+        assert pos > 0
+    if negative:
+        neg = sum_weights_over_ranges(spans, negative)
+        assert neg < 0
+    if neutral:
+        neu = sum_weights_over_ranges(spans, neutral)
+        assert_near_zero(neu)
+
+
+# padding should have no effect on prediction (neutral)
+def test_padding_no_effect(sentiment_clf, sentiment_input_all_pad):
+    model = sentiment_clf
+    doc, tokens = sentiment_input_all_pad
+    res = eli5.explain_prediction(model, doc, tokens=tokens)
+    spans, document = get_docs_weighted_spans(res)
+    neutral = [(0, len(document))]
+    weight = sum_weights_over_ranges(spans, neutral)
+    assert_near_zero(weight)
+
+
+# TODO: test char level + conv + multiclass/label + fixed length model (padded)
+# TODO: test different targets

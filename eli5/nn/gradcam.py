@@ -88,7 +88,6 @@ def get_localization_map(weights, activations, relu=True):
         # add result to the entire localization map (NOT pixel by pixel)
         combination = activation_map * weight
         lmap += combination
-    print(lmap)
     if relu:
         # apply ReLU
         lmap = np.maximum(lmap, 0) 

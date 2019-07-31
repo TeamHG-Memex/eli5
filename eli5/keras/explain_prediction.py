@@ -268,8 +268,8 @@ def explain_prediction_keras_text(model,
         Tokens that correspond to ``doc``.
         With padding if ``doc`` has padding.
 
-        Either a Python list if ``doc`` batch size is 1 (single sample),
-        or a numpy array with the same shape as ``doc``.
+        A Python list or a numpy array of strings. With the same shape as ``doc``.
+        If ``doc`` has batch size = 1, batch dimension from tokens may be omitted.
 
         These tokens will be highlighted for text-based explanations.
     :type tokens: list[str], optional
@@ -312,6 +312,7 @@ def explain_prediction_keras_text(model,
     assert tokens is not None
     _validate_doc(model, doc) # should validate that doc is 2D array (temporal/series data?)
     _validate_tokens(doc, tokens)
+    tokens = _unbatch_tokens(tokens)
 
     if layer is not None:
         activation_layer = _get_layer(model, layer)
@@ -325,13 +326,14 @@ def explain_prediction_keras_text(model,
                               grads,
                               relu=relu,
                               counterfactual=counterfactual,
-    )
-    tokens, heatmap, weighted_spans = gradcam_text_spans(heatmap, 
-                                        tokens, doc, 
-                                        pad_value=pad_value, 
+                              )
+    tokens, heatmap, weighted_spans = gradcam_text_spans(heatmap,
+                                        tokens,
+                                        doc,
+                                        pad_value=pad_value,
                                         padding=padding,
                                         interpolation_kind=interpolation_kind,
-    )
+                                        )
     # FIXME: highlighting is a bit off, eg: all green if is the 0.2 only value in heatmap
     # constrain heatmap in [0, 1] or [-1, 1] and get highlighting to do the same for best results?
     return Explanation(
@@ -347,6 +349,7 @@ def explain_prediction_keras_text(model,
         )],
         is_regression=False, # might be relevant later when explaining for regression tasks
         highlight_spaces=None, # might be relevant later when explaining text models
+        # TODO: 'preserve_density' argument for char-based highlighting
     )
 
 
@@ -468,7 +471,7 @@ def _validate_doc(model, doc):
     # https://github.com/TeamHG-Memex/eli5/pull/315#discussion_r292402171
     # (later we should be able to take tf / backend tensors)
     if not isinstance(doc, np.ndarray):
-        raise TypeError('doc must be an instace of numpy.ndarray. ' 
+        raise TypeError('"doc" must be an instace of numpy.ndarray. ' 
                         'Got: {}'.format(doc))
     doc_sh = doc.shape
     batch_size = doc_sh[0]
@@ -476,12 +479,12 @@ def _validate_doc(model, doc):
     # check maching dims
     input_sh = model.input_shape
     if not _eq_shapes(input_sh, doc_sh):
-        raise ValueError('doc must have shape: {}. '
+        raise ValueError('"doc" must have shape: {}. '
                          'Got: {}'.format(input_sh, doc_sh))
 
     # check that batch=1 (will be removed later)
     if batch_size != 1:
-        raise ValueError('doc batch size must be 1. '
+        raise ValueError('"doc" batch size must be 1. '
                          'Got doc with batch size: %d' % batch_size)
 
 
@@ -506,17 +509,47 @@ def _eq_shapes(required, other):
 def _validate_tokens(doc, tokens):
     # type: (np.ndarray, Union[np.ndarray, list]) -> None
     batch_size, doc_len = doc.shape
-    if isinstance(tokens, np.ndarray):
-        if doc.shape != tokens.shape:
-            raise ValueError('"tokens" and "doc" numpy array shapes must be the same.')
-    elif isinstance(tokens, list):
+    if not isinstance(tokens, (list, np.ndarray)):
+        # wrong type
+        raise TypeError('"tokens" must be list or numpy.ndarray. '
+                        'Got "{}".'.format(tokens))
+
+    an_entry = tokens[0]
+    if isinstance(an_entry, str):
+        # no batch
         if batch_size != 1:
-            raise ValueError('If passing tokens in a Python list, '
-                             'doc must have batch size 1.')
+            # doc is batched but tokens is not
+            raise ValueError('If passing "tokens" without batch dimension, '
+                             '"doc" must have batch size = 1.'
+                             'Got "doc" with batch size = %d.' % batch_size)
+        tokens_len = len(tokens)
+    elif isinstance(an_entry, (list, np.ndarray)):
+        # batched
+        a_token = an_entry[0]
+        if not isinstance(a_token, str):
+            # actual contents are not strings
+            raise TypeError('"tokens" must contain strings. '
+                            'Got {}'.format(a_token))
+        # FIXME: this is hard-coded for batch size = 1
+        # each sample's length may vary when type is list
+        tokens_len = len(an_entry)
     else:
-        raise TypeError('"tokens" must be list or np.ndarray. '
-                        'Got {}.'.format(tokens))
-    
-    tokens_len = _get_temporal_length(tokens)
-    if doc_len != tokens_len:
-        raise ValueError('"tokens" must have same temporal length as "doc".')
+        raise TypeError('"tokens" must be an array of strings, '
+                        'or an array of string arrays. '
+                        'Got "{}".'.format(tokens))
+
+    if tokens_len != doc_len:
+        raise ValueError('"tokens" and "doc" lengths must match. '
+                         '"tokens" length: "%d". "doc" length: "%d"'
+                         % tokens_len, doc_len)
+
+
+def _unbatch_tokens(tokens):
+    """If tokens has batch size, take out the first sample from the batch."""
+    an_entry = tokens[0]
+    if isinstance(an_entry, str):
+        # not batched
+        return tokens
+    else:
+        # batched, return first entry
+        return an_entry
