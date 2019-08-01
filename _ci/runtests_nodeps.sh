@@ -10,4 +10,5 @@ py.test --doctest-modules \
         --ignore eli5/formatters/as_dataframe.py \
         --ignore eli5/formatters/image.py \
         --ignore tests/utils_image.py \
+        --ignore tests/estimators/keras_sentiment_classifier.py \
         --cov=eli5 --cov-report=html --cov-report=term "$@"

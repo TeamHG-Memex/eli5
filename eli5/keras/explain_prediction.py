@@ -343,6 +343,7 @@ def explain_prediction_keras_text(model,
                               relu=relu,
                               counterfactual=counterfactual,
                               )
+    heatmap, = heatmap
     tokens, heatmap, weighted_spans = gradcam_text_spans(heatmap,
                                         tokens,
                                         doc,
@@ -350,7 +351,6 @@ def explain_prediction_keras_text(model,
                                         padding=padding,
                                         interpolation_kind=interpolation_kind,
                                         )
-    heatmap, = heatmap
 
     # FIXME: highlighting is a bit off, eg: all green if is the 0.2 only value in heatmap
     # constrain heatmap in [0, 1] or [-1, 1] and get highlighting to do the same for best results?
@@ -422,14 +422,14 @@ def _search_activation_layer(model, # type: Model
 
 
 def _forward_layers(model):
-    """Return layers going from input to output."""
     # type: (Model) -> Generator[Layer, None, None]
+    """Return layers going from input to output."""
     return (model.get_layer(index=i) for i in range(0, len(model.layers), 1))
 
 
 def _backward_layers(model):
-    """Return layers going from output to input (backwards)."""
     # type: (Model) -> Generator[Layer, None, None]
+    """Return layers going from output to input (backwards)."""
     return (model.get_layer(index=i) for i in range(len(model.layers)-1, -1, -1))
 
 
@@ -527,8 +527,8 @@ def _eq_shapes(required, other):
 
 
 def _validate_tokens(doc, tokens):
-    """Check that ``tokens`` contains correct items and matches ``doc``."""
     # type: (np.ndarray, Union[np.ndarray, list]) -> None
+    """Check that ``tokens`` contains correct items and matches ``doc``."""
     batch_size, doc_len = doc.shape
     if not isinstance(tokens, (list, np.ndarray)):
         # wrong type
@@ -562,10 +562,11 @@ def _validate_tokens(doc, tokens):
     if tokens_len != doc_len:
         raise ValueError('"tokens" and "doc" lengths must match. '
                          '"tokens" length: "%d". "doc" length: "%d"'
-                         % tokens_len, doc_len)
+                         % (tokens_len, doc_len))
 
 
 def _unbatch_tokens(tokens):
+    # type: (np.ndarray) -> np.ndarray
     """If ``tokens`` has batch size, take out the first sample from the batch."""
     an_entry = tokens[0]
     if isinstance(an_entry, str):

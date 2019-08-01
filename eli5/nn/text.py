@@ -28,7 +28,9 @@ def gradcam_text_spans(heatmap, # type: np.ndarray
     Parameters
     ----------
     heatmap : numpy.ndarray
-        Heatmap of weights. May be resized to match the length of tokens.
+        Array of weights. May be resized to match the length of tokens.
+
+        **Should be rank 1 (no batch dimension).**
 
     tokens : numpy.ndarray or list
         Tokens that will be highlighted using weights from ``heatmap``.
@@ -60,6 +62,7 @@ def gradcam_text_spans(heatmap, # type: np.ndarray
     """
     # we resize before cutting off padding?
     # FIXME: might want to do this when formatting the explanation?
+    # FIXME: batched operations (pass heatmap with batch, tokens with batch)
     width = _get_temporal_length(tokens)
     heatmap = resize_1d(heatmap, width, interpolation_kind=interpolation_kind)
 
@@ -100,7 +103,7 @@ def resize_1d(heatmap, width, interpolation_kind='linear'):
     # type: (np.ndarray, int, Union[str, int]) -> np.ndarray
     """
     Resize the ``heatmap`` 1D array to match the specified ``width``.
-    
+
     For example, upscale/upsample a heatmap with length 400
     to have length 500.
 
@@ -180,8 +183,11 @@ def _construct_document(tokens):
     return sep.join(tokens)
 
 
-def _find_padding(pad_value, doc=None, tokens=None):
-    # (Union[str, int, float], Optional[np.ndarray], Optional[np.ndarray, list]) -> np.ndarray
+def _find_padding(pad_value, # type: Union[str, int, float]
+                  doc=None, # type: Optional[np.ndarray]
+                  tokens=None # type: Optional[Union[np.ndarray, list]]
+                  ):
+    # type: (...) -> np.ndarray
     """Find padding in input ``doc`` or ``tokens`` based on ``pad_value``,
     returning a numpy array of indices where padding was found."""
     if isinstance(pad_value, (int, float)) and doc is not None:
