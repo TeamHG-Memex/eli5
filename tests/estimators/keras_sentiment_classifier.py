@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+"""Utility functions for working with an IMDB sentiment classifier."""
+
 import numpy as np
 import keras
 from keras.datasets import imdb

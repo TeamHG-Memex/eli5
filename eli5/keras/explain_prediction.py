@@ -485,11 +485,7 @@ def _validate_doc(model, doc):
     """
     Check that the input ``doc`` is suitable for ``model``.
     """
-    # FIXME: is this validation worth it? Just use Keras validation?
-    # Do we make any extra assumptions about doc?
-    # https://github.com/keras-team/keras/issues/1641
-    # https://github.com/TeamHG-Memex/eli5/pull/315#discussion_r292402171
-    # (later we should be able to take tf / backend tensors)
+    # TODO: (open issue) be able to take Tensorflow or backend tensors
     if not isinstance(doc, np.ndarray):
         raise TypeError('"doc" must be an instace of numpy.ndarray. ' 
                         'Got: {}'.format(doc))
@@ -497,12 +493,13 @@ def _validate_doc(model, doc):
     batch_size = doc_sh[0]
 
     # check maching dims
+    # TODO: might want to delegate this validation to keras itself?
     input_sh = model.input_shape
     if not _eq_shapes(input_sh, doc_sh):
         raise ValueError('"doc" must have shape: {}. '
                          'Got: {}'.format(input_sh, doc_sh))
 
-    # check that batch=1 (will be removed later)
+    # check that batch=1 (batch greater than 1 is currently not supported)
     if batch_size != 1:
         raise ValueError('"doc" batch size must be 1. '
                          'Got doc with batch size: %d' % batch_size)

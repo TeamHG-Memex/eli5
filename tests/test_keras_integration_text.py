@@ -15,6 +15,10 @@ from .estimators import keras_sentiment_classifier
 
 
 # model 1: ~100,000 parameters
+# For training details see
+# tests/estimators/keras_sentiment_classifier.ipynb
+# or https://www.kaggle.com/tobalt/keras-text-model-sentiment
+# Features:
 # embedding -> masking -> bidirectional LSTM -> dense
 # token level + sentiment (binary) classification + non-fixed length input
 KERAS_SENTIMENT_CLASSIFIER = 'tests/estimators/keras_sentiment_classifier.h5'

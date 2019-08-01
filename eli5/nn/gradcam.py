@@ -133,7 +133,6 @@ def _generate_maps_weights(activations, weights):
         # else we are setting all of heatmap to the same value 
         # by adding length 1 results
         # generator with a single item
-        # FIXME: might want to use yield instead of return
         yield (activations, weights,)
     else:
         # (batch, dim1, ..., dimn, channels)
@@ -175,9 +174,7 @@ def compute_weights(grads): # made public for transparency
     # https://www.tensorflow.org/guide/tensors
     # weights = K.mean(grads, axis=(1, 2)) # +1 axis num because we have batch still?
     shape = [(axis_no, dim) for (axis_no, dim) in enumerate(grads.shape)]
-    # ignore batch
-    # ignore last (number of maps / channels)
-    # FIXME: hardcoded shape
+    # ignore batch and ignore last (number of maps / channels)
     pooling_axes = shape[1:-1]
     if len(pooling_axes) == 0:
         weights = grads # no need to average
