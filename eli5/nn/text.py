@@ -81,24 +81,6 @@ def gradcam_text_spans(heatmap, # type: np.ndarray
     return tokens, heatmap, weighted_spans
 
 
-def _get_temporal_length(tokens):
-    # type: (Union[np.ndarray, list]) -> int
-    if isinstance(tokens, np.ndarray):
-        if len(tokens.shape) == 1:
-            # no batch size
-            return tokens.shape[0]
-        elif len(tokens.shape) == 2:
-            # possible batch size
-            return tokens.shape[1]
-        else:
-            raise ValueError('"tokens" shape is ambiguous.')
-    elif isinstance(tokens, list):
-        return len(tokens)
-    else:
-        raise TypeError('"tokens" must be an instance of list or numpy.ndarray. '
-                        'Got: {}'.format(tokens))
-
-
 def resize_1d(heatmap, width, interpolation_kind='linear'):
     # type: (np.ndarray, int, Union[str, int]) -> np.ndarray
     """
@@ -149,6 +131,24 @@ def resize_1d(heatmap, width, interpolation_kind='linear'):
     return heatmap
 
 
+def _get_temporal_length(tokens):
+    # type: (Union[np.ndarray, list]) -> int
+    if isinstance(tokens, np.ndarray):
+        if len(tokens.shape) == 1:
+            # no batch size
+            return tokens.shape[0]
+        elif len(tokens.shape) == 2:
+            # possible batch size
+            return tokens.shape[1]
+        else:
+            raise ValueError('"tokens" shape is ambiguous.')
+    elif isinstance(tokens, list):
+        return len(tokens)
+    else:
+        raise TypeError('"tokens" must be an instance of list or numpy.ndarray. '
+                        'Got: {}'.format(tokens))
+
+
 def _build_spans(tokens, # type: Union[np.ndarray, list]
                  heatmap, # type: np.ndarray
                  document, # type: str
@@ -163,10 +163,10 @@ def _build_spans(tokens, # type: Union[np.ndarray, list]
         # create span
         t_end = t_start + len(token)
         # why start and end is list of tuples?
-        span = tuple([token, [(t_start, t_end,)], weight])
+        span = (token, [(t_start, t_end,)], weight)
         spans.append(span)
         # update run
-        running = t_end 
+        running = t_end
     return spans
 
 

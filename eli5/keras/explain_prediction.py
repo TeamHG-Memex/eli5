@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 from typing import Union, Optional, Callable, List, Tuple, Generator, TYPE_CHECKING
+if TYPE_CHECKING:
+    import PIL # type: ignore
 
 import numpy as np # type: ignore
 import keras # type: ignore
@@ -24,15 +26,6 @@ from eli5.nn.text import (
 from .gradcam import (
     gradcam_backend_keras,
 )
-
-
-if TYPE_CHECKING:
-    import PIL # type: ignore
-    # https://docs.python.org/3/library/typing.html#typing.TYPE_CHECKING
-    # https://mypy.readthedocs.io/en/latest/common_issues.html#import-cycles
-    # Question: do we need to check types of things we ignore?
-    # is mypy good for "type documentation"
-    # or is it the opposite? (needs maintenance)
 
 
 # note that keras.models.Sequential subclasses keras.models.Model
@@ -164,7 +157,7 @@ def explain_prediction_keras(model, # type: Model
                                               layer=layer,
                                               relu=relu,
                                               counterfactual=counterfactual,
-        )
+                                              )
     elif tokens is not None:
         return explain_prediction_keras_text(model, 
                                              doc, 
@@ -176,7 +169,7 @@ def explain_prediction_keras(model, # type: Model
                                              layer=layer,
                                              relu=relu,
                                              counterfactual=counterfactual,
-        )
+                                             )
     else:
         return explain_prediction_keras_not_supported(model, doc)
 
@@ -201,7 +194,7 @@ def explain_prediction_keras_image(model,
                                    layer=None,
                                    relu=True,
                                    counterfactual=False,
-    ):
+                                   ):
     """
     Explain an image-based model, highlighting what contributed in the image.
 
@@ -223,25 +216,33 @@ def explain_prediction_keras_image(model,
             * ``image`` the original Pillow image with mode RGBA.
             * ``heatmap`` rank 2 (2D) numpy array.
     """
-    # TODO (open issue): support taking images that are not 'RGBA' -> 'RGB' as well (happens with keras load_img)
+    # TODO (open issue): support taking images that are not 'RGBA' -> 'RGB' 
+    # as well (happens with keras load_img)
     # and grayscale too
     assert image is not None
     _validate_doc(model, doc)
+    _validate_targets(targets)
+    _validate_classification_target(targets[0], model.output_shape)
 
     if layer is not None:
         activation_layer = _get_layer(model, layer)
     else:
-        activation_layer = _search_activation_layer(model, 
-            _backward_layers, _is_suitable_image_layer)
+        activation_layer = _search_activation_layer(model,
+                                                    _backward_layers,
+                                                    _is_suitable_image_layer,
+                                                    )
 
-    activations, grads, predicted_idx, predicted_val = gradcam_backend_keras(model, 
-                                            doc, targets, activation_layer)
+    vals = gradcam_backend_keras(model, doc, targets, activation_layer)
+    activations, grads, predicted_idx, predicted_val = vals
     heatmap = gradcam_heatmap(activations,
                               grads,
                               relu=relu,
                               counterfactual=counterfactual,
-    )
-    heatmap, = heatmap # FIXME: hardcode batch=1 for now
+                              )
+    # take from batch
+    predicted_idx, = predicted_idx
+    predicted_val, = predicted_val
+    heatmap, = heatmap
 
     # TODO (open issue): image padding cut off. pass 2-tuple?
     return Explanation(
@@ -326,34 +327,40 @@ def explain_prediction_keras_text(model,
     #    Not tokenized and without padding.
     # :type document: str, optional
     assert tokens is not None
-    _validate_doc(model, doc) # should validate that doc is 2D array (temporal/series data?)
+    _validate_doc(model, doc)  # should validate that doc is 2D array (temporal/series data?)
     _validate_tokens(doc, tokens)
     tokens = _unbatch_tokens(tokens)
+    _validate_targets(targets)
+    _validate_classification_target(targets[0], model.output_shape)
 
     if layer is not None:
         activation_layer = _get_layer(model, layer)
     else:
-        activation_layer = _search_activation_layer(model, 
-            _forward_layers, _is_suitable_text_layer)
+        activation_layer = _search_activation_layer(model,
+                                                    _forward_layers,
+                                                    _is_suitable_text_layer,
+                                                    )
 
-    activations, grads, predicted_idx, predicted_val = gradcam_backend_keras(model, 
-                                            doc, targets, activation_layer)
+    vals = gradcam_backend_keras(model, doc, targets, activation_layer)
+    activations, grads, predicted_idx, predicted_val = vals
     heatmap = gradcam_heatmap(activations,
                               grads,
                               relu=relu,
                               counterfactual=counterfactual,
                               )
+    # take from batch
+    predicted_idx, = predicted_idx
+    predicted_val, = predicted_val
     heatmap, = heatmap
-    tokens, heatmap, weighted_spans = gradcam_text_spans(heatmap,
-                                        tokens,
-                                        doc,
-                                        pad_value=pad_value,
-                                        padding=padding,
-                                        interpolation_kind=interpolation_kind,
-                                        )
+    vals = gradcam_text_spans(heatmap,
+                              tokens,
+                              doc,
+                              pad_value=pad_value,
+                              padding=padding,
+                              interpolation_kind=interpolation_kind,
+                              )
+    tokens, heatmap, weighted_spans = vals
 
-    # FIXME: highlighting is a bit off, eg: all green if is the 0.2 only value in heatmap
-    # constrain heatmap in [0, 1] or [-1, 1] and get highlighting to do the same for best results?
     return Explanation(
         model.name,
         description=DESCRIPTION_GRADCAM,
@@ -369,6 +376,36 @@ def explain_prediction_keras_text(model,
         highlight_spaces=None, # might be relevant later when explaining text models
         # TODO: 'preserve_density' argument for char-based highlighting
     )
+
+
+def _validate_targets(targets):
+    # type: (list) -> None
+    """Check whether ``targets`` has correct type and values."""
+    if not isinstance(targets, list):
+        raise TypeError('Invalid argument "targets" (must be list or None): %s' % targets)
+    else:
+        if len(targets) != 1:
+            raise ValueError('More than one prediction target '
+                             'is currently not supported ' 
+                             '(found a list that is not length 1): '
+                             '{}'.format(targets))
+        else:
+            target = targets[0]
+            if not isinstance(target, int):
+                raise TypeError('Prediction target must be int. '
+                                'Got: {}'.format(target))
+
+
+def _validate_classification_target(target, output_shape):
+    # type: (int, Tuple[int]) -> None
+    """Check that ``target`` is a correct classification target
+    into the ``output_shape`` tuple representing dimensions
+    of a final output layer."""
+    output_nodes = output_shape[1:][0]
+    if not (0 <= target < output_nodes):
+        raise ValueError('Prediction target index is ' 
+                         'outside the required range [0, {}). ',
+                         'Got {}'.format(output_nodes, target))
 
 
 # There is a problem with repeated arguments to the explain_prediction_keras* functions

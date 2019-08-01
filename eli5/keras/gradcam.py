@@ -58,30 +58,29 @@ def gradcam_backend_keras(model, # type: Model
     # and https://github.com/ramprs/grad-cam/blob/master/classification.lua
     # TODO: as in pytorch PR, separate out classification tensor code
     if targets is not None:
-        predicted_idx = _get_target_prediction(targets, model)
+        target, = targets
+        predicted_idx = K.constant([target], dtype='int64')
     else:
         predicted_idx = _autoget_target_prediction(model)
-    predicted_val = K.gather(model.output[0, :], predicted_idx) # access value by index
+    # access value by index
+    predicted_val = K.gather(model.output[0, :], predicted_idx)
 
-    # output of target activation layer, i.e. activation maps of a convolutional layer
-    activation_output = activation_layer.output 
+    # output of target activation layer, i.e. activation maps of a conv layer
+    activation_output = activation_layer.output
 
     # score for class w.r.p.t. activation layer
     grads = _calc_gradient(predicted_val, [activation_output])
 
-    output = model.output
-
     # TODO: gradcam on input layer
-    evaluate = K.function([model.input], 
-        [activation_output, grads, predicted_val, predicted_idx, output]
-    )
-    # evaluate the graph / do actual computations
-    activations, grads, predicted_val, predicted_idx, output = evaluate([doc])
+    evaluate = K.function([model.input],
+                          [activation_output,
+                           grads,
+                           predicted_val,
+                           predicted_idx]
+                          )
 
-    # put into suitable form
-    # FIXME: batch assumptions should be removed
-    predicted_val = predicted_val[0]
-    predicted_idx = predicted_idx[0]
+    # evaluate the graph (do actual computations)
+    activations, grads, predicted_val, predicted_idx = evaluate([doc])
     return activations, grads, predicted_idx, predicted_val
 
 
@@ -110,35 +109,11 @@ def _calc_gradient(ys, xs):
     if grads is None:
         raise ValueError('Gradient calculation resulted in None values. '
                          'Check that the model is differentiable and try again. '
-                         'ys: {}. xs: {}. grads: {}'.format(
-                            ys, xs, grads))
+                         'ys: {}. xs: {}. grads: {}'.format(ys, xs, grads))
 
     # this seems to make the heatmap less noisy
-    grads =  K.l2_normalize(grads) 
+    grads = K.l2_normalize(grads)
     return grads
-
-
-# FIXME: rename functions
-def _get_target_prediction(targets, model):
-    # type: (list, Model) -> K.variable
-    """
-    Get a prediction ID based on ``targets``, 
-    from the model ``model`` (with a rank 2 tensor for its final layer).
-    Returns a rank 1 K.variable tensor.
-    """
-    if isinstance(targets, list):
-        # take the first prediction from the list
-        if len(targets) == 1:
-            target = targets[0]
-            _validate_target(target, model.output_shape)
-            return K.constant([target], dtype='int64')
-        else:
-            raise ValueError('More than one prediction target '
-                             'is currently not supported ' 
-                             '(found a list that is not length 1): '
-                             '{}'.format(targets))
-    else:
-        raise TypeError('Invalid argument "targets" (must be list or None): %s' % targets)
 
 
 def _autoget_target_prediction(model):
@@ -147,22 +122,3 @@ def _autoget_target_prediction(model):
     the highest predicted output from ``model``"""
     output = model.output
     return K.argmax(output, axis=-1)
-
-
-# FIXME: should this be moved to general gradcam package?
-def _validate_target(target, output_shape):
-    # type: (int, tuple) -> None
-    """
-    Check whether ``target``,
-    an integer index into the model's output,
-    is valid for the given ``output_shape``.
-    """
-    if isinstance(target, int):
-        output_nodes = output_shape[1:][0]
-        if not (0 <= target < output_nodes):
-            raise ValueError('Prediction target index is ' 
-                             'outside the required range [0, {}). ',
-                             'Got {}'.format(output_nodes, target))
-    else:
-        raise TypeError('Prediction target must be int. '
-                        'Got: {}'.format(target))
