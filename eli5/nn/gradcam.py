@@ -182,3 +182,34 @@ def compute_weights(grads): # made public for transparency
         axes = [axis_no for (axis_no, dim) in pooling_axes]
         weights = np.mean(grads, axis=tuple(axes))
     return weights
+
+
+def _validate_targets(targets):
+    # type: (list) -> None
+    """Check whether ``targets``, the targetted classes for Grad-CAM, 
+    has correct type and values."""
+    if not isinstance(targets, list):
+        raise TypeError('Invalid argument "targets" (must be a list): %s' % targets)
+    else:
+        if len(targets) != 1:
+            raise ValueError('More than one prediction target '
+                             'is currently not supported ' 
+                             '(found a list that is not length 1): '
+                             '{}'.format(targets))
+        else:
+            target = targets[0]
+            if not isinstance(target, int):
+                raise TypeError('Prediction target must be int. '
+                                'Got: {}'.format(target))
+
+
+def _validate_classification_target(target, output_shape):
+    # type: (int, Tuple[int]) -> None
+    """Check that ``target`` is a correct classification target
+    into ``output_shape``, a tuple representing dimensions
+    of the final output layer."""
+    output_nodes = output_shape[1:][0]
+    if not (0 <= target < output_nodes):
+        raise ValueError('Prediction target index is ' 
+                         'outside the required range [0, {}). ',
+                         'Got {}'.format(output_nodes, target))

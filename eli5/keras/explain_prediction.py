@@ -17,7 +17,9 @@ from eli5.base import (
 from eli5.explain import explain_prediction
 from eli5.nn.gradcam import (
     gradcam_heatmap,
-    DESCRIPTION_GRADCAM
+    DESCRIPTION_GRADCAM,
+    _validate_targets,
+    _validate_classification_target,
 )
 from eli5.nn.text import (
     gradcam_text_spans,
@@ -131,7 +133,7 @@ def explain_prediction_keras(model, # type: Model
     See :func:`eli5.explain_prediction` for more information about the ``model``,
     ``doc``, and ``targets`` parameters.
 
-    
+
     Other arguments are passed to concrete implementations
     for image and text explanations.
 
@@ -221,8 +223,9 @@ def explain_prediction_keras_image(model,
     # and grayscale too
     assert image is not None
     _validate_doc(model, doc)
-    _validate_targets(targets)
-    _validate_classification_target(targets[0], model.output_shape)
+    if targets is not None:
+        _validate_targets(targets)
+        _validate_classification_target(targets[0], model.output_shape)
 
     if layer is not None:
         activation_layer = _get_layer(model, layer)
@@ -330,8 +333,9 @@ def explain_prediction_keras_text(model,
     _validate_doc(model, doc)  # should validate that doc is 2D array (temporal/series data?)
     _validate_tokens(doc, tokens)
     tokens = _unbatch_tokens(tokens)
-    _validate_targets(targets)
-    _validate_classification_target(targets[0], model.output_shape)
+    if targets is not None:
+      _validate_targets(targets)
+      _validate_classification_target(targets[0], model.output_shape)
 
     if layer is not None:
         activation_layer = _get_layer(model, layer)
@@ -376,36 +380,6 @@ def explain_prediction_keras_text(model,
         highlight_spaces=None, # might be relevant later when explaining text models
         # TODO: 'preserve_density' argument for char-based highlighting
     )
-
-
-def _validate_targets(targets):
-    # type: (list) -> None
-    """Check whether ``targets`` has correct type and values."""
-    if not isinstance(targets, list):
-        raise TypeError('Invalid argument "targets" (must be list or None): %s' % targets)
-    else:
-        if len(targets) != 1:
-            raise ValueError('More than one prediction target '
-                             'is currently not supported ' 
-                             '(found a list that is not length 1): '
-                             '{}'.format(targets))
-        else:
-            target = targets[0]
-            if not isinstance(target, int):
-                raise TypeError('Prediction target must be int. '
-                                'Got: {}'.format(target))
-
-
-def _validate_classification_target(target, output_shape):
-    # type: (int, Tuple[int]) -> None
-    """Check that ``target`` is a correct classification target
-    into the ``output_shape`` tuple representing dimensions
-    of a final output layer."""
-    output_nodes = output_shape[1:][0]
-    if not (0 <= target < output_nodes):
-        raise ValueError('Prediction target index is ' 
-                         'outside the required range [0, {}). ',
-                         'Got {}'.format(output_nodes, target))
 
 
 # There is a problem with repeated arguments to the explain_prediction_keras* functions
