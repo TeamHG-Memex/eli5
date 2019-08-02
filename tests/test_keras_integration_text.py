@@ -11,8 +11,10 @@ from keras.preprocessing.text import text_to_word_sequence
 import numpy as np
 
 import eli5
-from .estimators import keras_sentiment_classifier
-
+from .estimators import (
+    keras_sentiment_classifier,
+    keras_multiclass_text_classifier,
+)
 
 # model 1: ~100,000 parameters
 # For training details see
@@ -21,6 +23,7 @@ from .estimators import keras_sentiment_classifier
 # Features:
 # embedding -> masking -> bidirectional LSTM -> dense
 # token level + sentiment (binary) classification + non-fixed length input
+# trained in the keras.datasets.imdb
 KERAS_SENTIMENT_CLASSIFIER = 'tests/estimators/keras_sentiment_classifier.h5'
 
 
@@ -44,6 +47,40 @@ def sentiment_input():
 def sentiment_input_all_pad():
     sample = ""
     doc, tokens = keras_sentiment_classifier.string_to_vectorized(sample, pad=True)
+    print('Input:', sample, doc, tokens, sep='\n')
+    return doc, tokens
+
+
+# model 2: ~200,000 parameters
+# For training details see
+# tests/estimators/keras_multiclass_text_classifier.ipynb
+# or https://www.kaggle.com/tobalt/keras-text-model-multiclass
+# Features:
+# embedding -> conv + pooling -> global pooling -> dense
+# character level + multiple classes + fixed length input (3193)
+# trained on consumer financial complaints dataset
+# https://www.kaggle.com/cfpb/us-consumer-finance-complaints
+
+
+KERAS_MULTICLASS_CLASSIFIER = 'tests/estimators/keras_multiclass_text_classifier.h5'
+
+
+complaints_mortgage_idx = 2
+complaints_credit_card_idx = 3
+
+
+@pytest.fixture(scope='module')
+def multiclass_clf():
+    model = keras.models.load_model(KERAS_MULTICLASS_CLASSIFIER)
+    print('Summary of classifier:')
+    model.summary()
+    return model
+
+
+@pytest.fixture(scope='module')
+def multiclass_input():
+    sample = "mortgage interest and credit card"
+    doc, tokens = keras_multiclass_text_classifier.vectorize(sample)
     print('Input:', sample, doc, tokens, sep='\n')
     return doc, tokens
 
@@ -94,21 +131,19 @@ def sum_weights_over_ranges(spans, ranges):
     return total
 
 
-# check that explain+format == show
-def test_end_to_end_explanation(sentiment_clf, sentiment_input):
-    model = sentiment_clf
-    doc, tokens = sentiment_input
-    res = eli5.explain_prediction(model, doc, tokens=tokens)
-    formatted = eli5.format_as_html(res, 
-                                    force_weights=False, 
-                                    show=eli5.formatters.fields.WEIGHTS
-                                    )  # -> rendered template (str)
-    ipython = eli5.show_prediction(model, doc, tokens=tokens) # -> display object
-    ipython_html = ipython.data  # -> str
-    assert formatted == ipython_html
+def assert_weights_over_spans(spans, positive, negative, neutral):
+    if positive:
+        pos = sum_weights_over_ranges(spans, positive)
+        assert pos > 0
+    if negative:
+        neg = sum_weights_over_ranges(spans, negative)
+        assert neg < 0
+    if neutral:
+        neu = sum_weights_over_ranges(spans, neutral)
+        assert_near_zero(neu)
 
 
-# positive, negative, neutral are lists of (start, end) tuples
+# positive, negative, neutral are lists of (start, end) tuples (inclusive)
 # (indices into the document str, representing a "range")
 # that indicate what kind of values the weights should have for the range
 @pytest.mark.parametrize('relu, counterfactual, '
@@ -130,16 +165,7 @@ def test_sentiment_classification(sentiment_clf,
     print('Explaining with relu={} and counterfactual={}'.format(relu, counterfactual))
     res = eli5.explain_prediction(model, doc, tokens=tokens, relu=relu, counterfactual=counterfactual)
     spans, document = get_docs_weighted_spans(res)
-
-    if positive:
-        pos = sum_weights_over_ranges(spans, positive)
-        assert pos > 0
-    if negative:
-        neg = sum_weights_over_ranges(spans, negative)
-        assert neg < 0
-    if neutral:
-        neu = sum_weights_over_ranges(spans, neutral)
-        assert_near_zero(neu)
+    assert_weights_over_spans(spans, positive, negative, neutral)
 
 
 # padding should have no effect on prediction (neutral)
@@ -153,5 +179,40 @@ def test_padding_no_effect(sentiment_clf, sentiment_input_all_pad):
     assert_near_zero(weight)
 
 
-# TODO: test char level + conv + multiclass/label + fixed length model (padded)
-# TODO: test different targets
+# check that explain+format == show
+def test_show_explanation(sentiment_clf, sentiment_input):
+    model = sentiment_clf
+    doc, tokens = sentiment_input
+    res = eli5.explain_prediction(model, doc, tokens=tokens)
+    formatted = eli5.format_as_html(res,
+                                    force_weights=False,
+                                    show=eli5.formatters.fields.WEIGHTS
+                                    )  # -> rendered template (str)
+    ipython = eli5.show_prediction(model, doc, tokens=tokens)  # -> display object
+    ipython_html = ipython.data  # -> str
+    assert formatted == ipython_html
+
+
+@pytest.mark.parametrize('targets, positive, negative, neutral', [
+    ([complaints_credit_card_idx], [(22, 32)], [(0, 16)], []),
+    ([complaints_mortgage_idx], [(0, 16)], [(22, 32)], []),
+])
+def test_multiclass_classification(multiclass_clf, 
+                                   multiclass_input,
+                                   targets,
+                                   positive,
+                                   negative,
+                                   neutral,
+                                   ):
+    model = multiclass_clf
+    doc, tokens = multiclass_input
+    res = eli5.explain_prediction(model,
+                                  doc,
+                                  tokens=tokens,
+                                  targets=targets,
+                                  relu=False,
+                                  pad_value='<PAD>',
+                                  padding='post'
+                                  )
+    spans, document = get_docs_weighted_spans(res)
+    assert_weights_over_spans(spans, positive, negative, neutral)
