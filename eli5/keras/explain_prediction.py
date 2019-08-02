@@ -356,14 +356,14 @@ def explain_prediction_keras_text(model,
     predicted_idx, = predicted_idx
     predicted_val, = predicted_val
     heatmap, = heatmap
-    vals = gradcam_text_spans(heatmap,
-                              tokens,
-                              doc,
-                              pad_value=pad_value,
-                              padding=padding,
-                              interpolation_kind=interpolation_kind,
-                              )
-    tokens, heatmap, weighted_spans = vals
+    text_vals = gradcam_text_spans(heatmap,
+                                   tokens,
+                                   doc,
+                                   pad_value=pad_value,
+                                   padding=padding,
+                                   interpolation_kind=interpolation_kind,
+                                   )
+    tokens, heatmap, weighted_spans = text_vals
 
     return Explanation(
         model.name,

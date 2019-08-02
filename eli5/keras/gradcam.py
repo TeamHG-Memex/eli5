@@ -21,7 +21,7 @@ def gradcam_backend_keras(model, # type: Model
     targets, # type: Optional[List[int]]
     activation_layer, # type: Layer
     ):
-    # type: (...) -> Tuple[np.ndarray, np.ndarray, int, float]
+    # type: (...) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]
     """
     Compute the terms and by-products required by the Grad-CAM formula.
     

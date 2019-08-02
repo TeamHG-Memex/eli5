@@ -162,7 +162,7 @@ def compute_weights(grads): # made public for transparency
     """
     # Global Average Pooling of gradients to get the weights
     # note that axes are in range [-rank(x), rank(x)) (we start from 1, not 0)
-    
+
     # TEXT FIXME: conv1d vs conv2d (diff axis counts)
     # rank 0 = batch
     # rank 1 = dim
@@ -204,7 +204,7 @@ def _validate_targets(targets):
 
 
 def _validate_classification_target(target, output_shape):
-    # type: (int, Tuple[int]) -> None
+    # type: (int, Tuple[int, ...]) -> None
     """Check that ``target`` is a correct classification target
     into ``output_shape``, a tuple representing dimensions
     of the final output layer."""
