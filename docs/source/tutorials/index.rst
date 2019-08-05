@@ -10,3 +10,4 @@ Tutorials
    ./black-box-text-classifiers
    ./xgboost-titanic
    ./sklearn_crfsuite
+   ./keras-image-classifiers

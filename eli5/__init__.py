@@ -29,6 +29,14 @@ except ImportError:
     pass  # pandas not available
 
 try:
+    from .formatters import (
+        format_as_image
+    )
+except ImportError:
+    # Pillow or matplotlib not available
+    pass
+
+try:
     from .lightning import (
         explain_prediction_lightning,
         explain_weights_lightning
@@ -78,4 +86,13 @@ try:
     )
 except ImportError:
     # catboost is not available
+    pass
+
+
+try:
+    from .keras import (
+        explain_prediction_keras
+    )
+except ImportError:
+    # keras is not available
     pass

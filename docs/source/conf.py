@@ -36,6 +36,7 @@ class Mock(MagicMock):
         return Mock()
 
 
+# Note that we must import all sub-modules too
 MOCK_MODULES = [
     'lightning',
     'lightning.impl',
@@ -48,7 +49,15 @@ MOCK_MODULES = [
     'xgboost',
     'lightgbm',
     'catboost',
+    'keras',
+    'keras.backend',
+    'keras.models',
+    'keras.layers',
     'pandas',
+    'PIL',
+    'matplotlib',
+    'matplotlib.pyplot',
+    'matplotlib.cm',
     'pytest',
 ]
 sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)

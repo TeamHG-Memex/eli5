@@ -1,17 +1,28 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 from typing import Any, Dict, Tuple
+import warnings
 
-from IPython.display import HTML  # type: ignore
+from IPython.display import HTML, Image  # type: ignore
 
 from .explain import explain_weights, explain_prediction
 from .formatters import format_as_html, fields
+try:
+    from .formatters.image import format_as_image
+except ImportError as e:
+    # missing dependencies
+    format_as_image = e # type: ignore
 
 
 FORMAT_KWARGS = {'include_styles', 'force_weights',
                  'show', 'preserve_density',
                  'highlight_spaces', 'horizontal_layout',
-                 'show_feature_values'}
+                 'show_feature_values',
+                 # kwargs for image formatter
+                 'resampling_filter', 'colormap', 
+                 'alpha_limit',
+}
+# TODO: automatically get FORMAT_KWARGS from function signatures
 
 
 def show_weights(estimator, **kwargs):
@@ -117,6 +128,7 @@ def show_weights(estimator, **kwargs):
     """
     format_kwargs, explain_kwargs = _split_kwargs(kwargs)
     expl = explain_weights(estimator, **explain_kwargs)
+    _set_html_kwargs_defaults(format_kwargs)
     html = format_as_html(expl, **format_kwargs)
     return HTML(html)
 
@@ -131,6 +143,19 @@ def show_prediction(estimator, doc, **kwargs):
     :func:`eli5.formatters.html.format_as_html`
     keyword arguments, so it is possible to get explanation and
     customize formatting in a single call.
+
+
+    If :func:`explain_prediction` returns an :class:`base.Explanation` object with
+    the ``image`` attribute not set to None, i.e. if explaining image based models,
+    then formatting is dispatched to an image display implementation, 
+    and image explanations are shown in an IPython cell.
+    Extra keyword arguments are passed to :func:`eli5.format_as_image`.
+
+    Note that this image display implementation 
+    requires ``matplotlib`` and ``Pillow`` as extra dependencies.
+    If the dependencies are missing, no formatting is done
+    and the original :class:`base.Explanation` object is returned.
+
 
     Parameters
     ----------
@@ -265,17 +290,47 @@ def show_prediction(estimator, doc, **kwargs):
             from IPython.display import display
             display(eli5.show_weights(clf1))
             display(eli5.show_weights(clf2))
+
+    PIL.Image.Image
+        Image with a heatmap overlay, *if explaining image based models*.
+        The image is shown in an IPython notebook cell
+        if it is the last thing returned.
+        To display the image in a loop, function, or other case, 
+        use IPython.display.display::
+
+            from IPython.display import display
+            for cls_idx in [0, 432]:
+                display(eli5.show_prediction(clf, doc, targets=[cls_idx]))
+
     """
     format_kwargs, explain_kwargs = _split_kwargs(kwargs)
     expl = explain_prediction(estimator, doc, **explain_kwargs)
-    html = format_as_html(expl, **format_kwargs)
-    return HTML(html)
+    if expl.image is not None:
+        # dispatch to image display implementation
+        if isinstance(format_as_image, ImportError):
+            warnings.warn('Missing dependencies: "{}". ' 
+                          'Returning original Explanation.'.format(
+                            format_as_image))
+            return expl
+        else:
+            return format_as_image(expl, **format_kwargs)
+    else:
+        # use default implementation
+        # TODO: a better design / refactorings might be needed
+        _set_html_kwargs_defaults(format_kwargs)
+        html = format_as_html(expl, **format_kwargs)
+        return HTML(html)
 
 
 def _split_kwargs(kwargs):
     # type: (Dict[str, Any]) -> Tuple[Dict[str, Any], Dict[str, Any]]
     format_kwargs = {k: v for k, v in kwargs.items() if k in FORMAT_KWARGS}
-    format_kwargs.setdefault('show', fields.WEIGHTS)
-    format_kwargs.setdefault('force_weights', False)
     explain_kwargs = {k: v for k, v in kwargs.items() if k not in FORMAT_KWARGS}
     return format_kwargs, explain_kwargs
+    # TODO: consider moving this to utils.py as a function that splits kwargs based on an argset
+
+
+def _set_html_kwargs_defaults(format_kwargs):
+    # type: (Dict[str, Any]) -> None
+    format_kwargs.setdefault('show', fields.WEIGHTS)
+    format_kwargs.setdefault('force_weights', False)
