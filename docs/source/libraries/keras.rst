@@ -42,6 +42,12 @@ Important arguments to :func:`eli5.explain_prediction` for ``Model`` and ``Seque
     
     - Check ``model.input_shape`` to confirm the required dimensions of the input tensor.
 
+* ``image`` Pillow image, corresponds to doc input.
+
+    - **Must be passed for image explanations.**
+            
+    - **Must have mode "RGBA".**
+
 * ``target_names`` are the names of the output classes. 
     
     - *Currently not implemented*.

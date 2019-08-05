@@ -36,7 +36,7 @@ def keras_clf():
     clf = mobilenet_v2.MobileNetV2(alpha=1.0, include_top=True, weights='imagenet', classes=1000)
     print('Summary of classifier:')
     clf.summary()
-    return  clf
+    return clf
 
 
 @pytest.fixture(scope='module')
@@ -44,11 +44,14 @@ def cat_dog_image():
     # Note that 'jpg' images can have RGB data
     # which is fine in the case of this model (requires three channels)
     img_path = 'tests/images/cat_dog.jpg'
-    im = keras.preprocessing.image.load_img(img_path, target_size=(224, 224))
-    doc = keras.preprocessing.image.img_to_array(im)
+    # TODO: might be good idea to take non-RGBA images
+    im = keras.preprocessing.image.load_img(img_path, target_size=(224, 224), color_mode='rgba')
+    # 'RGBA' -> 'RGB' in order to convert to array
+    doc_im = im.convert(mode='RGB')
+    doc = keras.preprocessing.image.img_to_array(doc_im)
     doc = np.expand_dims(doc, axis=0)
-    mobilenet_v2.preprocess_input(doc) # because we our classifier is mobilenet_v2
-    return doc
+    mobilenet_v2.preprocess_input(doc) # because our classifier is mobilenet_v2
+    return doc, im
 
 
 def assert_good_external_format(expl, overlay):
@@ -110,16 +113,17 @@ def assert_attention_over_area(expl, area):
     ((44, 180, 130, 212), [imagenet_cat_idx]), # focus on the cat (supply prediction)
 ])
 def test_image_classification(keras_clf, cat_dog_image, area, targets):
+    doc, image = cat_dog_image
     # check explanation
-    res = eli5.explain_prediction(keras_clf, cat_dog_image, targets=targets)
+    res = eli5.explain_prediction(keras_clf, doc, image=image, targets=targets)
     assert_attention_over_area(res, area)
-    
+
     # check formatting
     overlay = format_as_image(res)
     assert_good_external_format(res, overlay)
 
     # check show function
-    show_overlay = eli5.show_prediction(keras_clf, cat_dog_image, targets=targets)
+    show_overlay = eli5.show_prediction(keras_clf, doc, image=image, targets=targets)
     assert_pixel_by_pixel_equal(overlay, show_overlay)
 
 
@@ -140,6 +144,7 @@ def show_nodeps(request):
 
 
 def test_show_prediction_nodeps(show_nodeps, keras_clf, cat_dog_image):
+    doc, image = cat_dog_image
     with pytest.warns(UserWarning):
-        expl = show_nodeps(keras_clf, cat_dog_image)
+        expl = show_nodeps(keras_clf, doc, image=image)
     assert isinstance(expl, Explanation)

@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
-from typing import Union, Optional, Callable, Tuple, List
+from typing import Union, Optional, Callable, Tuple, List, TYPE_CHECKING
+if TYPE_CHECKING:
+    import PIL # type: ignore
 
 import numpy as np # type: ignore
 import keras # type: ignore
@@ -22,10 +24,11 @@ and heatmap image for a target.
 @explain_prediction.register(Model)
 def explain_prediction_keras(estimator, # type: Model
                              doc, # type: np.ndarray
+                             image=None, # type: Optional['PIL.Image.Image']
                              target_names=None,
                              targets=None, # type: Optional[list]
                              layer=None, # type: Optional[Union[int, str, Layer]]
-                            ):
+                             ):
     # type: (...) -> Explanation
     """
     Explain the prediction of a Keras image classifier.
@@ -62,6 +65,16 @@ def explain_prediction_keras(estimator, # type: Model
 
         :raises TypeError: if ``doc`` is not a numpy array.
         :raises ValueError: if ``doc`` shape does not match.
+
+
+    :param image:
+        Pillow image over which to overlay the heatmap.
+
+        Corresponds to the input ``doc``.
+        
+        Must have mode 'RGBA'.
+    :type image: PIL.Image.Image, optional
+
 
     :param target_names:         
         *Not Implemented*.
@@ -112,6 +125,7 @@ def explain_prediction_keras(estimator, # type: Model
             * ``target`` ID of target class.
             * ``score`` value for predicted class.
     """
+    assert image is not None
     _validate_doc(estimator, doc)
     activation_layer = _get_activation_layer(estimator, layer)
     
@@ -122,10 +136,6 @@ def explain_prediction_keras(estimator, # type: Model
     values = gradcam_backend(estimator, doc, targets, activation_layer)
     weights, activations, grads, predicted_idx, predicted_val = values
     heatmap = gradcam(weights, activations)
-
-    doc, = doc # rank 4 batch -> rank 3 single image
-    image = keras.preprocessing.image.array_to_img(doc) # -> RGB Pillow image
-    image = image.convert(mode='RGBA')
 
     return Explanation(
         estimator.name,
