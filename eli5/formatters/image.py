@@ -104,6 +104,7 @@ def format_as_image(expl, # type: Explanation
         # no heatmaps
         return image
     else:
+        assert len(expl.targets) == 1
         heatmap = expl.targets[0].heatmap
         _validate_heatmap(heatmap)
     
