@@ -100,9 +100,13 @@ def explain_prediction_keras(estimator, # type: Model
 
     Returns
     -------
-    expl : eli5.base.Explanation
-        An ``Explanation`` object with the following attributes set (some inside ``targets``)
+    expl : :class:`eli5.base.Explanation`
+        An :class:`eli5.base.Explanation` object with the following attributes:
             * ``image`` a Pillow image with mode RGBA.
+            * ``targets`` a list of :class:`eli5.base.TargetExplanation` objects \
+                for each target. Currently only 1 target is supported.
+
+        The :class:`eli5.base.TargetExplanation` objects will have the following attributes:
             * ``heatmap`` a rank 2 numpy array with floats in interval [0, 1] \
                 with the localization map values.
             * ``target`` ID of target class.

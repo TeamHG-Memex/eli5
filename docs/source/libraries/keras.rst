@@ -21,13 +21,15 @@ Currently ELI5 supports :func:`eli5.explain_prediction` for Keras image classifi
 
 The returned :class:`eli5.base.Explanation` instance contains some important objects:
 
-* ``image`` represents the image input into the model.
+* ``image`` represents the image input into the model. A Pillow image with mode "RGBA".
 
-* ``heatmap``  is a grayscale "localization map" (rank 2 (2D) numpy array, with float values in the interval `[0, 1]`). The numbers indicate how important the region in the image is for the target class (even if the target class was not the predicted class). Higher numbers mean that the region tends to increase the predicted value for a class. Lower numbers mean that the region has smaller effect on the predicted class score.
+* ``targets`` represents the explanation values for each target class (currently only 1 target is supported). A list of :class:`eli5.base.TargetExplanation` objects with the following attributes set:
 
-* ``target`` the integer ID of the class (same as the argument to ``targets`` if one was passed, or the predicted class ID if no argument was passed).
+    * ``heatmap``  a grayscale "localization map" (rank 2 (2D) numpy array, with float values in the interval `[0, 1]`). The numbers indicate how important the region in the image is for the target class (even if the target class was not the predicted class). Higher numbers mean that the region tends to increase the predicted value for a class. Lower numbers mean that the region has smaller effect on the predicted class score.
 
-* ``score`` the output of the network for the predicted class.
+    * ``target`` the integer ID of the class (same as the argument to ``targets`` if one was passed, or the predicted class ID if no argument was passed).
+
+    * ``score`` the output of the network for the predicted class.
 
 
 Important arguments to :func:`eli5.explain_prediction` for ``Model`` and ``Sequential``:

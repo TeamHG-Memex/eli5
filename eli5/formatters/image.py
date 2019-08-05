@@ -23,10 +23,11 @@ def format_as_image(expl, # type: Explanation
     
 
     :param Explanation expl:
-        Explanation object to be formatted.
-        It must have a ``image`` attribute that is a Pillow image with mode RGBA.
-        It also must have a ``heatmap`` attribute that is a numpy array with rank 2,
-        with float values in the interval [0, 1].
+        :class:`eli5.base.Explanation` object to be formatted.
+        It must have an ``image`` attribute that is a Pillow image with mode "RGBA".
+        It must also have a ``targets`` attribute, a list of :class:`eli5.base.TargetExplanation` \
+        instances that contain the attribute ``heatmap``, \
+        a rank 2 numpy array with float values in the interval [0, 1].
 
 
         :raises TypeError: if ``heatmap`` is not a numpy array.
