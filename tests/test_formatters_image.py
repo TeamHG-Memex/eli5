@@ -12,7 +12,6 @@ from eli5.formatters.image import (
     format_as_image,
     heatmap_to_image,
     expand_heatmap,
-    _validate_heatmap,
     _update_alpha,
     _cap_alpha,
     _overlay_heatmap,
@@ -45,18 +44,6 @@ def catdog():
 @pytest.fixture(scope='module')
 def catdog_rgba(catdog):
     return catdog.convert('RGBA')
-
-
-def test_validate_heatmap(boxl):
-    # wrong type
-    with pytest.raises(TypeError):
-        _validate_heatmap(boxl)
-    # out of lower bound
-    with pytest.raises(ValueError):
-        _validate_heatmap(np.array([-0.001]))
-    # out of upper bound
-    with pytest.raises(ValueError):
-        _validate_heatmap(np.array([1.001]))
 
 
 @pytest.mark.parametrize('heatmap', [
