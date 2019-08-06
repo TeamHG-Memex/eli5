@@ -140,11 +140,8 @@ def explain_prediction_keras(model, # type: Model
 
     Returns
     -------
-    expl : eli5.base.Explanation
-        An :class:`eli5.base.Explanation` object with the following attributes set (some inside ``targets``)
-            * ``heatmap`` a numpy array with the localization map values.
-            * ``target`` ID of target class.
-            * ``score`` value for predicted class.
+      expl : :class:`eli5.base.Explanation`
+        An :class:`eli5.base.Explanation` object for the relevant implementation.
     """
     # Note that this function should only do dispatch 
     # and no other processing
@@ -214,9 +211,16 @@ def explain_prediction_keras_image(model,
     Returns
     -------
     expl : eli5.base.Explanation
-        An :class:`eli5.base.Explanation` object containing the following additional attributes
-            * ``image`` the original Pillow image with mode RGBA.
-            * ``heatmap`` rank 2 (2D) numpy array.
+      An :class:`eli5.base.Explanation` object with the following attributes:
+                  * ``image`` a Pillow image with mode RGBA.
+                  * ``targets`` a list of :class:`eli5.base.TargetExplanation` objects \
+                      for each target. Currently only 1 target is supported.
+
+      The :class:`eli5.base.TargetExplanation` objects will have the following attributes:
+          * ``heatmap`` a rank 2 numpy array with the localization map \
+            values as floats.
+          * ``target`` ID of target class.
+          * ``score`` value for predicted class.
     """
     # TODO (open issue): support taking images that are not 'RGBA' -> 'RGB' 
     # as well (happens with keras load_img)
@@ -319,10 +323,18 @@ def explain_prediction_keras_text(model,
     Returns
     -------
     expl : eli5.base.Explanation
-        An :class:`eli5.base.Explanation` object containing the following additional attributes
-            * ``weighted_spans`` a :class:`eli5.base.WeightedSpans` object
-                with weights for parts of text to be highlighted.
-            * ``heatmap`` rank 1 (1D) numpy array.
+      An :class:`eli5.base.Explanation` object with the following attributes:
+          * ``targets`` a list of :class:`eli5.base.TargetExplanation` objects \
+              for each target. Currently only 1 target is supported.
+
+      The :class:`eli5.base.TargetExplanation` objects will have the following attributes:
+          * ``weighted_spans`` a :class:`eli5.base.WeightedSpans` object with \
+            weights for parts of text to be highlighted.
+          * ``heatmap`` a rank 1 numpy array with with the localization map \
+              values as floats.
+          * ``target`` ID of target class.
+          * ``score`` value for predicted class.
+
     """
     # TODO (open issue): implement document vectorizer
     #  :param document:
@@ -334,8 +346,8 @@ def explain_prediction_keras_text(model,
     _validate_tokens(doc, tokens)
     tokens = _unbatch_tokens(tokens)
     if targets is not None:
-      _validate_targets(targets)
-      _validate_classification_target(targets[0], model.output_shape)
+        _validate_targets(targets)
+        _validate_classification_target(targets[0], model.output_shape)
 
     if layer is not None:
         activation_layer = _get_layer(model, layer)
@@ -416,7 +428,7 @@ def _get_layer(model, layer):
 def _search_activation_layer(model, # type: Model
                              layers_generator, # type: Callable[[Model], Generator[Layer, None, None]]
                              layer_condition, # type: Callable[[Model, Layer], bool]
-    ):
+                             ):
     # type: (...) -> Layer
     """
     Search for a layer in ``model``, iterating through layers in the order specified by
@@ -479,8 +491,8 @@ def _is_suitable_text_layer(model, layer):
                       keras.layers.Embedding,
                       keras.layers.MaxPooling1D,
                       keras.layers.AveragePooling1D,
-    )
-    return isinstance(layer, desired_layers) 
+                      )
+    return isinstance(layer, desired_layers)
 
 
 def _search_layer_image(model):

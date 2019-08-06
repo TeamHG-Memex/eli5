@@ -121,21 +121,26 @@ Text explanations are dispatched to :func:`eli5.keras.explain_prediction.explain
 All other arguments are ignored.
 
 
-:func:`eli5.explain_prediction` returns an :class:`eli5.base.Explanation` instance that contains some important objects:
+:func:`eli5.explain_prediction` return value
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-* ``heatmap``  is a "localization map" (a numpy array with float values). The numbers indicate how important the region in the image is for the target class (even if the target class was not the predicted class). Higher numbers mean that the region tends to increase the predicted value for a class. Lower numbers mean that the region has smaller effect on the predicted class score.
-    
-    - is a 2D numpy array for images.
+An :class:`eli5.base.Explanation` instance is returned with some important attributes:
 
-    - is a 1D numpy array for text.
+* ``image`` if explaining image-based networks, represents the image input into the model. A Pillow image with mode "RGBA".
 
-* ``target`` the integer ID of the class explained (same as the argument to ``targets`` if one was passed, or the predicted class ID if no argument was passed).
+* ``targets`` represents the explanation values for each target class (currently only 1 target is supported). A list of :class:`eli5.base.TargetExplanation` objects with the following attributes set:
 
-* ``score`` the output of the network for the predicted class.
+    * ``heatmap``  is a "localization map" (a numpy array with float values). The numbers indicate how important the region in the image is for the target class (even if the target class was not the predicted class). Higher numbers mean that the region tends to increase the predicted value for a class. Lower numbers mean that the region has smaller effect on the predicted class score.
+        
+        - is a 2D numpy array for images.
 
-* ``image`` if explaining image-based networks, represents the image input into the model.
+        - is a 1D numpy array for text.
 
-* ``weighted_spans`` an :class:`eli5.base.WeightedSpans` instance, if explaining text-based networks, text to be highlighted and the corresponding weight.
+    * ``target`` the integer ID of the class explained (same as the argument to ``targets`` if one was passed, or the predicted class ID if no argument was passed).
+
+    * ``score`` the output of the network for the predicted class.
+
+    * ``weighted_spans`` an :class:`eli5.base.WeightedSpans` instance, if explaining text-based networks, text to be highlighted and the corresponding weights.
 
 
 If neither ``image`` nor ``tokens`` are passed, an error explanation is returned.

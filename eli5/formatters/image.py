@@ -20,12 +20,15 @@ def format_as_image(expl, # type: Explanation
     Format a :class:`eli5.base.Explanation` object as an image.
 
     Note that this formatter requires ``matplotlib`` and ``Pillow`` optional dependencies.
-    
+
 
     :param Explanation expl:
-        Explanation object to be formatted.
-        It must have a ``image`` attribute that is a Pillow image with mode RGBA.
-        It also must have a ``heatmap`` attribute that is a numpy array with rank 2.
+        :class:`eli5.base.Explanation` object to be formatted.
+        It must have an ``image`` attribute that is a Pillow image \
+        with mode 'RGBA'.
+        It must also have a ``targets`` attribute, a list of :class:`eli5.base.TargetExplanation` \
+        instances that contain the attribute ``heatmap``, a rank 2 numpy array \
+        with float values.
 
 
         :raises TypeError: if ``heatmap`` is not a numpy array.
@@ -34,7 +37,7 @@ def format_as_image(expl, # type: Explanation
 
     :param resampling_filter:
         Interpolation ID or Pillow filter to use when resizing the image.
-        
+
         Example filters from PIL.Image
             * ``NEAREST``
             * ``BOX``
@@ -60,7 +63,7 @@ def format_as_image(expl, # type: Explanation
             * ``viridis``
             * ``jet``
             * ``binary``
-        
+
         See also https://matplotlib.org/gallery/color/colormap_reference.html.
 
         Default is ``matplotlib.cm.viridis`` (green/blue to yellow).
@@ -101,6 +104,7 @@ def format_as_image(expl, # type: Explanation
         # no heatmaps
         return image
     else:
+        assert len(expl.targets) == 1
         heatmap = expl.targets[0].heatmap
         if not isinstance(heatmap, np.ndarray):
             raise TypeError('heatmap must be a numpy.ndarray instance. '
@@ -138,7 +142,6 @@ def heatmap_to_image(heatmap):
 
 
     :raises TypeError: if ``heatmap`` is not a numpy array.
-    :raises ValueError: if ``heatmap`` does not contain values as floats in the interval [0, 1].
     :raises ValueError: if ``heatmap`` rank is neither 2 nor 3.
     :raises ValueError: if rank 3 ``heatmap`` does not have 4 (RGBA) or 3 (RGB) channels.
 
@@ -148,7 +151,12 @@ def heatmap_to_image(heatmap):
     heatmap_image : PIL.Image.Image
         Heatmap as an image with a suitable mode.
     """
-    _validate_heatmap(heatmap)
+    if not isinstance(heatmap, np.ndarray):
+        raise TypeError('heatmap must be a numpy.ndarray instance. '
+                        'Got: {}'.format(heatmap))
+    mi, ma = np.min(heatmap), np.max(heatmap)
+    if not (0 <= mi and ma <= 1):
+        heatmap = _normalize_heatmap(heatmap)    
     rank = len(heatmap.shape)
     if rank == 2:
         # FIXME: unclear if rank 2 means (width, height) OR (dim, channels) ???
@@ -169,21 +177,6 @@ def heatmap_to_image(heatmap):
                          'Got: %d' % rank)
     heatmap = (heatmap*255).astype('uint8') # -> [0, 255] int
     return Image.fromarray(heatmap, mode=mode)
-
-
-def _validate_heatmap(heatmap):
-    """Check that ``heatmap`` is a numpy array 
-    with float values in interval [0, 1]."""
-    if not isinstance(heatmap, np.ndarray):
-        raise TypeError('heatmap must be a numpy.ndarray instance. '
-                        'Got: {}'.format(heatmap))
-    mi = np.min(heatmap)
-    ma = np.max(heatmap)
-    if not (0 <= mi and ma <= 1):
-        raise ValueError('heatmap must contain float values '
-                        'between 0 and 1 inclusive. '
-                        'Got array with minimum: {} ' 
-                        'and maximum: {}'.format(mi, ma))
 
 
 def _normalize_heatmap(h, epsilon=1e-07):

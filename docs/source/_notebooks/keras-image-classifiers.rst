@@ -103,7 +103,7 @@ dimensions! Let's resize it:
 
 .. parsed-literal::
 
-    <PIL.Image.Image image mode=RGB size=224x224 at 0x7F709A579EF0>
+    <PIL.Image.Image image mode=RGB size=224x224 at 0x7FE84017DA90>
 
 
 
@@ -184,8 +184,8 @@ as a PIL object explicitly. However, it must have mode 'RGBA'
 
 .. parsed-literal::
 
-    <PIL.Image.Image image mode=RGB size=224x224 at 0x7F709A579EF0>
-    <PIL.Image.Image image mode=RGBA size=224x224 at 0x7F709A58E828>
+    <PIL.Image.Image image mode=RGB size=224x224 at 0x7FE84017DA90>
+    <PIL.Image.Image image mode=RGBA size=224x224 at 0x7FE83C037B38>
 
 
 
@@ -407,6 +407,10 @@ The ``layer`` parameter accepts a layer instance, index, name, or None
 (get layer automatically) as its arguments. This is where Grad-CAM
 builds its heatmap from.
 
+.. code:: ipython3
+
+    # TODO: counterfactual and relu arguments
+
 5. Under the hood - ``explain_prediction()`` and ``format_as_image()``
 ----------------------------------------------------------------------
 
@@ -428,20 +432,20 @@ Examining the structure of the ``Explanation`` object:
 
 .. parsed-literal::
 
-    Explanation(estimator='mobilenetv2_1.00_224', description='Grad-CAM visualization for image classification; \noutput is explanation object that contains input image \nand heatmap image for a target.\n', error='', method='Grad-CAM', is_regression=False, targets=[TargetExplanation(target=243, feature_weights=None, proba=None, score=0.80967486, weighted_spans=None, heatmap=array([[0.        , 0.34700435, 0.8183038 , 0.8033579 , 0.90060294,
-            0.11643614, 0.01095222],
-           [0.01533252, 0.3834133 , 0.80703807, 0.85117225, 0.95316563,
-            0.28513838, 0.        ],
-           [0.00708034, 0.20260051, 0.77189916, 0.77733763, 0.99999996,
-            0.30238836, 0.        ],
-           [0.        , 0.04289413, 0.4495872 , 0.30086699, 0.2511554 ,
-            0.06771996, 0.        ],
-           [0.0148367 , 0.        , 0.        , 0.        , 0.        ,
-            0.00579786, 0.01928998],
+    Explanation(estimator='mobilenetv2_1.00_224', description='\nGrad-CAM visualization for classification tasks; \noutput is explanation object that contains a heatmap.\n', error='', method='Grad-CAM', is_regression=False, targets=[TargetExplanation(target=243, feature_weights=None, proba=None, score=0.80967486, weighted_spans=None, heatmap=array([[0.        , 0.83474343, 1.96848748, 1.93253407, 2.16646386,
+            0.28009534, 0.02634634],
+           [0.03688345, 0.92232772, 1.94138698, 2.04755486, 2.29290712,
+            0.68592048, 0.        ],
+           [0.01703225, 0.48736982, 1.85685785, 1.86994048, 2.4055704 ,
+            0.72741652, 0.        ],
+           [0.        , 0.10318486, 1.0815137 , 0.72375675, 0.60417202,
+            0.16290513, 0.        ],
+           [0.03569073, 0.        , 0.        , 0.        , 0.        ,
+            0.01394715, 0.0464034 ],
            [0.        , 0.        , 0.        , 0.        , 0.        ,
-            0.        , 0.05308531],
+            0.        , 0.12770046],
            [0.        , 0.        , 0.        , 0.        , 0.        ,
-            0.01124764, 0.06864655]]))], feature_importances=None, decision_tree=None, highlight_spaces=None, transition_features=None, image=<PIL.Image.Image image mode=RGBA size=224x224 at 0x7F709A58E828>)
+            0.02705698, 0.16513413]]))], feature_importances=None, decision_tree=None, highlight_spaces=None, transition_features=None, image=<PIL.Image.Image image mode=RGBA size=224x224 at 0x7FE83C037B38>)
 
 
 We can check the score (raw value) or probability (normalized score) of
@@ -470,37 +474,37 @@ We can also access the original image and the Grad-CAM heatmap:
 
 
 
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_41_0.png
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_42_0.png
 
 
 .. parsed-literal::
 
-    [[0.         0.34700435 0.8183038  0.8033579  0.90060294 0.11643614
-      0.01095222]
-     [0.01533252 0.3834133  0.80703807 0.85117225 0.95316563 0.28513838
+    [[0.         0.83474343 1.96848748 1.93253407 2.16646386 0.28009534
+      0.02634634]
+     [0.03688345 0.92232772 1.94138698 2.04755486 2.29290712 0.68592048
       0.        ]
-     [0.00708034 0.20260051 0.77189916 0.77733763 0.99999996 0.30238836
+     [0.01703225 0.48736982 1.85685785 1.86994048 2.4055704  0.72741652
       0.        ]
-     [0.         0.04289413 0.4495872  0.30086699 0.2511554  0.06771996
+     [0.         0.10318486 1.0815137  0.72375675 0.60417202 0.16290513
       0.        ]
-     [0.0148367  0.         0.         0.         0.         0.00579786
-      0.01928998]
+     [0.03569073 0.         0.         0.         0.         0.01394715
+      0.0464034 ]
      [0.         0.         0.         0.         0.         0.
-      0.05308531]
-     [0.         0.         0.         0.         0.         0.01124764
-      0.06864655]]
+      0.12770046]
+     [0.         0.         0.         0.         0.         0.02705698
+      0.16513413]]
 
 
 Visualizing the heatmap:
 
 .. code:: ipython3
 
-    heatmap_im = eli5.formatters.image.heatmap_to_image(heatmap)
+    heatmap_im = eli5.formatters.image.heatmap_to_image(heatmap) # FIXME: probably better to import
     display(heatmap_im)
 
 
 
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_43_0.png
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_44_0.png
 
 
 That's only 7x7! This is the spatial dimensions of the
@@ -518,7 +522,7 @@ resampling):
 
 
 
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_45_0.png
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_46_0.png
 
 
 Now it's clear what is being highlighted. We just need to apply some
@@ -532,7 +536,7 @@ colors and overlay the heatmap over the original image, exactly what
 
 
 
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_47_0.png
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_48_0.png
 
 
 6. Extra arguments to ``format_as_image()``
@@ -549,7 +553,7 @@ colors and overlay the heatmap over the original image, exactly what
 
 
 
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_50_0.png
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_51_0.png
 
 
 The ``alpha_limit`` argument controls the maximum opacity that the
@@ -599,7 +603,7 @@ check the explanation:
 
 
 
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_53_1.png
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_54_1.png
 
 
 .. parsed-literal::
@@ -608,7 +612,7 @@ check the explanation:
 
 
 
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_53_3.png
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_54_3.png
 
 
 We see some slight differences. The activations are brighter. Do
@@ -645,7 +649,7 @@ loading another model and explaining a classification of the same image:
 
 
 
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_56_1.png
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_57_1.png
 
 
 .. parsed-literal::
@@ -654,7 +658,7 @@ loading another model and explaining a classification of the same image:
 
 
 
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_56_3.png
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_57_3.png
 
 
 Wow ``show_prediction()`` is so robust!
