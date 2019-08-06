@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+"""eli5.nn package tests for text helpers."""
 
 import pytest
 import numpy as np
@@ -86,7 +87,7 @@ def test_trim_padding(pad_indices, padding, tokens, heatmap, expected_tokens, ex
     assert np.array_equal(heatmap, expected_heatmap)
 
 
-# TODO: test_trim_padding with invalid cases
+# TODO: test_trim_padding with invalid cases (invalid argument, inner padding, etc)
 
 
 # TODO: test gradcam_text_spans with a small example

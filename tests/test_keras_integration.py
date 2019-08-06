@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-
-"""Test integration of Grad-CAM explanation and image formatter for Keras"""
+"""Test integration of Grad-CAM explanation and image formatter for Keras."""
 from __future__ import print_function
 
 import pytest

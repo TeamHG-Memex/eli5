@@ -83,7 +83,7 @@ def explain_prediction_keras(model, # type: Model
     :param targets:
         Prediction ID's to focus on.
 
-        *Currently only the first prediction from the list is explained*. 
+        *Currently only the first prediction from the list is explained*.
         The list must be length one.
 
         If None, the model is fed the input ``doc`` and the top prediction 
@@ -99,9 +99,9 @@ def explain_prediction_keras(model, # type: Model
     :param layer:
         The activation layer in the model to perform Grad-CAM on:
         a valid keras layer name, layer index, or an instance of a Keras layer.
-        
-        If None, a suitable layer is attempted to be retrieved. 
-        
+
+        If None, a suitable layer is attempted to be retrieved.
+
         For best results, pick a layer that:
             * has spatial or temporal information (conv, recurrent, pool, embedding)
               (not dense layers).
@@ -234,10 +234,7 @@ def explain_prediction_keras_image(model,
     if layer is not None:
         activation_layer = _get_layer(model, layer)
     else:
-        activation_layer = _search_activation_layer(model,
-                                                    _backward_layers,
-                                                    _is_suitable_image_layer,
-                                                    )
+        activation_layer = _autoget_layer_image(model)
 
     vals = gradcam_backend_keras(model, doc, targets, activation_layer)
     activations, grads, predicted_idx, predicted_val = vals
@@ -352,10 +349,7 @@ def explain_prediction_keras_text(model,
     if layer is not None:
         activation_layer = _get_layer(model, layer)
     else:
-        activation_layer = _search_activation_layer(model,
-                                                    _forward_layers,
-                                                    _is_suitable_text_layer,
-                                                    )
+        activation_layer = _autoget_layer_text(model)
 
     vals = gradcam_backend_keras(model, doc, targets, activation_layer)
     activations, grads, predicted_idx, predicted_val = vals
@@ -425,47 +419,19 @@ def _get_layer(model, layer):
         raise TypeError('Invalid layer (must be str, int, or keras.layers.Layer): %s' % layer)
 
 
-def _search_activation_layer(model, # type: Model
-                             layers_generator, # type: Callable[[Model], Generator[Layer, None, None]]
-                             layer_condition, # type: Callable[[Model, Layer], bool]
-                             ):
-    # type: (...) -> Layer
-    """
-    Search for a layer in ``model``, iterating through layers in the order specified by
-    ``layers_generator``, returning the first layer that matches ``layer_condition``.
-    """
-    # TODO: separate search for image and text - best-results based, not just simple lsearch
-    # linear search in reverse through the flattened layers
-    for layer in layers_generator(model):
-        if layer_condition(model, layer):
-            # linear search succeeded
-            return layer
-    # linear search ended with no results
-    raise ValueError('Could not find a suitable target layer automatically.')        
-
-
-def _forward_layers(model):
-    # type: (Model) -> Generator[Layer, None, None]
-    """Return layers going from input to output."""
-    return (model.get_layer(index=i) for i in range(0, len(model.layers), 1))
-
-
-def _backward_layers(model):
-    # type: (Model) -> Generator[Layer, None, None]
-    """Return layers going from output to input (backwards)."""
-    return (model.get_layer(index=i) for i in range(len(model.layers)-1, -1, -1))
+def _autoget_layer_image(model):
+    # TODO: fall back if can't find layer -> just take first or last 
+    # and raise a warning?
+    return _search_activation_layer(model, _backward_layers, _is_suitable_image_layer)
 
 
 def _is_suitable_image_layer(model, layer):
     # type: (Model, Layer) -> bool
     """Check whether the layer ``layer`` matches what is required
     by ``model`` to do Grad-CAM on ``layer``, for image-based models.
-
-    Matching Criteria:
-    * Rank of the layer's output tensor.
     """
     # TODO: experiment with this, using many models and images, to find what works best
-    # Some ideas: 
+    # Some ideas:
     # check layer type, i.e.: isinstance(l, keras.layers.Conv2D)
     # check layer name
     # input wrpt output
@@ -474,6 +440,11 @@ def _is_suitable_image_layer(model, layer):
     rank = len(layer.output_shape)
     required_rank = len(model.input_shape)
     return rank == required_rank
+
+
+def _autoget_layer_text(model):
+    # TODO: fall back if can't find
+    return _search_activation_layer(model, _forward_layers, _is_suitable_text_layer)
 
 
 def _is_suitable_text_layer(model, layer):
@@ -495,12 +466,35 @@ def _is_suitable_text_layer(model, layer):
     return isinstance(layer, desired_layers)
 
 
-def _search_layer_image(model):
-    raise NotImplementedError
+def _search_activation_layer(model, # type: Model
+                             layers_generator, # type: Callable[[Model], Generator[Layer, None, None]]
+                             layer_condition, # type: Callable[[Model, Layer], bool]
+                             ):
+    # type: (...) -> Layer
+    """
+    Search for a layer in ``model``, iterating through layers in the order specified by
+    ``layers_generator``, returning the first layer that matches ``layer_condition``.
+    """
+    # TODO: separate search for image and text - best-results based, not just simple lsearch
+    # linear search in reverse through the flattened layers
+    for layer in layers_generator(model):
+        if layer_condition(model, layer):
+            # linear search succeeded
+            return layer
+    # linear search ended with no results
+    raise ValueError('Could not find a suitable target layer automatically.')
 
 
-def _search_layer_text(model):
-    raise NotImplementedError
+def _forward_layers(model):
+    # type: (Model) -> Generator[Layer, None, None]
+    """Return layers going from input to output."""
+    return (model.get_layer(index=i) for i in range(0, len(model.layers), 1))
+
+
+def _backward_layers(model):
+    # type: (Model) -> Generator[Layer, None, None]
+    """Return layers going from output to input (backwards)."""
+    return (model.get_layer(index=i) for i in range(len(model.layers)-1, -1, -1))
 
 
 def _validate_doc(model, doc):
@@ -546,6 +540,7 @@ def _eq_shapes(required, other):
     return all(matching)
 
 
+# FIXME: break this function up
 def _validate_tokens(doc, tokens):
     # type: (np.ndarray, Union[np.ndarray, list]) -> None
     """Check that ``tokens`` contains correct items and matches ``doc``."""
@@ -554,6 +549,10 @@ def _validate_tokens(doc, tokens):
         # wrong type
         raise TypeError('"tokens" must be list or numpy.ndarray. '
                         'Got "{}".'.format(tokens))
+
+    if not tokens:
+        # empty list
+        raise ValueError('"tokens" is empty: {}'.format(tokens))
 
     an_entry = tokens[0]
     if isinstance(an_entry, str):
@@ -566,14 +565,25 @@ def _validate_tokens(doc, tokens):
         tokens_len = len(tokens)
     elif isinstance(an_entry, (list, np.ndarray)):
         # batched
+        tokens_batch_size = len(tokens)
+        if tokens_batch_size != batch_size:
+            # batch lengths do not match
+            raise ValueError('"tokens" must have same number of samples '
+                             'as in doc batch. Got: "tokens" samples: %d, '
+                             'doc samples: %d' % (tokens_batch_size, batch_size))
+
         a_token = an_entry[0]
         if not isinstance(a_token, str):
             # actual contents are not strings
             raise TypeError('"tokens" must contain strings. '
                             'Got {}'.format(a_token))
-        # FIXME: this is hard-coded for batch size = 1
-        # each sample's length may vary when type is list
-        tokens_len = len(an_entry)
+
+        # https://stackoverflow.com/a/35791116/11555448
+        it = iter(tokens)
+        the_len = len(next(it))
+        if not all(len(l) == the_len for l in it):
+            raise ValueError('"tokens" samples do not have the same length.')
+        tokens_len = the_len
     else:
         raise TypeError('"tokens" must be an array of strings, '
                         'or an array of string arrays. '

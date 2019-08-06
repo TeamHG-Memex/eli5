@@ -1,19 +1,24 @@
 # -*- coding: utf-8 -*-
-"""Keras unit tests for helpers and Grad-CAM backend"""
+"""Keras unit tests for helpers."""
 
 import pytest
 
 keras = pytest.importorskip('keras')
+PIL = pytest.importorskip('PIL')
 
 import keras.backend as K
 from keras.models import Sequential, Model
 from keras.layers import (
-    Dense, 
-    Activation, 
-    Conv2D, 
-    GlobalAveragePooling2D, 
-    Input, 
+    Dense,
+    Activation,
+    Conv2D,
+    GlobalAveragePooling2D,
+    Input,
     Lambda,
+    Embedding,
+    LSTM,
+    Conv1D,
+    MaxPooling1D,
 )
 from keras.backend import epsilon
 import numpy as np
@@ -21,7 +26,10 @@ import numpy as np
 import eli5
 from eli5.keras.explain_prediction import (
     _validate_doc,
+    _validate_tokens,
     _get_layer,
+    _autoget_layer_image,
+    _autoget_layer_text,
     _search_activation_layer,
     _forward_layers,
     _backward_layers,
@@ -38,7 +46,7 @@ from eli5.keras.gradcam import (
 conv_layer = Conv2D(10, (3, 3))
 
 @pytest.fixture(scope='module')
-def simple_seq():
+def simple_seq_image():
     """A simple sequential model for images."""
     model = Sequential([
         Activation('linear', input_shape=(32, 32, 1)), # index 0, input
@@ -47,62 +55,104 @@ def simple_seq():
         GlobalAveragePooling2D(),                      # index 3, gap
         # output shape is (None, 20)
     ])
+    enumerate_layers(model)
     print('Summary of model:')
     model.summary()
-    # rename layers
-    for i, layer in enumerate(model.layers):
-        layer.name = 'layer%d' % i
     return model
 
 
+@pytest.fixture(scope='module')
+def simple_seq_text():
+    """Simple sequential model for text using convolutional layers."""
+    model = Sequential([
+        Embedding(10, 5, input_length=20),             # index 0
+        Conv1D(2, 5),                                  # index 1, conv
+        MaxPooling1D(2),                               # index 2
+        Dense(1),                                      # index 3
+    ])
+    enumerate_layers(model)
+    print('Summary of model:')
+    model.summary()
+    return model
+
+
+@pytest.fixture(scope='module')
+def simple_seq_text_recurrent():
+    """Simple sequential model for text using recurrent layers."""
+    pass
+
+
+@pytest.fixture(scope='module')
+def dummy_image():
+    image = PIL.Image.new('RGBA', (32, 32))
+    print('Dummy image:', image)
+    return image
+
+
+def enumerate_layers(model):
+    """Rename ``model`` layers to have name "layerI"
+    where "I" is the index, starting from zero,
+    going forwards from the input."""
+    for i, layer in enumerate(model.layers):
+        layer.name = 'layer%d' % i
+
+
 # layer is the argument to _get_layer
-# expected_layer is a unique layer name
+# expected_layer is a unique layer name as a string
 @pytest.mark.parametrize('layer, expected_layer', [
     (-3, 'layer1'), # index backwards
     ('layer0', 'layer0'), # name
     (conv_layer, 'layer1'), # instance
 ])
-def test_get_layer(simple_seq, layer, expected_layer):
-    """Test different ways to specify activation layer, and automatic activation layer getter"""
-    assert _get_layer(simple_seq, layer) == simple_seq.get_layer(name=expected_layer)
+def test_get_layer(simple_seq_image, layer, expected_layer):
+    """Test different ways to specify activation layer."""
+    assert _get_layer(simple_seq_image, layer) == simple_seq_image.get_layer(name=expected_layer)
 
 
-def test_get_layer_invalid(simple_seq):
+def test_get_layer_invalid(simple_seq_image):
     # invalid layer type
     with pytest.raises(TypeError):
-        _get_layer(simple_seq, 2.5)
-    # note that cases where an invalid layer index or name is passed are 
-    # handled by the underlying keras get_layer() method
+        _get_layer(simple_seq_image, 2.5)
+    # note that for invalid layer index or name the underlying 
+    # keras get_layer() method raises the appropriate exceptions
 
 
-def test_search_activation_layer(simple_seq):
-    l = _search_activation_layer(simple_seq, _backward_layers, _is_suitable_image_layer)
-    assert l.name == 'layer2' # first matching layer going back from output layer
+# TODO: parametrize with different models
+def test_autoget_layer_image(simple_seq_image):
+    l = _autoget_layer_image(simple_seq_image)
+    assert l.name == 'layer2'
 
-    # can not find activation layer automatically
+
+# TODO: parametrize with different models
+def test_autoget_layer_text():
+    pass
+
+
+def test_autoget_layer_invalid():
+    # layer not found
     with pytest.raises(ValueError):
         _search_activation_layer(
-            Sequential(), # a model with no layers
-            _backward_layers, 
-            _is_suitable_image_layer
+            Sequential(),  # a model with no layers
+            _backward_layers,
+            _is_suitable_image_layer,
         )
 
 
 # TODO: _search_activation_layer with text layer search
 
 
-def test_validate_doc(simple_seq):
-    # should raise no errors
-    _validate_doc(simple_seq, np.zeros((1, 32, 32, 1)))
+def test_validate_doc(simple_seq_image):
+    # valid
+    _validate_doc(simple_seq_image, np.zeros((1, 32, 32, 1)))
     # wrong type
     with pytest.raises(TypeError):
-        _validate_doc(simple_seq, 10)
+        _validate_doc(simple_seq_image, 10)
     # batch has more than one sample
     with pytest.raises(ValueError):
-        _validate_doc(simple_seq, np.zeros((3, 32, 32, 1)))
+        _validate_doc(simple_seq_image, np.zeros((3, 32, 32, 1)))
     # incorrect dimensions (missing batch)
     with pytest.raises(ValueError):
-        _validate_doc(simple_seq, np.zeros((32, 32, 1)))
+        _validate_doc(simple_seq_image, np.zeros((32, 32, 1)))
 
 
 def test_validate_doc_2d():
@@ -113,34 +163,52 @@ def test_validate_doc_2d():
         _validate_doc(model, np.zeros((1, 5, 3)))
 
 
-# TODO: test validate tokens and doc for text
+# TODO: test validate doc for text
+
+def test_validate_doc_text(simple_seq_text):
+    _validate_doc(simple_seq_text, np.zeros((1, 20)))
 
 
-# TODO: test target validation
-# def test_get_target_prediction_invalid(simple_seq):
-#     # only list of targets is currently supported
-#     with pytest.raises(TypeError):
-#         _get_target_prediction('somestring', simple_seq)
-#     # only one target prediction is currently supported
-#     with pytest.raises(ValueError):
-#         _get_target_prediction([1, 2], simple_seq)
+# TODO: test validate tokens
 
-#     # these are dispatched to _validate_target
-#     # only an integer index target is currently supported
-#     with pytest.raises(TypeError):
-#         _get_target_prediction(['someotherstring'], simple_seq)
-#     # target index must correctly reference one of the nodes in the final layer
-#     with pytest.raises(ValueError):
-#         _get_target_prediction([20], simple_seq)
+def test_validate_tokens():
+    _validate_tokens(np.zeros((1, 3)), ['a', 'b', 'c'])
+    _validate_tokens(np.zeros((2, 2)), [['a', 'b'], ['c', 'd']])
 
 
-# TODO: test_autoget_target_prediction with multiple maximum values, etc
+def test_validate_tokens_invalid():
+    with pytest.raises(TypeError):
+        # should be in a list
+        _validate_tokens(np.zeros((1, 1)), 'a')
+    with pytest.raises(ValueError):
+        # empty list
+        _validate_tokens(np.zeros((1, 1)), [])
+    with pytest.raises(ValueError):
+        # single list but multiple samples in batch
+        _validate_tokens(np.zeros((3, 2)), ['a', 'b'])
+
+    # list doesn't contain strings
+    with pytest.raises(TypeError):
+        _validate_tokens(np.zeros((1, 1)), [0])
+    with pytest.raises(TypeError):
+        _validate_tokens(np.zeros((1, 1)), [[0]])
+
+    with pytest.raises(ValueError):
+        # not enough samples in batched list
+        _validate_tokens(np.zeros((3, 1)), np.array([['a'], ['b']]))
+    with pytest.raises(ValueError):
+        # tokens lengths vary
+        _validate_tokens(np.zeros((2, 2)), [['a', 'b'], ['c']])
+    with pytest.raises(ValueError):
+        # tokens sample lengths do not match
+        _validate_tokens(np.zeros((1, 1)), ['a', 'b'])
 
 
-def test_explain_prediction_score(simple_seq):
-    expl = eli5.explain_prediction(simple_seq, 
-                                   np.zeros((1, 32, 32, 1)), 
-                                   image=True) # TODO: dummy image
+
+def test_explain_prediction_score(simple_seq_image, dummy_image):
+    expl = eli5.explain_prediction(simple_seq_image,
+                                   np.zeros((1, 32, 32, 1)),
+                                   image=dummy_image)
     assert expl.targets[0].score is not None
     assert expl.targets[0].proba is None
 
@@ -148,7 +216,7 @@ def test_explain_prediction_score(simple_seq):
 @pytest.fixture(scope='module')
 def differentiable_model():
     inpt = Input(shape=(1,))
-    op = Lambda(lambda x: x)(inpt) # identity function
+    op = Lambda(lambda x: x)(inpt)  # identity function
     model = Model(inpt, op)
     model.summary()
     return model
@@ -157,7 +225,7 @@ def differentiable_model():
 @pytest.fixture(scope='module')
 def nondifferentiable_model():
     inpt = Input(shape=(1,))
-    op = Lambda(lambda x: K.constant(0) if x == 0 
+    op = Lambda(lambda x: K.constant(0) if x == 0
         else K.constant(1))(inpt) # piecewise function
     model = Model(inpt, op)
     model.summary()
@@ -165,11 +233,11 @@ def nondifferentiable_model():
 
 
 def test_calc_gradient(differentiable_model):
-    _calc_gradient(differentiable_model.output, 
+    _calc_gradient(differentiable_model.output,
         [differentiable_model.input])
 
 
 def test_calc_gradient_nondifferentiable(nondifferentiable_model):
     with pytest.raises(ValueError):
-        grads = _calc_gradient(nondifferentiable_model.output, 
+        grads = _calc_gradient(nondifferentiable_model.output,
             [nondifferentiable_model.input])

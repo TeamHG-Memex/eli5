@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+"""Test integration of Keras Grad-CAM explanation for text."""
 from __future__ import print_function
 
 import pytest
@@ -60,8 +61,6 @@ def sentiment_input_all_pad():
 # character level + multiple classes + fixed length input (3193)
 # trained on consumer financial complaints dataset
 # https://www.kaggle.com/cfpb/us-consumer-finance-complaints
-
-
 KERAS_MULTICLASS_CLASSIFIER = 'tests/estimators/keras_multiclass_text_classifier.h5'
 
 
