@@ -51,6 +51,9 @@ It provides support for the following machine learning frameworks and packages:
 * sklearn-crfsuite_. ELI5 allows to check weights of sklearn_crfsuite.CRF
   models.
 
+* Keras_ - explain predictions of image classifiers via Grad-CAM visualizations.
+
+
 ELI5 also implements several algorithms for inspecting black-box models
 (see `Inspecting Black-Box Estimators`_):
 
@@ -75,6 +78,7 @@ and formatting on a client.
 .. _xgboost: https://github.com/dmlc/xgboost
 .. _LightGBM: https://github.com/Microsoft/LightGBM
 .. _Catboost: https://github.com/catboost/catboost
+.. _Keras: https://keras.io/
 .. _Permutation importance: https://eli5.readthedocs.io/en/latest/blackbox/permutation_importance.html
 .. _Inspecting Black-Box Estimators: https://eli5.readthedocs.io/en/latest/blackbox/index.html
 
