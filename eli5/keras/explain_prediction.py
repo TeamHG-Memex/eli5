@@ -550,7 +550,7 @@ def _validate_tokens(doc, tokens):
         raise TypeError('"tokens" must be list or numpy.ndarray. '
                         'Got "{}".'.format(tokens))
 
-    if not tokens:
+    if len(tokens) == 0:
         # empty list
         raise ValueError('"tokens" is empty: {}'.format(tokens))
 
