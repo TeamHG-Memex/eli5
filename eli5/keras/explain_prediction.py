@@ -9,6 +9,14 @@ import keras # type: ignore
 import keras.backend as K # type: ignore
 from keras.models import Model # type: ignore
 from keras.layers import Layer # type: ignore
+from keras.layers import (  # type: ignore
+    Conv2D,
+    MaxPooling2D,
+    AveragePooling2D,
+    GlobalMaxPooling2D,
+    GlobalAveragePooling2D,
+)
+from keras.preprocessing.image import array_to_img # type: ignore
 
 from eli5.base import Explanation, TargetExplanation
 from eli5.explain import explain_prediction
@@ -107,6 +115,14 @@ def explain_prediction_keras(model, # type: Model
                                               targets=targets,
                                               layer=layer,
                                               )
+    elif _maybe_image(model, doc):
+        image = _extract_image(doc)
+        return explain_prediction_keras_image(model,
+                                              doc,
+                                              image=image,
+                                              targets=targets,
+                                              layer=layer,
+                                              )
     else:
         return explain_prediction_keras_not_supported(model, doc)
 
@@ -197,6 +213,45 @@ def explain_prediction_keras_image(model,
     )
 
 
+def _maybe_image(model, doc):
+    return _maybe_image_input(doc) and _maybe_image_model(model)
+
+
+def _maybe_image_input(doc):
+    rank = len(doc.shape)
+    # image with channels or without (spatial only)
+    return rank == 4 or rank == 3
+
+
+def _maybe_image_model(model):
+    # FIXME: replace try-except with something else
+    try:
+        # search for the first occurrence of an "image" layer
+        _search_layer_backwards(model, _is_possible_image_model_layer)
+        return True
+    except ValueError:
+        return False
+
+
+image_model_layers = (Conv2D,
+                      MaxPooling2D,
+                      AveragePooling2D,
+                      GlobalMaxPooling2D,
+                      GlobalAveragePooling2D,
+                      )
+
+
+def _is_possible_image_model_layer(model, layer):
+    return isinstance(layer, image_model_layers)
+
+
+def _extract_image(doc):
+    im_arr, = doc  # rank 4 batch -> rank 3 single image
+    image = array_to_img(im_arr)
+    image = image.convert(mode='RGBA')
+    return image
+
+
 def _validate_doc(model, doc):
     # type: (Model, np.ndarray) -> None
     """
@@ -226,7 +281,7 @@ def _get_activation_layer(model, layer):
     """
     Get an instance of the desired activation layer in ``model``,
     as specified by ``layer``.
-    """        
+    """
     if layer is None:
         # Automatically get the layer if not provided
         activation_layer = _search_layer_backwards(model, _is_suitable_activation_layer)
@@ -251,7 +306,7 @@ def _get_activation_layer(model, layer):
 
 
 def _search_layer_backwards(model, condition):
-    # type: (Model, Callable[[Model, int], bool]) -> Layer
+    # type: (Model, Callable[[Model, Layer], bool]) -> Layer
     """
     Search for a layer in ``model``, backwards (starting from the output layer),
     checking if the layer is suitable with the callable ``condition``,
@@ -271,7 +326,7 @@ def _is_suitable_activation_layer(model, layer):
     Check whether the layer ``layer`` matches what is required 
     by ``model`` to do Grad-CAM on ``layer``.
     Returns a boolean.
-    
+
     Matching Criteria:
         * Rank of the layer's output tensor.
     """
