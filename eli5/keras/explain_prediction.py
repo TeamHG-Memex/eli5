@@ -40,7 +40,7 @@ def explain_prediction_keras(model, # type: Model
     """
     Explain the prediction of a Keras classifier with the Grad-CAM technique.
 
-    # TODO: explain Grad-CAM
+    # TODO: explain Grad-CAM.
 
     We explicitly assume that the model's task is classification, i.e. final output is class scores.
 
@@ -67,7 +67,7 @@ def explain_prediction_keras(model, # type: Model
         *Currently only the first prediction from the list is explained*.
         The list must be length one.
 
-        If None, the model is fed the input image and its top prediction 
+        If None, the model is fed the input image and its top prediction
         is taken as the target automatically.
 
 
@@ -81,13 +81,13 @@ def explain_prediction_keras(model, # type: Model
 
         If None, a suitable layer is attempted to be retrieved.
         For best results, pick a layer that:
-            * has spatial or temporal information (conv, recurrent, pool, embedding)
+            * has spatial or temporal information (conv, recurrent, pool, embedding) \
               (not dense layers).
             * shows high level features.
             * has large enough dimensions for resizing over input to work.
 
 
-        :raises TypeError: if ``layer`` is not None, str, int, or keras.layers.Layer instance.
+        :raises TypeError: if ``layer`` is not None, str, int, or Kerass.layers.Layer instance.
         :raises ValueError: if suitable layer can not be found.
         :raises ValueError: if differentiation fails with respect to retrieved ``layer``.
     :type layer: int or str or keras.layers.Layer, optional
@@ -173,9 +173,9 @@ def explain_prediction_keras_image(model,
     -------
     expl : eli5.base.Explanation
       An :class:`eli5.base.Explanation` object with the following attributes:
-                  * ``image`` a Pillow image with mode RGBA.
-                  * ``targets`` a list of :class:`eli5.base.TargetExplanation` objects \
-                      for each target. Currently only 1 target is supported.
+          * ``image`` a Pillow image with mode RGBA.
+          * ``targets`` a list of :class:`eli5.base.TargetExplanation` objects \
+              for each target. Currently only 1 target is supported.
       The :class:`eli5.base.TargetExplanation` objects will have the following attributes:
           * ``heatmap`` a rank 2 numpy array with the localization map \
             values as floats.
