@@ -25,7 +25,6 @@ and heatmap image for a target.
 def explain_prediction_keras(estimator, # type: Model
                              doc, # type: np.ndarray
                              image=None, # type: Optional['PIL.Image.Image']
-                             target_names=None,
                              targets=None, # type: Optional[list]
                              layer=None, # type: Optional[Union[int, str, Layer]]
                              ):
@@ -38,7 +37,7 @@ def explain_prediction_keras(estimator, # type: Model
         * The model's task is classification, i.e. final output is class scores.
 
     See :func:`eli5.explain_prediction` for more information about the ``estimator``,
-    ``doc``, ``target_names``, and ``targets`` parameters.
+    ``doc``, and ``targets`` parameters.
 
     
     :param keras.models.Model estimator:
@@ -75,11 +74,6 @@ def explain_prediction_keras(estimator, # type: Model
         Must have mode 'RGBA'.
     :type image: PIL.Image.Image, optional
 
-
-    :param target_names:         
-        *Not Implemented*.
-        Names for classes in the final output layer.
-    :type target_names: list, optional
 
     :param targets:
         Prediction ID's to focus on.
