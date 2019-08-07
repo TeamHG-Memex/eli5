@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
+import warnings
 from typing import Union, Optional, Callable
 
 import numpy as np # type: ignore
@@ -20,24 +21,24 @@ def format_as_image(expl, # type: Explanation
     Format a :class:`eli5.base.Explanation` object as an image.
 
     Note that this formatter requires ``matplotlib`` and ``Pillow`` optional dependencies.
-    
+
 
     :param Explanation expl:
         :class:`eli5.base.Explanation` object to be formatted.
-        It must have an ``image`` attribute that is a Pillow image with mode "RGBA".
-        It must also have a ``targets`` attribute, a list of :class:`eli5.base.TargetExplanation` \
+        It must have an ``image`` attribute with a Pillow image that will be overlaid.
+        It must have a ``targets`` attribute, a list of :class:`eli5.base.TargetExplanation` \
         instances that contain the attribute ``heatmap``, \
         a rank 2 numpy array with float values in the interval [0, 1].
+        Currently ``targets`` must be length 1 (only one target is supported).
 
 
         :raises TypeError: if ``heatmap`` is not a numpy array.
         :raises ValueError: if ``heatmap`` does not contain values as floats in the interval [0, 1].
         :raises TypeError: if ``image`` is not a Pillow image.
-        :raises ValueError: if ``image`` does not have mode 'RGBA'.
 
     :param resampling_filter:
         Interpolation ID or Pillow filter to use when resizing the image.
-        
+
         Example filters from PIL.Image
             * ``NEAREST``
             * ``BOX``
@@ -63,7 +64,7 @@ def format_as_image(expl, # type: Explanation
             * ``viridis``
             * ``jet``
             * ``binary``
-        
+
         See also https://matplotlib.org/gallery/color/colormap_reference.html.
 
         Default is ``matplotlib.cm.viridis`` (green/blue to yellow).
@@ -97,8 +98,9 @@ def format_as_image(expl, # type: Explanation
         raise TypeError('Explanation image must be a PIL.Image.Image instance. '
                         'Got: {}'.format(image))
     if image.mode != 'RGBA':
-        raise ValueError('Explanation image must have mode "RGBA". '
-                         'Got image with mode: %s' % image.mode)
+        # normalize to 'RGBA'
+        warnings.warn('Converting image to RGBA.', stacklevel=2)
+        image = image.convert('RGBA')
 
     if not expl.targets:
         # no heatmaps
@@ -107,14 +109,14 @@ def format_as_image(expl, # type: Explanation
         assert len(expl.targets) == 1
         heatmap = expl.targets[0].heatmap
         _validate_heatmap(heatmap)
-    
+
     # The order of our operations is: 1. colorize 2. resize
     # as opposed: 1. resize 2. colorize
 
     # save the original heatmap values
     heatvals = heatmap
     # apply colours to the grayscale array
-    heatmap = _colorize(heatmap, colormap=colormap) # -> rank 3 RGBA array
+    heatmap = _colorize(heatmap, colormap=colormap)  # -> rank 3 RGBA array
 
     # make the alpha intensity correspond to the grayscale heatmap values
     # cap the intensity so that it's not too opaque when near maximum value
@@ -133,7 +135,7 @@ def heatmap_to_image(heatmap):
     Parameters
     ----------
     heatmap : numpy.ndarray
-        Rank 2 grayscale ('L') array or rank 3 coloured ('RGBA') array,
+        Rank 2 grayscale ('L') array or rank 3 coloured ('RGB' or RGBA') array,
         with values in interval [0, 1] as floats.
 
 
@@ -180,9 +182,9 @@ def _validate_heatmap(heatmap):
     ma = np.max(heatmap)
     if not (0 <= mi and ma <= 1):
         raise ValueError('heatmap must contain float values '
-                        'between 0 and 1 inclusive. '
-                        'Got array with minimum: {} ' 
-                        'and maximum: {}'.format(mi, ma))
+                         'between 0 and 1 inclusive. '
+                         'Got array with minimum: {} ' 
+                         'and maximum: {}'.format(mi, ma))
 
 
 def _colorize(heatmap, colormap):
@@ -201,7 +203,7 @@ def _update_alpha(image_array, starting_array=None, alpha_limit=None):
     """
     Update the alpha channel values of an RGBA rank 3 ndarray ``image_array``,
     optionally creating the alpha channel from rank 2 ``starting_array``, 
-    and setting upper limit for alpha values (opacity) to ``alpha_limit``.    
+    and setting upper limit for alpha values (opacity) to ``alpha_limit``.
 
     This function modifies ``image_array`` in-place.
     """
@@ -241,11 +243,11 @@ def _cap_alpha(alpha_arr, alpha_limit):
 
 def expand_heatmap(heatmap, image, resampling_filter=Image.LANCZOS):
     # type: (np.ndarray, Image, Union[None, int]) -> Image
-    """ 
+    """
     Resize the ``heatmap`` image array to fit over the original ``image``,
-    using the specified ``resampling_filter`` method. 
+    using the specified ``resampling_filter`` method.
     The heatmap is converted to an image in the process.
-    
+
     Parameters
     ----------
     heatmap : numpy.ndarray
@@ -259,7 +261,7 @@ def expand_heatmap(heatmap, image, resampling_filter=Image.LANCZOS):
 
         See :func:`eli5.format_as_image` for more details on the `resampling_filter` parameter.
 
-    
+
     :raises TypeError: if ``image`` is not a Pillow image instance.
 
 
@@ -281,8 +283,8 @@ def _overlay_heatmap(heatmap, image):
     # type: (Image, Image) -> Image
     """
     Blend (combine) ``heatmap`` over ``image``, 
-    using alpha channel values appropriately.
-    Input and output images have mode 'RGBA'.
+    using alpha channel values appropriately (must have mode `RGBA`).
+    Output is 'RGBA'.
     """
     # note that the order of alpha_composite arguments matters
     overlayed_image = Image.alpha_composite(image, heatmap)

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
+import warnings
 from typing import Union, Optional, Callable, Tuple, List, TYPE_CHECKING
 if TYPE_CHECKING:
     import PIL # type: ignore
@@ -116,6 +117,7 @@ def explain_prediction_keras(model, # type: Model
                                               layer=layer,
                                               )
     elif _maybe_image(model, doc):
+        warnings.warn('Dispatching to image implementation.', stacklevel=2)
         image = _extract_image(doc)
         return explain_prediction_keras_image(model,
                                               doc,
@@ -152,16 +154,18 @@ def explain_prediction_keras_image(model,
     :param numpy.ndarray doc:
         Input representing an image.
 
-        Must have suitable format. Some models require input images to be
+        Must have suitable format. Some models require tensors to be
         rank 4 in format `(batch_size, dims, ..., channels)` (channels last)
         or `(batch_size, channels, dims, ...)` (channels first),
         where `dims` is usually in order `height, width`
         and `batch_size` is 1 for a single image.
 
+        If ``image`` argument is not given, an image will be created \
+        from ``doc``, where possible.
+
     :param image:
         Pillow image over which to overlay the heatmap.
         Corresponds to the input ``doc``.
-        Must have mode 'RGBA'.
     :type image: PIL.Image.Image, optional
 
 
@@ -173,7 +177,7 @@ def explain_prediction_keras_image(model,
     -------
     expl : eli5.base.Explanation
       An :class:`eli5.base.Explanation` object with the following attributes:
-          * ``image`` a Pillow image with mode RGBA.
+          * ``image`` a Pillow image representing the input.
           * ``targets`` a list of :class:`eli5.base.TargetExplanation` objects \
               for each target. Currently only 1 target is supported.
       The :class:`eli5.base.TargetExplanation` objects will have the following attributes:
@@ -182,9 +186,6 @@ def explain_prediction_keras_image(model,
           * ``target`` ID of target class.
           * ``score`` value for predicted class.
     """
-    # TODO (open issue): support taking images that are not 'RGBA' -> 'RGB' 
-    # as well (happens with keras load_img)
-    # and grayscale too
     assert image is not None
     _validate_doc(model, doc)
     activation_layer = _get_activation_layer(model, layer)
@@ -202,7 +203,7 @@ def explain_prediction_keras_image(model,
         description=DESCRIPTION_KERAS,
         error='',
         method='Grad-CAM',
-        image=image, # RGBA Pillow image
+        image=image,
         targets=[TargetExplanation(
             predicted_idx,
             score=predicted_val, # for now we keep the prediction in the .score field (not .proba)
@@ -214,16 +215,23 @@ def explain_prediction_keras_image(model,
 
 
 def _maybe_image(model, doc):
+    # type: (Model, np.ndarray) -> bool
+    """Decide whether we are dealing with a image-based explanation 
+    based on heuristics on ``model`` and ``doc``."""
     return _maybe_image_input(doc) and _maybe_image_model(model)
 
 
 def _maybe_image_input(doc):
+    # type: (np.ndarray) -> bool
+    """Decide whether ``doc`` represents an image input."""
     rank = len(doc.shape)
     # image with channels or without (spatial only)
     return rank == 4 or rank == 3
 
 
 def _maybe_image_model(model):
+    # type: (Model) -> bool
+    """Decide whether ``model`` is used for images."""
     # FIXME: replace try-except with something else
     try:
         # search for the first occurrence of an "image" layer
@@ -242,13 +250,16 @@ image_model_layers = (Conv2D,
 
 
 def _is_possible_image_model_layer(model, layer):
+    # type: (Model, Layer) -> bool
+    """Check that the given ``layer`` is usually used for images."""
     return isinstance(layer, image_model_layers)
 
 
 def _extract_image(doc):
+    # type: (np.ndarray) -> 'PIL.Image.Image'
+    """Convert ``doc`` tensor to image."""
     im_arr, = doc  # rank 4 batch -> rank 3 single image
     image = array_to_img(im_arr)
-    image = image.convert(mode='RGBA')
     return image
 
 
