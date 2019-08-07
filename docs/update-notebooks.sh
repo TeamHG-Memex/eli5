@@ -84,5 +84,20 @@ sed -i 's&.. image:: keras-image-classifiers_files/&.. image:: ../_notebooks/ker
     source/_notebooks/keras-image-classifiers.rst
 
 
+# Keras text Grad-CAM (keras-text-classifiers)
+# PYTHONPATH=$PWD/.. jupyter nbconvert \
+#         --to rst \
+#         --ExecutePreprocessor.timeout=180 \
+#         --execute \
+#         '../notebooks/'
+# mv ../notebooks/keras-image-classifiers.rst \
+#     source/_notebooks/
+jupyter nbconvert \
+        --to rst \
+        --stdout \
+        '../notebooks/keras-text-classifiers.ipynb' \
+        > source/_notebooks/keras-text-classifiers.rst
+
+
 # to only execute one section: (replace # Keras with section comment)
 # sed -n '/# Keras/,/^$/p' update-notebooks.sh | bash

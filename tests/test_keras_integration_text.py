@@ -19,13 +19,13 @@ from .estimators import (
 
 # model 1: ~100,000 parameters
 # For training details see
-# tests/estimators/keras_sentiment_classifier.ipynb
+# tests/estimators/keras_sentiment_classifier/keras_sentiment_classifier.ipynb
 # or https://www.kaggle.com/tobalt/keras-text-model-sentiment
 # Features:
 # embedding -> masking -> bidirectional LSTM -> dense
 # token level + sentiment (binary) classification + non-fixed length input
 # trained in the keras.datasets.imdb
-KERAS_SENTIMENT_CLASSIFIER = 'tests/estimators/keras_sentiment_classifier.h5'
+KERAS_SENTIMENT_CLASSIFIER = 'tests/estimators/keras_sentiment_classifier/keras_sentiment_classifier.h5'
 
 
 @pytest.fixture(scope='module')
@@ -54,14 +54,14 @@ def sentiment_input_all_pad():
 
 # model 2: ~200,000 parameters
 # For training details see
-# tests/estimators/keras_multiclass_text_classifier.ipynb
+# tests/estimators/keras_multiclass_text_classifier/keras_multiclass_text_classifier.ipynb
 # or https://www.kaggle.com/tobalt/keras-text-model-multiclass
 # Features:
 # embedding -> conv + pooling -> global pooling -> dense
 # character level + multiple classes + fixed length input (3193)
 # trained on consumer financial complaints dataset
 # https://www.kaggle.com/cfpb/us-consumer-finance-complaints
-KERAS_MULTICLASS_CLASSIFIER = 'tests/estimators/keras_multiclass_text_classifier.h5'
+KERAS_MULTICLASS_CLASSIFIER = 'tests/estimators/keras_multiclass_text_classifier/keras_multiclass_text_classifier.h5'
 
 
 complaints_mortgage_idx = 2
@@ -79,7 +79,7 @@ def multiclass_clf():
 @pytest.fixture(scope='module')
 def multiclass_input():
     sample = "mortgage interest and credit card"
-    doc, tokens = keras_multiclass_text_classifier.vectorize(sample)
+    doc, tokens = keras_multiclass_text_classifier.string_to_vectorized(sample)
     print('Input:', sample, doc, tokens, sep='\n')
     return doc, tokens
 
