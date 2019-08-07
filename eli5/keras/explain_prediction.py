@@ -37,22 +37,15 @@ def explain_prediction_keras(model, # type: Model
     We explicitly assume that the model's task is classification, i.e. final output is class scores.
 
     :param keras.models.Model model:
-        Instance of a Keras neural network model, 
+        Instance of a Keras neural network model,
         whose predictions are to be explained.
 
     :param numpy.ndarray doc:
-        An input image as a tensor to ``model``, 
-        from which prediction will be done and explained.
+        An input to ``model`` whose prediction will be explained.
 
         Currently only numpy arrays are supported.
 
-        The tensor must be of suitable shape for the ``model``. 
-
-        For example, some models require input images to be 
-        rank 4 in format `(batch_size, dims, ..., channels)` (channels last)
-        or `(batch_size, channels, dims, ...)` (channels first), 
-        where `dims` is usually in order `height, width`
-        and `batch_size` is 1 for a single image.
+        The tensor must be of suitable shape for the ``model``.
 
         Check ``model.input_shape`` to confirm the required dimensions of the input tensor.
 
@@ -139,14 +132,26 @@ def explain_prediction_keras_image(model,
                                    ):
     """
     Explain an image-based model, highlighting what contributed in the image.
-    See :func:`eli5.keras.explain_prediction.explain_prediction_keras` 
-    for a description of ``targets`` and ``layer`` parameters.
+
+    :param numpy.ndarray doc:
+        Input representing an image.
+
+        Must have suitable format. Some models require input images to be
+        rank 4 in format `(batch_size, dims, ..., channels)` (channels last)
+        or `(batch_size, channels, dims, ...)` (channels first),
+        where `dims` is usually in order `height, width`
+        and `batch_size` is 1 for a single image.
 
     :param image:
         Pillow image over which to overlay the heatmap.
         Corresponds to the input ``doc``.
         Must have mode 'RGBA'.
     :type image: PIL.Image.Image, optional
+
+
+    See :func:`eli5.keras.explain_prediction.explain_prediction_keras` 
+    for a description of ``model``, ``doc``, ``targets``, and ``layer`` parameters.
+
 
     Returns
     -------
@@ -167,7 +172,7 @@ def explain_prediction_keras_image(model,
     assert image is not None
     _validate_doc(model, doc)
     activation_layer = _get_activation_layer(model, layer)
-    
+
     # TODO: maybe do the sum / loss calculation in this function and pass it to gradcam.
     # This would be consistent with what is done in
     # https://github.com/ramprs/grad-cam/blob/master/misc/utils.lua
