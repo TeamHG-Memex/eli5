@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
-import warnings
 from typing import Union, Optional, Callable
 
 import numpy as np # type: ignore
@@ -99,7 +98,6 @@ def format_as_image(expl, # type: Explanation
                         'Got: {}'.format(image))
     if image.mode != 'RGBA':
         # normalize to 'RGBA'
-        warnings.warn('Converting image to RGBA.', stacklevel=2)
         image = image.convert('RGBA')
 
     if not expl.targets:

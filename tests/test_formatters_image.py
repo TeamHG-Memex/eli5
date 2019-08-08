@@ -204,9 +204,3 @@ def test_format_as_image_noheatmap(catdog_rgba, mock_expl_noheatmap):
 def test_format_as_image_invalid_expl(mock_expl_imgarr):
     with pytest.raises(TypeError):
         format_as_image(mock_expl_imgarr)
-
-
-def test_format_as_image_convert_expl(mock_expl_imgmode):
-    with pytest.warns(UserWarning) as rec:
-        format_as_image(mock_expl_imgmode)
-    assert 'RGBA' in str(rec[0].message)

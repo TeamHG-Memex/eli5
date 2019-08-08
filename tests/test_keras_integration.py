@@ -124,9 +124,7 @@ def test_image_classification(keras_clf, cat_dog_image, area, targets):
     assert_good_external_format(res, overlay)
 
     # check show function with image auto-conversion
-    with pytest.warns(UserWarning) as rec:
-        show_overlay = eli5.show_prediction(keras_clf, doc, targets=targets)
-    assert 'image implementation' in str(rec[0].message)
+    show_overlay = eli5.show_prediction(keras_clf, doc, targets=targets)
 
     assert_pixel_by_pixel_equal(overlay, show_overlay)
 

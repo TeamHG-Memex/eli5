@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
-import warnings
 from typing import Union, Optional, Callable, Tuple, List, TYPE_CHECKING
 if TYPE_CHECKING:
     import PIL # type: ignore
@@ -108,15 +107,7 @@ def explain_prediction_keras(model, # type: Model
     """
     # Note that this function should only do dispatch
     # and no other processing
-    if image is not None:
-        return explain_prediction_keras_image(model,
-                                              doc,
-                                              image=image,
-                                              targets=targets,
-                                              layer=layer,
-                                              )
-    elif _maybe_image(model, doc):
-        warnings.warn('Dispatching to image implementation.', stacklevel=2)
+    if image is not None or _maybe_image(model, doc):
         return explain_prediction_keras_image(model,
                                               doc,
                                               image=image,
