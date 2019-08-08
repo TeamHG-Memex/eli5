@@ -89,7 +89,7 @@ def explain_prediction_keras(model, # type: Model
         * has large enough dimensions for resizing over input to work.
 
 
-        :raises TypeError: if ``layer`` is not None, str, int, or Kerass.layers.Layer instance.
+        :raises TypeError: if ``layer`` is not None, str, int, or keras.layers.Layer instance.
         :raises ValueError: if suitable layer can not be found.
         :raises ValueError: if differentiation fails with respect to retrieved ``layer``.
     :type layer: int or str or keras.layers.Layer, optional
