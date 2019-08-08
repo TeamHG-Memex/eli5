@@ -138,7 +138,7 @@ def explain_prediction_keras_not_supported(model, doc):
     return Explanation(
         model.name,
         error='model "{}" is not supported, '
-              'try passing the "image" argument.'.format(model.name),
+              'try passing the "image" argument if explaning an image model.'.format(model.name),
     )
     # TODO (open issue): implement 'other'/differentiable network type explanations
 
