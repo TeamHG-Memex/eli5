@@ -58,7 +58,7 @@ def test_heatmap_to_image_grayscale(heatmap, boxl):
 @pytest.mark.parametrize('heatmap', [
     (np.zeros((5, 5, 3))),
 ])
-def test_heatmap_to_image_rgba(heatmap, boxrgb):
+def test_heatmap_to_image_rgb(heatmap, boxrgb):
     rgba_heatmap = heatmap_to_image(heatmap)
     assert heatmap.shape[:2] == (rgba_heatmap.width, rgba_heatmap.height)
     assert_pixel_by_pixel_equal(rgba_heatmap, boxrgb)
@@ -188,10 +188,6 @@ def test_format_as_image_noheatmap(catdog_rgba, mock_expl_noheatmap):
     assert_pixel_by_pixel_equal(overlay, catdog_rgba)
 
 
-def test_format_as_image_invalid_expl(mock_expl_imgarr, mock_expl_imgmode):
-    # invalid type
+def test_format_as_image_invalid_expl(mock_expl_imgarr):
     with pytest.raises(TypeError):
         format_as_image(mock_expl_imgarr)
-    # invalid image mode
-    with pytest.raises(ValueError):
-        format_as_image(mock_expl_imgmode)

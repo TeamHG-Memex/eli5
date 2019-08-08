@@ -103,7 +103,7 @@ dimensions! Let's resize it:
 
 .. parsed-literal::
 
-    <PIL.Image.Image image mode=RGB size=224x224 at 0x7FE84017DA90>
+    <PIL.Image.Image image mode=RGB size=224x224 at 0x7FA931F0E470>
 
 
 
@@ -163,33 +163,18 @@ inputting
 .. code:: ipython3
 
     # take back the first image from our 'batch'
-    display(keras.preprocessing.image.array_to_img(doc[0]))
-
-
-
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_13_0.png
-
-
-One last thing, to explain image based models, we need to pass the image
-as a PIL object explicitly. However, it must have mode 'RGBA'
-
-.. code:: ipython3
-
-    print(im) # current mode
-    
-    image = im.convert(mode='RGBA') # add alpha channel
+    image = keras.preprocessing.image.array_to_img(doc[0])
     print(image)
     display(image)
 
 
 .. parsed-literal::
 
-    <PIL.Image.Image image mode=RGB size=224x224 at 0x7FE84017DA90>
-    <PIL.Image.Image image mode=RGBA size=224x224 at 0x7FE83C037B38>
+    <PIL.Image.Image image mode=RGB size=224x224 at 0x7FA931F0E6A0>
 
 
 
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_15_1.png
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_13_1.png
 
 
 Ready to go!
@@ -241,20 +226,32 @@ for a dog with ELI5:
 
     # we need to pass the network
     # the input as a numpy array
-    # and the corresponding input image (RGBA mode)
-    eli5.show_prediction(model, doc, image=image)
+    eli5.show_prediction(model, doc)
 
 
 
 
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_21_0.png
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_19_0.png
 
 
 
 The dog region is highlighted. Makes sense!
 
-Note that here we made a prediction twice. Once when looking at top
-predictions, and a second time when passing the model through ELI5.
+When explaining image based models, we can optionally pass the image
+associated with the input as a Pillow image object. If we don't, the
+image will be created from ``doc``. This may not work with custom models
+or inputs, in which case it's worth passing the image explicitly.
+
+.. code:: ipython3
+
+    eli5.show_prediction(model, doc, image=image)
+
+
+
+
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_22_0.png
+
+
 
 3. Choosing the target class (target prediction)
 ------------------------------------------------
@@ -265,7 +262,7 @@ classifier looks to find those objects.
 .. code:: ipython3
 
     cat_idx = 282 # ImageNet ID for "tiger_cat" class, because we have a cat in the picture
-    eli5.show_prediction(model, doc, image=image, targets=[cat_idx]) # pass the class id
+    eli5.show_prediction(model, doc, targets=[cat_idx]) # pass the class id
 
 
 
@@ -283,8 +280,8 @@ Currently only one class can be explained at a time.
 
     window_idx = 904 # 'window screen'
     turtle_idx = 35 # 'mud turtle', some nonsense
-    display(eli5.show_prediction(model, doc, image=image, targets=[window_idx]))
-    display(eli5.show_prediction(model, doc, image=image, targets=[turtle_idx]))
+    display(eli5.show_prediction(model, doc, targets=[window_idx]))
+    display(eli5.show_prediction(model, doc, targets=[turtle_idx]))
 
 
 
@@ -369,7 +366,7 @@ Rough print but okay. Let's pick a few convolutional layers that are
 
     for l in ['block_2_expand', 'block_9_expand', 'Conv_1']:
         print(l)
-        display(eli5.show_prediction(model, doc, image=image, layer=l)) # we pass the layer as an argument
+        display(eli5.show_prediction(model, doc, layer=l)) # we pass the layer as an argument
 
 
 .. parsed-literal::
@@ -421,7 +418,7 @@ better understand what is going on.
 
 .. code:: ipython3
 
-    expl = eli5.explain_prediction(model, doc, image=image)
+    expl = eli5.explain_prediction(model, doc)
 
 Examining the structure of the ``Explanation`` object:
 
@@ -445,7 +442,7 @@ Examining the structure of the ``Explanation`` object:
            [0.        , 0.        , 0.        , 0.        , 0.        ,
             0.        , 0.12770046],
            [0.        , 0.        , 0.        , 0.        , 0.        ,
-            0.02705698, 0.16513413]]))], feature_importances=None, decision_tree=None, highlight_spaces=None, transition_features=None, image=<PIL.Image.Image image mode=RGBA size=224x224 at 0x7FE83C037B38>)
+            0.02705698, 0.16513413]]))], feature_importances=None, decision_tree=None, highlight_spaces=None, transition_features=None, image=<PIL.Image.Image image mode=RGB size=224x224 at 0x7FA930311B00>)
 
 
 We can check the score (raw value) or probability (normalized score) of
@@ -499,7 +496,7 @@ Visualizing the heatmap:
 
 .. code:: ipython3
 
-    heatmap_im = eli5.formatters.image.heatmap_to_image(heatmap) # FIXME: probably better to import
+    heatmap_im = eli5.formatters.image.heatmap_to_image(heatmap)
     display(heatmap_im)
 
 
@@ -517,7 +514,7 @@ resampling):
 
 .. code:: ipython3
 
-    heatmap_im = eli5.formatters.image.expand_heatmap(heatmap, image, resampling_filter=Image.BOX)
+    heatmap_im = eli5.formatters.image.expand_heatmap(heatmap, image, resampling_filter=Image.BOX) # FIXME: probably better to import
     display(heatmap_im)
 
 
@@ -582,7 +579,7 @@ check the explanation:
 
     # first check the explanation *with* softmax
     print('with softmax')
-    display(eli5.show_prediction(model, doc, image=image))
+    display(eli5.show_prediction(model, doc))
     
     
     # remove softmax
@@ -594,7 +591,7 @@ check the explanation:
     model = keras.models.load_model('tmp_model_save_rmsoftmax')
     
     print('without softmax')
-    display(eli5.show_prediction(model, doc, image=image))
+    display(eli5.show_prediction(model, doc))
 
 
 .. parsed-literal::
@@ -638,9 +635,10 @@ loading another model and explaining a classification of the same image:
     nasnet.preprocess_input(doc2)
     
     print(model.name)
-    display(eli5.show_prediction(model, doc, image=image))
+    # note that this model is without softmax
+    display(eli5.show_prediction(model, doc))
     print(model2.name)
-    display(eli5.show_prediction(model2, doc2, image=image))
+    display(eli5.show_prediction(model2, doc2))
 
 
 .. parsed-literal::

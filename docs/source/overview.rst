@@ -31,6 +31,9 @@ following machine learning frameworks and packages:
   highlight text data accordingly. It also allows to debug scikit-learn
   pipelines which contain HashingVectorizer, by undoing hashing.
 
+* :ref:`library-keras` - explain predictions of image classifiers
+  via Grad-CAM visualizations.
+
 * :ref:`library-xgboost` - show feature importances and explain predictions
   of XGBClassifier, XGBRegressor and xgboost.Booster.
 
@@ -44,9 +47,6 @@ following machine learning frameworks and packages:
 
 * :ref:`library-sklearn-crfsuite` - ELI5 allows to check weights of
   sklearn_crfsuite.CRF models.
-
-* :ref:`library-keras` - explain predictions of image and text classifiers
-  via Grad-CAM visualizations.
 
 ELI5 also implements several algorithms for inspecting black-box models
 (see :ref:`eli5-black-box`):

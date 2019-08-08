@@ -24,16 +24,15 @@ def format_as_image(expl, # type: Explanation
 
     :param Explanation expl:
         :class:`eli5.base.Explanation` object to be formatted.
-        It must have an ``image`` attribute that is a Pillow image \
-        with mode 'RGBA'.
-        It must also have a ``targets`` attribute, a list of :class:`eli5.base.TargetExplanation` \
+        It must have an ``image`` attribute with a Pillow image that will be overlaid.
+        It must have a ``targets`` attribute, a list of :class:`eli5.base.TargetExplanation` \
         instances that contain the attribute ``heatmap``, a rank 2 numpy array \
         with float values.
+        Currently ``targets`` must be length 1 (only one target is supported).
 
 
         :raises TypeError: if ``heatmap`` is not a numpy array.
         :raises TypeError: if ``image`` is not a Pillow image.
-        :raises ValueError: if ``image`` does not have mode 'RGBA'.
 
     :param resampling_filter:
         Interpolation ID or Pillow filter to use when resizing the image.
@@ -97,8 +96,8 @@ def format_as_image(expl, # type: Explanation
         raise TypeError('Explanation image must be a PIL.Image.Image instance. '
                         'Got: {}'.format(image))
     if image.mode != 'RGBA':
-        raise ValueError('Explanation image must have mode "RGBA". '
-                         'Got image with mode: %s' % image.mode)
+        # normalize to 'RGBA'
+        image = image.convert('RGBA')
 
     if not expl.targets:
         # no heatmaps
@@ -117,7 +116,7 @@ def format_as_image(expl, # type: Explanation
     # save the original heatmap values
     heatvals = heatmap
     # apply colours to the grayscale array
-    heatmap = _colorize(heatmap, colormap=colormap) # -> original dims + RGBA channels
+    heatmap = _colorize(heatmap, colormap=colormap)  # -> (dim1, dim2, RGBA channels)
 
     # make the alpha intensity correspond to the grayscale heatmap values
     # cap the intensity so that it's not too opaque when near maximum value
@@ -137,7 +136,7 @@ def heatmap_to_image(heatmap):
     Parameters
     ----------
     heatmap : numpy.ndarray
-        Rank 2 grayscale ('L') array or rank 3 coloured ('RGBA') array,
+        Rank 2 grayscale ('L') array or rank 3 coloured ('RGB' or RGBA') array,
         with values in interval [0, 1] as floats.
 
 
@@ -207,7 +206,7 @@ def _update_alpha(image_array, starting_array=None, alpha_limit=None):
     """
     Update the alpha channel values of an RGBA rank 3 ndarray ``image_array``,
     optionally creating the alpha channel from rank 2 ``starting_array``, 
-    and setting upper limit for alpha values (opacity) to ``alpha_limit``.    
+    and setting upper limit for alpha values (opacity) to ``alpha_limit``.
 
     This function modifies ``image_array`` in-place.
     """
@@ -247,11 +246,11 @@ def _cap_alpha(alpha_arr, alpha_limit):
 
 def expand_heatmap(heatmap, image, resampling_filter=Image.LANCZOS):
     # type: (np.ndarray, Image, Union[None, int]) -> Image
-    """ 
+    """
     Resize the ``heatmap`` image array to fit over the original ``image``,
-    using the specified ``resampling_filter`` method. 
-    The heatmap is converted to an RGBA image in the process.
-    
+    using the specified ``resampling_filter`` method.
+    The heatmap is converted to an image in the process.
+
     Parameters
     ----------
     heatmap : numpy.ndarray
@@ -266,7 +265,7 @@ def expand_heatmap(heatmap, image, resampling_filter=Image.LANCZOS):
 
         See :func:`eli5.format_as_image` for more details on the `resampling_filter` parameter.
 
-    
+
     :raises TypeError: if ``image`` is not a Pillow image instance.
 
 
@@ -290,8 +289,8 @@ def _overlay_heatmap(heatmap, image):
     # type: (Image, Image) -> Image
     """
     Blend (combine) ``heatmap`` over ``image``, 
-    using alpha channel values appropriately.
-    Input and output images have mode 'RGBA'.
+    using alpha channel values appropriately (must have mode `RGBA`).
+    Output is 'RGBA'.
     """
     # note that the order of alpha_composite arguments matters
     overlayed_image = Image.alpha_composite(image, heatmap)

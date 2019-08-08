@@ -36,6 +36,8 @@ It provides support for the following machine learning frameworks and packages:
   It also allows to debug scikit-learn pipelines which contain
   HashingVectorizer, by undoing hashing.
 
+* Keras_ - explain predictions of image classifiers via Grad-CAM visualizations.
+
 * xgboost_ - show feature importances and explain predictions of XGBClassifier,
   XGBRegressor and xgboost.Booster.
 
@@ -50,8 +52,6 @@ It provides support for the following machine learning frameworks and packages:
 
 * sklearn-crfsuite_. ELI5 allows to check weights of sklearn_crfsuite.CRF
   models.
-
-* Keras_ - explain predictions of image classifiers via Grad-CAM visualizations.
 
 
 ELI5 also implements several algorithms for inspecting black-box models

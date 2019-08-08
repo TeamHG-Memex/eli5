@@ -9,6 +9,14 @@ import keras # type: ignore
 import keras.backend as K # type: ignore
 from keras.models import Model # type: ignore
 from keras.layers import Layer # type: ignore
+from keras.layers import (  # type: ignore
+    Conv2D,
+    MaxPooling2D,
+    AveragePooling2D,
+    GlobalMaxPooling2D,
+    GlobalAveragePooling2D,
+)
+from keras.preprocessing.image import array_to_img # type: ignore
 
 from eli5.base import (
     Explanation, 
@@ -47,32 +55,22 @@ def explain_prediction_keras(model, # type: Model
     # type: (...) -> Explanation
     """
     Explain the prediction of a Keras classifier with the Grad-CAM technique.
-    
-    # TODO: explain Grad-CAM
 
     We explicitly assume that the model's task is classification, i.e. final output is class scores.
-    
+
     :param keras.models.Model model:
-        Instance of a Keras neural network model, 
+        Instance of a Keras neural network model,
         whose predictions are to be explained.
 
 
         :raises ValueError: if ``model`` can not be differentiated.
-
     :param numpy.ndarray doc:
-        An input image as a tensor to ``model``, 
-        from which prediction will be done and explained.
+        An input to ``model`` whose prediction will be explained.
 
         Currently only numpy arrays are supported.
         Also the only data format supported is "channels last".
 
-        The tensor must be of suitable shape for the ``model``. 
-
-        For example, some models require input images to be 
-        rank 4 in format `(batch_size, dims, ..., channels)` (channels last)
-        or `(batch_size, channels, dims, ...)` (channels first), 
-        where `dims` is usually in order `height, width`
-        and `batch_size` is 1 for a single image.
+        The tensor must be of suitable shape for the ``model``.
 
         Check ``model.input_shape`` to confirm the required dimensions of the input tensor.
 
@@ -103,15 +101,16 @@ def explain_prediction_keras(model, # type: Model
         If None, a suitable layer is attempted to be retrieved.
 
         For best results, pick a layer that:
-            * has spatial or temporal information (conv, recurrent, pool, embedding)
-              (not dense layers).
-            * shows high level features.
-            * has large enough dimensions for resizing over input to work.
+
+        * has spatial or temporal information (conv, recurrent, pooling, embedding)
+          (not dense layers).
+        * shows high level features.
+        * has large enough dimensions for resizing over input to work.
 
 
         :raises TypeError: if ``layer`` is not None, str, int, or keras.layers.Layer instance.
         :raises ValueError: if suitable layer can not be found.
-        :raises ValueError: if differentiation fails with respect to retrieved ``layer``. 
+        :raises ValueError: if differentiation fails with respect to retrieved ``layer``.
     :type layer: int or str or keras.layers.Layer, optional
 
     :param relu:
@@ -148,7 +147,7 @@ def explain_prediction_keras(model, # type: Model
 
     # check that only one of image or tokens is passed
     assert image is None or tokens is None
-    if image is not None:
+    if image is not None or _maybe_image(model, doc):
         return explain_prediction_keras_image(model, 
                                               doc,
                                               image=image,
@@ -181,7 +180,8 @@ def explain_prediction_keras_not_supported(model, doc):
     return Explanation(
         model.name,
         error='model "{}" is not supported, '
-              'missing "image" or "tokens" argument.'.format(model.name),
+              'try passing the "image" argument if explaining an image model, '
+              'or the "tokens" argument if explaining a text model.'.format(model.name),
     )
     # TODO (open issue): implement 'other'/differentiable network type explanations
 
@@ -197,35 +197,43 @@ def explain_prediction_keras_image(model,
     """
     Explain an image-based model, highlighting what contributed in the image.
 
-    See :func:`eli5.keras.explain_prediction.explain_prediction_keras` 
-    for a description of ``targets``, ``layer``, ``relu``, and ``counterfactual`` parameters.
+    :param numpy.ndarray doc:
+        Input representing an image.
+
+        Must have suitable format. Some models require tensors to be
+        rank 4 in format `(batch_size, dims, ..., channels)` (channels last)
+        or `(batch_size, channels, dims, ...)` (channels first),
+        where `dims` is usually in order `height, width`
+        and `batch_size` is 1 for a single image.
+
+        If ``image`` argument is not given, an image will be created \
+        from ``doc``, where possible.
 
     :param image:
         Pillow image over which to overlay the heatmap.
-
         Corresponds to the input ``doc``.
-
-        Must have mode 'RGBA'.
     :type image: PIL.Image.Image, optional
+
+
+    See :func:`eli5.keras.explain_prediction.explain_prediction_keras` 
+    for a description of ``model``, ``doc``, ``targets``, and ``layer`` parameters.
+
 
     Returns
     -------
     expl : eli5.base.Explanation
       An :class:`eli5.base.Explanation` object with the following attributes:
-                  * ``image`` a Pillow image with mode RGBA.
-                  * ``targets`` a list of :class:`eli5.base.TargetExplanation` objects \
-                      for each target. Currently only 1 target is supported.
-
+          * ``image`` a Pillow image representing the input.
+          * ``targets`` a list of :class:`eli5.base.TargetExplanation` objects \
+              for each target. Currently only 1 target is supported.
       The :class:`eli5.base.TargetExplanation` objects will have the following attributes:
           * ``heatmap`` a rank 2 numpy array with the localization map \
             values as floats.
           * ``target`` ID of target class.
           * ``score`` value for predicted class.
     """
-    # TODO (open issue): support taking images that are not 'RGBA' -> 'RGB' 
-    # as well (happens with keras load_img)
-    # and grayscale too
-    assert image is not None
+    if image is None:
+        image = _extract_image(doc)
     _validate_doc(model, doc)
     if targets is not None:
         _validate_targets(targets)
@@ -388,6 +396,55 @@ def explain_prediction_keras_text(model,
     )
 
 
+def _maybe_image(model, doc):
+    # type: (Model, np.ndarray) -> bool
+    """Decide whether we are dealing with a image-based explanation 
+    based on heuristics on ``model`` and ``doc``."""
+    return _maybe_image_input(doc) and _maybe_image_model(model)
+
+
+def _maybe_image_input(doc):
+    # type: (np.ndarray) -> bool
+    """Decide whether ``doc`` represents an image input."""
+    rank = len(doc.shape)
+    # image with channels or without (spatial only)
+    return rank == 4 or rank == 3
+
+
+def _maybe_image_model(model):
+    # type: (Model) -> bool
+    """Decide whether ``model`` is used for images."""
+    # FIXME: replace try-except with something else
+    try:
+        # search for the first occurrence of an "image" layer
+        _search_activation_layer(model, _backward_layers, _is_possible_image_model_layer)
+        return True
+    except ValueError:
+        return False
+
+
+image_model_layers = (Conv2D,
+                      MaxPooling2D,
+                      AveragePooling2D,
+                      GlobalMaxPooling2D,
+                      GlobalAveragePooling2D,
+                      )
+
+
+def _is_possible_image_model_layer(model, layer):
+    # type: (Model, Layer) -> bool
+    """Check that the given ``layer`` is usually used for images."""
+    return isinstance(layer, image_model_layers)
+
+
+def _extract_image(doc):
+    # type: (np.ndarray) -> 'PIL.Image.Image'
+    """Convert ``doc`` tensor to image."""
+    im_arr, = doc  # rank 4 batch -> rank 3 single image
+    image = array_to_img(im_arr)
+    return image
+
+
 # There is a problem with repeated arguments to the explain_prediction_keras* functions
 # Some arguments are shared, some are unique to each "concrete" explain_prediction*
 # An attempt was to make use of **kwargs
@@ -475,7 +532,6 @@ def _search_activation_layer(model, # type: Model
     Search for a layer in ``model``, iterating through layers in the order specified by
     ``layers_generator``, returning the first layer that matches ``layer_condition``.
     """
-    # TODO: separate search for image and text - best-results based, not just simple lsearch
     # linear search in reverse through the flattened layers
     for layer in layers_generator(model):
         if layer_condition(model, layer):

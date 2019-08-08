@@ -12,10 +12,8 @@ from keras.preprocessing.text import text_to_word_sequence
 import numpy as np
 
 import eli5
-from .estimators import (
-    keras_sentiment_classifier,
-    keras_multiclass_text_classifier,
-)
+from .estimators.keras_sentiment_classifier import keras_sentiment_classifier
+from .estimators.keras_multiclass_text_classifier import keras_multiclass_text_classifier
 
 # model 1: ~100,000 parameters
 # For training details see

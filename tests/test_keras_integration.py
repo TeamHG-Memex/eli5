@@ -14,6 +14,7 @@ from PIL import Image
 from keras.applications import (
     mobilenet_v2
 )
+from keras.models import Sequential
 
 import eli5
 from eli5.base import Explanation
@@ -44,13 +45,12 @@ def cat_dog_image():
     # Note that 'jpg' images can have RGB data
     # which is fine in the case of this model (requires three channels)
     img_path = 'tests/images/cat_dog.jpg'
-    # TODO: might be good idea to take non-RGBA images
-    im = keras.preprocessing.image.load_img(img_path, target_size=(224, 224), color_mode='rgba')
-    # 'RGBA' -> 'RGB' in order to convert to array
-    doc_im = im.convert(mode='RGB')
-    doc = keras.preprocessing.image.img_to_array(doc_im)
-    doc = np.expand_dims(doc, axis=0)
-    mobilenet_v2.preprocess_input(doc) # because our classifier is mobilenet_v2
+    im = keras.preprocessing.image.load_img(img_path, target_size=(224, 224))
+    doc = keras.preprocessing.image.img_to_array(im)
+    doc = np.expand_dims(doc, axis=0)  # add batch size
+    mobilenet_v2.preprocess_input(doc)  # because our classifier is mobilenet_v2
+    # re-load from array because we did some preprocessing
+    im = keras.preprocessing.image.array_to_img(doc[0])
     return doc, im
 
 
@@ -102,7 +102,7 @@ def assert_attention_over_area(expl, area):
     n = 40 # at least n% (need to experiment with this number)
     assert n < crop_p
 
-    # Alternatively, check that the intensity over area 
+    # Alternatively, check that the intensity over area
     # is greater than all other intensity:
     # remaining_intensity = total_intensity - intensity
     # assert remaining_intensity < total_intensity
@@ -120,13 +120,18 @@ def test_image_classification(keras_clf, cat_dog_image, area, targets):
     assert_attention_over_area(res, area)
 
     # check formatting
+    res.image = res.image.convert('RGBA')  # explicitly normalize
     overlay = format_as_image(res)
     # import matplotlib.pyplot as plt; plt.imshow(overlay); plt.show()
     assert_good_external_format(res, overlay)
 
-    # check show function
-    show_overlay = eli5.show_prediction(keras_clf, doc, image=image, targets=targets)
+    # check show function with image auto-conversion
+    show_overlay = eli5.show_prediction(keras_clf, doc, targets=targets)
+
     assert_pixel_by_pixel_equal(overlay, show_overlay)
+
+
+# TODO: test no relu and counterfactual explanations
 
 
 @pytest.fixture(scope="function")
@@ -147,9 +152,12 @@ def show_nodeps(request):
 
 def test_show_prediction_nodeps(show_nodeps, keras_clf, cat_dog_image):
     doc, image = cat_dog_image
-    with pytest.warns(UserWarning):
-        expl = show_nodeps(keras_clf, doc, image=image)
+    with pytest.warns(UserWarning) as rec:
+        expl = show_nodeps(keras_clf, doc)
+    assert 'dependencies' in str(rec[-1].message)
     assert isinstance(expl, Explanation)
 
 
-# TODO: test no relu and counterfactual explanations
+def test_explain_prediction_not_supported():
+    res = eli5.explain_prediction(Sequential(), np.zeros((0,)))
+    assert 'supported' in res.error

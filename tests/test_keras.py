@@ -204,11 +204,8 @@ def test_validate_tokens_invalid():
         _validate_tokens(np.zeros((1, 1)), ['a', 'b'])
 
 
-
 def test_explain_prediction_score(simple_seq_image, dummy_image):
-    expl = eli5.explain_prediction(simple_seq_image,
-                                   np.zeros((1, 32, 32, 1)),
-                                   image=dummy_image)
+    expl = eli5.explain_prediction(simple_seq_image, np.zeros((1, 32, 32, 1)))
     assert expl.targets[0].score is not None
     assert expl.targets[0].proba is None
 

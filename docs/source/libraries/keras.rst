@@ -71,9 +71,11 @@ Extra arguments for image-based explanations:
 
 * ``image`` Pillow image, corresponds to ``doc`` input.
 
-    - **Must be passed for image explanations.**
+    - Image over which to overlay the heatmap.
 
-    - **Must have mode 'RGBA'.**
+    - If not given, the image will be derived from ``doc`` where possible.
+
+    - Useful if ELI5 fails in case you have a custom image model or image input.
 
 Image explanations are dispatched to :func:`eli5.keras.explain_prediction.explain_prediction_keras_image`.
 
