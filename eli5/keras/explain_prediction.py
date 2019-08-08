@@ -117,7 +117,6 @@ def explain_prediction_keras(model, # type: Model
                                               )
     elif _maybe_image(model, doc):
         warnings.warn('Dispatching to image implementation.', stacklevel=2)
-        image = _extract_image(doc)
         return explain_prediction_keras_image(model,
                                               doc,
                                               image=image,
@@ -185,7 +184,8 @@ def explain_prediction_keras_image(model,
           * ``target`` ID of target class.
           * ``score`` value for predicted class.
     """
-    assert image is not None
+    if image is None:
+        image = _extract_image(doc)
     _validate_doc(model, doc)
     activation_layer = _get_activation_layer(model, layer)
 
