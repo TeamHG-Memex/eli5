@@ -41,8 +41,6 @@ def explain_prediction_keras(model, # type: Model
     """
     Explain the prediction of a Keras classifier with the Grad-CAM technique.
 
-    # TODO: explain Grad-CAM.
-
     We explicitly assume that the model's task is classification, i.e. final output is class scores.
 
     :param keras.models.Model model:
