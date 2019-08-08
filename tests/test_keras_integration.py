@@ -15,6 +15,7 @@ from PIL import Image
 from keras.applications import (
     mobilenet_v2
 )
+from keras.models import Sequential
 
 import eli5
 from eli5.base import Explanation
@@ -152,3 +153,8 @@ def test_show_prediction_nodeps(show_nodeps, keras_clf, cat_dog_image):
         expl = show_nodeps(keras_clf, doc)
     assert 'dependencies' in str(rec[-1].message)
     assert isinstance(expl, Explanation)
+
+
+def test_explain_prediction_not_supported():
+    res = eli5.explain_prediction(Sequential(), np.zeros((0,)))
+    assert 'supported' in res.error
