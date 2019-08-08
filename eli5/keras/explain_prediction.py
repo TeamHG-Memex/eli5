@@ -82,10 +82,11 @@ def explain_prediction_keras(model, # type: Model
 
         If None, a suitable layer is attempted to be retrieved.
         For best results, pick a layer that:
-            * has spatial or temporal information (conv, recurrent, pool, embedding) \
-              (not dense layers).
-            * shows high level features.
-            * has large enough dimensions for resizing over input to work.
+
+        * has spatial or temporal information (conv, recurrent, pooling, embedding)
+          (not dense layers).
+        * shows high level features.
+        * has large enough dimensions for resizing over input to work.
 
 
         :raises TypeError: if ``layer`` is not None, str, int, or Kerass.layers.Layer instance.
