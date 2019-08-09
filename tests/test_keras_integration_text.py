@@ -209,7 +209,7 @@ def test_multiclass_classification(multiclass_clf,
                                   targets=targets,
                                   relu=False,
                                   pad_value='<PAD>',
-                                  padding='post'
+                                  padding='post',
                                   )
     spans, document = get_docs_weighted_spans(res)
     assert_weights_over_spans(spans, positive, negative, neutral)

@@ -15,6 +15,13 @@ from keras.layers import (  # type: ignore
     AveragePooling2D,
     GlobalMaxPooling2D,
     GlobalAveragePooling2D,
+    Conv1D,
+    Embedding,
+    AveragePooling1D,
+    MaxPooling1D,
+    RNN,
+    LSTM,
+    GRU,
 )
 from keras.preprocessing.image import array_to_img # type: ignore
 
@@ -32,6 +39,7 @@ from eli5.nn.gradcam import (
 from eli5.nn.text import (
     gradcam_text_spans,
     _get_temporal_length,
+    _is_character_tokenization,
 )
 from .gradcam import (
     gradcam_backend_keras,
@@ -148,17 +156,17 @@ def explain_prediction_keras(model, # type: Model
     # check that only one of image or tokens is passed
     assert image is None or tokens is None
     if image is not None or _maybe_image(model, doc):
-        return explain_prediction_keras_image(model, 
+        return explain_prediction_keras_image(model,
                                               doc,
                                               image=image,
-                                              targets=targets, 
+                                              targets=targets,
                                               layer=layer,
                                               relu=relu,
                                               counterfactual=counterfactual,
                                               )
     elif tokens is not None:
-        return explain_prediction_keras_text(model, 
-                                             doc, 
+        return explain_prediction_keras_text(model,
+                                             doc,
                                              tokens=tokens,
                                              pad_value=pad_value,
                                              padding=padding,
@@ -170,6 +178,10 @@ def explain_prediction_keras(model, # type: Model
                                              )
     else:
         return explain_prediction_keras_not_supported(model, doc)
+
+
+# Some parameters to explain_prediction_keras* functions are repeated
+# Watch that the default values match
 
 
 def explain_prediction_keras_not_supported(model, doc):
@@ -232,12 +244,9 @@ def explain_prediction_keras_image(model,
           * ``target`` ID of target class.
           * ``score`` value for predicted class.
     """
+    _validate_params(model, doc, targets=targets)
     if image is None:
         image = _extract_image(doc)
-    _validate_doc(model, doc)
-    if targets is not None:
-        _validate_targets(targets)
-        _validate_classification_target(targets[0], model.output_shape)
 
     if layer is not None:
         activation_layer = _get_layer(model, layer)
@@ -343,21 +352,17 @@ def explain_prediction_keras_text(model,
     """
     # TODO (open issue): implement document vectorizer
     #  :param document:
-    #    Full text document for highlighting. 
+    #    Full text document for highlighting.
     #    Not tokenized and without padding.
     # :type document: str, optional
     assert tokens is not None
-    _validate_doc(model, doc)  # should validate that doc is 2D array (temporal/series data?)
-    _validate_tokens(doc, tokens)
+    _validate_params(model, doc, targets=targets, tokens=tokens)
     tokens = _unbatch_tokens(tokens)
-    if targets is not None:
-        _validate_targets(targets)
-        _validate_classification_target(targets[0], model.output_shape)
 
     if layer is not None:
         activation_layer = _get_layer(model, layer)
     else:
-        activation_layer = _autoget_layer_text(model)
+        activation_layer = _autoget_layer_text(model, character=_is_character_tokenization(tokens))
 
     vals = gradcam_backend_keras(model, doc, targets, activation_layer)
     activations, grads, predicted_idx, predicted_val = vals
@@ -398,8 +403,10 @@ def explain_prediction_keras_text(model,
 
 def _maybe_image(model, doc):
     # type: (Model, np.ndarray) -> bool
-    """Decide whether we are dealing with a image-based explanation 
-    based on heuristics on ``model`` and ``doc``."""
+    """
+    Decide whether we are dealing with a image-based explanation
+    based on heuristics on ``model`` and ``doc``.
+    """
     return _maybe_image_input(doc) and _maybe_image_model(model)
 
 
@@ -414,13 +421,9 @@ def _maybe_image_input(doc):
 def _maybe_image_model(model):
     # type: (Model) -> bool
     """Decide whether ``model`` is used for images."""
-    # FIXME: replace try-except with something else
-    try:
-        # search for the first occurrence of an "image" layer
-        _search_activation_layer(model, _backward_layers, _is_possible_image_model_layer)
-        return True
-    except ValueError:
-        return False
+    # search for the first occurrence of an "image" layer
+    l = _search_layer(model, _backward_layers, _is_possible_image_model_layer)
+    return l is not None
 
 
 image_model_layers = (Conv2D,
@@ -445,21 +448,21 @@ def _extract_image(doc):
     return image
 
 
-# There is a problem with repeated arguments to the explain_prediction_keras* functions
-# Some arguments are shared, some are unique to each "concrete" explain_prediction*
-# An attempt was to make use of **kwargs
-# But it led to statements like arg = kwargs.get('arg', None)
-# When making changes to argument lists, watch the following:
-# * What arguments the "dispatcher" takes?
-# * With what arguments the "dispatcher" calls the "concrete" functions?
-# * What arguments the "concrete" functions take?
-# * Do default values for repeated arguments match?
-# If you have a better solution, send a PR / open an issue on GitHub.
+def _unbatch_tokens(tokens):
+    # type: (np.ndarray) -> np.ndarray
+    """If ``tokens`` has batch size, take out the first sample from the batch."""
+    an_entry = tokens[0]
+    if isinstance(an_entry, str):
+        # not batched
+        return tokens
+    else:
+        # batched, return first entry
+        return an_entry
 
 
 def _get_layer(model, layer): 
     # type: (Model, Union[int, str, Layer]) -> Layer
-    """ 
+    """
     Wrapper around ``model.get_layer()`` for int, str, or Layer argument``.
     Return a keras Layer instance.
     """
@@ -476,10 +479,13 @@ def _get_layer(model, layer):
         raise TypeError('Invalid layer (must be str, int, or keras.layers.Layer): %s' % layer)
 
 
+# Heuristics for getting a suitable activation layer
+
 def _autoget_layer_image(model):
-    # TODO: fall back if can't find layer -> just take first or last 
-    # and raise a warning?
-    return _search_activation_layer(model, _backward_layers, _is_suitable_image_layer)
+    # type: (Model) -> Layer
+    """Try find a suitable layer for image ``model``."""
+    l = _search_layer(model, _backward_layers, _is_suitable_image_layer)
+    return l if l is not None else _middle_layer(model)
 
 
 def _is_suitable_image_layer(model, layer):
@@ -499,38 +505,39 @@ def _is_suitable_image_layer(model, layer):
     return rank == required_rank
 
 
-def _autoget_layer_text(model):
-    # TODO: fall back if can't find
-    return _search_activation_layer(model, _forward_layers, _is_suitable_text_layer)
-
-
-def _is_suitable_text_layer(model, layer):
-    # type: (Model, Layer) -> bool
-    """Check whether ``layer`` is suitable for
-    ``model`` to do Grad-CAM on, for text-based models.
+def _autoget_layer_text(model, character=False):
+    # type: (Model, Union[np.ndarray, list]) -> Layer
+    """Try find a suitable layer for text ``model``.
+    If ``character`` is `True`, tokenization is character-level.
     """
-    # check the type
-    # FIXME: this is not an exhaustive list
-    # FIXME: optimisation - this tuple is defined on each call
-    desired_layers = (keras.layers.Conv1D,
-                      keras.layers.RNN,
-                      keras.layers.LSTM,
-                      keras.layers.GRU, # TODO: test this
-                      keras.layers.Embedding,
-                      keras.layers.MaxPooling1D,
-                      keras.layers.AveragePooling1D,
-                      )
-    return isinstance(layer, desired_layers)
+    if character:
+        # Embedding layer seems to give the best results
+        l = _search_layer(model, _forward_layers, lambda model, layer: isinstance(layer, Embedding))
+    else:
+        # search forwards for
+        # 'word level' features
+        # search categories in sequence: text > 1D > embedding
+        l = _search_layer(model, _forward_layers, lambda model, layer: isinstance(layer, text_layers))
+        if l is None:
+            l = _search_layer(model, _forward_layers, lambda model, layer: isinstance(layer, temporal_layers))
+            if l is None:
+                l = _search_layer(model, _forward_layers, lambda model, layer: isinstance(layer, Embedding))
+    return l if l is not None else _middle_layer(model)
 
 
-def _search_activation_layer(model, # type: Model
-                             layers_generator, # type: Callable[[Model], Generator[Layer, None, None]]
-                             layer_condition, # type: Callable[[Model, Layer], bool]
-                             ):
-    # type: (...) -> Layer
+text_layers = (Conv1D, RNN, LSTM, GRU,)
+temporal_layers = (AveragePooling1D, MaxPooling1D,)
+
+
+def _search_layer(model, # type: Model
+                  layers_generator, # type: Callable[[Model], Generator[Layer, None, None]]
+                  layer_condition, # type: Callable[[Model, Layer], bool]
+                  ):
+    # type: (...) -> Optional[Layer]
     """
     Search for a layer in ``model``, iterating through layers in the order specified by
     ``layers_generator``, returning the first layer that matches ``layer_condition``.
+    If no layer could be found, return None.
     """
     # linear search in reverse through the flattened layers
     for layer in layers_generator(model):
@@ -538,7 +545,6 @@ def _search_activation_layer(model, # type: Model
             # linear search succeeded
             return layer
     # linear search ended with no results
-    raise ValueError('Could not find a suitable target layer automatically.')
 
 
 def _forward_layers(model):
@@ -551,6 +557,36 @@ def _backward_layers(model):
     # type: (Model) -> Generator[Layer, None, None]
     """Return layers going from output to input (backwards)."""
     return (model.get_layer(index=i) for i in range(len(model.layers)-1, -1, -1))
+
+
+def _middle_layer(model):
+    # type: (Model) -> Layer
+    """Return the middle layer in the ``model``'s flattened list of layers."""
+    mid_idx = len(model.layers) // 2
+    return model.get_layer(index=mid_idx)
+
+
+def _validate_params(model, # type: Model
+                     doc, # type: np.ndarray
+                     targets=None, # type: Optional[list]
+                     tokens=None, # type: Optional[Union[np.ndarray, list]]
+                     ):
+    # type: (...) -> None
+    """Helper for validating all explanation function parameters."""
+    _validate_model(model)
+    _validate_doc(model, doc)
+    if targets is not None:
+        _validate_targets(targets)
+        _validate_classification_target(targets[0], model.output_shape)
+    if tokens is not None:
+        _validate_tokens(doc, tokens)
+
+
+def _validate_model(model):
+    if len(model.layers) == 0:
+        # "empty" model
+        raise ValueError('Model must have at least 1 layer. '
+                         'Got model with layers: "{}"'.format(model.layers))
 
 
 def _validate_doc(model, doc):
@@ -649,15 +685,3 @@ def _validate_tokens(doc, tokens):
         raise ValueError('"tokens" and "doc" lengths must match. '
                          '"tokens" length: "%d". "doc" length: "%d"'
                          % (tokens_len, doc_len))
-
-
-def _unbatch_tokens(tokens):
-    # type: (np.ndarray) -> np.ndarray
-    """If ``tokens`` has batch size, take out the first sample from the batch."""
-    an_entry = tokens[0]
-    if isinstance(an_entry, str):
-        # not batched
-        return tokens
-    else:
-        # batched, return first entry
-        return an_entry

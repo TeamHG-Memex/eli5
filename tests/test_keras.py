@@ -12,29 +12,31 @@ from keras.layers import (
     Dense,
     Activation,
     Conv2D,
+    MaxPooling2D,
+    AveragePooling2D,
+    GlobalMaxPooling2D,
     GlobalAveragePooling2D,
     Input,
     Lambda,
     Embedding,
+    RNN,
+    GRU,
     LSTM,
     Conv1D,
     MaxPooling1D,
+    AveragePooling1D,
 )
 from keras.backend import epsilon
 import numpy as np
 
 import eli5
 from eli5.keras.explain_prediction import (
+    _validate_model,
     _validate_doc,
     _validate_tokens,
     _get_layer,
     _autoget_layer_image,
     _autoget_layer_text,
-    _search_activation_layer,
-    _forward_layers,
-    _backward_layers,
-    _is_suitable_image_layer,
-    _is_suitable_text_layer,
 )
 from eli5.keras.gradcam import (
     _autoget_target_prediction,
@@ -117,28 +119,46 @@ def test_get_layer_invalid(simple_seq_image):
     # keras get_layer() method raises the appropriate exceptions
 
 
-# TODO: parametrize with different models
-def test_autoget_layer_image(simple_seq_image):
-    l = _autoget_layer_image(simple_seq_image)
-    assert l.name == 'layer2'
+@pytest.mark.parametrize('model, expected_layer_idx', [
+    (Sequential([Dense(1, input_shape=(2, 3,)), ]),
+        0),  # no match
+    (Sequential([Conv2D(1, 1, input_shape=(2, 2, 1,)), AveragePooling2D(1),
+        GlobalAveragePooling2D(), ]),
+        1),  # match (layer rank backwards)
+])
+def test_autoget_layer_image(model, expected_layer_idx):
+    l = _autoget_layer_image(model)
+    assert l is model.get_layer(index=expected_layer_idx)
 
 
-# TODO: parametrize with different models
-def test_autoget_layer_text():
-    pass
+@pytest.mark.parametrize('model, expected_layer_idx', [
+    (Sequential([Dense(1, input_shape=(1,)), Dense(1), Dense(1)]),
+        1),  # no match
+    (Sequential([Embedding(5, 2), LSTM(1, return_sequences=True), GRU(1), ]),
+        1),  # text layer
+    (Sequential([Embedding(5, 2), AveragePooling1D(1), ]),
+        1),  # 1D layer
+    (Sequential([Embedding(5, 2), Dense(1), ]),
+        0),  # embedding
+])
+def test_autoget_layer_text(model, expected_layer_idx):
+    l = _autoget_layer_text(model)
+    assert l is model.get_layer(index=expected_layer_idx)
 
 
-def test_autoget_layer_invalid():
-    # layer not found
+@pytest.mark.parametrize('model, expected_layer_idx', [
+    (Sequential([Embedding(5, 2), LSTM(1, return_sequences=True), LSTM(1), ]),
+        0),  # embedding
+])
+def test_autoget_layer_text_character(model, expected_layer_idx):
+    l = _autoget_layer_text(model, character=True)
+    assert l is model.get_layer(index=expected_layer_idx)
+
+
+def test_validate_model_invalid():
     with pytest.raises(ValueError):
-        _search_activation_layer(
-            Sequential(),  # a model with no layers
-            _backward_layers,
-            _is_suitable_image_layer,
-        )
-
-
-# TODO: _search_activation_layer with text layer search
+        # empty model
+        _validate_model(Sequential())
 
 
 def test_validate_doc(simple_seq_image):
