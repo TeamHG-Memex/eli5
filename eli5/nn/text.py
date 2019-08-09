@@ -47,10 +47,7 @@ def gradcam_text_spans(heatmap, # type: np.ndarray
         Default is `post`.
 
     interpolation_kind: str or int, optional
-        Interpolation method passed to the underlying ``scipy.interpolate.interp1d``
-        function. Used when resizing ``heatmap`` to the length of ``tokens``.
-
-        Default is `linear`.
+        Interpolation method. See :func:`eli5.nn.text.resize_1d` for more details.
 
     Returns
     -------
@@ -97,11 +94,11 @@ def resize_1d(heatmap, length, interpolation_kind='linear'):
         Required width.
 
     interpolation_kind : str or int, optional
-        Interpolation method used by ``scipy.interpolate.interp1d``.
+        Interpolation method used by the underlying ``scipy.interpolate.interp1d`` resize function.
 
-        Default is `linear`.
-        # FIXME: instead of repeating descriptions.
-        Pass links. Then do a more in-depth description in final location.
+        Used when resizing ``heatmap`` to the correct ``length``.
+
+        Default is ``linear``.
 
     Returns
     -------

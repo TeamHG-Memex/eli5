@@ -301,6 +301,9 @@ def explain_prediction_keras_text(model,
     See :func:`eli5.keras.explain_prediction.explain_prediction_keras` for description of ``targets``, 
     ``layer``, ``relu``, and ``counterfactual`` parameters.
 
+    :param numpy.ndarray doc:
+        Suitable input tensor. Temporal with batch size. May have padding.
+
     :param tokens:
         Tokens that correspond to ``doc``.
         With padding if ``doc`` has padding.
@@ -330,8 +333,7 @@ def explain_prediction_keras_text(model,
     :type padding: str, optional
 
     :param interpolation_kind:
-        scipy interpolation to use when resizing the 1D heatmap array.
-        Default: 'linear'.
+        Interpolation method. See :func:`eli5.nn.text.resize_1d` for more details.
     :type interpolation_kind: str or int, optional
 
     Returns
