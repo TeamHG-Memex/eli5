@@ -25,6 +25,9 @@ classifiers and explain their predictions.
 .. image:: https://raw.githubusercontent.com/TeamHG-Memex/eli5/master/docs/source/static/word-highlight.png
    :alt: explain_prediction for text data
 
+.. image:: https://raw.githubusercontent.com/TeamHG-Memex/eli5/master/docs/source/static/gradcam-catdog.png
+   :alt: explain_prediction for image data
+
 It provides support for the following machine learning frameworks and packages:
 
 * scikit-learn_. Currently ELI5 allows to explain weights and predictions

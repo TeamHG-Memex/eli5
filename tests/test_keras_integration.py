@@ -158,6 +158,10 @@ def test_show_prediction_nodeps(show_nodeps, keras_clf, cat_dog_image):
     assert isinstance(expl, Explanation)
 
 
-def test_explain_prediction_not_supported():
-    res = eli5.explain_prediction(Sequential(), np.zeros((0,)))
+@pytest.mark.parametrize('model, doc', [
+    (Sequential(), np.zeros((0,))),  # bad input
+    (Sequential(), np.zeros((1, 2, 2, 3),)),  # bad model
+])
+def test_explain_prediction_not_supported(model, doc):
+    res = eli5.explain_prediction(model, doc)
     assert 'supported' in res.error
