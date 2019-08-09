@@ -10,19 +10,17 @@ from eli5.base import (
 )
 
 
-# TODO: remove gradcam references. Keep this as a text module for neural nets in general??
-# FIXME: migth want to move this to nn.gradcam?
 def gradcam_text_spans(heatmap, # type: np.ndarray
                        tokens, # type: Union[np.ndarray, list]
                        doc, # type: np.ndarray
                        pad_value=None, # type: Optional[Union[str, int, float]]
                        padding='post', # type: str
                        interpolation_kind='linear' # type: Union[str, int]
-    ):
+                       ):
     # type: (...) -> Tuple[Union[np.ndarray, list], np.ndarray, WeightedSpans]
     """
     Create text spans from a Grad-CAM ``heatmap`` imposed over ``tokens``.
-    Optionally cut off the padding from the explanation 
+    Optionally cut off the padding from the explanation
     with the ``pad_value`` and ``padding`` arguments.
 
     Parameters
@@ -60,12 +58,12 @@ def gradcam_text_spans(heatmap, # type: np.ndarray
         ``tokens`` and ``heatmap`` optionally cut from padding.
         A :class:`eli5.base.WeightedSpans` object with a weight for each token.
     """
-    # we resize before cutting off padding?
     # FIXME: might want to do this when formatting the explanation?
     # FIXME: batched operations (pass heatmap with batch, tokens with batch)
-    width = _get_temporal_length(tokens)
-    heatmap = resize_1d(heatmap, width, interpolation_kind=interpolation_kind)
+    length = _get_temporal_length(tokens)
+    heatmap = resize_1d(heatmap, length, interpolation_kind=interpolation_kind)
 
+    # values will be cut off from the *resized* heatmap
     if pad_value is not None:
         # remove padding
         pad_indices = _find_padding(pad_value, doc, tokens)
@@ -81,10 +79,10 @@ def gradcam_text_spans(heatmap, # type: np.ndarray
     return tokens, heatmap, weighted_spans
 
 
-def resize_1d(heatmap, width, interpolation_kind='linear'):
+def resize_1d(heatmap, length, interpolation_kind='linear'):
     # type: (np.ndarray, int, Union[str, int]) -> np.ndarray
     """
-    Resize the ``heatmap`` 1D array to match the specified ``width``.
+    Resize the ``heatmap`` 1D array to match the specified ``length``.
 
     For example, upscale/upsample a heatmap with length 400
     to have length 500.
@@ -95,8 +93,8 @@ def resize_1d(heatmap, width, interpolation_kind='linear'):
     heatmap : numpy.ndarray
         Heatmap to be resized.
 
-    width : int
-        Required length.
+    length : int
+        Required width.
 
     interpolation_kind : str or int, optional
         Interpolation method used by ``scipy.interpolate.interp1d``.
@@ -110,21 +108,20 @@ def resize_1d(heatmap, width, interpolation_kind='linear'):
     heatmap : numpy.ndarray
         The heatmap resized.
     """
-    # FIXME: rename 'width' to 'length'?
     if len(heatmap.shape) == 1 and heatmap.shape[0] == 1:
         # single weight, no batch
-        heatmap = heatmap.repeat(width)
+        heatmap = heatmap.repeat(length)
     else:
         # more than length 1
 
         # scipy.interpolate solution
         # https://stackoverflow.com/questions/29085268/resample-a-numpy-array
         # interp1d requires at least length 2 array
-        y = heatmap # data to interpolate
+        y = heatmap  # data to interpolate
         x = np.linspace(0, 1, heatmap.size) # array matching y
         interpolant = interp1d(x, y, kind=interpolation_kind) # approximates y = f(x)
-        z = np.linspace(0, 1, width) # points where to interpolate
-        heatmap = interpolant(z) # interpolation result
+        z = np.linspace(0, 1, length)  # points where to interpolate
+        heatmap = interpolant(z)  # interpolation result
 
         # other solutions include scipy.signal.resample (periodic, so doesn't apply)
         # and Pillow image fromarray with mode 'F'/etc and resizing (didn't seem to work)
@@ -152,12 +149,12 @@ def _get_temporal_length(tokens):
 def _build_spans(tokens, # type: Union[np.ndarray, list]
                  heatmap, # type: np.ndarray
                  document, # type: str
-    ):
+                 ):
     """Highlight ``tokens`` in ``document``, with weights from ``heatmap``."""
     assert len(tokens) == len(heatmap)
     spans = []
-    running = 0 # where to start looking for token in document
-    for (token, weight) in zip(tokens, heatmap): # FIXME: weight can be renamed?
+    running = 0  # where to start looking for token in document
+    for (token, weight) in zip(tokens, heatmap):
         # find first occurrence of token, on or after running count
         t_start = document.index(token, running)
         # create span
@@ -170,7 +167,6 @@ def _build_spans(tokens, # type: Union[np.ndarray, list]
     return spans
 
 
-# TODO: make this public?
 def _construct_document(tokens):
     # type: (Union[list, np.ndarray]) -> str
     """Create a document string by joining ``tokens``."""
