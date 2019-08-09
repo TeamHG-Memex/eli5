@@ -12,6 +12,7 @@ and experimental neural network architectures.
 
 .. _GradCAM: https://arxiv.org/abs/1610.02391/
 
+.. _ReLU: https://en.wikipedia.org/wiki/Rectifier_(neural_networks)
 
 .. _keras-explain-prediction:
 
@@ -19,10 +20,41 @@ explain_prediction
 ------------------
 
 Currently ELI5 supports :func:`eli5.explain_prediction` for Keras image and text classifiers.
-Explanations are done using the GradCAM_ technique. Using it, we differentiate the model's output with respect to a hidden layer. This results in a tensor of gradients. We take a linear combination of those gradients with the hidden layer's activations (output), getting a Grad-CAM "heatmap" (or "localization map"). The heatmap highlights what parts of the input (the hidden layer but resized) contributed to the prediction.
+
+Explanations are done using the GradCAM_ technique. Using it, we feed an input into the network, and differentiate the model's output with respect to a hidden layer (that contains spatial information). We do a bunch of computations with those values and get a Grad-CAM "heatmap" (or "localization map"). The heatmap highlights what parts of the input (actually the parts of the hidden layer, but it can be resized) contributed to the prediction the most (positively or negatively).
+
+Roughly, the "formula" to calculate the localization map ``lmap`` is
+::
+    lmap = relu(sum(w*A))
+
+where: 
+
+* ``w`` is the weights corresponding to activation maps ``A``.
+* ``A`` is the activation maps for the hidden layer, i.e. the output at that hidden layer for a given input.
+
+And the operations are:
+
+* ``relu`` is the ReLU_ rectifier operation (caps negative numbers at 0).
+    * For classification tasks, this can be thought as removing the influence on the explanation of other classes that may be present.
+* ``sum`` adds all its terms together into a single result.
+* ``w*A`` takes a linear combination of its terms.
+
+To compute ``w``, we do
+::
+    w = pool(dy/dA)
+
+where:
+
+* ``dy/dA`` is the gradients of the output with respect to the activation maps.
+    * ``y`` may be a single target class in a classification task, i.e. a scalar value.
+* ``pool`` is the Global Average Pooling operation that takes gradients and averages them over certain axes.
 
 
-# TODO: show Grad-CAM "formula"
+This is the formula presented in the Grad-CAM paper (https://arxiv.org/abs/1610.02391/).
+
+
+Depending on circumstances, in this library we may skip or modify some operations (like ReLU or pooling).
+We may also add extra operations like gradient stabilization.
 
 
 Important arguments to :func:`eli5.explain_prediction` when using with ``Model`` and ``Sequential``:
@@ -53,7 +85,7 @@ Important arguments to :func:`eli5.explain_prediction` when using with ``Model``
 
     - `None` for automatically getting a suitable layer, if possible.
 
-* ``relu`` whether to apply `ReLU <https://en.wikipedia.org/wiki/Rectifier_(neural_networks)>`_ to the heatmap.
+* ``relu`` whether to apply  to the heatmap.
     
     - The GradCAM_ paper applies ReLU to the produced heatmap in order to only show what increases a prediction.
 
