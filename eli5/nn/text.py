@@ -174,13 +174,20 @@ def _build_spans(tokens, # type: Union[np.ndarray, list]
 def _construct_document(tokens):
     # type: (Union[list, np.ndarray]) -> str
     """Create a document string by joining ``tokens``."""
-    if ' ' in tokens:
-        # character-based (probably)
+    if _is_character_tokenization(tokens):
         sep = ''
     else:
-        # word-based
         sep = ' '
     return sep.join(tokens)
+
+
+def _is_character_tokenization(tokens):
+    # type: (Union[list, np.ndarray]) -> bool
+    """
+    Check whether tokenization is character-level
+    (returns True) or word-level (returns False).
+    """
+    return ' ' in tokens
 
 
 def _find_padding(pad_value, # type: Union[str, int, float]
@@ -218,12 +225,12 @@ def _trim_padding(pad_indices, # type: np.ndarray
                   padding, # type: str
                   tokens, # type: Union[list, np.ndarray]
                   heatmap, # type: np.ndarray
-    ): 
+                  ):
     # type: (...) -> Tuple[Union[list, np.ndarray], np.ndarray]
     """Removing padding from ``tokens`` and ``heatmap``."""
     # heatmap and tokens must be same length?
     if 0 < len(pad_indices):
-        # found some padding characters
+        # found some padding symbols
         if padding == 'post':
             # `word word pad pad` -> 'word word'
             first_pad_idx = pad_indices[0]
@@ -237,5 +244,5 @@ def _trim_padding(pad_indices, # type: np.ndarray
         else:
             raise ValueError('padding must be "post" or "pre". '
                              'Got: {}'.format(padding))
-    # TODO: check that there's no padding characters inside the text
+    # TODO: check that there's no padding symbols inside the text
     return tokens, heatmap
