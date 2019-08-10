@@ -547,6 +547,7 @@ def _search_layer(model, # type: Model
             # linear search succeeded
             return layer
     # linear search ended with no results
+    return None  # need this for mypy
 
 
 def _forward_layers(model):
