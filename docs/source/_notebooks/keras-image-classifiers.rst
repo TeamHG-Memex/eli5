@@ -70,11 +70,11 @@ Loading our sample image:
 
     # we start from a path / URI. 
     # If you already have an image loaded, follow the subsequent steps
-    image = 'imagenet-samples/cat_dog.jpg'
+    image_uri = 'imagenet-samples/cat_dog.jpg'
     
     # this is the original "cat dog" image used in the Grad-CAM paper
     # check the image with Pillow
-    im = Image.open(image)
+    im = Image.open(image_uri)
     print(type(im))
     display(im)
 
@@ -96,14 +96,14 @@ dimensions! Let's resize it:
     # we could resize the image manually
     # but instead let's use a utility function from `keras.preprocessing`
     # we pass the required dimensions as a (height, width) tuple
-    im = keras.preprocessing.image.load_img(image, target_size=dims) # -> PIL image
-    print(type(im))
+    im = keras.preprocessing.image.load_img(image_uri, target_size=dims) # -> PIL image
+    print(im)
     display(im)
 
 
 .. parsed-literal::
 
-    <class 'PIL.Image.Image'>
+    <PIL.Image.Image image mode=RGB size=224x224 at 0x7FBF0DDE5A20>
 
 
 
@@ -143,7 +143,6 @@ Looking good. Now we need to convert the image to a numpy array.
 
 .. code:: ipython3
 
-    # one last thing
     # `keras.applications` models come with their own input preprocessing function
     # for best results, apply that as well
     
@@ -164,11 +163,18 @@ inputting
 .. code:: ipython3
 
     # take back the first image from our 'batch'
-    display(keras.preprocessing.image.array_to_img(doc[0]))
+    image = keras.preprocessing.image.array_to_img(doc[0])
+    print(image)
+    display(image)
+
+
+.. parsed-literal::
+
+    <PIL.Image.Image image mode=RGB size=224x224 at 0x7FBF0CF760F0>
 
 
 
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_13_0.png
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_13_1.png
 
 
 Ready to go!
@@ -218,6 +224,8 @@ for a dog with ELI5:
 
 .. code:: ipython3
 
+    # we need to pass the network
+    # the input as a numpy array
     eli5.show_prediction(model, doc)
 
 
@@ -229,8 +237,21 @@ for a dog with ELI5:
 
 The dog region is highlighted. Makes sense!
 
-Note that here we made a prediction twice. Once when looking at top
-predictions, and a second time when passing the model through ELI5.
+When explaining image based models, we can optionally pass the image
+associated with the input as a Pillow image object. If we don't, the
+image will be created from ``doc``. This may not work with custom models
+or inputs, in which case it's worth passing the image explicitly.
+
+.. code:: ipython3
+
+    eli5.show_prediction(model, doc, image=image)
+
+
+
+
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_22_0.png
+
+
 
 3. Choosing the target class (target prediction)
 ------------------------------------------------
@@ -246,7 +267,7 @@ classifier looks to find those objects.
 
 
 
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_22_0.png
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_24_0.png
 
 
 
@@ -264,11 +285,11 @@ Currently only one class can be explained at a time.
 
 
 
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_24_0.png
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_26_0.png
 
 
 
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_24_1.png
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_26_1.png
 
 
 That's quite noisy! Perhaps the model is weak at classifying 'window
@@ -354,7 +375,7 @@ Rough print but okay. Let's pick a few convolutional layers that are
 
 
 
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_29_1.png
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_31_1.png
 
 
 .. parsed-literal::
@@ -363,7 +384,7 @@ Rough print but okay. Let's pick a few convolutional layers that are
 
 
 
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_29_3.png
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_31_3.png
 
 
 .. parsed-literal::
@@ -372,7 +393,7 @@ Rough print but okay. Let's pick a few convolutional layers that are
 
 
 
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_29_5.png
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_31_5.png
 
 
 These results should make intuitive sense for Convolutional Neural
@@ -417,7 +438,7 @@ Examining the structure of the ``Explanation`` object:
            [0.        , 0.        , 0.        , 0.        , 0.        ,
             0.        , 0.05308531],
            [0.        , 0.        , 0.        , 0.        , 0.        ,
-            0.01124764, 0.06864655]]))], feature_importances=None, decision_tree=None, highlight_spaces=None, transition_features=None, image=<PIL.Image.Image image mode=RGBA size=224x224 at 0x7FCA6FD17CC0>)
+            0.01124764, 0.06864655]]))], feature_importances=None, decision_tree=None, highlight_spaces=None, transition_features=None, image=<PIL.Image.Image image mode=RGB size=224x224 at 0x7FBEFD7F4080>)
 
 
 We can check the score (raw value) or probability (normalized score) of
@@ -446,7 +467,7 @@ We can also access the original image and the Grad-CAM heatmap:
 
 
 
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_39_0.png
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_41_0.png
 
 
 .. parsed-literal::
@@ -476,7 +497,7 @@ Visualizing the heatmap:
 
 
 
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_41_0.png
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_43_0.png
 
 
 That's only 7x7! This is the spatial dimensions of the
@@ -494,7 +515,7 @@ resampling):
 
 
 
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_43_0.png
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_45_0.png
 
 
 Now it's clear what is being highlighted. We just need to apply some
@@ -508,7 +529,7 @@ colors and overlay the heatmap over the original image, exactly what
 
 
 
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_45_0.png
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_47_0.png
 
 
 6. Extra arguments to ``format_as_image()``
@@ -525,7 +546,7 @@ colors and overlay the heatmap over the original image, exactly what
 
 
 
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_48_0.png
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_50_0.png
 
 
 The ``alpha_limit`` argument controls the maximum opacity that the
@@ -575,7 +596,7 @@ check the explanation:
 
 
 
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_51_1.png
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_53_1.png
 
 
 .. parsed-literal::
@@ -584,7 +605,7 @@ check the explanation:
 
 
 
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_51_3.png
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_53_3.png
 
 
 We see some slight differences. The activations are brighter. Do
@@ -610,6 +631,7 @@ loading another model and explaining a classification of the same image:
     nasnet.preprocess_input(doc2)
     
     print(model.name)
+    # note that this model is without softmax
     display(eli5.show_prediction(model, doc))
     print(model2.name)
     display(eli5.show_prediction(model2, doc2))
@@ -621,7 +643,7 @@ loading another model and explaining a classification of the same image:
 
 
 
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_54_1.png
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_56_1.png
 
 
 .. parsed-literal::
@@ -630,7 +652,7 @@ loading another model and explaining a classification of the same image:
 
 
 
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_54_3.png
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_56_3.png
 
 
 Wow ``show_prediction()`` is so robust!

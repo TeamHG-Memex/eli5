@@ -53,6 +53,7 @@ MOCK_MODULES = [
     'keras.backend',
     'keras.models',
     'keras.layers',
+    'keras.preprocessing.image',
     'pandas',
     'PIL',
     'matplotlib',

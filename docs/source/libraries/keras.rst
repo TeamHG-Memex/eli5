@@ -21,7 +21,7 @@ Currently ELI5 supports :func:`eli5.explain_prediction` for Keras image classifi
 
 The returned :class:`eli5.base.Explanation` instance contains some important objects:
 
-* ``image`` represents the image input into the model. A Pillow image with mode "RGBA".
+* ``image`` represents the image input into the model. A Pillow image.
 
 * ``targets`` represents the explanation values for each target class (currently only 1 target is supported). A list of :class:`eli5.base.TargetExplanation` objects with the following attributes set:
 
@@ -42,9 +42,13 @@ Important arguments to :func:`eli5.explain_prediction` for ``Model`` and ``Seque
     
     - Check ``model.input_shape`` to confirm the required dimensions of the input tensor.
 
-* ``target_names`` are the names of the output classes. 
-    
-    - *Currently not implemented*.
+* ``image`` Pillow image, corresponds to doc input.
+
+    - Image over which to overlay the heatmap.
+
+    - If not given, the image will be derived from ``doc`` where possible.
+
+    - Useful if ELI5 fails in case you have a custom image model or image input.
 
 * ``targets`` are the output classes to focus on. Possible values include: 
 

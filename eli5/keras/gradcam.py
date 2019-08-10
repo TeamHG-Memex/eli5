@@ -37,8 +37,8 @@ def gradcam(weights, activations):
     Notes
     -----
     We currently make two assumptions in this implementation
-        * We are dealing with images as our input to ``estimator``.
-        * We are doing a classification. ``estimator``'s output is a class scores or probabilities vector.
+        * We are dealing with images as our input to ``model``.
+        * We are doing a classification. ``model``'s output is a class scores or probabilities vector.
 
     Credits
         * Jacob Gildenblat for "https://github.com/jacobgil/keras-grad-cam".
@@ -70,7 +70,7 @@ def gradcam(weights, activations):
     return lmap
 
 
-def gradcam_backend(estimator, # type: Model
+def gradcam_backend(model, # type: Model
     doc, # type: np.ndarray
     targets, # type: Optional[List[int]]
     activation_layer # type: Layer
@@ -81,7 +81,7 @@ def gradcam_backend(estimator, # type: Model
     
     Parameters
     ----------
-    estimator : keras.models.Model
+    model : keras.models.Model
         Differentiable network.
 
     doc : numpy.ndarray
@@ -97,7 +97,7 @@ def gradcam_backend(estimator, # type: Model
     
 
     See :func:`eli5.keras.explain_prediction` for description of the 
-    ``estimator``, ``doc``, ``targets`` parameters.
+    ``model``, ``doc``, ``targets`` parameters.
 
     Returns
     -------
@@ -105,8 +105,8 @@ def gradcam_backend(estimator, # type: Model
         Values of variables.
     """
     # score for class in targets
-    predicted_idx = _get_target_prediction(targets, estimator)
-    predicted_val = K.gather(estimator.output[0,:], predicted_idx) # access value by index
+    predicted_idx = _get_target_prediction(targets, model)
+    predicted_val = K.gather(model.output[0,:], predicted_idx) # access value by index
 
     # output of target activation layer, i.e. activation maps of a convolutional layer
     activation_output = activation_layer.output 
@@ -119,7 +119,7 @@ def gradcam_backend(estimator, # type: Model
     # TODO: decide whether this should go in gradcam_backend() or gradcam()
     weights = K.mean(grads, axis=(1, 2))
 
-    evaluate = K.function([estimator.input], 
+    evaluate = K.function([model.input], 
         [weights, activation_output, grads, predicted_val, predicted_idx]
     )
     # evaluate the graph / do actual computations
@@ -163,18 +163,18 @@ def _calc_gradient(ys, xs):
     return grads
 
 
-def _get_target_prediction(targets, estimator):
+def _get_target_prediction(targets, model):
     # type: (Optional[list], Model) -> K.variable
     """
     Get a prediction ID based on ``targets``, 
-    from the model ``estimator`` (with a rank 2 tensor for its final layer).
+    from the model ``model`` (with a rank 2 tensor for its final layer).
     Returns a rank 1 K.variable tensor.
     """
     if isinstance(targets, list):
         # take the first prediction from the list
         if len(targets) == 1:
             target = targets[0]
-            _validate_target(target, estimator.output_shape)
+            _validate_target(target, model.output_shape)
             predicted_idx = K.constant([target], dtype='int64')
         else:
             raise ValueError('More than one prediction target '
@@ -182,7 +182,7 @@ def _get_target_prediction(targets, estimator):
                              '(found a list that is not length 1): '
                              '{}'.format(targets))
     elif targets is None:
-        predicted_idx = K.argmax(estimator.output, axis=-1)
+        predicted_idx = K.argmax(model.output, axis=-1)
     else:
         raise TypeError('Invalid argument "targets" (must be list or None): %s' % targets)
     return predicted_idx

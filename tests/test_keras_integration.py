@@ -15,6 +15,7 @@ from PIL import Image
 from keras.applications import (
     mobilenet_v2
 )
+from keras.models import Sequential
 
 import eli5
 from eli5.base import Explanation
@@ -36,7 +37,7 @@ def keras_clf():
     clf = mobilenet_v2.MobileNetV2(alpha=1.0, include_top=True, weights='imagenet', classes=1000)
     print('Summary of classifier:')
     clf.summary()
-    return  clf
+    return clf
 
 
 @pytest.fixture(scope='module')
@@ -46,9 +47,11 @@ def cat_dog_image():
     img_path = 'tests/images/cat_dog.jpg'
     im = keras.preprocessing.image.load_img(img_path, target_size=(224, 224))
     doc = keras.preprocessing.image.img_to_array(im)
-    doc = np.expand_dims(doc, axis=0)
-    mobilenet_v2.preprocess_input(doc) # because we our classifier is mobilenet_v2
-    return doc
+    doc = np.expand_dims(doc, axis=0)  # add batch size
+    mobilenet_v2.preprocess_input(doc)  # because our classifier is mobilenet_v2
+    # re-load from array because we did some preprocessing
+    im = keras.preprocessing.image.array_to_img(doc[0])
+    return doc, im
 
 
 def assert_good_external_format(expl, overlay):
@@ -98,7 +101,7 @@ def assert_attention_over_area(expl, area):
     # at least 50% (need to experiment with this number)
     assert 50 < crop_p
 
-    # Alternatively, check that the intensity over area 
+    # Alternatively, check that the intensity over area
     # is greater than all other intensity:
     # remaining_intensity = total_intensity - intensity
     # assert remaining_intensity < total_intensity
@@ -110,16 +113,19 @@ def assert_attention_over_area(expl, area):
     ((44, 180, 130, 212), [imagenet_cat_idx]), # focus on the cat (supply prediction)
 ])
 def test_image_classification(keras_clf, cat_dog_image, area, targets):
+    doc, image = cat_dog_image
     # check explanation
-    res = eli5.explain_prediction(keras_clf, cat_dog_image, targets=targets)
+    res = eli5.explain_prediction(keras_clf, doc, image=image, targets=targets)
     assert_attention_over_area(res, area)
-    
+
     # check formatting
+    res.image = res.image.convert('RGBA')  # explicitly normalize
     overlay = format_as_image(res)
     assert_good_external_format(res, overlay)
 
-    # check show function
-    show_overlay = eli5.show_prediction(keras_clf, cat_dog_image, targets=targets)
+    # check show function with image auto-conversion
+    show_overlay = eli5.show_prediction(keras_clf, doc, targets=targets)
+
     assert_pixel_by_pixel_equal(overlay, show_overlay)
 
 
@@ -140,6 +146,17 @@ def show_nodeps(request):
 
 
 def test_show_prediction_nodeps(show_nodeps, keras_clf, cat_dog_image):
-    with pytest.warns(UserWarning):
-        expl = show_nodeps(keras_clf, cat_dog_image)
+    doc, image = cat_dog_image
+    with pytest.warns(UserWarning) as rec:
+        expl = show_nodeps(keras_clf, doc)
+    assert 'dependencies' in str(rec[-1].message)
     assert isinstance(expl, Explanation)
+
+
+@pytest.mark.parametrize('model, doc', [
+    (Sequential(), np.zeros((0,))),  # bad input
+    (Sequential(), np.zeros((1, 2, 2, 3),)),  # bad model
+])
+def test_explain_prediction_not_supported(model, doc):
+    res = eli5.explain_prediction(model, doc)
+    assert 'supported' in res.error
