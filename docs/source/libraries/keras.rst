@@ -23,24 +23,21 @@ Currently ELI5 supports :func:`eli5.explain_prediction` for Keras image and text
 
 Explanations are done using the GradCAM_ technique. Using it, we feed an input into the network, and differentiate the model's output with respect to a hidden layer (that contains spatial information). We do a bunch of computations with those values and get a Grad-CAM "heatmap" (or "localization map"). The heatmap highlights what parts of the input (actually the parts of the hidden layer, but it can be resized) contributed to the prediction the most (positively or negatively).
 
-Roughly, the "formula" to calculate the localization map ``lmap`` is
-::
+Roughly, the "formula" to calculate the localization map ``lmap`` is::
+
     lmap = relu(sum(w*A))
 
 where: 
 
 * ``w`` is the weights corresponding to activation maps ``A``.
 * ``A`` is the activation maps for the hidden layer, i.e. the output at that hidden layer for a given input.
-
-And the operations are:
-
 * ``relu`` is the ReLU_ rectifier operation (caps negative numbers at 0).
     * For classification tasks, this can be thought as removing the influence on the explanation of other classes that may be present.
 * ``sum`` adds all its terms together into a single result.
 * ``w*A`` takes a linear combination of its terms.
 
-To compute ``w``, we do
-::
+To compute ``w``, we do::
+
     w = pool(dy/dA)
 
 where:
