@@ -218,7 +218,7 @@ def explain_prediction_keras_image(model,
         where `dims` is usually in order `height, width`
         and `batch_size` is 1 for a single image.
 
-        If ``image`` argument is not given, an image will be created \
+        If ``image`` argument is not given, an image will be created
         from ``doc``, where possible.
 
     :param image:
