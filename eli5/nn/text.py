@@ -10,7 +10,7 @@ from eli5.base import (
 )
 
 
-# FIXME: batched operations (pass heatmap with batch, tokens with batch) for this module
+# FIXME: batched operations (batched heatmap, tokens) for this module
 
 
 def gradcam_text_spans(heatmap, # type: np.ndarray

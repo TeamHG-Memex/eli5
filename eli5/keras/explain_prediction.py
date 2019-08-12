@@ -286,6 +286,7 @@ def explain_prediction_keras_text(model,
                                   tokens=None, # type: Optional[Union[List[str], np.ndarray]]
                                   pad_value=None, # type: Optional[Union[int, float, str]]
                                   padding='post', # type: str
+                                  # TODO: rename 'padding' to 'pad_side'?
                                   interpolation_kind='linear', # type: Union[str, int]
                                   targets=None,
                                   layer=None,

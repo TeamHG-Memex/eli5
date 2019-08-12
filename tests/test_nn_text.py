@@ -65,11 +65,10 @@ def test_find_padding_invalid():
 
 
 @pytest.mark.parametrize('pad_indices, padding, tokens, heatmap, expected_tokens, expected_heatmap', [
-    ([0, 1], 'pre', ['PAD', 'PAD', 'hi', 'there'], np.array([0.2, 0.1, 2, 3]), 
+    ([0, 1], 'pre', ['PAD', 'PAD', 'hi', 'there'], np.array([0.2, 0.1, 2, 3]),
         ['hi', 'there'], np.array([2, 3])),
     ([2, 3], 'post', ['hi', 'there', 'PAD', 'PAD'], np.array([2, 3, 0.1, 0.2]),
-        ['hi', 'there'], np.array([2, 3]),
-    ),
+        ['hi', 'there'], np.array([2, 3])),
 ])
 def test_trim_padding(pad_indices, padding, tokens, heatmap, expected_tokens, expected_heatmap):
     tokens, heatmap = _trim_padding(pad_indices, padding, tokens, heatmap)
@@ -77,7 +76,10 @@ def test_trim_padding(pad_indices, padding, tokens, heatmap, expected_tokens, ex
     assert np.array_equal(heatmap, expected_heatmap)
 
 
-# TODO: test_trim_padding with invalid cases (invalid argument, inner padding, etc)
+def test_trim_padding_invalid():
+    with pytest.raises(ValueError):
+        # currently no such 'padding' side supported
+        _trim_padding([1], 'inner', ['a', 'PAD', 'b'], np.array([0, 1, 2]))
 
 
 # TODO: test gradcam_text_spans with a small example
