@@ -5,22 +5,12 @@ import pytest
 import numpy as np
 
 from eli5.nn.text import (
-    _get_temporal_length,
     resize_1d,
     _build_spans,
     _construct_document,
     _find_padding,
     _trim_padding,
 )
-
-
-@pytest.mark.parametrize('tokens, expected_length', [
-    (np.array([[0, 1, 2]]), 3), # batch
-    (np.array([0, 1, 2, 3]), 4), # no batch
-    ([0, 1], 2),
-])
-def test_get_temporal_length(tokens, expected_length):
-    assert _get_temporal_length(tokens) == expected_length
 
 
 @pytest.mark.parametrize('heatmap, width, expected', [

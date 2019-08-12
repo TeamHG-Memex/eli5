@@ -38,7 +38,6 @@ from eli5.nn.gradcam import (
 )
 from eli5.nn.text import (
     gradcam_text_spans,
-    _get_temporal_length,
     _is_character_tokenization,
 )
 from .gradcam import (
@@ -667,11 +666,16 @@ def _validate_tokens(doc, tokens):
                              'as in doc batch. Got: "tokens" samples: %d, '
                              'doc samples: %d' % (tokens_batch_size, batch_size))
 
+        if isinstance(tokens, np.ndarray) and 2 < len(tokens.shape):
+            # too many dimensions in numpy array
+            raise ValueError('"tokens" numpy array must have at most two axes. '
+                             'Got tokens with shape "{}" '
+                             '({} axes) '.format(tokens.shape, len(tokens.shape)))
         a_token = an_entry[0]
         if not isinstance(a_token, str):
             # actual contents are not strings
             raise TypeError('"tokens" must contain strings. '
-                            'Got {}'.format(a_token))
+                            'Got "{}" (type "{}")'.format(a_token, type(a_token)))
 
         # https://stackoverflow.com/a/35791116/11555448
         it = iter(tokens)

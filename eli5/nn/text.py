@@ -10,6 +10,9 @@ from eli5.base import (
 )
 
 
+# FIXME: batched operations (pass heatmap with batch, tokens with batch) for this module
+
+
 def gradcam_text_spans(heatmap, # type: np.ndarray
                        tokens, # type: Union[np.ndarray, list]
                        doc, # type: np.ndarray
@@ -56,8 +59,7 @@ def gradcam_text_spans(heatmap, # type: np.ndarray
         A :class:`eli5.base.WeightedSpans` object with a weight for each token.
     """
     # FIXME: might want to do this when formatting the explanation?
-    # FIXME: batched operations (pass heatmap with batch, tokens with batch)
-    length = _get_temporal_length(tokens)
+    length = len(tokens)
     heatmap = resize_1d(heatmap, length, interpolation_kind=interpolation_kind)
 
     # values will be cut off from the *resized* heatmap
@@ -123,24 +125,6 @@ def resize_1d(heatmap, length, interpolation_kind='linear'):
         # other solutions include scipy.signal.resample (periodic, so doesn't apply)
         # and Pillow image fromarray with mode 'F'/etc and resizing (didn't seem to work)
     return heatmap
-
-
-def _get_temporal_length(tokens):
-    # type: (Union[np.ndarray, list]) -> int
-    if isinstance(tokens, np.ndarray):
-        if len(tokens.shape) == 1:
-            # no batch size
-            return tokens.shape[0]
-        elif len(tokens.shape) == 2:
-            # possible batch size
-            return tokens.shape[1]
-        else:
-            raise ValueError('"tokens" shape is ambiguous.')
-    elif isinstance(tokens, list):
-        return len(tokens)
-    else:
-        raise TypeError('"tokens" must be an instance of list or numpy.ndarray. '
-                        'Got: {}'.format(tokens))
 
 
 def _build_spans(tokens, # type: Union[np.ndarray, list]
