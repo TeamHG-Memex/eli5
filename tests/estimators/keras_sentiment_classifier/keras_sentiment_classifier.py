@@ -81,3 +81,13 @@ def string_to_vectorized(s, pad=False):
     doc = np.array(doc)
     tokens = np.array(tokens)
     return doc, tokens
+
+
+def tokens_to_vectorized(tokens):
+    if not isinstance(tokens[0], (list, np.ndarray)):
+        tokens = [tokens]
+    doc = []
+    for sample in tokens:
+        x = [word_index.get(token, word_index['<OOV>']) for token in sample]
+        doc.append(x)
+    return doc

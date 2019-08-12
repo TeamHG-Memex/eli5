@@ -154,6 +154,7 @@ def explain_prediction_keras(model, # type: Model
 
     # check that only one of image or tokens is passed
     assert image is None or tokens is None
+    _validate_doc(model, doc)
     if image is not None or _maybe_image(model, doc):
         return explain_prediction_keras_image(model,
                                               doc,
@@ -599,8 +600,9 @@ def _validate_doc(model, doc):
     """
     # TODO: (open issue) be able to take Tensorflow or backend tensors
     if not isinstance(doc, np.ndarray):
-        raise TypeError('"doc" must be an instace of numpy.ndarray. ' 
-                        'Got: {}'.format(doc))
+        raise TypeError('"doc" must be an instace of numpy.ndarray. '
+                        'Got: {} (type "{}")'.format(doc, type(doc)))
+        # TODO: take python list (i.e. result of pad_sequences)
     doc_sh = doc.shape
     batch_size = doc_sh[0]
 
