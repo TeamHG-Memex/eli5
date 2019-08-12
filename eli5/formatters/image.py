@@ -92,9 +92,9 @@ def format_as_image(expl, # type: Explanation
     """
     image = expl.image
     _validate_image(image)
-    if image.mode != 'RGBA':
+    if image.mode != 'RGBA':  # type: ignore
         # normalize to 'RGBA'
-        image = image.convert('RGBA')
+        image = image.convert('RGBA')  # type: ignore
 
     if not expl.targets:
         # no heatmaps
@@ -298,8 +298,8 @@ def _validate_heatmap(heatmap):
 
 
 def _needs_normalization(heatmap):
-    # type: (np.ndarray) -> None
-    """Check that ``heatmap`` values are in the interval [0, 1]."""
+    # type: (np.ndarray) -> bool
+    """Return whether ``heatmap`` values are in the interval [0, 1]."""
     mi, ma = np.min(heatmap), np.max(heatmap)
     return 0 <= mi and ma <= 1
 
