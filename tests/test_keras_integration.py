@@ -134,6 +134,13 @@ def test_image_classification(keras_clf, cat_dog_image, area, targets):
 # TODO: test no relu and counterfactual explanations
 
 
+# explain dense layers
+def test_explain_1d_layer_image(keras_clf, cat_dog_image):
+    doc, image = cat_dog_image
+    # should raise no errors
+    res = eli5.explain_prediction(keras_clf, doc, layer=-1)
+
+
 @pytest.fixture(scope="function")
 def show_nodeps(request):
     # register tear down
