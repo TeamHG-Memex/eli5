@@ -207,7 +207,7 @@ def _validate_classification_target(target, output_shape):
     # type: (int, Tuple[int, ...]) -> None
     """Check that ``target`` is a correct classification target
     into ``output_shape``, a tuple representing dimensions
-    of the final output layer."""
+    of the final output layer (including batch dimension)."""
     output_nodes = output_shape[1:][0]
     if not (0 <= target < output_nodes):
         raise ValueError('Prediction target index is ' 

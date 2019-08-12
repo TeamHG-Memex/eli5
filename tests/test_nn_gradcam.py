@@ -6,6 +6,8 @@ import numpy as np
 
 from eli5.nn.gradcam import (
     gradcam_heatmap,
+    _validate_targets,
+    _validate_classification_target,
 )
 
 
@@ -46,21 +48,26 @@ def test_gradcam_ones():
 # TODO: test target validation
 
 
-# def test_get_target_prediction_invalid(simple_seq_image):
-#     # only list of targets is currently supported
-#     with pytest.raises(TypeError):
-#         _get_target_prediction('somestring', simple_seq_image)
-#     # only one target prediction is currently supported
-#     with pytest.raises(ValueError):
-#         _get_target_prediction([1, 2], simple_seq_image)
+# these might change as the API gets updated
+def test_validate_targets():
+    with pytest.raises(TypeError):
+        # only a list of targets is currently supported
+        _validate_targets(1)
 
-#     # these are dispatched to _validate_target
-#     # only an integer index target is currently supported
-#     with pytest.raises(TypeError):
-#         _get_target_prediction(['someotherstring'], simple_seq_image)
-#     # target index must correctly reference one of the nodes in the final layer
-#     with pytest.raises(ValueError):
-#         _get_target_prediction([20], simple_seq_image)
+    with pytest.raises(ValueError):
+        # only one target prediction is currently supported
+        _validate_targets([1, 2])
+
+    # only an integer index target is currently supported
+    with pytest.raises(TypeError):
+        _validate_targets(['somestring'])
 
 
-# TODO: test_autoget_target_prediction with multiple maximum values, etc
+# target index must correctly reference one of the nodes in the final layer
+def _validate_classification_target():
+    with pytest.raises(ValueError):
+        # one over
+        _validate_classification_target(2, (1, 2,))
+    with pytest.raises(ValueError):
+        # one less
+        _validate_classification_target(-1, (1, 1,))

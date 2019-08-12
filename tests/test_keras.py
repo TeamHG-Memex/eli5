@@ -258,3 +258,7 @@ def test_calc_gradient_nondifferentiable(nondifferentiable_model):
     with pytest.raises(ValueError):
         grads = _calc_gradient(nondifferentiable_model.output,
             [nondifferentiable_model.input])
+
+
+
+# TODO: test_autoget_target_prediction with multiple maximum values, etc
