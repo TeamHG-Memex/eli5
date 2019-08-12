@@ -69,11 +69,11 @@ def assert_good_external_format(expl, overlay):
     assert overlay.mode == 'RGBA'
 
 
-def assert_attention_over_area(expl, area):
+def assert_attention_over_area(expl, area, n=40, invert=False):
     """
-    Check that the explanation 'expl' lights up the most over 'area', 
+    Check that the explanation 'expl' lights up the most over 'area',
     a tuple of (x1, x2, y1, y2), starting and ending points of the bounding rectangle
-    in the original image.
+    in the original image (x is horizontal, y is vertical).
     We make two assumptions in this test:
     1. The model can classify the example image correctly.
     2. The area specified by the tester over the example image covers the predicted class correctly.
@@ -87,7 +87,7 @@ def assert_attention_over_area(expl, area):
 
     # get a slice of the area
     x1, x2, y1, y2 = area
-    crop = heatmap[y1:y2, x1:x2] # row-first ordering
+    crop = heatmap[y1:y2, x1:x2]  # row-first ordering
     # TODO: instead of hard-coding the height and width offsets
     # it might be a better idea to use percentages
     # this makes the tests independent of any resizing done on the image
@@ -97,10 +97,11 @@ def assert_attention_over_area(expl, area):
     # check intensity
     total_intensity = np.sum(heatmap)
     crop_intensity = np.sum(crop)
-    p = total_intensity / 100 # -> 1% of total_intensity
-    crop_p = crop_intensity / p # -> intensity %
-    n = 40 # at least n% (need to experiment with this number)
-    assert n < crop_p
+    p = total_intensity / 100  # -> 1% of total_intensity
+    crop_p = crop_intensity / p  # -> intensity %
+    if invert:
+        crop_p = 100 - crop_p  # take complement (check intensity outside area)
+    assert n < crop_p  # at least n% (need to experiment with this number)
 
     # Alternatively, check that the intensity over area
     # is greater than all other intensity:
@@ -109,35 +110,60 @@ def assert_attention_over_area(expl, area):
 
 
 # area = (x1, x2, y1, y2)
-@pytest.mark.parametrize('area, targets', [
-    ((54, 170, 2, 100), None), # focus on the dog (pick top prediction)
-    ((44, 180, 130, 212), [imagenet_cat_idx]), # focus on the cat (supply prediction)
+dog_area = (54, 170, 2, 100)
+cat_area = (44, 180, 130, 212)
+all_area = (0, 224, 0, 224)
+
+
+@pytest.mark.parametrize('targets, area', [
+    (None, dog_area),  # focus on the dog (pick top prediction)
+    ([imagenet_cat_idx], cat_area),  # focus on the cat (supply prediction)
 ])
-def test_image_classification(keras_clf, cat_dog_image, area, targets):
+def test_image_classification(keras_clf, cat_dog_image, targets, area):
     doc, image = cat_dog_image
     # check explanation
     res = eli5.explain_prediction(keras_clf, doc, image=image, targets=targets)
     assert_attention_over_area(res, area)
 
     # check formatting
-    res.image = res.image.convert('RGBA')  # explicitly normalize
+    # explicitly normalize to test
+    res.image = res.image.convert('RGBA')
     overlay = format_as_image(res)
     # import matplotlib.pyplot as plt; plt.imshow(overlay); plt.show()
     assert_good_external_format(res, overlay)
 
-    # check show function with image auto-conversion
-    show_overlay = eli5.show_prediction(keras_clf, doc, targets=targets)
 
+# check explanation modifiers 'relu' and 'counterfactual'
+@pytest.mark.parametrize('targets, relu, counterfactual, area, limit, invert', [
+    (None, True, False, all_area, 90, False),  # everything is highlighted
+    (None, False, True, dog_area, 60, True),  # dog is not highlighted
+    ([imagenet_cat_idx], False, True, cat_area, 80, True),  # cat is not highlighted
+])
+def test_explain_relu_counterfactual(keras_clf, cat_dog_image, targets,
+                                     relu, counterfactual,
+                                     area, limit, invert):
+    doc, image = cat_dog_image
+    res = eli5.explain_prediction(keras_clf, doc, image=image, targets=targets,
+                                  relu=relu, counterfactual=counterfactual)
+    assert_attention_over_area(res, area, invert=invert)
+
+
+def test_show_prediction(keras_clf, cat_dog_image):
+    doc, image = cat_dog_image
+    # explain + format
+    res = eli5.explain_prediction(keras_clf, doc, image=image)
+    overlay = format_as_image(res)
+
+    # show
+    # with image auto-conversion to test
+    show_overlay = eli5.show_prediction(keras_clf, doc)
     assert_pixel_by_pixel_equal(overlay, show_overlay)
-
-
-# TODO: test no relu and counterfactual explanations
 
 
 # explain dense layers
 def test_explain_1d_layer_image(keras_clf, cat_dog_image):
     doc, image = cat_dog_image
-    res = eli5.explain_prediction(keras_clf, doc, layer=-1)
+    eli5.explain_prediction(keras_clf, doc, layer=-1)
 
 
 @pytest.fixture(scope="function")
