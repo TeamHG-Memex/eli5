@@ -9,7 +9,6 @@ import numpy as np
 
 from eli5.base import Explanation, TargetExplanation
 from eli5.formatters.image import (
-    format_as_image,
     heatmap_to_image,
     expand_heatmap,
     _update_alpha,
@@ -17,6 +16,7 @@ from eli5.formatters.image import (
     _overlay_heatmap,
 )
 from .utils_image import assert_pixel_by_pixel_equal
+import eli5
 
 
 # 'png' format is required for RGBA data
@@ -146,48 +146,39 @@ def test_overlay_heatmap(boxrgba):
     assert_pixel_by_pixel_equal(overlay, boxrgba)
 
 
-@pytest.fixture(scope='module')
-def mock_expl(catdog_rgba):
-    return Explanation('mock estimator', 
-        image=catdog_rgba, 
-        targets=[TargetExplanation(-1, 
-            heatmap=np.zeros((7, 7))
-    )])
 
-
-@pytest.fixture(scope='module')
-def mock_expl_noheatmap(catdog_rgba):
-    return Explanation('mock estimator', 
-        image=catdog_rgba, 
-    )
-
-
-@pytest.fixture(scope='module')
-def mock_expl_imgarr():
-    return Explanation('mock estimator',
-        image=np.zeros((2, 2, 4)),
-    )
-
-
-@pytest.fixture(scope='module')
-def mock_expl_imgmode(boxl):
-    return Explanation('mock estimator',
-        image=boxl, # mode 'L'
-    )
-
-
-def test_format_as_image_notransparency(catdog_rgba, mock_expl):
+def test_format_as_image_notransparency(catdog_rgba):
     # heatmap with full transparency
-    overlay = format_as_image(mock_expl, alpha_limit=0.0)
+    expl = Explanation('mock',
+                       image=catdog_rgba,
+                       targets=[TargetExplanation(-1,
+                                heatmap=np.zeros((7, 7)),
+                       )])
+    overlay = eli5.format_as_image(expl, alpha_limit=0.0)
     assert_pixel_by_pixel_equal(overlay, catdog_rgba)
 
 
-def test_format_as_image_noheatmap(catdog_rgba, mock_expl_noheatmap):
-    # no heatmap
-    overlay = format_as_image(mock_expl_noheatmap)
+def test_format_as_image_noheatmap(catdog_rgba):
+    # no heatmap (just return the original image as RGBA)
+    expl = Explanation('mock', image=catdog_rgba)
+    overlay = eli5.format_as_image(expl)
     assert_pixel_by_pixel_equal(overlay, catdog_rgba)
 
 
-def test_format_as_image_invalid_expl(mock_expl_imgarr):
+def test_format_as_image_invalid_image():
     with pytest.raises(TypeError):
-        format_as_image(mock_expl_imgarr)
+        # image must be a Pillow image, not a numpy array
+        expl = Explanation('mock', image=np.zeros((2, 2, 4,)))
+        eli5.format_as_image(expl)
+
+
+def test_format_as_image_invalid_heatmap(catdog_rgba):
+    with pytest.raises(TypeError):
+        # heatmap must be a numpy array, not a Pillow image
+        heatmap = PIL.Image.new('L', (2, 2,))
+        expl = Explanation('mock',
+                           image=catdog_rgba,
+                           targets=[TargetExplanation(-1,
+                                    heatmap=heatmap,
+                           )])
+        eli5.format_as_image(expl)
