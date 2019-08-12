@@ -20,6 +20,7 @@ import eli5
 from eli5.base import Explanation
 from eli5 import format_as_image
 from eli5.formatters.image import (
+    heatmap_to_image,
     expand_heatmap,
     _normalize_heatmap,
 )
@@ -81,8 +82,7 @@ def assert_attention_over_area(expl, area):
     heatmap = expl.targets[0].heatmap
 
     # fit heatmap over image
-    heatmap = _normalize_heatmap(heatmap)
-    heatmap = expand_heatmap(heatmap, image, Image.LANCZOS)
+    heatmap = expand_heatmap(heatmap_to_image(heatmap), image, Image.LANCZOS)
     heatmap = np.array(heatmap)
 
     # get a slice of the area

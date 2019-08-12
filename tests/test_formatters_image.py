@@ -14,6 +14,8 @@ from eli5.formatters.image import (
     _update_alpha,
     _cap_alpha,
     _overlay_heatmap,
+    _validate_image,
+    _validate_heatmap,
 )
 from .utils_image import assert_pixel_by_pixel_equal
 import eli5
@@ -74,11 +76,11 @@ def test_heatmap_to_image_rgba(heatmap, boxrgba):
 
 
 def test_heatmap_to_image_invalid():
-    # heatmap must have rank 2 or rank 3
     with pytest.raises(ValueError):
+        # heatmap must have rank 2 or rank 3
         heatmap_to_image(np.zeros((1,)))
-    # coloured heatmap must have 4 or 3 channels
     with pytest.raises(ValueError):
+        # coloured heatmap must have 4 or 3 channels
         heatmap_to_image(np.zeros((1, 1, 10)))
 
 
@@ -124,27 +126,37 @@ def test_cap_alpha_invalid():
         _cap_alpha(alpha, -0.1)
 
 
-@pytest.mark.parametrize('heatmap', [
-    (np.zeros((3, 3))),
-    (np.zeros((10, 10, 4))), # would need downsizing
+@pytest.mark.parametrize('heatmap_im', [
+    (PIL.Image.new('L', (3, 3,))),
+    (PIL.Image.new('RGBA', (10, 10,))),  # would need downsizing
 ])
-def test_expand_heatmap(boxrgb, heatmap):
-    expanded = expand_heatmap(heatmap, boxrgb, PIL.Image.BOX)
+def test_expand_heatmap(boxrgb, heatmap_im):
+    expanded = expand_heatmap(heatmap_im, boxrgb, PIL.Image.BOX)
     assert (expanded.width, expanded.height) == (boxrgb.width, boxrgb.height)
 
 
 def test_expand_heatmap_invalid():
-    # image is wrong type
-    heatmap = np.zeros((1, 1))
-    image = np.ones((2, 2))
     with pytest.raises(TypeError):
-        expand_heatmap(heatmap, image, PIL.Image.BOX)
+        # heatmap must be a Pillow image
+        heatmap = np.zeros((1, 1,))
+        expand_heatmap(heatmap, PIL.Image.new('RGBA', (4, 4,)), PIL.Image.BOX)
 
 
 def test_overlay_heatmap(boxrgba):
     overlay = _overlay_heatmap(boxrgba, boxrgba)
     assert_pixel_by_pixel_equal(overlay, boxrgba)
 
+
+def test_validate_image():
+    with pytest.raises(TypeError):
+        # image must be a Pillow image, not a numpy array
+        _validate_image(np.zeros((2, 2, 4,)))
+
+
+def test_validate_heatmap():
+    with pytest.raises(TypeError):
+        # heatmap must be a numpy array, not a Pillow image
+        _validate_heatmap(PIL.Image.new('L', (2, 2,)))
 
 
 def test_format_as_image_notransparency(catdog_rgba):
@@ -163,22 +175,3 @@ def test_format_as_image_noheatmap(catdog_rgba):
     expl = Explanation('mock', image=catdog_rgba)
     overlay = eli5.format_as_image(expl)
     assert_pixel_by_pixel_equal(overlay, catdog_rgba)
-
-
-def test_format_as_image_invalid_image():
-    with pytest.raises(TypeError):
-        # image must be a Pillow image, not a numpy array
-        expl = Explanation('mock', image=np.zeros((2, 2, 4,)))
-        eli5.format_as_image(expl)
-
-
-def test_format_as_image_invalid_heatmap(catdog_rgba):
-    with pytest.raises(TypeError):
-        # heatmap must be a numpy array, not a Pillow image
-        heatmap = PIL.Image.new('L', (2, 2,))
-        expl = Explanation('mock',
-                           image=catdog_rgba,
-                           targets=[TargetExplanation(-1,
-                                    heatmap=heatmap,
-                           )])
-        eli5.format_as_image(expl)
