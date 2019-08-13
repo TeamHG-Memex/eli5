@@ -1,18 +1,23 @@
 
-.. code:: ipython3
-
-    %load_ext autoreload
-    %autoreload 2
-
 Explaining Keras text classifier predictions with Grad-CAM
 ==========================================================
 
-We will explain text classification predicictions using Grad-CAM. We
-will use the IMDB dataset available at keras and the financial dataset,
-loading pretrained models.
+We can use ELI5 to explain text-based classifiers, i.e. models that take
+in a text and assign it to some class. Common examples include sentiment
+classification, labelling into categories, etc.
 
-Grad-CAM shows what's important in input, using a hidden layer and a
-target class.
+The underlying method used is 'Grad-CAM'
+(https://arxiv.org/abs/1610.02391). This technique shows what parts of
+the input are the most important to the predicted result, by overlaying
+a "heatmap" over the original input.
+
+See also the tutorial for images
+(https://eli5.readthedocs.io/en/latest/tutorials/keras-image-classifiers.html).
+Certain sections such as 'removing softmax' and 'comparing different
+models' are relevant for text as well.
+
+Set up
+------
 
 First some imports
 
@@ -22,7 +27,7 @@ First some imports
     
     import numpy as np
     import pandas as pd
-    from IPython.display import display, HTML
+    from IPython.display import display, HTML  # our explanations will be formatted in HTML
     
     # you may want to keep logging enabled when doing your own work
     import logging
@@ -31,6 +36,7 @@ First some imports
     import warnings
     warnings.simplefilter("ignore") # disable Keras warnings for this tutorial
     import keras
+    from keras.preprocessing.sequence import pad_sequences
     
     import eli5
 
@@ -40,26 +46,42 @@ First some imports
     Using TensorFlow backend.
 
 
+The rest of what we need in this tutorial is stored in the
+``tests/estimators`` package, whose source you can check for your own
+reference. You may need extra steps here to load your custom model and
+data.
+
 .. code:: ipython3
 
-    # we need this to load some of the local modules
+    # we need to go back to top level in order to import some local ELI5 modules
     
     old = os.getcwd()
     os.chdir('..')
 
-Explaining sentiment classification
------------------------------------
+Explaining binary (sentiment) classifications
+---------------------------------------------
 
-This is common in tutorials. A binary classification task with only one
-output. In this case high (1) is positive, low (0) is negative. We will
-use the IMDB dataset and a recurrent model, word level tokenization.
+In binary classification there is only one possible class to which a
+piece of text can either belong to or not. In sentiment classification,
+that class is whether the text is "positive" (belongs to the class) or
+"negative" (doesn't belong to the class).
 
-Load our model (available in ELI5).
+In this example we will have a recurrent model with word level
+tokenization, trained on the IMDB dataset
+(https://keras.io/datasets/#imdb-movie-reviews-sentiment-classification).
+The model has one output node that gives probabilities. Output close to
+1 is positive, and close to 0 is negative.
+
+See
+https://www.tensorflow.org/beta/tutorials/text/text\_classification\_rnn
+for a simple example of how to build such a model and prepare its input.
+
+Let's load our pre-trained model
 
 .. code:: ipython3
 
-    model = keras.models.load_model('tests/estimators/keras_sentiment_classifier/keras_sentiment_classifier.h5')
-    model.summary()
+    binary_model = keras.models.load_model('tests/estimators/keras_sentiment_classifier/keras_sentiment_classifier.h5')
+    binary_model.summary()
 
 
 .. parsed-literal::
@@ -91,9 +113,9 @@ Load our model (available in ELI5).
     _________________________________________________________________
 
 
-Load some sample data. We have a module that will do preprocessing, etc
-for us. Check the relevant package to learn more. For your own models
-you will have to do your own preprocessing
+Load our test and train data. We have a module that will do
+preprocessing for us. For your own usage you may have to do your own
+preprocessing.
 
 .. code:: ipython3
 
@@ -104,18 +126,18 @@ you will have to do your own preprocessing
 
     (x_train, y_train), (x_test, y_test) = keras_sentiment_classifier.prepare_train_test_dataset()
 
-Confirming the accuracy of the model
+Confirm the accuracy of the model
 
 .. code:: ipython3
 
-    print(model.metrics_names)
-    model.evaluate(x_test, y_test)
+    print(binary_model.metrics_names)
+    binary_model.evaluate(x_test, y_test)
 
 
 .. parsed-literal::
 
     ['loss', 'acc']
-    25000/25000 [==============================] - 95s 4ms/step
+    25000/25000 [==============================] - 88s 4ms/step
 
 
 
@@ -130,11 +152,11 @@ Looks good? Let's go on and check one of the test samples.
 
 .. code:: ipython3
 
-    doc = x_test[0:1]
-    print(doc)
+    test_review = x_test[0:1]
+    print(test_review)
     
-    tokens = keras_sentiment_classifier.vectorized_to_tokens(doc)
-    print(tokens)
+    test_review_t = keras_sentiment_classifier.vectorized_to_tokens(test_review)
+    print(test_review_t)
 
 
 .. parsed-literal::
@@ -156,7 +178,7 @@ Check the prediction
 
 .. code:: ipython3
 
-    model.predict(doc)
+    binary_model.predict(test_review)
 
 
 
@@ -174,7 +196,7 @@ model, the input, and the associated tokens that will be highlighted.
 
 .. code:: ipython3
 
-    eli5.show_prediction(model, doc, tokens=tokens)
+    eli5.show_prediction(binary_model, test_review, tokens=test_review_t)
 
 
 
@@ -264,18 +286,25 @@ model, the input, and the associated tokens that will be highlighted.
 
 
 
+What we are seeing is what makes the prediction "go up", i.e. the
+"positive" words (check the next section to see how to show positive AND
+negative words with the ``relu`` argument).
+
+Hover over the highlighted words to see their "weight".
+
 Let's try a custom input
 
 .. code:: ipython3
 
     s = "hello this is great but not so great"
-    doc_s, tokens_s = keras_sentiment_classifier.string_to_vectorized(s)
-    print(doc_s, tokens_s)
+    review, review_t = keras_sentiment_classifier.string_to_vectorized(s)
+    print(review, review_t, sep='\n')
 
 
 .. parsed-literal::
 
-    [[   1 4825   14    9   87   21   24   38   87]] [['<START>' 'hello' 'this' 'is' 'great' 'but' 'not' 'so' 'great']]
+    [[   1 4825   14    9   87   21   24   38   87]]
+    [['<START>' 'hello' 'this' 'is' 'great' 'but' 'not' 'so' 'great']]
 
 
 Notice that this model does not require fixed length input. We do not
@@ -283,7 +312,7 @@ need to pad this sample.
 
 .. code:: ipython3
 
-    model.predict(doc_s)
+    binary_model.predict(review)
 
 
 
@@ -294,9 +323,13 @@ need to pad this sample.
 
 
 
+Neutral as expected.
+
+What makes the score go up?
+
 .. code:: ipython3
 
-    eli5.show_prediction(model, doc_s, tokens=tokens_s)
+    eli5.show_prediction(binary_model, review, tokens=review_t)
 
 
 
@@ -386,20 +419,149 @@ need to pad this sample.
 
 
 
-The ``counterfactual`` and ``relu`` arguments
----------------------------------------------
-
-What did we see in the last section? Grad-CAM shows what makes a class
-score "go up". So we are only seeing the "positive" parts.
-
-To "fix" this, we can pass two boolean arguments.
-
-``counterfactual`` shows the "opposite", what makes the score "go down"
-(set to ``True`` to enable).
+Let's try add padding to the sample
 
 .. code:: ipython3
 
-    eli5.show_prediction(model, doc_s, tokens=tokens_s, relu=False)
+    review_t_padded = pad_sequences(review_t, maxlen=128, value='<PAD>', padding='pre', dtype=object)
+    review_padded = keras_sentiment_classifier.tokens_to_vectorized(review_t_padded)
+    print(review_t_padded, review_padded)
+    
+    eli5.show_prediction(binary_model, review_padded, tokens=review_t_padded)
+
+
+.. parsed-literal::
+
+    [['<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>'
+      '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>'
+      '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>'
+      '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>'
+      '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>'
+      '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>'
+      '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>'
+      '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>'
+      '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>'
+      '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>'
+      '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>'
+      '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>'
+      '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>'
+      '<PAD>' '<PAD>' '<START>' 'hello' 'this' 'is' 'great' 'but' 'not' 'so'
+      'great']] [[   0    0    0    0    0    0    0    0    0    0    0    0    0    0
+         0    0    0    0    0    0    0    0    0    0    0    0    0    0
+         0    0    0    0    0    0    0    0    0    0    0    0    0    0
+         0    0    0    0    0    0    0    0    0    0    0    0    0    0
+         0    0    0    0    0    0    0    0    0    0    0    0    0    0
+         0    0    0    0    0    0    0    0    0    0    0    0    0    0
+         0    0    0    0    0    0    0    0    0    0    0    0    0    0
+         0    0    0    0    0    0    0    0    0    0    0    0    0    0
+         0    0    0    0    0    0    0    1 4825   14    9   87   21   24
+        38   87]]
+
+
+
+
+.. raw:: html
+
+    
+        <style>
+        table.eli5-weights tr:hover {
+            filter: brightness(85%);
+        }
+    </style>
+    
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+            
+    
+        
+    
+            
+    
+            
+    
+    
+        <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
+            <span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.96%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> &lt;START&gt; hello this </span><span style="background-color: hsl(120, 100.00%, 75.96%); opacity: 0.90" title="0.003">is</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.006">great</span><span style="opacity: 0.80"> but not so </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.006">great</span>
+        </p>
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+    
+
+
+
+
+As expected special words like ``<PAD>`` shouldn't have an effect on the
+explanation.
+
+Modify explanations with the ``relu`` and ``counterfactual`` arguments
+----------------------------------------------------------------------
+
+In the last section we only saw the "positive" words in our input, what
+made the class score "go up". To "fix" this and see the "negative" words
+too, we can pass two boolean arguments.
+
+``relu`` (default ``True``) only shows what makes the predicted score go
+up and discards the effect of counter-evidence or other classes in case
+of multiclass classification (set to ``False`` to disable).
+
+.. code:: ipython3
+
+    eli5.show_prediction(binary_model, review, tokens=review_t, relu=False)
 
 
 
@@ -489,106 +651,15 @@ To "fix" this, we can pass two boolean arguments.
 
 
 
-For the test sample
+Green is positive, red is negative, white is neutral. We see how the
+input has conflicting sentiment and thus the model sensibly predicted a
+score close to 0.5.
+
+And for the test sample
 
 .. code:: ipython3
 
-    eli5.show_prediction(model, doc, tokens=tokens, counterfactual=True)
-
-
-
-
-.. raw:: html
-
-    
-        <style>
-        table.eli5-weights tr:hover {
-            filter: brightness(85%);
-        }
-    </style>
-    
-    
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-    
-        
-    
-        
-    
-        
-    
-        
-            
-    
-        
-    
-            
-    
-            
-    
-    
-        <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
-            <span style="background-color: hsl(120, 100.00%, 90.36%); opacity: 0.83" title="0.003">&lt;START&gt;</span><span style="opacity: 0.80"> please </span><span style="background-color: hsl(120, 100.00%, 94.90%); opacity: 0.81" title="0.001">give</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 97.06%); opacity: 0.80" title="0.000">this</span><span style="opacity: 0.80"> one a miss br br </span><span style="background-color: hsl(120, 100.00%, 98.36%); opacity: 0.80" title="0.000">&lt;OOV&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 98.36%); opacity: 0.80" title="0.000">&lt;OOV&gt;</span><span style="opacity: 0.80"> and </span><span style="background-color: hsl(120, 100.00%, 99.23%); opacity: 0.80" title="0.000">the</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 82.87%); opacity: 0.86" title="0.006">rest</span><span style="opacity: 0.80"> of </span><span style="background-color: hsl(120, 100.00%, 99.23%); opacity: 0.80" title="0.000">the</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 91.46%); opacity: 0.82" title="0.002">cast</span><span style="opacity: 0.80"> rendered </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.020">terrible</span><span style="opacity: 0.80"> performances </span><span style="background-color: hsl(120, 100.00%, 99.23%); opacity: 0.80" title="0.000">the</span><span style="opacity: 0.80"> show is </span><span style="background-color: hsl(120, 100.00%, 91.15%); opacity: 0.82" title="0.002">flat</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 91.15%); opacity: 0.82" title="0.002">flat</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 91.15%); opacity: 0.82" title="0.002">flat</span><span style="opacity: 0.80"> br br i </span><span style="background-color: hsl(120, 100.00%, 91.05%); opacity: 0.82" title="0.002">don&#x27;t</span><span style="opacity: 0.80"> know how </span><span style="background-color: hsl(120, 100.00%, 89.51%); opacity: 0.83" title="0.003">michael</span><span style="opacity: 0.80"> madison </span><span style="background-color: hsl(120, 100.00%, 98.80%); opacity: 0.80" title="0.000">could</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 92.09%); opacity: 0.82" title="0.002">have</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 89.51%); opacity: 0.83" title="0.003">allowed</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 97.06%); opacity: 0.80" title="0.000">this</span><span style="opacity: 0.80"> one on his plate he </span><span style="background-color: hsl(120, 100.00%, 99.57%); opacity: 0.80" title="0.000">almost</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 77.39%); opacity: 0.89" title="0.009">seemed</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 95.15%); opacity: 0.81" title="0.001">to</span><span style="opacity: 0.80"> know </span><span style="background-color: hsl(120, 100.00%, 97.06%); opacity: 0.80" title="0.000">this</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 84.38%); opacity: 0.85" title="0.005">wasn&#x27;t</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 95.90%); opacity: 0.81" title="0.001">going</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 95.15%); opacity: 0.81" title="0.001">to</span><span style="opacity: 0.80"> work </span><span style="background-color: hsl(120, 100.00%, 98.55%); opacity: 0.80" title="0.000">out</span><span style="opacity: 0.80"> and his performance </span><span style="background-color: hsl(120, 100.00%, 93.49%); opacity: 0.81" title="0.001">was</span><span style="opacity: 0.80"> quite </span><span style="background-color: hsl(120, 100.00%, 98.36%); opacity: 0.80" title="0.000">&lt;OOV&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 91.97%); opacity: 0.82" title="0.002">so</span><span style="opacity: 0.80"> all you madison fans </span><span style="background-color: hsl(120, 100.00%, 94.90%); opacity: 0.81" title="0.001">give</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 97.06%); opacity: 0.80" title="0.000">this</span><span style="opacity: 0.80"> a miss </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span>
-        </p>
-    
-    
-        
-    
-        
-    
-        
-    
-        
-    
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-    
-    
-
-
-
-
-``relu`` filters out the negative scores and only shows what makes the
-predicted score go up (set to ``False`` to disable).
-
-.. code:: ipython3
-
-    eli5.show_prediction(model, doc, tokens=tokens, relu=False)
+    eli5.show_prediction(binary_model, test_review, tokens=test_review_t, relu=False)
 
 
 
@@ -678,14 +749,112 @@ predicted score go up (set to ``False`` to disable).
 
 
 
-Green is positive, red is negative, white is neutral. We can see what
-made the network decide that is is a negative example.
+We can see what made the network decide that is is a negative example.
+
+Another argument ``counterfactual`` (default ``False``) highlights the
+counter-evidence for a class, or what makes the score "go down" (set to
+``True`` to enable). This is mentioned in the Grad-CAM paper
+(https://arxiv.org/abs/1610.02391).
+
+.. code:: ipython3
+
+    eli5.show_prediction(binary_model, test_review, tokens=test_review_t, counterfactual=True)
+
+
+
+
+.. raw:: html
+
+    
+        <style>
+        table.eli5-weights tr:hover {
+            filter: brightness(85%);
+        }
+    </style>
+    
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+            
+    
+        
+    
+            
+    
+            
+    
+    
+        <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
+            <span style="background-color: hsl(120, 100.00%, 90.36%); opacity: 0.83" title="0.003">&lt;START&gt;</span><span style="opacity: 0.80"> please </span><span style="background-color: hsl(120, 100.00%, 94.90%); opacity: 0.81" title="0.001">give</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 97.06%); opacity: 0.80" title="0.000">this</span><span style="opacity: 0.80"> one a miss br br </span><span style="background-color: hsl(120, 100.00%, 98.36%); opacity: 0.80" title="0.000">&lt;OOV&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 98.36%); opacity: 0.80" title="0.000">&lt;OOV&gt;</span><span style="opacity: 0.80"> and </span><span style="background-color: hsl(120, 100.00%, 99.23%); opacity: 0.80" title="0.000">the</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 82.87%); opacity: 0.86" title="0.006">rest</span><span style="opacity: 0.80"> of </span><span style="background-color: hsl(120, 100.00%, 99.23%); opacity: 0.80" title="0.000">the</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 91.46%); opacity: 0.82" title="0.002">cast</span><span style="opacity: 0.80"> rendered </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.020">terrible</span><span style="opacity: 0.80"> performances </span><span style="background-color: hsl(120, 100.00%, 99.23%); opacity: 0.80" title="0.000">the</span><span style="opacity: 0.80"> show is </span><span style="background-color: hsl(120, 100.00%, 91.15%); opacity: 0.82" title="0.002">flat</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 91.15%); opacity: 0.82" title="0.002">flat</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 91.15%); opacity: 0.82" title="0.002">flat</span><span style="opacity: 0.80"> br br i </span><span style="background-color: hsl(120, 100.00%, 91.05%); opacity: 0.82" title="0.002">don&#x27;t</span><span style="opacity: 0.80"> know how </span><span style="background-color: hsl(120, 100.00%, 89.51%); opacity: 0.83" title="0.003">michael</span><span style="opacity: 0.80"> madison </span><span style="background-color: hsl(120, 100.00%, 98.80%); opacity: 0.80" title="0.000">could</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 92.09%); opacity: 0.82" title="0.002">have</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 89.51%); opacity: 0.83" title="0.003">allowed</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 97.06%); opacity: 0.80" title="0.000">this</span><span style="opacity: 0.80"> one on his plate he </span><span style="background-color: hsl(120, 100.00%, 99.57%); opacity: 0.80" title="0.000">almost</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 77.39%); opacity: 0.89" title="0.009">seemed</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 95.15%); opacity: 0.81" title="0.001">to</span><span style="opacity: 0.80"> know </span><span style="background-color: hsl(120, 100.00%, 97.06%); opacity: 0.80" title="0.000">this</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 84.38%); opacity: 0.85" title="0.005">wasn&#x27;t</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 95.90%); opacity: 0.81" title="0.001">going</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 95.15%); opacity: 0.81" title="0.001">to</span><span style="opacity: 0.80"> work </span><span style="background-color: hsl(120, 100.00%, 98.55%); opacity: 0.80" title="0.000">out</span><span style="opacity: 0.80"> and his performance </span><span style="background-color: hsl(120, 100.00%, 93.49%); opacity: 0.81" title="0.001">was</span><span style="opacity: 0.80"> quite </span><span style="background-color: hsl(120, 100.00%, 98.36%); opacity: 0.80" title="0.000">&lt;OOV&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 91.97%); opacity: 0.82" title="0.002">so</span><span style="opacity: 0.80"> all you madison fans </span><span style="background-color: hsl(120, 100.00%, 94.90%); opacity: 0.81" title="0.001">give</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 97.06%); opacity: 0.80" title="0.000">this</span><span style="opacity: 0.80"> a miss </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000">&lt;PAD&gt;</span>
+        </p>
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+    
+
+
+
+
+This shows the "negative" words in green.
 
 What happens if we pass both ``counterfactual`` and ``relu``?
 
 .. code:: ipython3
 
-    eli5.show_prediction(model, doc, tokens=tokens, relu=False, counterfactual=True)
+    eli5.show_prediction(binary_model, test_review, tokens=test_review_t, relu=False, counterfactual=True)
 
 
 
@@ -780,19 +949,34 @@ Notice how the colors (green and red) are inverted.
 Removing padding with ``pad_value`` and ``padding`` arguments
 -------------------------------------------------------------
 
-Often when working with text, each example is padded, whether because
-the model expects input with a certain length, or to have all samples be
-the same length to put them in a batch.
+When working with text, often sample input is padded or truncated to a
+certain length, whether because the model only takes fixed-length input,
+or because we want to put all the samples in a batch.
 
 We can remove padding by specifying two arguments. The first is
-``pad_value``, the padding token such as ``<PAD>`` or a numeric value
-such as ``0`` for ``doc``. The second argument is ``padding``, which
-should be set to either ``pre`` (padding is done before actual text) or
-``post`` (padding is done after actual text).
+``pad_value``, the padding token such as ``<PAD>`` in ``tokens`` or a
+numeric value such as ``0`` for ``doc`` input. The second argument is
+``padding``, which should be set to either ``pre`` (to remove padding
+that comes before the actual text) or ``post`` (to remove padding that
+comes after the actual text).
 
 .. code:: ipython3
 
-    eli5.show_prediction(model, doc, tokens=tokens, relu=False, pad_value='<PAD>', padding='post')
+    print(test_review_t)
+
+
+.. parsed-literal::
+
+    [['<START>', 'please', 'give', 'this', 'one', 'a', 'miss', 'br', 'br', '<OOV>', '<OOV>', 'and', 'the', 'rest', 'of', 'the', 'cast', 'rendered', 'terrible', 'performances', 'the', 'show', 'is', 'flat', 'flat', 'flat', 'br', 'br', 'i', "don't", 'know', 'how', 'michael', 'madison', 'could', 'have', 'allowed', 'this', 'one', 'on', 'his', 'plate', 'he', 'almost', 'seemed', 'to', 'know', 'this', "wasn't", 'going', 'to', 'work', 'out', 'and', 'his', 'performance', 'was', 'quite', '<OOV>', 'so', 'all', 'you', 'madison', 'fans', 'give', 'this', 'a', 'miss', '<PAD>', '<PAD>', '<PAD>', '<PAD>', '<PAD>', '<PAD>', '<PAD>', '<PAD>', '<PAD>', '<PAD>', '<PAD>', '<PAD>', '<PAD>', '<PAD>', '<PAD>', '<PAD>', '<PAD>', '<PAD>', '<PAD>', '<PAD>', '<PAD>', '<PAD>', '<PAD>', '<PAD>', '<PAD>', '<PAD>', '<PAD>', '<PAD>', '<PAD>', '<PAD>', '<PAD>', '<PAD>', '<PAD>', '<PAD>', '<PAD>', '<PAD>', '<PAD>', '<PAD>', '<PAD>', '<PAD>', '<PAD>', '<PAD>', '<PAD>', '<PAD>', '<PAD>', '<PAD>', '<PAD>', '<PAD>', '<PAD>', '<PAD>', '<PAD>', '<PAD>', '<PAD>', '<PAD>', '<PAD>', '<PAD>', '<PAD>', '<PAD>', '<PAD>', '<PAD>']]
+
+
+Notice that the padding word used here is ``<PAD>`` and that it comes
+after the text.
+
+.. code:: ipython3
+
+    eli5.show_prediction(binary_model, test_review, tokens=test_review_t, 
+                        pad_value='<PAD>', padding='post', relu=False)
 
 
 
@@ -885,33 +1069,34 @@ should be set to either ``pre`` (padding is done before actual text) or
 Now the explanation is shorter. This is useful if the input has a lot of
 padding.
 
-Choosing a hidden layer to do Grad-CAM on
------------------------------------------
-
-Grad-CAM requires a hidden layer to do its calculations on. This is
-controlled by the ``layer`` argument. We can pass the layer (as an int
-index, string name, or a keras Layer instance) explicitly, or let ELI5
-attempt to find a good layer to do Grad-CAM on automatically.
+We can also pass padding as a number into our input ``doc``.
 
 .. code:: ipython3
 
-    for layer in model.layers:
-        name = layer.name
-        print(name)
-        if 'masking' not in layer.name:
-            e = eli5.show_prediction(model,
-                                     doc,
-                                     tokens=tokens,
-                                     layer=layer,
-                                     relu=False, 
-                                     pad_value='<PAD>', 
-                                     padding='post')
-            display(e) # if using in a loop, we need these two explicit IPython calls
+    print(test_review)
 
 
 .. parsed-literal::
 
-    embedding_1
+    [[   1  591  202   14   31    6  717   10   10    2    2    5    4  360
+         7    4  177 5760  394  354    4  123    9 1035 1035 1035   10   10
+        13   92  124   89  488 7944  100   28 1668   14   31   23   27 7479
+        29  220  468    8  124   14  286  170    8  157   46    5   27  239
+        16  179    2   38   32   25 7944  451  202   14    6  717    0    0
+         0    0    0    0    0    0    0    0    0    0    0    0    0    0
+         0    0    0    0    0    0    0    0    0    0    0    0    0    0
+         0    0    0    0    0    0    0    0    0    0    0    0    0    0
+         0    0    0    0    0    0    0    0    0    0    0    0    0    0
+         0    0]]
+
+
+Notice the number used for padding is ``0``.
+
+.. code:: ipython3
+
+    eli5.show_prediction(binary_model, test_review, tokens=test_review_t, 
+                         pad_value=0, padding='post', relu=False)
+
 
 
 
@@ -999,483 +1184,143 @@ attempt to find a good layer to do Grad-CAM on automatically.
 
 
 
-.. parsed-literal::
 
-    masking_1
-    masking_2
-    masking_3
-    bidirectional_1
-
-
-
-.. raw:: html
-
-    
-        <style>
-        table.eli5-weights tr:hover {
-            filter: brightness(85%);
-        }
-    </style>
-    
-    
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-    
-        
-    
-        
-    
-        
-    
-        
-            
-    
-        
-    
-            
-    
-            
-    
-    
-        <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
-            <span style="background-color: hsl(0, 100.00%, 96.21%); opacity: 0.81" title="-0.000">&lt;START&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 92.23%); opacity: 0.82" title="0.000">please</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 94.56%); opacity: 0.81" title="-0.000">give</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 98.90%); opacity: 0.80" title="-0.000">this</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 92.85%); opacity: 0.82" title="0.000">one</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 92.19%); opacity: 0.82" title="0.000">a</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 91.75%); opacity: 0.82" title="0.000">miss</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 96.24%); opacity: 0.81" title="0.000">br</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 95.91%); opacity: 0.81" title="0.000">br</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 96.82%); opacity: 0.81" title="0.000">&lt;OOV&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 97.99%); opacity: 0.80" title="0.000">&lt;OOV&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 91.91%); opacity: 0.82" title="0.000">and</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 98.73%); opacity: 0.80" title="0.000">the</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 87.72%); opacity: 0.84" title="-0.000">rest</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 90.34%); opacity: 0.83" title="0.000">of</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 96.43%); opacity: 0.81" title="0.000">the</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 94.87%); opacity: 0.81" title="-0.000">cast</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 76.36%); opacity: 0.89" title="0.001">rendered</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 65.22%); opacity: 0.96" title="-0.002">terrible</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 93.48%); opacity: 0.81" title="0.000">performances</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.57%); opacity: 0.80" title="0.000">the</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 94.28%); opacity: 0.81" title="0.000">show</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 94.08%); opacity: 0.81" title="0.000">is</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 90.40%); opacity: 0.83" title="-0.000">flat</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 91.25%); opacity: 0.82" title="-0.000">flat</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 91.94%); opacity: 0.82" title="-0.000">flat</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 98.24%); opacity: 0.80" title="0.000">br</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.03%); opacity: 0.80" title="0.000">br</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 95.29%); opacity: 0.81" title="-0.000">i</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 86.94%); opacity: 0.84" title="-0.001">don&#x27;t</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 96.50%); opacity: 0.81" title="-0.000">know</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 82.22%); opacity: 0.86" title="-0.001">how</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 78.98%); opacity: 0.88" title="-0.001">michael</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 94.33%); opacity: 0.81" title="-0.000">madison</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 75.62%); opacity: 0.90" title="-0.001">could</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 78.59%); opacity: 0.88" title="-0.001">have</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 77.53%); opacity: 0.89" title="-0.001">allowed</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 93.43%); opacity: 0.82" title="-0.000">this</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 94.81%); opacity: 0.81" title="-0.000">one</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 91.35%); opacity: 0.82" title="0.000">on</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 93.63%); opacity: 0.81" title="-0.000">his</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 95.83%); opacity: 0.81" title="-0.000">plate</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 87.23%); opacity: 0.84" title="-0.001">he</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 84.80%); opacity: 0.85" title="-0.001">almost</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 74.58%); opacity: 0.90" title="-0.001">seemed</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 94.31%); opacity: 0.81" title="-0.000">to</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.66%); opacity: 0.80" title="0.000">know</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 93.99%); opacity: 0.81" title="-0.000">this</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 78.32%); opacity: 0.88" title="-0.001">wasn&#x27;t</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 83.28%); opacity: 0.86" title="-0.001">going</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 90.36%); opacity: 0.83" title="-0.000">to</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 89.38%); opacity: 0.83" title="-0.000">work</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 83.05%); opacity: 0.86" title="-0.001">out</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 91.68%); opacity: 0.82" title="-0.000">and</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 83.19%); opacity: 0.86" title="-0.001">his</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 84.14%); opacity: 0.85" title="-0.001">performance</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 69.74%); opacity: 0.93" title="-0.002">was</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 73.77%); opacity: 0.91" title="-0.001">quite</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 84.68%); opacity: 0.85" title="-0.001">&lt;OOV&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 67.28%); opacity: 0.95" title="-0.002">so</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 70.63%); opacity: 0.93" title="-0.002">all</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 70.10%); opacity: 0.93" title="-0.002">you</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 79.07%); opacity: 0.88" title="-0.001">madison</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 60.00%); opacity: 1.00" title="-0.003">fans</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 69.37%); opacity: 0.94" title="-0.002">give</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 81.62%); opacity: 0.87" title="-0.001">this</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 71.47%); opacity: 0.92" title="-0.002">a</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 70.54%); opacity: 0.93" title="-0.002">miss</span>
-        </p>
-    
-    
-        
-    
-        
-    
-        
-    
-        
-    
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-    
-    
-
-
-
-.. parsed-literal::
-
-    bidirectional_2
-
-
-
-.. raw:: html
-
-    
-        <style>
-        table.eli5-weights tr:hover {
-            filter: brightness(85%);
-        }
-    </style>
-    
-    
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-    
-        
-    
-        
-    
-        
-    
-        
-            
-    
-        
-    
-            
-    
-            
-    
-    
-        <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
-            <span style="background-color: hsl(0, 100.00%, 97.48%); opacity: 0.80" title="-0.000">&lt;START&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 97.03%); opacity: 0.80" title="-0.000">please</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 96.78%); opacity: 0.81" title="-0.000">give</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 97.92%); opacity: 0.80" title="-0.000">this</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 96.51%); opacity: 0.81" title="-0.000">one</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 95.53%); opacity: 0.81" title="-0.000">a</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 94.54%); opacity: 0.81" title="-0.001">miss</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 95.79%); opacity: 0.81" title="-0.000">br</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 95.06%); opacity: 0.81" title="-0.000">br</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 92.96%); opacity: 0.82" title="-0.001">&lt;OOV&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 92.13%); opacity: 0.82" title="-0.001">&lt;OOV&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 88.64%); opacity: 0.83" title="-0.002">and</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 90.19%); opacity: 0.83" title="-0.001">the</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 76.70%); opacity: 0.89" title="-0.004">rest</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 76.28%); opacity: 0.89" title="-0.004">of</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 88.26%); opacity: 0.83" title="-0.002">the</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 73.11%); opacity: 0.91" title="-0.005">cast</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 72.53%); opacity: 0.92" title="-0.006">rendered</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 68.52%); opacity: 0.94" title="-0.007">terrible</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 70.62%); opacity: 0.93" title="-0.006">performances</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 86.26%); opacity: 0.84" title="-0.002">the</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 70.20%); opacity: 0.93" title="-0.006">show</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 69.33%); opacity: 0.94" title="-0.006">is</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 85.08%); opacity: 0.85" title="-0.002">flat</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 85.30%); opacity: 0.85" title="-0.002">flat</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 85.91%); opacity: 0.85" title="-0.002">flat</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 89.35%); opacity: 0.83" title="-0.001">br</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 89.82%); opacity: 0.83" title="-0.001">br</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 74.07%); opacity: 0.91" title="-0.005">i</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 74.81%); opacity: 0.90" title="-0.005">don&#x27;t</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 85.35%); opacity: 0.85" title="-0.002">know</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 76.37%); opacity: 0.89" title="-0.004">how</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 76.91%); opacity: 0.89" title="-0.004">michael</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 86.55%); opacity: 0.84" title="-0.002">madison</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 77.63%); opacity: 0.89" title="-0.004">could</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 78.30%); opacity: 0.88" title="-0.004">have</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 79.01%); opacity: 0.88" title="-0.004">allowed</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 92.57%); opacity: 0.82" title="-0.001">this</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 88.76%); opacity: 0.83" title="-0.002">one</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 82.36%); opacity: 0.86" title="-0.003">on</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 88.65%); opacity: 0.83" title="-0.002">his</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 81.34%); opacity: 0.87" title="-0.003">plate</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 80.38%); opacity: 0.87" title="-0.003">he</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 79.59%); opacity: 0.88" title="-0.004">almost</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 78.86%); opacity: 0.88" title="-0.004">seemed</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 87.83%); opacity: 0.84" title="-0.002">to</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 88.13%); opacity: 0.84" title="-0.002">know</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 92.41%); opacity: 0.82" title="-0.001">this</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 79.72%); opacity: 0.88" title="-0.004">wasn&#x27;t</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 80.55%); opacity: 0.87" title="-0.003">going</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 88.32%); opacity: 0.83" title="-0.002">to</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 81.43%); opacity: 0.87" title="-0.003">work</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 80.89%); opacity: 0.87" title="-0.003">out</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 87.99%); opacity: 0.84" title="-0.002">and</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 87.03%); opacity: 0.84" title="-0.002">his</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 78.29%); opacity: 0.88" title="-0.004">performance</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 75.41%); opacity: 0.90" title="-0.005">was</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 73.69%); opacity: 0.91" title="-0.005">quite</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 86.69%); opacity: 0.84" title="-0.002">&lt;OOV&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 69.50%); opacity: 0.94" title="-0.006">so</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 67.84%); opacity: 0.95" title="-0.007">all</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 65.70%); opacity: 0.96" title="-0.008">you</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 77.26%); opacity: 0.89" title="-0.004">madison</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 60.00%); opacity: 1.00" title="-0.009">fans</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 73.31%); opacity: 0.91" title="-0.005">give</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 82.62%); opacity: 0.86" title="-0.003">this</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 70.33%); opacity: 0.93" title="-0.006">a</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 68.84%); opacity: 0.94" title="-0.007">miss</span>
-        </p>
-    
-    
-        
-    
-        
-    
-        
-    
-        
-    
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-    
-    
-
-
-
-.. parsed-literal::
-
-    bidirectional_3
-
-
-
-.. raw:: html
-
-    
-        <style>
-        table.eli5-weights tr:hover {
-            filter: brightness(85%);
-        }
-    </style>
-    
-    
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-    
-        
-    
-        
-    
-        
-    
-        
-            
-    
-        
-    
-            
-    
-            
-    
-    
-        <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
-            <span style="background-color: hsl(0, 100.00%, 60.00%); opacity: 1.00" title="-0.162">&lt;START&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 60.27%); opacity: 1.00" title="-0.161">please</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 75.71%); opacity: 0.90" title="-0.080">give</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 85.15%); opacity: 0.85" title="-0.039">this</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 76.04%); opacity: 0.90" title="-0.078">one</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 77.28%); opacity: 0.89" title="-0.072">a</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 78.66%); opacity: 0.88" title="-0.066">miss</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 87.74%); opacity: 0.84" title="-0.030">br</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 88.65%); opacity: 0.83" title="-0.027">br</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 88.27%); opacity: 0.83" title="-0.028">&lt;OOV&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 90.89%); opacity: 0.82" title="-0.020">&lt;OOV&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 91.87%); opacity: 0.82" title="-0.017">and</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 97.78%); opacity: 0.80" title="-0.003">the</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 97.60%); opacity: 0.80" title="-0.003">rest</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 95.81%); opacity: 0.81" title="-0.006">of</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 97.36%); opacity: 0.80" title="-0.003">the</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 92.97%); opacity: 0.82" title="-0.014">cast</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 86.39%); opacity: 0.84" title="-0.035">rendered</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 78.41%); opacity: 0.88" title="-0.067">terrible</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 71.57%); opacity: 0.92" title="-0.100">performances</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 83.95%); opacity: 0.85" title="-0.044">the</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 64.37%); opacity: 0.97" title="-0.137">show</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 68.04%); opacity: 0.95" title="-0.118">is</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 86.98%); opacity: 0.84" title="-0.033">flat</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 88.88%); opacity: 0.83" title="-0.026">flat</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 89.44%); opacity: 0.83" title="-0.024">flat</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 90.21%); opacity: 0.83" title="-0.022">br</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 89.11%); opacity: 0.83" title="-0.025">br</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 68.49%); opacity: 0.94" title="-0.115">i</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 68.36%); opacity: 0.94" title="-0.116">don&#x27;t</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 83.93%); opacity: 0.85" title="-0.044">know</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 80.01%); opacity: 0.87" title="-0.060">how</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 87.07%); opacity: 0.84" title="-0.032">michael</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 96.99%); opacity: 0.80" title="-0.004">madison</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 97.19%); opacity: 0.80" title="0.004">could</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 92.31%); opacity: 0.82" title="0.015">have</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 88.57%); opacity: 0.83" title="0.027">allowed</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 95.12%); opacity: 0.81" title="0.008">this</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 97.03%); opacity: 0.80" title="-0.004">one</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 82.96%); opacity: 0.86" title="-0.048">on</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 83.95%); opacity: 0.85" title="-0.044">his</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 66.28%); opacity: 0.96" title="-0.127">plate</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 64.29%); opacity: 0.97" title="-0.138">he</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 62.35%); opacity: 0.98" title="-0.149">almost</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 60.45%); opacity: 1.00" title="-0.160">seemed</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 74.51%); opacity: 0.91" title="-0.085">to</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 75.04%); opacity: 0.90" title="-0.083">know</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 85.04%); opacity: 0.85" title="-0.040">this</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 61.59%); opacity: 0.99" title="-0.153">wasn&#x27;t</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 62.68%); opacity: 0.98" title="-0.147">going</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 79.23%); opacity: 0.88" title="-0.064">to</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 70.50%); opacity: 0.93" title="-0.105">work</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 75.03%); opacity: 0.90" title="-0.083">out</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 87.65%); opacity: 0.84" title="-0.030">and</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 89.44%); opacity: 0.83" title="-0.024">his</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 85.02%); opacity: 0.85" title="-0.040">performance</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 87.35%); opacity: 0.84" title="-0.031">was</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 89.88%); opacity: 0.83" title="-0.023">quite</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 96.11%); opacity: 0.81" title="-0.006">&lt;OOV&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 92.87%); opacity: 0.82" title="-0.014">so</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 94.23%); opacity: 0.81" title="-0.010">all</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 95.75%); opacity: 0.81" title="-0.007">you</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 98.04%); opacity: 0.80" title="-0.002">madison</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 97.38%); opacity: 0.80" title="-0.003">fans</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 98.78%); opacity: 0.80" title="-0.001">give</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 99.53%); opacity: 0.80" title="-0.000">this</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 99.63%); opacity: 0.80" title="-0.000">a</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 99.88%); opacity: 0.80" title="-0.000">miss</span>
-        </p>
-    
-    
-        
-    
-        
-    
-        
-    
-        
-    
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-    
-    
-
-
-
-.. parsed-literal::
-
-    dense_1
-
-
-
-.. raw:: html
-
-    
-        <style>
-        table.eli5-weights tr:hover {
-            filter: brightness(85%);
-        }
-    </style>
-    
-    
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-    
-        
-    
-        
-    
-        
-    
-        
-            
-    
-        
-    
-            
-    
-            
-    
-    
-        <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
-            <span style="background-color: hsl(0, 100.00%, 60.00%); opacity: 1.00" title="-0.963">&lt;START&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 61.51%); opacity: 0.99" title="-0.911">please</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 77.25%); opacity: 0.89" title="-0.430">give</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 86.59%); opacity: 0.84" title="-0.202">this</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 79.20%); opacity: 0.88" title="-0.378">one</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 80.20%); opacity: 0.87" title="-0.352">a</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 81.23%); opacity: 0.87" title="-0.327">miss</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 89.09%); opacity: 0.83" title="-0.150">br</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 89.75%); opacity: 0.83" title="-0.138">br</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 88.30%); opacity: 0.83" title="-0.166">&lt;OOV&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 89.16%); opacity: 0.83" title="-0.149">&lt;OOV&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 86.79%); opacity: 0.84" title="-0.198">and</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 90.98%); opacity: 0.82" title="-0.115">the</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 82.63%); opacity: 0.86" title="-0.292">rest</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 84.84%); opacity: 0.85" title="-0.241">of</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 94.06%); opacity: 0.81" title="-0.063">the</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 89.75%); opacity: 0.83" title="-0.138">cast</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 92.62%); opacity: 0.82" title="-0.086">rendered</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 96.10%); opacity: 0.81" title="-0.035">terrible</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 96.82%); opacity: 0.81" title="-0.026">performances</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 98.58%); opacity: 0.80" title="-0.008">the</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 97.08%); opacity: 0.80" title="-0.023">show</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 97.21%); opacity: 0.80" title="-0.021">is</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 98.77%); opacity: 0.80" title="-0.007">flat</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 98.84%); opacity: 0.80" title="-0.006">flat</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 98.90%); opacity: 0.80" title="-0.006">flat</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 99.16%); opacity: 0.80" title="-0.004">br</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 99.22%); opacity: 0.80" title="-0.003">br</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 98.10%); opacity: 0.80" title="-0.012">i</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 98.26%); opacity: 0.80" title="-0.011">don&#x27;t</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 99.03%); opacity: 0.80" title="-0.005">know</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 98.61%); opacity: 0.80" title="-0.008">how</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 98.80%); opacity: 0.80" title="-0.006">michael</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 99.39%); opacity: 0.80" title="-0.002">madison</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 99.23%); opacity: 0.80" title="-0.003">could</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 99.48%); opacity: 0.80" title="-0.002">have</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 99.82%); opacity: 0.80" title="-0.000">allowed</span><span style="opacity: 0.80"> this one on his plate he almost seemed to know this wasn&#x27;t going to work out and his performance was quite &lt;OOV&gt; so all you madison fans give this a miss</span>
-        </p>
-    
-    
-        
-    
-        
-    
-        
-    
-        
-    
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-    
-    
-
-
-
-.. parsed-literal::
-
-    dense_2
-
-
-
-.. raw:: html
-
-    
-        <style>
-        table.eli5-weights tr:hover {
-            filter: brightness(85%);
-        }
-    </style>
-    
-    
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-    
-        
-    
-        
-    
-        
-    
-        
-            
-    
-        
-    
-            
-    
-            
-    
-    
-        <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
-            <span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.162">&lt;START&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.162">please</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 75.38%); opacity: 0.90" title="0.081">give</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 84.84%); opacity: 0.85" title="0.041">this</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 75.38%); opacity: 0.90" title="0.081">one</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 75.38%); opacity: 0.90" title="0.081">a</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 75.38%); opacity: 0.90" title="0.081">miss</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 84.84%); opacity: 0.85" title="0.041">br</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 84.84%); opacity: 0.85" title="0.041">br</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 81.46%); opacity: 0.87" title="0.054">&lt;OOV&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 81.46%); opacity: 0.87" title="0.054">&lt;OOV&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 75.38%); opacity: 0.90" title="0.081">and</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 81.46%); opacity: 0.87" title="0.054">the</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.162">rest</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.162">of</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 81.46%); opacity: 0.87" title="0.054">the</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.162">cast</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.162">rendered</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.162">terrible</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.162">performances</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 81.46%); opacity: 0.87" title="0.054">the</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.162">show</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.162">is</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 81.46%); opacity: 0.87" title="0.054">flat</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 81.46%); opacity: 0.87" title="0.054">flat</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 81.46%); opacity: 0.87" title="0.054">flat</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 84.84%); opacity: 0.85" title="0.041">br</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 84.84%); opacity: 0.85" title="0.041">br</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.162">i</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.162">don&#x27;t</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 75.38%); opacity: 0.90" title="0.081">know</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.162">how</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.162">michael</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 75.38%); opacity: 0.90" title="0.081">madison</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.162">could</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.162">have</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.162">allowed</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 84.84%); opacity: 0.85" title="0.041">this</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 75.38%); opacity: 0.90" title="0.081">one</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.162">on</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 75.38%); opacity: 0.90" title="0.081">his</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.162">plate</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.162">he</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.162">almost</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.162">seemed</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 75.38%); opacity: 0.90" title="0.081">to</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 75.38%); opacity: 0.90" title="0.081">know</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 84.84%); opacity: 0.85" title="0.041">this</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.162">wasn&#x27;t</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.162">going</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 75.38%); opacity: 0.90" title="0.081">to</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.162">work</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.162">out</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 75.38%); opacity: 0.90" title="0.081">and</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 75.38%); opacity: 0.90" title="0.081">his</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.162">performance</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.162">was</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.162">quite</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 81.46%); opacity: 0.87" title="0.054">&lt;OOV&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.162">so</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.162">all</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.162">you</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 75.38%); opacity: 0.90" title="0.081">madison</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.162">fans</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 75.38%); opacity: 0.90" title="0.081">give</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 84.84%); opacity: 0.85" title="0.041">this</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 75.38%); opacity: 0.90" title="0.081">a</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 75.38%); opacity: 0.90" title="0.081">miss</span>
-        </p>
-    
-    
-        
-    
-        
-    
-        
-    
-        
-    
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-    
-    
-
-
-
-If you don't get good explanations from ELI5 out of the box, it may be
-worth looking into this parameter. We advice to pick layers that contain
-"spatial or temporal" information, i.e. NOT dense/fully-connected or
-merge layers.
-
-Notice that when explaining the final dense layer node (there is only 1
-output), we get an "all green" explanation. You need to hover over the
-explanation to see the actual value. It seems off because there are no
-"negative" values here and the colouring is not gradual.
-
-Explaining multiple classes
----------------------------
-
-A multi-class model trained on the finanial dataset. Character-level
-tokenization. Convolutional network.
+Let's try our pre-padded sample
 
 .. code:: ipython3
 
-    # multiclass model (*target, layer - conv/others, diff. types of expls, padding and its effect)
+    print(review_t_padded)
+    eli5.show_prediction(binary_model, review_padded, tokens=review_t_padded, 
+                         relu=False, pad_value='<PAD>', padding='pre')
+
+
+.. parsed-literal::
+
+    [['<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>'
+      '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>'
+      '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>'
+      '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>'
+      '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>'
+      '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>'
+      '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>'
+      '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>'
+      '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>'
+      '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>'
+      '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>'
+      '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>'
+      '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>'
+      '<PAD>' '<PAD>' '<START>' 'hello' 'this' 'is' 'great' 'but' 'not' 'so'
+      'great']]
+
+
+
+
+.. raw:: html
+
+    
+        <style>
+        table.eli5-weights tr:hover {
+            filter: brightness(85%);
+        }
+    </style>
+    
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+            
+    
+        
+    
+            
+    
+            
+    
+    
+        <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
+            <span style="background-color: hsl(0, 100.00%, 77.44%); opacity: 0.89" title="-0.003">&lt;START&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 94.79%); opacity: 0.81" title="-0.000">hello</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 81.35%); opacity: 0.87" title="-0.002">this</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 75.96%); opacity: 0.90" title="0.003">is</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.006">great</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 79.66%); opacity: 0.88" title="-0.002">but</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 65.63%); opacity: 0.96" title="-0.005">not</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(0, 100.00%, 80.45%); opacity: 0.87" title="-0.002">so</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.006">great</span>
+        </p>
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+    
+
+
+
+
+Useful!
+
+Explaining multiclass model predictions
+---------------------------------------
+
+In multiple classification tasks a piece of text is classified into a
+single class (we still have only one predicted label) from a number of
+classes (not just one as in binary classification).
+
+In this tutorial we have a multiclass model trained on the US consumer
+finanial complaints dataset
+(https://www.kaggle.com/cfpb/us-consumer-finance-complaints). We have
+used character-level tokenization and a convolutional network that takes
+fixed-length input. For this model the output will be a vector (since we
+have many classes). The entry with the highest value will be the
+"predicted" class.
 
 .. code:: ipython3
 
-    model2 = keras.models.load_model('tests/estimators/keras_multiclass_text_classifier/keras_multiclass_text_classifier.h5')
-    model2.summary()
+    multicls_model = keras.models.load_model('tests/estimators/keras_multiclass_text_classifier/keras_multiclass_text_classifier.h5')
+    multicls_model.summary()
 
 
 .. parsed-literal::
@@ -1524,7 +1369,30 @@ tokenization. Convolutional network.
 
     (x_train, x_test), (y_train, y_test) = keras_multiclass_text_classifier.prepare_train_test_dataset()
 
-Possible classes
+Again check the metrics.
+
+.. code:: ipython3
+
+    print(multicls_model.metrics_names)
+    multicls_model.evaluate(x_test, y_test)
+
+
+.. parsed-literal::
+
+    ['loss', 'acc']
+    500/500 [==============================] - 9s 19ms/step
+
+
+
+
+.. parsed-literal::
+
+    [0.6319513120651246, 0.7999999990463257]
+
+
+
+Let's see the possible classes that consumer complaint narratives can
+fall into
 
 .. code:: ipython3
 
@@ -1549,40 +1417,18 @@ Possible classes
 
 
 
-Again check the metrics.
-
-.. code:: ipython3
-
-    print(model2.metrics_names)
-    model2.evaluate(x_test, y_test)
-
-
-.. parsed-literal::
-
-    ['loss', 'acc']
-    500/500 [==============================] - 7s 13ms/step
-
-
-
-
-.. parsed-literal::
-
-    [0.6319513120651246, 0.7999999990463257]
-
-
-
 Let's explain one of the test samples
 
 .. code:: ipython3
 
-    doc = x_test[0:1]
-    tokens = keras_multiclass_text_classifier.vectorized_to_tokens(doc)
-    s = keras_multiclass_text_classifier.tokens_to_string(tokens)
+    test_complaint = x_test[0:1]  # we need to keep the batch dimension
+    test_complaint_t = keras_multiclass_text_classifier.vectorized_to_tokens(test_complaint)
+    s = keras_multiclass_text_classifier.tokens_to_string(test_complaint_t)
     
-    print(len(doc[0]))
-    limit = 150
-    print(doc[0, :limit])
-    print(tokens[0, :limit])
+    print(len(test_complaint[0]))
+    limit = 150  # the input is quite long so just print the beginning
+    print(test_complaint[0, :limit])
+    print(test_complaint_t[0, :limit])
     print(s[0][:limit+800])
 
 
@@ -1608,18 +1454,14 @@ Let's explain one of the test samples
     Ocwen financial services claims simultaneously to have a loan with me ( despite my never having done business with them or having been notified of said loan ) and to have written off said loan with the IRS in XX/XX/XXXX. Further, they continue to insert themselves in a legal case I have against XXXX XXXX XXXX company regarding my foreclosure. Ocwen has claimed in a legal deposition that they are the current holder of an unsigned original, legally executed Note. XXXX has claimed that the holder of the note is the owner of the property. However, Ocwen appears to have discharged the Note according to the IRS. This Note was discharged previously by IndyMac Mortgage Services in XX/XX/XXXX ( which Ocwen is aware of as the evidence of this was shown to them at a legal deposition ). Ocwen appears to have applied a court ordered use and occupancy payment made out to XXXX to a loan ( number XXXX XXXX which Ocwen pretends to have with me. I have r
 
 
-Notice that the padding length is quite long. We are also dealing with
-character-level tokenization - our tokens are single characters, not
-words.
-
 Let's check what the model predicts (to which category the financial
-complaint belongs).
+complaint belongs)
 
 .. code:: ipython3
 
-    preds = model2.predict(doc)
-    print(preds)
-    y = np.argmax(preds)
+    preds = multicls_model.predict(test_complaint)
+    print(preds)  # score for each class
+    y = np.argmax(preds)  # take the maximum class
     print(y)
     keras_multiclass_text_classifier.decode_output(y)
 
@@ -1640,7 +1482,7 @@ complaint belongs).
 
 
 
-And the ground truth:
+And the ground truth
 
 .. code:: ipython3
 
@@ -1662,12 +1504,14 @@ And the ground truth:
 
 
 
-Now let's explain this prediction with ELI5. Enable relu to not see
-other classes.
+Seems reasonable!
+
+Now let's explain this prediction with ELI5.
 
 .. code:: ipython3
 
-    eli5.show_prediction(model2, doc, tokens=tokens, pad_value='<PAD>', padding='post')
+    eli5.show_prediction(multicls_model, test_complaint, tokens=test_complaint_t, 
+                         pad_value='<PAD>', padding='post')
 
 
 
@@ -1759,51 +1603,43 @@ other classes.
 
 
 
+Note that we do not set ``relu`` to ``False`` because then we would see
+other classes.
+
 Our own example
 
 .. code:: ipython3
 
-    s = "the IRS is afterr my car loan"
-    doc_s, tokens_s = keras_multiclass_text_classifier.string_to_vectorized(s)
-    print(doc_s)
-    print(tokens_s[0, :50]) # note that this model requires fixed length input
-
-
-.. parsed-literal::
-
-    [[ 4 12  3 ...  0  0  0]]
-    ['t' 'h' 'e' ' ' 'I' 'R' 'S' ' ' 'i' 's' ' ' 'a' 'f' 't' 'e' 'r' 'r' ' '
-     'm' 'y' ' ' 'c' 'a' 'r' ' ' 'l' 'o' 'a' 'n' '<PAD>' '<PAD>' '<PAD>'
-     '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>'
-     '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>' '<PAD>']
-
-
-.. code:: ipython3
-
-    preds = model2.predict(doc_s)
-    print(preds)
-    keras_multiclass_text_classifier.decode_output(preds)
-
-
-.. parsed-literal::
-
-    [[0.09576575 0.27872923 0.10852851 0.03327851 0.11653358 0.1867436
-      0.02678595 0.13854526 0.00900717 0.00178243 0.00429991]]
-
-
-
-
-.. parsed-literal::
-
-    'Consumer Loan'
-
-
-
-.. code:: ipython3
-
-    eli5.show_prediction(model2, doc_s, tokens=tokens_s, pad_value='<PAD>', padding='post')
+    s = """first of all I should not be charged and debted for the private car loan"""
     
-    # TODO: would be good to show predicted label
+    complaint, complaint_t = keras_multiclass_text_classifier.string_to_vectorized(s)
+    print(complaint)
+    print(complaint_t[0, :50])  # note that this model requires fixed length input
+
+
+.. parsed-literal::
+
+    [[20  8  9 ...  0  0  0]]
+    ['f' 'i' 'r' 's' 't' ' ' 'o' 'f' ' ' 'a' 'l' 'l' ' ' 'I' ' ' 's' 'h' 'o'
+     'u' 'l' 'd' ' ' 'n' 'o' 't' ' ' 'b' 'e' ' ' 'c' 'h' 'a' 'r' 'g' 'e' 'd'
+     ' ' 'a' 'n' 'd' ' ' 'd' 'e' 'b' 't' 'e' 'd' ' ' 'f' 'o']
+
+
+.. code:: ipython3
+
+    preds = multicls_model.predict(complaint)
+    print(preds)
+    print(keras_multiclass_text_classifier.decode_output(preds))
+    
+    eli5.show_prediction(multicls_model, complaint, tokens=complaint_t, 
+                         pad_value='<PAD>', padding='post')
+
+
+.. parsed-literal::
+
+    [[0.12006541 0.29358572 0.07228176 0.02435291 0.0842614  0.22937107
+      0.01472037 0.15292141 0.00499524 0.00131895 0.00212576]]
+    Consumer Loan
 
 
 
@@ -1849,7 +1685,7 @@ Our own example
     
     
         <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
-            <span style="opacity: 0.80">the I</span><span style="background-color: hsl(120, 100.00%, 81.99%); opacity: 0.86" title="0.000">R</span><span style="opacity: 0.80">S is a</span><span style="background-color: hsl(120, 100.00%, 63.57%); opacity: 0.97" title="0.000">f</span><span style="opacity: 0.80">te</span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.000">rr</span><span style="opacity: 0.80"> my ca</span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.000">r</span><span style="opacity: 0.80"> loan</span>
+            <span style="background-color: hsl(120, 100.00%, 92.41%); opacity: 0.82" title="0.000">f</span><span style="opacity: 0.80">i</span><span style="background-color: hsl(120, 100.00%, 90.19%); opacity: 0.83" title="0.000">r</span><span style="opacity: 0.80">st o</span><span style="background-color: hsl(120, 100.00%, 92.41%); opacity: 0.82" title="0.000">f</span><span style="opacity: 0.80"> all I should not be cha</span><span style="background-color: hsl(120, 100.00%, 90.19%); opacity: 0.83" title="0.000">r</span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.000">g</span><span style="opacity: 0.80">ed and debted </span><span style="background-color: hsl(120, 100.00%, 92.41%); opacity: 0.82" title="0.000">f</span><span style="opacity: 0.80">o</span><span style="background-color: hsl(120, 100.00%, 90.19%); opacity: 0.83" title="0.000">r</span><span style="opacity: 0.80"> the p</span><span style="background-color: hsl(120, 100.00%, 90.19%); opacity: 0.83" title="0.000">r</span><span style="opacity: 0.80">ivate ca</span><span style="background-color: hsl(120, 100.00%, 90.19%); opacity: 0.83" title="0.000">r</span><span style="opacity: 0.80"> loan</span>
         </p>
     
     
@@ -1893,18 +1729,44 @@ Our own example
 
 
 
-Choosing a classification target to focus on
---------------------------------------------
+.. code:: ipython3
+
+    # TODO: would be good to show predicted label
+
+Choosing a classification target to focus on via ``targets``
+------------------------------------------------------------
+
+In the last text we saw that it could be classified into more than just
+one category.
+
+We can use ELI5 to "force" the network to classify the input into a
+certain category, and then highlight evidence for that category.
+
+We use the ``targets`` argument for this. We pass a list that contains
+integer indices. Those indices represent a class in the final output
+layer.
+
+Let's check two sensible categories
 
 .. code:: ipython3
 
-    debt_idx = 0
+    debt_idx = 0  # we get this from the labels index
     loan_idx = 1
 
 .. code:: ipython3
 
-    eli5.show_prediction(model2, doc_s, tokens=tokens_s, pad_value='<PAD>', padding='post', targets=[debt_idx])
+    print('debt collection')
+    display(eli5.show_prediction(multicls_model, complaint, tokens=complaint_t, targets=[debt_idx],
+                         pad_value='<PAD>', padding='post'))
+    
+    print('consumer loan')
+    display(eli5.show_prediction(multicls_model, complaint, tokens=complaint_t, targets=[loan_idx],
+                         pad_value='<PAD>', padding='post'))
 
+
+.. parsed-literal::
+
+    debt collection
 
 
 
@@ -1949,7 +1811,7 @@ Choosing a classification target to focus on
     
     
         <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
-            <span style="background-color: hsl(120, 100.00%, 97.31%); opacity: 0.80" title="0.000">t</span><span style="background-color: hsl(120, 100.00%, 91.02%); opacity: 0.82" title="0.000">h</span><span style="background-color: hsl(120, 100.00%, 93.80%); opacity: 0.81" title="0.000">e</span><span style="background-color: hsl(120, 100.00%, 92.12%); opacity: 0.82" title="0.000"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.001">I</span><span style="background-color: hsl(120, 100.00%, 95.44%); opacity: 0.81" title="0.000">R</span><span style="background-color: hsl(120, 100.00%, 77.35%); opacity: 0.89" title="0.000">S</span><span style="background-color: hsl(120, 100.00%, 92.12%); opacity: 0.82" title="0.000"> </span><span style="background-color: hsl(120, 100.00%, 81.77%); opacity: 0.87" title="0.000">i</span><span style="background-color: hsl(120, 100.00%, 88.49%); opacity: 0.83" title="0.000">s</span><span style="background-color: hsl(120, 100.00%, 92.12%); opacity: 0.82" title="0.000"> </span><span style="background-color: hsl(120, 100.00%, 93.84%); opacity: 0.81" title="0.000">a</span><span style="opacity: 0.80">f</span><span style="background-color: hsl(120, 100.00%, 97.31%); opacity: 0.80" title="0.000">t</span><span style="background-color: hsl(120, 100.00%, 93.80%); opacity: 0.81" title="0.000">e</span><span style="opacity: 0.80">rr</span><span style="background-color: hsl(120, 100.00%, 92.12%); opacity: 0.82" title="0.000"> </span><span style="background-color: hsl(120, 100.00%, 92.32%); opacity: 0.82" title="0.000">m</span><span style="background-color: hsl(120, 100.00%, 86.49%); opacity: 0.84" title="0.000">y</span><span style="background-color: hsl(120, 100.00%, 92.12%); opacity: 0.82" title="0.000"> </span><span style="background-color: hsl(120, 100.00%, 78.56%); opacity: 0.88" title="0.000">c</span><span style="background-color: hsl(120, 100.00%, 93.84%); opacity: 0.81" title="0.000">a</span><span style="opacity: 0.80">r</span><span style="background-color: hsl(120, 100.00%, 92.12%); opacity: 0.82" title="0.000"> </span><span style="background-color: hsl(120, 100.00%, 81.00%); opacity: 0.87" title="0.000">l</span><span style="background-color: hsl(120, 100.00%, 90.31%); opacity: 0.83" title="0.000">o</span><span style="background-color: hsl(120, 100.00%, 93.84%); opacity: 0.81" title="0.000">a</span><span style="background-color: hsl(120, 100.00%, 81.37%); opacity: 0.87" title="0.000">n</span>
+            <span style="background-color: hsl(120, 100.00%, 98.83%); opacity: 0.80" title="0.000">f</span><span style="background-color: hsl(120, 100.00%, 88.87%); opacity: 0.83" title="0.000">i</span><span style="opacity: 0.80">r</span><span style="background-color: hsl(120, 100.00%, 92.81%); opacity: 0.82" title="0.000">s</span><span style="background-color: hsl(120, 100.00%, 98.17%); opacity: 0.80" title="0.000">t</span><span style="background-color: hsl(120, 100.00%, 95.75%); opacity: 0.81" title="0.000"> </span><span style="background-color: hsl(120, 100.00%, 95.97%); opacity: 0.81" title="0.000">o</span><span style="background-color: hsl(120, 100.00%, 98.83%); opacity: 0.80" title="0.000">f</span><span style="background-color: hsl(120, 100.00%, 95.75%); opacity: 0.81" title="0.000"> </span><span style="background-color: hsl(120, 100.00%, 96.05%); opacity: 0.81" title="0.000">a</span><span style="background-color: hsl(120, 100.00%, 92.15%); opacity: 0.82" title="0.000">ll</span><span style="background-color: hsl(120, 100.00%, 95.75%); opacity: 0.81" title="0.000"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.001">I</span><span style="background-color: hsl(120, 100.00%, 95.75%); opacity: 0.81" title="0.000"> </span><span style="background-color: hsl(120, 100.00%, 92.81%); opacity: 0.82" title="0.000">s</span><span style="background-color: hsl(120, 100.00%, 95.00%); opacity: 0.81" title="0.000">h</span><span style="background-color: hsl(120, 100.00%, 95.97%); opacity: 0.81" title="0.000">o</span><span style="background-color: hsl(120, 100.00%, 74.92%); opacity: 0.90" title="0.000">u</span><span style="background-color: hsl(120, 100.00%, 92.15%); opacity: 0.82" title="0.000">l</span><span style="background-color: hsl(120, 100.00%, 93.76%); opacity: 0.81" title="0.000">d</span><span style="background-color: hsl(120, 100.00%, 95.75%); opacity: 0.81" title="0.000"> </span><span style="background-color: hsl(120, 100.00%, 91.25%); opacity: 0.82" title="0.000">n</span><span style="background-color: hsl(120, 100.00%, 95.97%); opacity: 0.81" title="0.000">o</span><span style="background-color: hsl(120, 100.00%, 98.17%); opacity: 0.80" title="0.000">t</span><span style="background-color: hsl(120, 100.00%, 95.75%); opacity: 0.81" title="0.000"> </span><span style="background-color: hsl(120, 100.00%, 79.83%); opacity: 0.88" title="0.000">b</span><span style="background-color: hsl(120, 100.00%, 97.46%); opacity: 0.80" title="0.000">e</span><span style="background-color: hsl(120, 100.00%, 95.75%); opacity: 0.81" title="0.000"> </span><span style="background-color: hsl(120, 100.00%, 87.16%); opacity: 0.84" title="0.000">c</span><span style="background-color: hsl(120, 100.00%, 95.00%); opacity: 0.81" title="0.000">h</span><span style="background-color: hsl(120, 100.00%, 96.05%); opacity: 0.81" title="0.000">a</span><span style="opacity: 0.80">rg</span><span style="background-color: hsl(120, 100.00%, 97.46%); opacity: 0.80" title="0.000">e</span><span style="background-color: hsl(120, 100.00%, 93.76%); opacity: 0.81" title="0.000">d</span><span style="background-color: hsl(120, 100.00%, 95.75%); opacity: 0.81" title="0.000"> </span><span style="background-color: hsl(120, 100.00%, 96.05%); opacity: 0.81" title="0.000">a</span><span style="background-color: hsl(120, 100.00%, 91.25%); opacity: 0.82" title="0.000">n</span><span style="background-color: hsl(120, 100.00%, 93.76%); opacity: 0.81" title="0.000">d</span><span style="background-color: hsl(120, 100.00%, 95.75%); opacity: 0.81" title="0.000"> </span><span style="background-color: hsl(120, 100.00%, 93.76%); opacity: 0.81" title="0.000">d</span><span style="background-color: hsl(120, 100.00%, 97.46%); opacity: 0.80" title="0.000">e</span><span style="background-color: hsl(120, 100.00%, 79.83%); opacity: 0.88" title="0.000">b</span><span style="background-color: hsl(120, 100.00%, 98.17%); opacity: 0.80" title="0.000">t</span><span style="background-color: hsl(120, 100.00%, 97.46%); opacity: 0.80" title="0.000">e</span><span style="background-color: hsl(120, 100.00%, 93.76%); opacity: 0.81" title="0.000">d</span><span style="background-color: hsl(120, 100.00%, 95.75%); opacity: 0.81" title="0.000"> </span><span style="background-color: hsl(120, 100.00%, 98.83%); opacity: 0.80" title="0.000">f</span><span style="background-color: hsl(120, 100.00%, 95.97%); opacity: 0.81" title="0.000">o</span><span style="opacity: 0.80">r</span><span style="background-color: hsl(120, 100.00%, 95.75%); opacity: 0.81" title="0.000"> </span><span style="background-color: hsl(120, 100.00%, 98.17%); opacity: 0.80" title="0.000">t</span><span style="background-color: hsl(120, 100.00%, 95.00%); opacity: 0.81" title="0.000">h</span><span style="background-color: hsl(120, 100.00%, 97.46%); opacity: 0.80" title="0.000">e</span><span style="background-color: hsl(120, 100.00%, 95.75%); opacity: 0.81" title="0.000"> </span><span style="opacity: 0.80">pr</span><span style="background-color: hsl(120, 100.00%, 88.87%); opacity: 0.83" title="0.000">i</span><span style="background-color: hsl(120, 100.00%, 67.58%); opacity: 0.95" title="0.001">v</span><span style="background-color: hsl(120, 100.00%, 96.05%); opacity: 0.81" title="0.000">a</span><span style="background-color: hsl(120, 100.00%, 98.17%); opacity: 0.80" title="0.000">t</span><span style="background-color: hsl(120, 100.00%, 97.46%); opacity: 0.80" title="0.000">e</span><span style="background-color: hsl(120, 100.00%, 95.75%); opacity: 0.81" title="0.000"> </span><span style="background-color: hsl(120, 100.00%, 87.16%); opacity: 0.84" title="0.000">c</span><span style="background-color: hsl(120, 100.00%, 96.05%); opacity: 0.81" title="0.000">a</span><span style="opacity: 0.80">r</span><span style="background-color: hsl(120, 100.00%, 95.75%); opacity: 0.81" title="0.000"> </span><span style="background-color: hsl(120, 100.00%, 92.15%); opacity: 0.82" title="0.000">l</span><span style="background-color: hsl(120, 100.00%, 95.97%); opacity: 0.81" title="0.000">o</span><span style="background-color: hsl(120, 100.00%, 96.05%); opacity: 0.81" title="0.000">a</span><span style="background-color: hsl(120, 100.00%, 91.25%); opacity: 0.82" title="0.000">n</span>
         </p>
     
     
@@ -1992,270 +1854,1082 @@ Choosing a classification target to focus on
 
 
 
+.. parsed-literal::
 
-Sensible?
+    consumer loan
 
-How it works - ``explain_prediction`` and ``format_as_html``.
+
+
+.. raw:: html
+
+    
+        <style>
+        table.eli5-weights tr:hover {
+            filter: brightness(85%);
+        }
+    </style>
+    
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+            
+    
+        
+    
+            
+    
+            
+    
+    
+        <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
+            <span style="background-color: hsl(120, 100.00%, 92.41%); opacity: 0.82" title="0.000">f</span><span style="opacity: 0.80">i</span><span style="background-color: hsl(120, 100.00%, 90.19%); opacity: 0.83" title="0.000">r</span><span style="opacity: 0.80">st o</span><span style="background-color: hsl(120, 100.00%, 92.41%); opacity: 0.82" title="0.000">f</span><span style="opacity: 0.80"> all I should not be cha</span><span style="background-color: hsl(120, 100.00%, 90.19%); opacity: 0.83" title="0.000">r</span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.000">g</span><span style="opacity: 0.80">ed and debted </span><span style="background-color: hsl(120, 100.00%, 92.41%); opacity: 0.82" title="0.000">f</span><span style="opacity: 0.80">o</span><span style="background-color: hsl(120, 100.00%, 90.19%); opacity: 0.83" title="0.000">r</span><span style="opacity: 0.80"> the p</span><span style="background-color: hsl(120, 100.00%, 90.19%); opacity: 0.83" title="0.000">r</span><span style="opacity: 0.80">ivate ca</span><span style="background-color: hsl(120, 100.00%, 90.19%); opacity: 0.83" title="0.000">r</span><span style="opacity: 0.80"> loan</span>
+        </p>
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+    
+
+
+
+Sensible at least a little bit?
+
+Note that we can use the IPython ``display()`` call to render HTML if it
+is not the last value in a call.
+
+Choosing a hidden layer to do Grad-CAM on with ``layer``
+--------------------------------------------------------
+
+Grad-CAM requires a hidden layer to do its calculations on and produce a
+heatmap. This is controlled by the ``layer`` argument. We can pass the
+layer (as an int index, string name, or a keras Layer instance)
+explicitly, or let ELI5 attempt to find a good layer for us
+automatically.
+
+.. code:: ipython3
+
+    from keras.layers import (  # some of the layers we may want to check
+        Embedding,
+        Conv1D,
+        MaxPool1D,
+        AveragePooling1D,
+        GlobalAveragePooling1D,
+        Dense,
+    )
+
+.. code:: ipython3
+
+    desired = (Embedding, Conv1D, MaxPool1D, AveragePooling1D, GlobalAveragePooling1D, Dense)
+    
+    for layer in multicls_model.layers:
+        print(layer.name, layer.output_shape)
+        if isinstance(layer, desired):
+            html = eli5.show_prediction(multicls_model, complaint, tokens=complaint_t, layer=layer,
+                                        pad_value='<PAD>', padding='post')
+            display(html)  # if using a loop we also need a display call
+
+
+.. parsed-literal::
+
+    embedding_1 (None, 3193, 8)
+
+
+
+.. raw:: html
+
+    
+        <style>
+        table.eli5-weights tr:hover {
+            filter: brightness(85%);
+        }
+    </style>
+    
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+            
+    
+        
+    
+            
+    
+            
+    
+    
+        <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
+            <span style="background-color: hsl(120, 100.00%, 92.41%); opacity: 0.82" title="0.000">f</span><span style="opacity: 0.80">i</span><span style="background-color: hsl(120, 100.00%, 90.19%); opacity: 0.83" title="0.000">r</span><span style="opacity: 0.80">st o</span><span style="background-color: hsl(120, 100.00%, 92.41%); opacity: 0.82" title="0.000">f</span><span style="opacity: 0.80"> all I should not be cha</span><span style="background-color: hsl(120, 100.00%, 90.19%); opacity: 0.83" title="0.000">r</span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.000">g</span><span style="opacity: 0.80">ed and debted </span><span style="background-color: hsl(120, 100.00%, 92.41%); opacity: 0.82" title="0.000">f</span><span style="opacity: 0.80">o</span><span style="background-color: hsl(120, 100.00%, 90.19%); opacity: 0.83" title="0.000">r</span><span style="opacity: 0.80"> the p</span><span style="background-color: hsl(120, 100.00%, 90.19%); opacity: 0.83" title="0.000">r</span><span style="opacity: 0.80">ivate ca</span><span style="background-color: hsl(120, 100.00%, 90.19%); opacity: 0.83" title="0.000">r</span><span style="opacity: 0.80"> loan</span>
+        </p>
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+    
+
+
+
+.. parsed-literal::
+
+    conv1d_1 (None, 3179, 128)
+
+
+
+.. raw:: html
+
+    
+        <style>
+        table.eli5-weights tr:hover {
+            filter: brightness(85%);
+        }
+    </style>
+    
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+            
+    
+        
+    
+            
+    
+            
+    
+    
+        <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
+            <span style="background-color: hsl(120, 100.00%, 99.15%); opacity: 0.80" title="0.000">f</span><span style="background-color: hsl(120, 100.00%, 92.35%); opacity: 0.82" title="0.000">i</span><span style="background-color: hsl(120, 100.00%, 95.21%); opacity: 0.81" title="0.000">r</span><span style="background-color: hsl(120, 100.00%, 95.87%); opacity: 0.81" title="0.000">s</span><span style="background-color: hsl(120, 100.00%, 95.70%); opacity: 0.81" title="0.000">t</span><span style="background-color: hsl(120, 100.00%, 94.73%); opacity: 0.81" title="0.000"> </span><span style="background-color: hsl(120, 100.00%, 99.14%); opacity: 0.80" title="0.000">o</span><span style="background-color: hsl(120, 100.00%, 76.63%); opacity: 0.89" title="0.000">f</span><span style="background-color: hsl(120, 100.00%, 97.96%); opacity: 0.80" title="0.000"> </span><span style="background-color: hsl(120, 100.00%, 98.97%); opacity: 0.80" title="0.000">a</span><span style="background-color: hsl(120, 100.00%, 99.86%); opacity: 0.80" title="0.000">l</span><span style="background-color: hsl(120, 100.00%, 94.20%); opacity: 0.81" title="0.000">l</span><span style="background-color: hsl(120, 100.00%, 99.68%); opacity: 0.80" title="0.000"> </span><span style="background-color: hsl(120, 100.00%, 78.17%); opacity: 0.88" title="0.000">I</span><span style="background-color: hsl(120, 100.00%, 99.29%); opacity: 0.80" title="0.000"> </span><span style="background-color: hsl(120, 100.00%, 83.65%); opacity: 0.86" title="0.000">s</span><span style="background-color: hsl(120, 100.00%, 97.99%); opacity: 0.80" title="0.000">h</span><span style="background-color: hsl(120, 100.00%, 89.89%); opacity: 0.83" title="0.000">o</span><span style="background-color: hsl(120, 100.00%, 89.39%); opacity: 0.83" title="0.000">u</span><span style="background-color: hsl(120, 100.00%, 99.48%); opacity: 0.80" title="0.000">l</span><span style="background-color: hsl(120, 100.00%, 78.52%); opacity: 0.88" title="0.000">d</span><span style="background-color: hsl(120, 100.00%, 97.90%); opacity: 0.80" title="0.000"> </span><span style="background-color: hsl(120, 100.00%, 96.03%); opacity: 0.81" title="0.000">n</span><span style="background-color: hsl(120, 100.00%, 99.40%); opacity: 0.80" title="0.000">o</span><span style="opacity: 0.80">t </span><span style="background-color: hsl(120, 100.00%, 92.34%); opacity: 0.82" title="0.000">b</span><span style="background-color: hsl(120, 100.00%, 92.37%); opacity: 0.82" title="0.000">e</span><span style="background-color: hsl(120, 100.00%, 98.97%); opacity: 0.80" title="0.000"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.000">c</span><span style="background-color: hsl(120, 100.00%, 75.04%); opacity: 0.90" title="0.000">h</span><span style="background-color: hsl(120, 100.00%, 96.40%); opacity: 0.81" title="0.000">a</span><span style="background-color: hsl(120, 100.00%, 98.89%); opacity: 0.80" title="0.000">r</span><span style="background-color: hsl(120, 100.00%, 99.01%); opacity: 0.80" title="0.000">g</span><span style="opacity: 0.80">ed and</span><span style="background-color: hsl(120, 100.00%, 98.40%); opacity: 0.80" title="0.000"> </span><span style="background-color: hsl(120, 100.00%, 98.87%); opacity: 0.80" title="0.000">d</span><span style="opacity: 0.80">e</span><span style="background-color: hsl(120, 100.00%, 85.30%); opacity: 0.85" title="0.000">b</span><span style="background-color: hsl(120, 100.00%, 84.95%); opacity: 0.85" title="0.000">t</span><span style="background-color: hsl(120, 100.00%, 91.70%); opacity: 0.82" title="0.000">e</span><span style="background-color: hsl(120, 100.00%, 93.96%); opacity: 0.81" title="0.000">d</span><span style="background-color: hsl(120, 100.00%, 95.44%); opacity: 0.81" title="0.000"> </span><span style="background-color: hsl(120, 100.00%, 89.04%); opacity: 0.83" title="0.000">f</span><span style="background-color: hsl(120, 100.00%, 84.28%); opacity: 0.85" title="0.000">o</span><span style="background-color: hsl(120, 100.00%, 89.84%); opacity: 0.83" title="0.000">r</span><span style="background-color: hsl(120, 100.00%, 94.06%); opacity: 0.81" title="0.000"> </span><span style="background-color: hsl(120, 100.00%, 86.69%); opacity: 0.84" title="0.000">t</span><span style="background-color: hsl(120, 100.00%, 85.63%); opacity: 0.85" title="0.000">h</span><span style="background-color: hsl(120, 100.00%, 97.12%); opacity: 0.80" title="0.000">e</span><span style="background-color: hsl(120, 100.00%, 96.02%); opacity: 0.81" title="0.000"> </span><span style="background-color: hsl(120, 100.00%, 87.55%); opacity: 0.84" title="0.000">p</span><span style="background-color: hsl(120, 100.00%, 87.60%); opacity: 0.84" title="0.000">r</span><span style="background-color: hsl(120, 100.00%, 89.01%); opacity: 0.83" title="0.000">i</span><span style="background-color: hsl(120, 100.00%, 91.64%); opacity: 0.82" title="0.000">v</span><span style="background-color: hsl(120, 100.00%, 89.93%); opacity: 0.83" title="0.000">a</span><span style="background-color: hsl(120, 100.00%, 70.92%); opacity: 0.93" title="0.000">t</span><span style="background-color: hsl(120, 100.00%, 87.10%); opacity: 0.84" title="0.000">e</span><span style="background-color: hsl(120, 100.00%, 87.31%); opacity: 0.84" title="0.000"> </span><span style="background-color: hsl(120, 100.00%, 61.29%); opacity: 0.99" title="0.000">c</span><span style="background-color: hsl(120, 100.00%, 80.05%); opacity: 0.87" title="0.000">a</span><span style="background-color: hsl(120, 100.00%, 80.09%); opacity: 0.87" title="0.000">r</span><span style="background-color: hsl(120, 100.00%, 92.09%); opacity: 0.82" title="0.000"> </span><span style="background-color: hsl(120, 100.00%, 80.18%); opacity: 0.87" title="0.000">l</span><span style="background-color: hsl(120, 100.00%, 84.08%); opacity: 0.85" title="0.000">o</span><span style="background-color: hsl(120, 100.00%, 90.96%); opacity: 0.82" title="0.000">a</span><span style="background-color: hsl(120, 100.00%, 92.88%); opacity: 0.82" title="0.000">n</span>
+        </p>
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+    
+
+
+
+.. parsed-literal::
+
+    dropout_1 (None, 3179, 128)
+    max_pooling1d_1 (None, 1589, 128)
+
+
+
+.. raw:: html
+
+    
+        <style>
+        table.eli5-weights tr:hover {
+            filter: brightness(85%);
+        }
+    </style>
+    
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+            
+    
+        
+    
+            
+    
+            
+    
+    
+        <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
+            <span style="background-color: hsl(120, 100.00%, 96.24%); opacity: 0.81" title="0.000">f</span><span style="background-color: hsl(120, 100.00%, 94.43%); opacity: 0.81" title="0.000">i</span><span style="background-color: hsl(120, 100.00%, 96.78%); opacity: 0.81" title="0.000">r</span><span style="background-color: hsl(120, 100.00%, 88.98%); opacity: 0.83" title="0.000">s</span><span style="background-color: hsl(120, 100.00%, 92.03%); opacity: 0.82" title="0.000">t</span><span style="background-color: hsl(120, 100.00%, 95.68%); opacity: 0.81" title="0.000"> </span><span style="background-color: hsl(120, 100.00%, 90.27%); opacity: 0.83" title="0.000">o</span><span style="background-color: hsl(120, 100.00%, 90.42%); opacity: 0.83" title="0.000">f</span><span style="background-color: hsl(120, 100.00%, 98.70%); opacity: 0.80" title="0.000"> </span><span style="background-color: hsl(120, 100.00%, 97.58%); opacity: 0.80" title="0.000">a</span><span style="background-color: hsl(120, 100.00%, 96.44%); opacity: 0.81" title="0.000">l</span><span style="background-color: hsl(120, 100.00%, 95.91%); opacity: 0.81" title="0.000">l</span><span style="background-color: hsl(120, 100.00%, 98.09%); opacity: 0.80" title="0.000"> </span><span style="background-color: hsl(120, 100.00%, 85.11%); opacity: 0.85" title="0.000">I</span><span style="background-color: hsl(120, 100.00%, 97.24%); opacity: 0.80" title="0.000"> </span><span style="background-color: hsl(120, 100.00%, 88.96%); opacity: 0.83" title="0.000">s</span><span style="background-color: hsl(120, 100.00%, 91.59%); opacity: 0.82" title="0.000">h</span><span style="background-color: hsl(120, 100.00%, 96.16%); opacity: 0.81" title="0.000">o</span><span style="background-color: hsl(120, 100.00%, 97.92%); opacity: 0.80" title="0.000">u</span><span style="background-color: hsl(120, 100.00%, 91.31%); opacity: 0.82" title="0.000">l</span><span style="background-color: hsl(120, 100.00%, 87.50%); opacity: 0.84" title="0.000">d</span><span style="background-color: hsl(120, 100.00%, 95.84%); opacity: 0.81" title="0.000"> </span><span style="background-color: hsl(120, 100.00%, 97.56%); opacity: 0.80" title="0.000">n</span><span style="opacity: 0.80">ot</span><span style="background-color: hsl(120, 100.00%, 97.63%); opacity: 0.80" title="0.000"> </span><span style="background-color: hsl(120, 100.00%, 84.27%); opacity: 0.85" title="0.000">b</span><span style="background-color: hsl(120, 100.00%, 92.89%); opacity: 0.82" title="0.000">e</span><span style="background-color: hsl(120, 100.00%, 96.42%); opacity: 0.81" title="0.000"> </span><span style="background-color: hsl(120, 100.00%, 84.49%); opacity: 0.85" title="0.000">c</span><span style="background-color: hsl(120, 100.00%, 86.88%); opacity: 0.84" title="0.000">h</span><span style="background-color: hsl(120, 100.00%, 94.41%); opacity: 0.81" title="0.000">a</span><span style="background-color: hsl(120, 100.00%, 98.41%); opacity: 0.80" title="0.000">r</span><span style="opacity: 0.80">ged and de</span><span style="background-color: hsl(120, 100.00%, 87.76%); opacity: 0.84" title="0.000">b</span><span style="background-color: hsl(120, 100.00%, 88.57%); opacity: 0.83" title="0.000">t</span><span style="background-color: hsl(120, 100.00%, 90.58%); opacity: 0.83" title="0.000">e</span><span style="background-color: hsl(120, 100.00%, 91.68%); opacity: 0.82" title="0.000">d</span><span style="background-color: hsl(120, 100.00%, 95.19%); opacity: 0.81" title="0.000"> </span><span style="background-color: hsl(120, 100.00%, 82.23%); opacity: 0.86" title="0.000">f</span><span style="background-color: hsl(120, 100.00%, 87.80%); opacity: 0.84" title="0.000">o</span><span style="background-color: hsl(120, 100.00%, 88.91%); opacity: 0.83" title="0.000">r</span><span style="background-color: hsl(120, 100.00%, 94.54%); opacity: 0.81" title="0.000"> </span><span style="background-color: hsl(120, 100.00%, 88.22%); opacity: 0.83" title="0.000">t</span><span style="background-color: hsl(120, 100.00%, 87.63%); opacity: 0.84" title="0.000">h</span><span style="background-color: hsl(120, 100.00%, 97.41%); opacity: 0.80" title="0.000">e</span><span style="background-color: hsl(120, 100.00%, 97.85%); opacity: 0.80" title="0.000"> </span><span style="background-color: hsl(120, 100.00%, 75.03%); opacity: 0.90" title="0.000">p</span><span style="background-color: hsl(120, 100.00%, 93.40%); opacity: 0.82" title="0.000">r</span><span style="background-color: hsl(120, 100.00%, 95.57%); opacity: 0.81" title="0.000">i</span><span style="background-color: hsl(120, 100.00%, 62.73%); opacity: 0.98" title="0.000">v</span><span style="background-color: hsl(120, 100.00%, 80.30%); opacity: 0.87" title="0.000">a</span><span style="background-color: hsl(120, 100.00%, 75.41%); opacity: 0.90" title="0.000">t</span><span style="background-color: hsl(120, 100.00%, 79.00%); opacity: 0.88" title="0.000">e</span><span style="background-color: hsl(120, 100.00%, 89.01%); opacity: 0.83" title="0.000"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.000">c</span><span style="background-color: hsl(120, 100.00%, 82.98%); opacity: 0.86" title="0.000">a</span><span style="background-color: hsl(120, 100.00%, 82.53%); opacity: 0.86" title="0.000">r</span><span style="background-color: hsl(120, 100.00%, 91.92%); opacity: 0.82" title="0.000"> </span><span style="background-color: hsl(120, 100.00%, 80.95%); opacity: 0.87" title="0.000">l</span><span style="background-color: hsl(120, 100.00%, 87.00%); opacity: 0.84" title="0.000">o</span><span style="background-color: hsl(120, 100.00%, 93.56%); opacity: 0.81" title="0.000">a</span><span style="background-color: hsl(120, 100.00%, 93.62%); opacity: 0.81" title="0.000">n</span>
+        </p>
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+    
+
+
+
+.. parsed-literal::
+
+    conv1d_2 (None, 1580, 128)
+
+
+
+.. raw:: html
+
+    
+        <style>
+        table.eli5-weights tr:hover {
+            filter: brightness(85%);
+        }
+    </style>
+    
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+            
+    
+        
+    
+            
+    
+            
+    
+    
+        <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
+            <span style="background-color: hsl(120, 100.00%, 99.20%); opacity: 0.80" title="0.000">f</span><span style="background-color: hsl(120, 100.00%, 97.78%); opacity: 0.80" title="0.001">i</span><span style="background-color: hsl(120, 100.00%, 98.34%); opacity: 0.80" title="0.001">r</span><span style="background-color: hsl(120, 100.00%, 96.43%); opacity: 0.81" title="0.002">s</span><span style="background-color: hsl(120, 100.00%, 97.92%); opacity: 0.80" title="0.001">t</span><span style="background-color: hsl(120, 100.00%, 99.24%); opacity: 0.80" title="0.000"> </span><span style="background-color: hsl(120, 100.00%, 99.07%); opacity: 0.80" title="0.000">o</span><span style="background-color: hsl(120, 100.00%, 99.18%); opacity: 0.80" title="0.000">f</span><span style="background-color: hsl(120, 100.00%, 99.95%); opacity: 0.80" title="0.000"> </span><span style="background-color: hsl(120, 100.00%, 99.17%); opacity: 0.80" title="0.000">a</span><span style="background-color: hsl(120, 100.00%, 98.16%); opacity: 0.80" title="0.001">l</span><span style="background-color: hsl(120, 100.00%, 98.09%); opacity: 0.80" title="0.001">l</span><span style="background-color: hsl(120, 100.00%, 99.20%); opacity: 0.80" title="0.000"> </span><span style="background-color: hsl(120, 100.00%, 95.86%); opacity: 0.81" title="0.003">I</span><span style="background-color: hsl(120, 100.00%, 99.53%); opacity: 0.80" title="0.000"> </span><span style="background-color: hsl(120, 100.00%, 98.15%); opacity: 0.80" title="0.001">s</span><span style="background-color: hsl(120, 100.00%, 98.49%); opacity: 0.80" title="0.001">h</span><span style="background-color: hsl(120, 100.00%, 99.26%); opacity: 0.80" title="0.000">o</span><span style="background-color: hsl(120, 100.00%, 99.36%); opacity: 0.80" title="0.000">u</span><span style="background-color: hsl(120, 100.00%, 99.81%); opacity: 0.80" title="0.000">l</span><span style="background-color: hsl(120, 100.00%, 99.71%); opacity: 0.80" title="0.000">d</span><span style="background-color: hsl(120, 100.00%, 99.89%); opacity: 0.80" title="0.000"> </span><span style="background-color: hsl(120, 100.00%, 99.90%); opacity: 0.80" title="0.000">n</span><span style="background-color: hsl(120, 100.00%, 99.84%); opacity: 0.80" title="0.000">o</span><span style="background-color: hsl(120, 100.00%, 99.72%); opacity: 0.80" title="0.000">t</span><span style="background-color: hsl(120, 100.00%, 99.89%); opacity: 0.80" title="0.000"> </span><span style="background-color: hsl(120, 100.00%, 99.85%); opacity: 0.80" title="0.000">b</span><span style="opacity: 0.80">e charged </span><span style="background-color: hsl(120, 100.00%, 98.33%); opacity: 0.80" title="0.001">a</span><span style="background-color: hsl(120, 100.00%, 94.66%); opacity: 0.81" title="0.004">n</span><span style="background-color: hsl(120, 100.00%, 95.34%); opacity: 0.81" title="0.003">d</span><span style="background-color: hsl(120, 100.00%, 97.50%); opacity: 0.80" title="0.001"> </span><span style="background-color: hsl(120, 100.00%, 93.88%); opacity: 0.81" title="0.005">d</span><span style="background-color: hsl(120, 100.00%, 93.47%); opacity: 0.82" title="0.005">e</span><span style="background-color: hsl(120, 100.00%, 83.96%); opacity: 0.85" title="0.018">b</span><span style="background-color: hsl(120, 100.00%, 90.73%); opacity: 0.82" title="0.008">t</span><span style="background-color: hsl(120, 100.00%, 91.16%); opacity: 0.82" title="0.008">e</span><span style="background-color: hsl(120, 100.00%, 89.25%); opacity: 0.83" title="0.010">d</span><span style="background-color: hsl(120, 100.00%, 94.47%); opacity: 0.81" title="0.004"> </span><span style="background-color: hsl(120, 100.00%, 83.02%); opacity: 0.86" title="0.020">f</span><span style="background-color: hsl(120, 100.00%, 87.69%); opacity: 0.84" title="0.012">o</span><span style="background-color: hsl(120, 100.00%, 87.35%); opacity: 0.84" title="0.013">r</span><span style="background-color: hsl(120, 100.00%, 93.68%); opacity: 0.81" title="0.005"> </span><span style="background-color: hsl(120, 100.00%, 86.69%); opacity: 0.84" title="0.014">t</span><span style="background-color: hsl(120, 100.00%, 80.93%); opacity: 0.87" title="0.023">h</span><span style="background-color: hsl(120, 100.00%, 88.58%); opacity: 0.83" title="0.011">e</span><span style="background-color: hsl(120, 100.00%, 93.76%); opacity: 0.81" title="0.005"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.067">p</span><span style="background-color: hsl(120, 100.00%, 87.15%); opacity: 0.84" title="0.013">r</span><span style="background-color: hsl(120, 100.00%, 76.60%); opacity: 0.89" title="0.031">i</span><span style="background-color: hsl(120, 100.00%, 62.63%); opacity: 0.98" title="0.061">v</span><span style="background-color: hsl(120, 100.00%, 89.05%); opacity: 0.83" title="0.011">a</span><span style="background-color: hsl(120, 100.00%, 87.79%); opacity: 0.84" title="0.012">t</span><span style="background-color: hsl(120, 100.00%, 90.40%); opacity: 0.83" title="0.009">e</span><span style="background-color: hsl(120, 100.00%, 95.41%); opacity: 0.81" title="0.003"> </span><span style="background-color: hsl(120, 100.00%, 85.47%); opacity: 0.85" title="0.016">c</span><span style="background-color: hsl(120, 100.00%, 94.90%); opacity: 0.81" title="0.004">a</span><span style="background-color: hsl(120, 100.00%, 96.04%); opacity: 0.81" title="0.002">r</span><span style="background-color: hsl(120, 100.00%, 98.90%); opacity: 0.80" title="0.000"> </span><span style="background-color: hsl(120, 100.00%, 97.88%); opacity: 0.80" title="0.001">l</span><span style="background-color: hsl(120, 100.00%, 98.61%); opacity: 0.80" title="0.001">o</span><span style="background-color: hsl(120, 100.00%, 99.02%); opacity: 0.80" title="0.000">a</span><span style="background-color: hsl(120, 100.00%, 98.73%); opacity: 0.80" title="0.000">n</span>
+        </p>
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+    
+
+
+
+.. parsed-literal::
+
+    dropout_2 (None, 1580, 128)
+    average_pooling1d_1 (None, 790, 128)
+
+
+
+.. raw:: html
+
+    
+        <style>
+        table.eli5-weights tr:hover {
+            filter: brightness(85%);
+        }
+    </style>
+    
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+            
+    
+        
+    
+            
+    
+            
+    
+    
+        <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
+            <span style="background-color: hsl(120, 100.00%, 98.27%); opacity: 0.80" title="0.001">f</span><span style="background-color: hsl(120, 100.00%, 97.52%); opacity: 0.80" title="0.002">i</span><span style="background-color: hsl(120, 100.00%, 98.60%); opacity: 0.80" title="0.001">r</span><span style="background-color: hsl(120, 100.00%, 97.17%); opacity: 0.80" title="0.002">s</span><span style="background-color: hsl(120, 100.00%, 98.42%); opacity: 0.80" title="0.001">t</span><span style="background-color: hsl(120, 100.00%, 99.29%); opacity: 0.80" title="0.000"> </span><span style="background-color: hsl(120, 100.00%, 98.68%); opacity: 0.80" title="0.001">o</span><span style="background-color: hsl(120, 100.00%, 98.31%); opacity: 0.80" title="0.001">f</span><span style="background-color: hsl(120, 100.00%, 99.50%); opacity: 0.80" title="0.000"> </span><span style="background-color: hsl(120, 100.00%, 99.04%); opacity: 0.80" title="0.000">a</span><span style="background-color: hsl(120, 100.00%, 98.64%); opacity: 0.80" title="0.001">l</span><span style="background-color: hsl(120, 100.00%, 98.55%); opacity: 0.80" title="0.001">l</span><span style="background-color: hsl(120, 100.00%, 99.36%); opacity: 0.80" title="0.000"> </span><span style="background-color: hsl(120, 100.00%, 96.33%); opacity: 0.81" title="0.003">I</span><span style="background-color: hsl(120, 100.00%, 99.50%); opacity: 0.80" title="0.000"> </span><span style="background-color: hsl(120, 100.00%, 98.40%); opacity: 0.80" title="0.001">s</span><span style="background-color: hsl(120, 100.00%, 99.09%); opacity: 0.80" title="0.000">h</span><span style="background-color: hsl(120, 100.00%, 99.49%); opacity: 0.80" title="0.000">o</span><span style="background-color: hsl(120, 100.00%, 98.78%); opacity: 0.80" title="0.001">u</span><span style="background-color: hsl(120, 100.00%, 99.70%); opacity: 0.80" title="0.000">l</span><span style="background-color: hsl(120, 100.00%, 99.92%); opacity: 0.80" title="0.000">d</span><span style="opacity: 0.80"> not be char</span><span style="background-color: hsl(120, 100.00%, 97.68%); opacity: 0.80" title="0.002">g</span><span style="background-color: hsl(120, 100.00%, 98.71%); opacity: 0.80" title="0.001">e</span><span style="background-color: hsl(120, 100.00%, 97.96%); opacity: 0.80" title="0.001">d</span><span style="background-color: hsl(120, 100.00%, 98.76%); opacity: 0.80" title="0.001"> </span><span style="background-color: hsl(120, 100.00%, 96.94%); opacity: 0.81" title="0.002">a</span><span style="background-color: hsl(120, 100.00%, 93.46%); opacity: 0.82" title="0.007">n</span><span style="background-color: hsl(120, 100.00%, 94.43%); opacity: 0.81" title="0.005">d</span><span style="background-color: hsl(120, 100.00%, 96.84%); opacity: 0.81" title="0.002"> </span><span style="background-color: hsl(120, 100.00%, 92.55%); opacity: 0.82" title="0.008">d</span><span style="background-color: hsl(120, 100.00%, 92.59%); opacity: 0.82" title="0.008">e</span><span style="background-color: hsl(120, 100.00%, 82.25%); opacity: 0.86" title="0.029">b</span><span style="background-color: hsl(120, 100.00%, 89.76%); opacity: 0.83" title="0.013">t</span><span style="background-color: hsl(120, 100.00%, 90.37%); opacity: 0.83" title="0.012">e</span><span style="background-color: hsl(120, 100.00%, 88.51%); opacity: 0.83" title="0.015">d</span><span style="background-color: hsl(120, 100.00%, 94.15%); opacity: 0.81" title="0.006"> </span><span style="background-color: hsl(120, 100.00%, 82.06%); opacity: 0.86" title="0.029">f</span><span style="background-color: hsl(120, 100.00%, 87.09%); opacity: 0.84" title="0.018">o</span><span style="background-color: hsl(120, 100.00%, 86.93%); opacity: 0.84" title="0.018">r</span><span style="background-color: hsl(120, 100.00%, 93.56%); opacity: 0.81" title="0.007"> </span><span style="background-color: hsl(120, 100.00%, 86.61%); opacity: 0.84" title="0.019">t</span><span style="background-color: hsl(120, 100.00%, 80.80%); opacity: 0.87" title="0.032">h</span><span style="background-color: hsl(120, 100.00%, 88.32%); opacity: 0.83" title="0.016">e</span><span style="background-color: hsl(120, 100.00%, 93.62%); opacity: 0.81" title="0.007"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.091">p</span><span style="background-color: hsl(120, 100.00%, 87.24%); opacity: 0.84" title="0.018">r</span><span style="background-color: hsl(120, 100.00%, 76.32%); opacity: 0.89" title="0.043">i</span><span style="background-color: hsl(120, 100.00%, 62.44%); opacity: 0.98" title="0.083">v</span><span style="background-color: hsl(120, 100.00%, 89.55%); opacity: 0.83" title="0.013">a</span><span style="background-color: hsl(120, 100.00%, 88.80%); opacity: 0.83" title="0.015">t</span><span style="background-color: hsl(120, 100.00%, 91.50%); opacity: 0.82" title="0.010">e</span><span style="background-color: hsl(120, 100.00%, 96.11%); opacity: 0.81" title="0.003"> </span><span style="background-color: hsl(120, 100.00%, 88.30%); opacity: 0.83" title="0.016">c</span><span style="background-color: hsl(120, 100.00%, 96.06%); opacity: 0.81" title="0.003">a</span><span style="background-color: hsl(120, 100.00%, 96.25%); opacity: 0.81" title="0.003">r</span><span style="background-color: hsl(120, 100.00%, 98.56%); opacity: 0.80" title="0.001"> </span><span style="background-color: hsl(120, 100.00%, 97.60%); opacity: 0.80" title="0.002">l</span><span style="background-color: hsl(120, 100.00%, 98.80%); opacity: 0.80" title="0.001">o</span><span style="background-color: hsl(120, 100.00%, 99.01%); opacity: 0.80" title="0.000">a</span><span style="background-color: hsl(120, 100.00%, 98.50%); opacity: 0.80" title="0.001">n</span>
+        </p>
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+    
+
+
+
+.. parsed-literal::
+
+    conv1d_3 (None, 786, 128)
+
+
+
+.. raw:: html
+
+    
+        <style>
+        table.eli5-weights tr:hover {
+            filter: brightness(85%);
+        }
+    </style>
+    
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+            
+    
+        
+    
+            
+    
+            
+    
+    
+        <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
+            <span style="opacity: 0.80">first</span><span style="background-color: hsl(120, 100.00%, 99.84%); opacity: 0.80" title="0.000"> </span><span style="background-color: hsl(120, 100.00%, 99.44%); opacity: 0.80" title="0.000">o</span><span style="background-color: hsl(120, 100.00%, 98.92%); opacity: 0.80" title="0.001">f</span><span style="background-color: hsl(120, 100.00%, 99.55%); opacity: 0.80" title="0.000"> </span><span style="background-color: hsl(120, 100.00%, 99.21%); opacity: 0.80" title="0.001">a</span><span style="background-color: hsl(120, 100.00%, 99.00%); opacity: 0.80" title="0.001">l</span><span style="background-color: hsl(120, 100.00%, 99.06%); opacity: 0.80" title="0.001">l</span><span style="background-color: hsl(120, 100.00%, 99.64%); opacity: 0.80" title="0.000"> </span><span style="background-color: hsl(120, 100.00%, 98.04%); opacity: 0.80" title="0.003">I</span><span style="background-color: hsl(120, 100.00%, 99.76%); opacity: 0.80" title="0.000"> </span><span style="background-color: hsl(120, 100.00%, 99.38%); opacity: 0.80" title="0.001">s</span><span style="background-color: hsl(120, 100.00%, 99.84%); opacity: 0.80" title="0.000">h</span><span style="opacity: 0.80">ould</span><span style="background-color: hsl(120, 100.00%, 99.54%); opacity: 0.80" title="0.000"> </span><span style="background-color: hsl(120, 100.00%, 97.43%); opacity: 0.80" title="0.004">n</span><span style="background-color: hsl(120, 100.00%, 97.50%); opacity: 0.80" title="0.004">o</span><span style="background-color: hsl(120, 100.00%, 96.87%); opacity: 0.81" title="0.005">t</span><span style="background-color: hsl(120, 100.00%, 97.91%); opacity: 0.80" title="0.003"> </span><span style="background-color: hsl(120, 100.00%, 89.21%); opacity: 0.83" title="0.031">b</span><span style="background-color: hsl(120, 100.00%, 93.90%); opacity: 0.81" title="0.014">e</span><span style="background-color: hsl(120, 100.00%, 96.06%); opacity: 0.81" title="0.007"> </span><span style="background-color: hsl(120, 100.00%, 82.45%); opacity: 0.86" title="0.062">c</span><span style="background-color: hsl(120, 100.00%, 85.16%); opacity: 0.85" title="0.049">h</span><span style="background-color: hsl(120, 100.00%, 89.91%); opacity: 0.83" title="0.028">a</span><span style="background-color: hsl(120, 100.00%, 87.49%); opacity: 0.84" title="0.038">r</span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.200">g</span><span style="background-color: hsl(120, 100.00%, 88.73%); opacity: 0.83" title="0.033">e</span><span style="background-color: hsl(120, 100.00%, 87.37%); opacity: 0.84" title="0.039">d</span><span style="background-color: hsl(120, 100.00%, 93.94%); opacity: 0.81" title="0.014"> </span><span style="background-color: hsl(120, 100.00%, 89.26%); opacity: 0.83" title="0.031">a</span><span style="background-color: hsl(120, 100.00%, 83.15%); opacity: 0.86" title="0.058">n</span><span style="background-color: hsl(120, 100.00%, 88.64%); opacity: 0.83" title="0.033">d</span><span style="background-color: hsl(120, 100.00%, 94.68%); opacity: 0.81" title="0.011"> </span><span style="background-color: hsl(120, 100.00%, 89.69%); opacity: 0.83" title="0.029">d</span><span style="background-color: hsl(120, 100.00%, 91.80%); opacity: 0.82" title="0.021">e</span><span style="background-color: hsl(120, 100.00%, 84.29%); opacity: 0.85" title="0.053">b</span><span style="background-color: hsl(120, 100.00%, 92.83%); opacity: 0.82" title="0.017">t</span><span style="background-color: hsl(120, 100.00%, 94.63%); opacity: 0.81" title="0.011">e</span><span style="background-color: hsl(120, 100.00%, 94.72%); opacity: 0.81" title="0.011">d</span><span style="background-color: hsl(120, 100.00%, 97.86%); opacity: 0.80" title="0.003"> </span><span style="background-color: hsl(120, 100.00%, 95.10%); opacity: 0.81" title="0.010">f</span><span style="background-color: hsl(120, 100.00%, 97.52%); opacity: 0.80" title="0.004">o</span><span style="background-color: hsl(120, 100.00%, 97.99%); opacity: 0.80" title="0.003">r</span><span style="background-color: hsl(120, 100.00%, 99.28%); opacity: 0.80" title="0.001"> </span><span style="background-color: hsl(120, 100.00%, 99.13%); opacity: 0.80" title="0.001">t</span><span style="opacity: 0.80">he priva</span><span style="background-color: hsl(120, 100.00%, 99.98%); opacity: 0.80" title="0.000">t</span><span style="background-color: hsl(120, 100.00%, 99.29%); opacity: 0.80" title="0.001">e</span><span style="background-color: hsl(120, 100.00%, 99.36%); opacity: 0.80" title="0.001"> </span><span style="background-color: hsl(120, 100.00%, 96.70%); opacity: 0.81" title="0.006">c</span><span style="background-color: hsl(120, 100.00%, 98.13%); opacity: 0.80" title="0.003">a</span><span style="background-color: hsl(120, 100.00%, 98.01%); opacity: 0.80" title="0.003">r</span><span style="background-color: hsl(120, 100.00%, 99.12%); opacity: 0.80" title="0.001"> </span><span style="background-color: hsl(120, 100.00%, 98.10%); opacity: 0.80" title="0.003">l</span><span style="background-color: hsl(120, 100.00%, 98.57%); opacity: 0.80" title="0.002">o</span><span style="background-color: hsl(120, 100.00%, 98.79%); opacity: 0.80" title="0.001">a</span><span style="background-color: hsl(120, 100.00%, 98.07%); opacity: 0.80" title="0.003">n</span>
+        </p>
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+    
+
+
+
+.. parsed-literal::
+
+    dropout_3 (None, 786, 128)
+    max_pooling1d_2 (None, 393, 128)
+
+
+
+.. raw:: html
+
+    
+        <style>
+        table.eli5-weights tr:hover {
+            filter: brightness(85%);
+        }
+    </style>
+    
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+            
+    
+        
+    
+            
+    
+            
+    
+    
+        <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
+            <span style="opacity: 0.80">first of all I sh</span><span style="background-color: hsl(120, 100.00%, 98.72%); opacity: 0.80" title="0.002">o</span><span style="background-color: hsl(120, 100.00%, 92.69%); opacity: 0.82" title="0.029">u</span><span style="background-color: hsl(120, 100.00%, 96.18%); opacity: 0.81" title="0.012">l</span><span style="background-color: hsl(120, 100.00%, 95.93%); opacity: 0.81" title="0.013">d</span><span style="background-color: hsl(120, 100.00%, 97.66%); opacity: 0.80" title="0.006"> </span><span style="background-color: hsl(120, 100.00%, 92.13%); opacity: 0.82" title="0.032">n</span><span style="background-color: hsl(120, 100.00%, 93.84%); opacity: 0.81" title="0.023">o</span><span style="background-color: hsl(120, 100.00%, 93.21%); opacity: 0.82" title="0.026">t</span><span style="background-color: hsl(120, 100.00%, 96.33%); opacity: 0.81" title="0.011"> </span><span style="background-color: hsl(120, 100.00%, 84.06%); opacity: 0.85" title="0.089">b</span><span style="background-color: hsl(120, 100.00%, 91.90%); opacity: 0.82" title="0.034">e</span><span style="background-color: hsl(120, 100.00%, 95.15%); opacity: 0.81" title="0.016"> </span><span style="background-color: hsl(120, 100.00%, 79.62%); opacity: 0.88" title="0.126">c</span><span style="background-color: hsl(120, 100.00%, 83.61%); opacity: 0.86" title="0.092">h</span><span style="background-color: hsl(120, 100.00%, 89.29%); opacity: 0.83" title="0.050">a</span><span style="background-color: hsl(120, 100.00%, 87.13%); opacity: 0.84" title="0.065">r</span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.330">g</span><span style="background-color: hsl(120, 100.00%, 89.19%); opacity: 0.83" title="0.051">e</span><span style="background-color: hsl(120, 100.00%, 88.43%); opacity: 0.83" title="0.056">d</span><span style="background-color: hsl(120, 100.00%, 94.72%); opacity: 0.81" title="0.018"> </span><span style="background-color: hsl(120, 100.00%, 91.11%); opacity: 0.82" title="0.038">a</span><span style="background-color: hsl(120, 100.00%, 86.66%); opacity: 0.84" title="0.069">n</span><span style="background-color: hsl(120, 100.00%, 91.47%); opacity: 0.82" title="0.036">d</span><span style="background-color: hsl(120, 100.00%, 96.25%); opacity: 0.81" title="0.011"> </span><span style="background-color: hsl(120, 100.00%, 93.07%); opacity: 0.82" title="0.027">d</span><span style="background-color: hsl(120, 100.00%, 94.37%); opacity: 0.81" title="0.020">e</span><span style="background-color: hsl(120, 100.00%, 88.92%); opacity: 0.83" title="0.053">b</span><span style="background-color: hsl(120, 100.00%, 94.75%); opacity: 0.81" title="0.018">t</span><span style="background-color: hsl(120, 100.00%, 95.92%); opacity: 0.81" title="0.013">e</span><span style="background-color: hsl(120, 100.00%, 96.02%); opacity: 0.81" title="0.012">d</span><span style="background-color: hsl(120, 100.00%, 98.40%); opacity: 0.80" title="0.003"> </span><span style="background-color: hsl(120, 100.00%, 96.41%); opacity: 0.81" title="0.011">f</span><span style="background-color: hsl(120, 100.00%, 98.26%); opacity: 0.80" title="0.004">o</span><span style="background-color: hsl(120, 100.00%, 98.42%); opacity: 0.80" title="0.003">r</span><span style="background-color: hsl(120, 100.00%, 99.31%); opacity: 0.80" title="0.001"> </span><span style="background-color: hsl(120, 100.00%, 98.75%); opacity: 0.80" title="0.002">t</span><span style="background-color: hsl(120, 100.00%, 98.47%); opacity: 0.80" title="0.003">h</span><span style="background-color: hsl(120, 100.00%, 99.23%); opacity: 0.80" title="0.001">e</span><span style="background-color: hsl(120, 100.00%, 99.68%); opacity: 0.80" title="0.000"> </span><span style="background-color: hsl(120, 100.00%, 98.75%); opacity: 0.80" title="0.002">p</span><span style="opacity: 0.80">r</span><span style="background-color: hsl(120, 100.00%, 99.04%); opacity: 0.80" title="0.002">i</span><span style="background-color: hsl(120, 100.00%, 97.48%); opacity: 0.80" title="0.006">v</span><span style="background-color: hsl(120, 100.00%, 99.04%); opacity: 0.80" title="0.002">a</span><span style="background-color: hsl(120, 100.00%, 98.67%); opacity: 0.80" title="0.003">t</span><span style="background-color: hsl(120, 100.00%, 98.63%); opacity: 0.80" title="0.003">e</span><span style="background-color: hsl(120, 100.00%, 99.14%); opacity: 0.80" title="0.001"> </span><span style="background-color: hsl(120, 100.00%, 96.27%); opacity: 0.81" title="0.011">c</span><span style="background-color: hsl(120, 100.00%, 98.10%); opacity: 0.80" title="0.004">a</span><span style="background-color: hsl(120, 100.00%, 97.89%); opacity: 0.80" title="0.005">r</span><span style="background-color: hsl(120, 100.00%, 99.01%); opacity: 0.80" title="0.002"> </span><span style="background-color: hsl(120, 100.00%, 97.72%); opacity: 0.80" title="0.005">l</span><span style="background-color: hsl(120, 100.00%, 98.14%); opacity: 0.80" title="0.004">o</span><span style="background-color: hsl(120, 100.00%, 98.44%); opacity: 0.80" title="0.003">a</span><span style="background-color: hsl(120, 100.00%, 97.59%); opacity: 0.80" title="0.006">n</span>
+        </p>
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+    
+
+
+
+.. parsed-literal::
+
+    global_average_pooling1d_1 (None, 128)
+
+
+
+.. raw:: html
+
+    
+        <style>
+        table.eli5-weights tr:hover {
+            filter: brightness(85%);
+        }
+    </style>
+    
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+            
+    
+        
+    
+            
+    
+            
+    
+    
+        <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
+            <span style="opacity: 0.80">first of all I should not be charged and debted for</span><span style="background-color: hsl(120, 100.00%, 98.89%); opacity: 0.80" title="0.000"> </span><span style="background-color: hsl(120, 100.00%, 95.82%); opacity: 0.81" title="0.000">t</span><span style="background-color: hsl(120, 100.00%, 91.78%); opacity: 0.82" title="0.000">h</span><span style="background-color: hsl(120, 100.00%, 93.71%); opacity: 0.81" title="0.000">e</span><span style="background-color: hsl(120, 100.00%, 95.89%); opacity: 0.81" title="0.000"> </span><span style="background-color: hsl(120, 100.00%, 70.21%); opacity: 0.93" title="0.001">p</span><span style="background-color: hsl(120, 100.00%, 89.19%); opacity: 0.83" title="0.000">r</span><span style="background-color: hsl(120, 100.00%, 77.39%); opacity: 0.89" title="0.001">i</span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.001">v</span><span style="background-color: hsl(120, 100.00%, 87.69%); opacity: 0.84" title="0.000">a</span><span style="background-color: hsl(120, 100.00%, 85.02%); opacity: 0.85" title="0.000">t</span><span style="background-color: hsl(120, 100.00%, 85.97%); opacity: 0.84" title="0.000">e</span><span style="background-color: hsl(120, 100.00%, 91.79%); opacity: 0.82" title="0.000"> </span><span style="background-color: hsl(120, 100.00%, 66.20%); opacity: 0.96" title="0.001">c</span><span style="background-color: hsl(120, 100.00%, 83.54%); opacity: 0.86" title="0.000">a</span><span style="background-color: hsl(120, 100.00%, 80.42%); opacity: 0.87" title="0.000">r</span><span style="background-color: hsl(120, 100.00%, 90.06%); opacity: 0.83" title="0.000"> </span><span style="background-color: hsl(120, 100.00%, 75.11%); opacity: 0.90" title="0.001">l</span><span style="background-color: hsl(120, 100.00%, 77.88%); opacity: 0.89" title="0.000">o</span><span style="background-color: hsl(120, 100.00%, 79.81%); opacity: 0.88" title="0.000">a</span><span style="background-color: hsl(120, 100.00%, 66.04%); opacity: 0.96" title="0.001">n</span>
+        </p>
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+    
+
+
+
+.. parsed-literal::
+
+    dense_1 (None, 32)
+
+
+
+.. raw:: html
+
+    
+        <style>
+        table.eli5-weights tr:hover {
+            filter: brightness(85%);
+        }
+    </style>
+    
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+            
+    
+        
+    
+            
+    
+            
+    
+    
+        <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
+            <span style="background-color: hsl(120, 100.00%, 79.62%); opacity: 0.88" title="0.060">f</span><span style="background-color: hsl(120, 100.00%, 73.12%); opacity: 0.91" title="0.089">i</span><span style="background-color: hsl(120, 100.00%, 85.94%); opacity: 0.84" title="0.035">r</span><span style="background-color: hsl(120, 100.00%, 73.49%); opacity: 0.91" title="0.087">s</span><span style="background-color: hsl(120, 100.00%, 86.14%); opacity: 0.84" title="0.034">t</span><span style="background-color: hsl(120, 100.00%, 93.31%); opacity: 0.82" title="0.012"> </span><span style="background-color: hsl(120, 100.00%, 86.34%); opacity: 0.84" title="0.034">o</span><span style="background-color: hsl(120, 100.00%, 80.60%); opacity: 0.87" title="0.056">f</span><span style="background-color: hsl(120, 100.00%, 93.45%); opacity: 0.82" title="0.012"> </span><span style="background-color: hsl(120, 100.00%, 88.24%); opacity: 0.83" title="0.027">a</span><span style="background-color: hsl(120, 100.00%, 84.49%); opacity: 0.85" title="0.040">l</span><span style="background-color: hsl(120, 100.00%, 84.61%); opacity: 0.85" title="0.040">l</span><span style="background-color: hsl(120, 100.00%, 93.64%); opacity: 0.81" title="0.011"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.156">I</span><span style="background-color: hsl(120, 100.00%, 93.74%); opacity: 0.81" title="0.011"> </span><span style="background-color: hsl(120, 100.00%, 75.76%); opacity: 0.90" title="0.076">s</span><span style="background-color: hsl(120, 100.00%, 81.90%); opacity: 0.86" title="0.050">h</span><span style="background-color: hsl(120, 100.00%, 87.44%); opacity: 0.84" title="0.030">o</span><span style="background-color: hsl(120, 100.00%, 61.57%); opacity: 0.99" title="0.148">u</span><span style="background-color: hsl(120, 100.00%, 85.56%); opacity: 0.85" title="0.036">l</span><span style="background-color: hsl(120, 100.00%, 87.75%); opacity: 0.84" title="0.029">d</span><span style="background-color: hsl(120, 100.00%, 94.09%); opacity: 0.81" title="0.010"> </span><span style="background-color: hsl(120, 100.00%, 82.78%); opacity: 0.86" title="0.047">n</span><span style="background-color: hsl(120, 100.00%, 88.06%); opacity: 0.84" title="0.028">o</span><span style="background-color: hsl(120, 100.00%, 88.17%); opacity: 0.84" title="0.027">t</span><span style="background-color: hsl(120, 100.00%, 94.30%); opacity: 0.81" title="0.010"> </span><span style="background-color: hsl(120, 100.00%, 77.93%); opacity: 0.89" title="0.067">b</span><span style="background-color: hsl(120, 100.00%, 89.86%); opacity: 0.83" title="0.022">e</span><span style="background-color: hsl(120, 100.00%, 94.45%); opacity: 0.81" title="0.009"> </span><span style="background-color: hsl(120, 100.00%, 78.53%); opacity: 0.88" title="0.064">c</span><span style="background-color: hsl(120, 100.00%, 83.99%); opacity: 0.85" title="0.042">h</span><span style="background-color: hsl(120, 100.00%, 90.24%); opacity: 0.83" title="0.021">a</span><span style="background-color: hsl(120, 100.00%, 89.02%); opacity: 0.83" title="0.025">r</span><span style="background-color: hsl(120, 100.00%, 66.46%); opacity: 0.96" title="0.122">g</span><span style="background-color: hsl(120, 100.00%, 90.53%); opacity: 0.83" title="0.020">e</span><span style="background-color: hsl(120, 100.00%, 89.35%); opacity: 0.83" title="0.024">d</span><span style="background-color: hsl(120, 100.00%, 94.87%); opacity: 0.81" title="0.008"> </span><span style="background-color: hsl(120, 100.00%, 90.82%); opacity: 0.82" title="0.019">a</span><span style="background-color: hsl(120, 100.00%, 85.24%); opacity: 0.85" title="0.038">n</span><span style="background-color: hsl(120, 100.00%, 89.79%); opacity: 0.83" title="0.022">d</span><span style="background-color: hsl(120, 100.00%, 95.09%); opacity: 0.81" title="0.008"> </span><span style="background-color: hsl(120, 100.00%, 90.01%); opacity: 0.83" title="0.022">d</span><span style="background-color: hsl(120, 100.00%, 91.31%); opacity: 0.82" title="0.018">e</span><span style="background-color: hsl(120, 100.00%, 81.46%); opacity: 0.87" title="0.052">b</span><span style="background-color: hsl(120, 100.00%, 90.35%); opacity: 0.83" title="0.020">t</span><span style="background-color: hsl(120, 100.00%, 91.61%); opacity: 0.82" title="0.017">e</span><span style="background-color: hsl(120, 100.00%, 90.58%); opacity: 0.83" title="0.020">d</span><span style="background-color: hsl(120, 100.00%, 95.48%); opacity: 0.81" title="0.007"> </span><span style="background-color: hsl(120, 100.00%, 86.87%); opacity: 0.84" title="0.032">f</span><span style="background-color: hsl(120, 100.00%, 90.93%); opacity: 0.82" title="0.019">o</span><span style="background-color: hsl(120, 100.00%, 91.05%); opacity: 0.82" title="0.018">r</span><span style="background-color: hsl(120, 100.00%, 95.71%); opacity: 0.81" title="0.006"> </span><span style="background-color: hsl(120, 100.00%, 91.29%); opacity: 0.82" title="0.018">t</span><span style="background-color: hsl(120, 100.00%, 87.72%); opacity: 0.84" title="0.029">h</span><span style="background-color: hsl(120, 100.00%, 92.55%); opacity: 0.82" title="0.014">e</span><span style="background-color: hsl(120, 100.00%, 95.94%); opacity: 0.81" title="0.006"> </span><span style="background-color: hsl(120, 100.00%, 74.62%); opacity: 0.90" title="0.082">p</span><span style="background-color: hsl(120, 100.00%, 91.90%); opacity: 0.82" title="0.016">r</span><span style="background-color: hsl(120, 100.00%, 84.85%); opacity: 0.85" title="0.039">i</span><span style="background-color: hsl(120, 100.00%, 75.77%); opacity: 0.90" title="0.076">v</span><span style="background-color: hsl(120, 100.00%, 93.20%); opacity: 0.82" title="0.012">a</span><span style="background-color: hsl(120, 100.00%, 92.40%); opacity: 0.82" title="0.015">t</span><span style="background-color: hsl(120, 100.00%, 93.42%); opacity: 0.82" title="0.012">e</span><span style="background-color: hsl(120, 100.00%, 96.43%); opacity: 0.81" title="0.005"> </span><span style="background-color: hsl(120, 100.00%, 86.29%); opacity: 0.84" title="0.034">c</span><span style="background-color: hsl(120, 100.00%, 93.76%); opacity: 0.81" title="0.011">a</span><span style="background-color: hsl(120, 100.00%, 93.04%); opacity: 0.82" title="0.013">r</span><span style="background-color: hsl(120, 100.00%, 96.68%); opacity: 0.81" title="0.004"> </span><span style="background-color: hsl(120, 100.00%, 92.18%); opacity: 0.82" title="0.015">l</span><span style="background-color: hsl(120, 100.00%, 93.44%); opacity: 0.82" title="0.012">o</span><span style="background-color: hsl(120, 100.00%, 94.35%); opacity: 0.81" title="0.010">a</span><span style="background-color: hsl(120, 100.00%, 91.02%); opacity: 0.82" title="0.019">n</span>
+        </p>
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+    
+
+
+
+.. parsed-literal::
+
+    dense_2 (None, 11)
+
+
+
+.. raw:: html
+
+    
+        <style>
+        table.eli5-weights tr:hover {
+            filter: brightness(85%);
+        }
+    </style>
+    
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+            
+    
+        
+    
+            
+    
+            
+    
+    
+        <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
+            <span style="opacity: 0.80">f</span><span style="background-color: hsl(120, 100.00%, 98.58%); opacity: 0.80" title="0.000">i</span><span style="background-color: hsl(120, 100.00%, 98.79%); opacity: 0.80" title="0.000">r</span><span style="background-color: hsl(120, 100.00%, 96.94%); opacity: 0.81" title="0.001">s</span><span style="background-color: hsl(120, 100.00%, 98.03%); opacity: 0.80" title="0.001">t</span><span style="background-color: hsl(120, 100.00%, 98.88%); opacity: 0.80" title="0.000"> </span><span style="background-color: hsl(120, 100.00%, 97.38%); opacity: 0.80" title="0.001">o</span><span style="background-color: hsl(120, 100.00%, 95.83%); opacity: 0.81" title="0.002">f</span><span style="background-color: hsl(120, 100.00%, 98.44%); opacity: 0.80" title="0.001"> </span><span style="background-color: hsl(120, 100.00%, 96.94%); opacity: 0.81" title="0.001">a</span><span style="background-color: hsl(120, 100.00%, 95.62%); opacity: 0.81" title="0.002">l</span><span style="background-color: hsl(120, 100.00%, 95.32%); opacity: 0.81" title="0.003">l</span><span style="background-color: hsl(120, 100.00%, 97.93%); opacity: 0.80" title="0.001"> </span><span style="background-color: hsl(120, 100.00%, 86.13%); opacity: 0.84" title="0.012">I</span><span style="background-color: hsl(120, 100.00%, 97.70%); opacity: 0.80" title="0.001"> </span><span style="background-color: hsl(120, 100.00%, 90.56%); opacity: 0.83" title="0.007">s</span><span style="background-color: hsl(120, 100.00%, 92.56%); opacity: 0.82" title="0.005">h</span><span style="background-color: hsl(120, 100.00%, 94.57%); opacity: 0.81" title="0.003">o</span><span style="background-color: hsl(120, 100.00%, 82.58%); opacity: 0.86" title="0.017">u</span><span style="background-color: hsl(120, 100.00%, 93.14%); opacity: 0.82" title="0.004">l</span><span style="background-color: hsl(120, 100.00%, 93.92%); opacity: 0.81" title="0.004">d</span><span style="background-color: hsl(120, 100.00%, 96.94%); opacity: 0.81" title="0.001"> </span><span style="background-color: hsl(120, 100.00%, 90.71%); opacity: 0.82" title="0.007">n</span><span style="background-color: hsl(120, 100.00%, 93.30%); opacity: 0.82" title="0.004">o</span><span style="background-color: hsl(120, 100.00%, 93.09%); opacity: 0.82" title="0.004">t</span><span style="background-color: hsl(120, 100.00%, 96.54%); opacity: 0.81" title="0.002"> </span><span style="background-color: hsl(120, 100.00%, 86.13%); opacity: 0.84" title="0.012">b</span><span style="background-color: hsl(120, 100.00%, 93.40%); opacity: 0.82" title="0.004">e</span><span style="background-color: hsl(120, 100.00%, 96.26%); opacity: 0.81" title="0.002"> </span><span style="background-color: hsl(120, 100.00%, 85.02%); opacity: 0.85" title="0.013">c</span><span style="background-color: hsl(120, 100.00%, 88.45%); opacity: 0.83" title="0.009">h</span><span style="background-color: hsl(120, 100.00%, 92.73%); opacity: 0.82" title="0.005">a</span><span style="background-color: hsl(120, 100.00%, 91.55%); opacity: 0.82" title="0.006">r</span><span style="background-color: hsl(120, 100.00%, 73.37%); opacity: 0.91" title="0.030">g</span><span style="background-color: hsl(120, 100.00%, 92.24%); opacity: 0.82" title="0.005">e</span><span style="background-color: hsl(120, 100.00%, 91.00%); opacity: 0.82" title="0.006">d</span><span style="background-color: hsl(120, 100.00%, 95.54%); opacity: 0.81" title="0.002"> </span><span style="background-color: hsl(120, 100.00%, 91.77%); opacity: 0.82" title="0.006">a</span><span style="background-color: hsl(120, 100.00%, 86.38%); opacity: 0.84" title="0.012">n</span><span style="background-color: hsl(120, 100.00%, 90.30%); opacity: 0.83" title="0.007">d</span><span style="background-color: hsl(120, 100.00%, 95.20%); opacity: 0.81" title="0.003"> </span><span style="background-color: hsl(120, 100.00%, 89.95%); opacity: 0.83" title="0.008">d</span><span style="background-color: hsl(120, 100.00%, 91.00%); opacity: 0.82" title="0.006">e</span><span style="background-color: hsl(120, 100.00%, 80.27%); opacity: 0.87" title="0.020">b</span><span style="background-color: hsl(120, 100.00%, 89.44%); opacity: 0.83" title="0.008">t</span><span style="background-color: hsl(120, 100.00%, 90.56%); opacity: 0.83" title="0.007">e</span><span style="background-color: hsl(120, 100.00%, 89.11%); opacity: 0.83" title="0.008">d</span><span style="background-color: hsl(120, 100.00%, 94.62%); opacity: 0.81" title="0.003"> </span><span style="background-color: hsl(120, 100.00%, 83.95%); opacity: 0.85" title="0.015">f</span><span style="background-color: hsl(120, 100.00%, 88.62%); opacity: 0.83" title="0.009">o</span><span style="background-color: hsl(120, 100.00%, 88.45%); opacity: 0.83" title="0.009">r</span><span style="background-color: hsl(120, 100.00%, 94.31%); opacity: 0.81" title="0.003"> </span><span style="background-color: hsl(120, 100.00%, 88.13%); opacity: 0.84" title="0.010">t</span><span style="background-color: hsl(120, 100.00%, 82.80%); opacity: 0.86" title="0.016">h</span><span style="background-color: hsl(120, 100.00%, 89.27%); opacity: 0.83" title="0.008">e</span><span style="background-color: hsl(120, 100.00%, 94.00%); opacity: 0.81" title="0.004"> </span><span style="background-color: hsl(120, 100.00%, 61.43%); opacity: 0.99" title="0.052">p</span><span style="background-color: hsl(120, 100.00%, 87.34%); opacity: 0.84" title="0.010">r</span><span style="background-color: hsl(120, 100.00%, 75.67%); opacity: 0.90" title="0.027">i</span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.054">v</span><span style="background-color: hsl(120, 100.00%, 88.45%); opacity: 0.83" title="0.009">a</span><span style="background-color: hsl(120, 100.00%, 86.73%); opacity: 0.84" title="0.011">t</span><span style="background-color: hsl(120, 100.00%, 88.19%); opacity: 0.84" title="0.010">e</span><span style="background-color: hsl(120, 100.00%, 93.40%); opacity: 0.82" title="0.004"> </span><span style="background-color: hsl(120, 100.00%, 73.93%); opacity: 0.91" title="0.029">c</span><span style="background-color: hsl(120, 100.00%, 87.79%); opacity: 0.84" title="0.010">a</span><span style="background-color: hsl(120, 100.00%, 85.98%); opacity: 0.84" title="0.012">r</span><span style="background-color: hsl(120, 100.00%, 93.11%); opacity: 0.82" title="0.004"> </span><span style="background-color: hsl(120, 100.00%, 83.26%); opacity: 0.86" title="0.016">l</span><span style="background-color: hsl(120, 100.00%, 85.53%); opacity: 0.85" title="0.013">o</span><span style="background-color: hsl(120, 100.00%, 87.14%); opacity: 0.84" title="0.011">a</span><span style="background-color: hsl(120, 100.00%, 78.90%); opacity: 0.88" title="0.022">n</span>
+        </p>
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+    
+    
+
+
+
+Now this looks better. It should make sense for a Convolutional network
+that later layers pick up "higher level" information than earlier "lower
+level" layers. If you don't get good explanations from ELI5 out of the
+box, it may be worth looking into this parameter. We advice to pick
+layers that contain "spatial or temporal" information, i.e. NOT
+dense/fully-connected or merge layers, but recurrent, convolutional, or
+embedding layers.
+
+What's up with the final dense layers? They do not have spatial
+information so it's mostly a visualization of the activations of each
+node, ignoring the underlying tokens. Hover over to see the actual
+values (though some parts seem bright green, they may not have a high
+weight - the color scale is "relative").
+
+Resizing the heatmap with the ``interpolation_kind`` argument
 -------------------------------------------------------------
 
-.. code:: ipython3
-
-    # heatmap, tokens, weighted_spans, interpolation_kind, etc.
-
-.. code:: ipython3
-
-    E = eli5.explain_prediction(model2, doc_s, tokens=tokens_s, pad_value='<PAD>', padding='post')
-
-Looking at the ``Explanation`` object
+In the last section we learned that we use a hidden layer to generate a
+heatmap of activations. However, notice that some of the layers have
+dimensions different from the tokens dimension.
 
 .. code:: ipython3
 
-    repr(E)
-
-
+    print(complaint_t.shape)
+    print(multicls_model.get_layer(index=-5).output_shape)  # <--- an arbitrary layer
 
 
 .. parsed-literal::
 
-    "Explanation(estimator='sequential_1', description='\\nGrad-CAM visualization for classification tasks; \\noutput is explanation object that contains a heatmap.\\n', error='', method='Grad-CAM', is_regression=False, targets=[TargetExplanation(target=1, feature_weights=None, proba=None, score=0.27872923, weighted_spans=WeightedSpans(docs_weighted_spans=[DocWeightedSpans(document='the IRS is afterr my car loan', spans=[('t', [(0, 1)], 0.0), ('h', [(1, 2)], 0.0), ('e', [(2, 3)], 0.0), (' ', [(3, 4)], 0.0), ('I', [(4, 5)], 0.0), ('R', [(5, 6)], 2.540649802540429e-05), ('S', [(6, 7)], 0.0), (' ', [(7, 8)], 0.0), ('i', [(8, 9)], 0.0), ('s', [(9, 10)], 0.0), (' ', [(10, 11)], 0.0), ('a', [(11, 12)], 0.0), ('f', [(12, 13)], 6.950748502276838e-05), ('t', [(13, 14)], 0.0), ('e', [(14, 15)], 0.0), ('r', [(15, 16)], 0.000238344761442022), ('r', [(16, 17)], 0.000238344761442022), (' ', [(17, 18)], 0.0), ('m', [(18, 19)], 0.0), ('y', [(19, 20)], 0.0), (' ', [(20, 21)], 0.0), ('c', [(21, 22)], 0.0), ('a', [(22, 23)], 0.0), ('r', [(23, 24)], 0.000238344761442022), (' ', [(24, 25)], 0.0), ('l', [(25, 26)], 0.0), ('o', [(26, 27)], 0.0), ('a', [(27, 28)], 0.0), ('n', [(28, 29)], 0.0)], preserve_density=None, vec_name=None)], other=None), heatmap=array([0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00,\n       0.00000000e+00, 2.54064980e-05, 0.00000000e+00, 0.00000000e+00,\n       0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00,\n       6.95074850e-05, 0.00000000e+00, 0.00000000e+00, 2.38344761e-04,\n       2.38344761e-04, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00,\n       0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 2.38344761e-04,\n       0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00,\n       0.00000000e+00]))], feature_importances=None, decision_tree=None, highlight_spaces=None, transition_features=None, image=None)"
+    (1, 3193)
+    (None, 786, 128)
 
 
+``tokens`` is length ``3193``, while the layer's temporal dimension is
+``786``. This difference makes Grad-CAM explanations "coarse" or
+approximate.
 
-We can get the predicted class and the value for the prediction
+We have to resize the heatmap in order to lay it over the input tokens.
 
-.. code:: ipython3
+The resizing method can be controlled with the ``interpolation_kind``
+argument. This is one of the strings listed under
+https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.interp1d.html#scipy.interpolate.interp1d
+for the ``kind`` argument. The default is ``linear``.
 
-    target = E.targets[0]
-    print(target.target, target.score)
-
-
-.. parsed-literal::
-
-    1 0.27872923
-
-
-The highlighting for each token is stored in a ``WeightedSpans`` object
-(specifically the ``DocWeightedSpans`` object)
-
-.. code:: ipython3
-
-    weighted_spans = target.weighted_spans
-    print(weighted_spans)
-    
-    doc_ws = weighted_spans.docs_weighted_spans[0]
-    print(doc_ws)
-
-
-.. parsed-literal::
-
-    WeightedSpans(docs_weighted_spans=[DocWeightedSpans(document='the IRS is afterr my car loan', spans=[('t', [(0, 1)], 0.0), ('h', [(1, 2)], 0.0), ('e', [(2, 3)], 0.0), (' ', [(3, 4)], 0.0), ('I', [(4, 5)], 0.0), ('R', [(5, 6)], 2.540649802540429e-05), ('S', [(6, 7)], 0.0), (' ', [(7, 8)], 0.0), ('i', [(8, 9)], 0.0), ('s', [(9, 10)], 0.0), (' ', [(10, 11)], 0.0), ('a', [(11, 12)], 0.0), ('f', [(12, 13)], 6.950748502276838e-05), ('t', [(13, 14)], 0.0), ('e', [(14, 15)], 0.0), ('r', [(15, 16)], 0.000238344761442022), ('r', [(16, 17)], 0.000238344761442022), (' ', [(17, 18)], 0.0), ('m', [(18, 19)], 0.0), ('y', [(19, 20)], 0.0), (' ', [(20, 21)], 0.0), ('c', [(21, 22)], 0.0), ('a', [(22, 23)], 0.0), ('r', [(23, 24)], 0.000238344761442022), (' ', [(24, 25)], 0.0), ('l', [(25, 26)], 0.0), ('o', [(26, 27)], 0.0), ('a', [(27, 28)], 0.0), ('n', [(28, 29)], 0.0)], preserve_density=None, vec_name=None)], other=None)
-    DocWeightedSpans(document='the IRS is afterr my car loan', spans=[('t', [(0, 1)], 0.0), ('h', [(1, 2)], 0.0), ('e', [(2, 3)], 0.0), (' ', [(3, 4)], 0.0), ('I', [(4, 5)], 0.0), ('R', [(5, 6)], 2.540649802540429e-05), ('S', [(6, 7)], 0.0), (' ', [(7, 8)], 0.0), ('i', [(8, 9)], 0.0), ('s', [(9, 10)], 0.0), (' ', [(10, 11)], 0.0), ('a', [(11, 12)], 0.0), ('f', [(12, 13)], 6.950748502276838e-05), ('t', [(13, 14)], 0.0), ('e', [(14, 15)], 0.0), ('r', [(15, 16)], 0.000238344761442022), ('r', [(16, 17)], 0.000238344761442022), (' ', [(17, 18)], 0.0), ('m', [(18, 19)], 0.0), ('y', [(19, 20)], 0.0), (' ', [(20, 21)], 0.0), ('c', [(21, 22)], 0.0), ('a', [(22, 23)], 0.0), ('r', [(23, 24)], 0.000238344761442022), (' ', [(24, 25)], 0.0), ('l', [(25, 26)], 0.0), ('o', [(26, 27)], 0.0), ('a', [(27, 28)], 0.0), ('n', [(28, 29)], 0.0)], preserve_density=None, vec_name=None)
-
-
-Observe the ``document`` attribute and ``spans``
-
-.. code:: ipython3
-
-    print(doc_ws.document)
-    print(doc_ws.spans)
-
-
-.. parsed-literal::
-
-    the IRS is afterr my car loan
-    [('t', [(0, 1)], 0.0), ('h', [(1, 2)], 0.0), ('e', [(2, 3)], 0.0), (' ', [(3, 4)], 0.0), ('I', [(4, 5)], 0.0), ('R', [(5, 6)], 2.540649802540429e-05), ('S', [(6, 7)], 0.0), (' ', [(7, 8)], 0.0), ('i', [(8, 9)], 0.0), ('s', [(9, 10)], 0.0), (' ', [(10, 11)], 0.0), ('a', [(11, 12)], 0.0), ('f', [(12, 13)], 6.950748502276838e-05), ('t', [(13, 14)], 0.0), ('e', [(14, 15)], 0.0), ('r', [(15, 16)], 0.000238344761442022), ('r', [(16, 17)], 0.000238344761442022), (' ', [(17, 18)], 0.0), ('m', [(18, 19)], 0.0), ('y', [(19, 20)], 0.0), (' ', [(20, 21)], 0.0), ('c', [(21, 22)], 0.0), ('a', [(22, 23)], 0.0), ('r', [(23, 24)], 0.000238344761442022), (' ', [(24, 25)], 0.0), ('l', [(25, 26)], 0.0), ('o', [(26, 27)], 0.0), ('a', [(27, 28)], 0.0), ('n', [(28, 29)], 0.0)]
-
-
-The ``document`` is the "stringified" version of ``tokens``. If you have
-a custom "tokens -> string" algorithm you may want to set this attribute
-yourself.
-
-The ``spans`` object is a list of weights for each character in
-``document``. We use the indices in ``document`` string to indicate
-which characters should be weighted with a specific value.
-
-The weights come from the ``heatmap`` object found on each item in
-``targets``.
-
-.. code:: ipython3
-
-    heatmap = target.heatmap
-    print(heatmap)
-    print(len(heatmap))
-    
-    print(len(doc_ws.spans))
-
-
-.. parsed-literal::
-
-    [0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00
-     0.00000000e+00 2.54064980e-05 0.00000000e+00 0.00000000e+00
-     0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00
-     6.95074850e-05 0.00000000e+00 0.00000000e+00 2.38344761e-04
-     2.38344761e-04 0.00000000e+00 0.00000000e+00 0.00000000e+00
-     0.00000000e+00 0.00000000e+00 0.00000000e+00 2.38344761e-04
-     0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00
-     0.00000000e+00]
-    29
-    29
-
-
-You can think of this as an array of "importances" in the tokens array
-(after padding is removed).
-
-Let's format this. HTML formatter is what should be used here.
-
-.. code:: ipython3
-
-    import eli5.formatters.fields as fields
-    F = eli5.format_as_html(E, show=fields.WEIGHTS)
-
-We pass a ``show`` argument to not display the method name or its
-description (Grad-CAM). See ``eli5.format_as_html()`` for a list of all
-supported arguments.
-
-The output is an HTML-encoded string.
-
-.. code:: ipython3
-
-    repr(F)
-
-
-
-
-.. parsed-literal::
-
-    '\'\\n    <style>\\n    table.eli5-weights tr:hover {\\n        filter: brightness(85%);\\n    }\\n</style>\\n\\n\\n\\n    \\n\\n    \\n\\n    \\n\\n    \\n\\n    \\n\\n    \\n\\n\\n    \\n\\n    \\n\\n    \\n\\n    \\n        \\n\\n    \\n\\n        \\n            \\n                \\n                \\n            \\n        \\n\\n        \\n\\n\\n    <p style="margin-bottom: 2.5em; margin-top:-0.5em;">\\n        <span style="opacity: 0.80">the I</span><span style="background-color: hsl(120, 100.00%, 81.99%); opacity: 0.86" title="0.000">R</span><span style="opacity: 0.80">S is a</span><span style="background-color: hsl(120, 100.00%, 63.57%); opacity: 0.97" title="0.000">f</span><span style="opacity: 0.80">te</span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.000">rr</span><span style="opacity: 0.80"> my ca</span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.000">r</span><span style="opacity: 0.80"> loan</span>\\n    </p>\\n\\n\\n    \\n\\n    \\n\\n    \\n\\n    \\n\\n\\n    \\n\\n    \\n\\n    \\n\\n    \\n\\n    \\n\\n    \\n\\n\\n    \\n\\n    \\n\\n    \\n\\n    \\n\\n    \\n\\n    \\n\\n\\n\\n\''
-
-
-
-Display it in an IPython notebook
-
-.. code:: ipython3
-
-    display(HTML(F))
-
-
-
-.. raw:: html
-
-    
-        <style>
-        table.eli5-weights tr:hover {
-            filter: brightness(85%);
-        }
-    </style>
-    
-    
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-    
-        
-    
-        
-    
-        
-    
-        
-            
-    
-        
-    
-            
-                
-                    
-                    
-                
-            
-    
-            
-    
-    
-        <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
-            <span style="opacity: 0.80">the I</span><span style="background-color: hsl(120, 100.00%, 81.99%); opacity: 0.86" title="0.000">R</span><span style="opacity: 0.80">S is a</span><span style="background-color: hsl(120, 100.00%, 63.57%); opacity: 0.97" title="0.000">f</span><span style="opacity: 0.80">te</span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.000">rr</span><span style="opacity: 0.80"> my ca</span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.000">r</span><span style="opacity: 0.80"> loan</span>
-        </p>
-    
-    
-        
-    
-        
-    
-        
-    
-        
-    
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-    
-    
-
-
-
-The ``interpolation_kind`` argument
------------------------------------
-
-Heatmap does not match shape of tokens. We want to control how the
-resizing is done.
-
-Getting back to sentiment classification
-
-.. code:: ipython3
-
-    print(tokens.shape, len(heatmap))
-
-
-.. parsed-literal::
-
-    (1, 3193) 29
-
-
-.. code:: ipython3
-
-    model2.get_layer(index=3).output_shape
-
-
-
-
-.. parsed-literal::
-
-    (None, 1589, 128)
-
-
+Let's check the possible interpolations (going back to sentiment
+classification).
 
 .. code:: ipython3
 
@@ -2265,10 +2939,8 @@ Getting back to sentiment classification
 
     for kind in kinds:
         print(kind)
-        H = eli5.show_prediction(model2, doc_s, tokens=tokens_s, pad_value='<PAD>', padding='post', 
-                                 interpolation_kind=kind,
-                                 )
-        display(H)
+        html = eli5.show_prediction(binary_model, test_review, tokens=test_review_t, interpolation_kind=kind)
+        display(html)
 
 
 .. parsed-literal::
@@ -2318,7 +2990,7 @@ Getting back to sentiment classification
     
     
         <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
-            <span style="opacity: 0.80">the I</span><span style="background-color: hsl(120, 100.00%, 81.99%); opacity: 0.86" title="0.000">R</span><span style="opacity: 0.80">S is a</span><span style="background-color: hsl(120, 100.00%, 63.57%); opacity: 0.97" title="0.000">f</span><span style="opacity: 0.80">te</span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.000">rr</span><span style="opacity: 0.80"> my ca</span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.000">r</span><span style="opacity: 0.80"> loan</span>
+            <span style="opacity: 0.80">&lt;START&gt; </span><span style="background-color: hsl(120, 100.00%, 84.46%); opacity: 0.85" title="0.003">please</span><span style="opacity: 0.80"> give this </span><span style="background-color: hsl(120, 100.00%, 96.76%); opacity: 0.81" title="0.000">one</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 98.09%); opacity: 0.80" title="0.000">a</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 91.25%); opacity: 0.82" title="0.001">miss</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.63%); opacity: 0.80" title="0.000">br</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.63%); opacity: 0.80" title="0.000">br</span><span style="opacity: 0.80"> &lt;OOV&gt; &lt;OOV&gt; </span><span style="background-color: hsl(120, 100.00%, 86.06%); opacity: 0.84" title="0.002">and</span><span style="opacity: 0.80"> the rest </span><span style="background-color: hsl(120, 100.00%, 88.59%); opacity: 0.83" title="0.002">of</span><span style="opacity: 0.80"> the cast </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.011">rendered</span><span style="opacity: 0.80"> terrible </span><span style="background-color: hsl(120, 100.00%, 87.85%); opacity: 0.84" title="0.002">performances</span><span style="opacity: 0.80"> the </span><span style="background-color: hsl(120, 100.00%, 78.91%); opacity: 0.88" title="0.004">show</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 84.08%); opacity: 0.85" title="0.003">is</span><span style="opacity: 0.80"> flat flat flat </span><span style="background-color: hsl(120, 100.00%, 99.63%); opacity: 0.80" title="0.000">br</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.63%); opacity: 0.80" title="0.000">br</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 92.10%); opacity: 0.82" title="0.001">i</span><span style="opacity: 0.80"> don&#x27;t </span><span style="background-color: hsl(120, 100.00%, 84.91%); opacity: 0.85" title="0.003">know</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 92.28%); opacity: 0.82" title="0.001">how</span><span style="opacity: 0.80"> michael </span><span style="background-color: hsl(120, 100.00%, 83.73%); opacity: 0.86" title="0.003">madison</span><span style="opacity: 0.80"> could have allowed this </span><span style="background-color: hsl(120, 100.00%, 96.76%); opacity: 0.81" title="0.000">one</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 86.15%); opacity: 0.84" title="0.002">on</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 96.09%); opacity: 0.81" title="0.000">his</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 92.71%); opacity: 0.82" title="0.001">plate</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 86.49%); opacity: 0.84" title="0.002">he</span><span style="opacity: 0.80"> almost seemed to </span><span style="background-color: hsl(120, 100.00%, 84.91%); opacity: 0.85" title="0.003">know</span><span style="opacity: 0.80"> this wasn&#x27;t going to </span><span style="background-color: hsl(120, 100.00%, 85.91%); opacity: 0.85" title="0.002">work</span><span style="opacity: 0.80"> out </span><span style="background-color: hsl(120, 100.00%, 86.06%); opacity: 0.84" title="0.002">and</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 96.09%); opacity: 0.81" title="0.000">his</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 64.05%); opacity: 0.97" title="0.009">performance</span><span style="opacity: 0.80"> was </span><span style="background-color: hsl(120, 100.00%, 83.77%); opacity: 0.86" title="0.003">quite</span><span style="opacity: 0.80"> &lt;OOV&gt; so </span><span style="background-color: hsl(120, 100.00%, 91.10%); opacity: 0.82" title="0.001">all</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 74.22%); opacity: 0.91" title="0.006">you</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 83.73%); opacity: 0.86" title="0.003">madison</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 74.31%); opacity: 0.91" title="0.006">fans</span><span style="opacity: 0.80"> give this </span><span style="background-color: hsl(120, 100.00%, 98.09%); opacity: 0.80" title="0.000">a</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 91.25%); opacity: 0.82" title="0.001">miss</span><span style="opacity: 0.80"> &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt;</span>
         </p>
     
     
@@ -2408,7 +3080,7 @@ Getting back to sentiment classification
     
     
         <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
-            <span style="opacity: 0.80">the I</span><span style="background-color: hsl(120, 100.00%, 81.99%); opacity: 0.86" title="0.000">R</span><span style="opacity: 0.80">S is a</span><span style="background-color: hsl(120, 100.00%, 63.57%); opacity: 0.97" title="0.000">f</span><span style="opacity: 0.80">te</span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.000">rr</span><span style="opacity: 0.80"> my ca</span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.000">r</span><span style="opacity: 0.80"> loan</span>
+            <span style="opacity: 0.80">&lt;START&gt; </span><span style="background-color: hsl(120, 100.00%, 84.46%); opacity: 0.85" title="0.003">please</span><span style="opacity: 0.80"> give this </span><span style="background-color: hsl(120, 100.00%, 96.76%); opacity: 0.81" title="0.000">one</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 98.09%); opacity: 0.80" title="0.000">a</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 91.25%); opacity: 0.82" title="0.001">miss</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.63%); opacity: 0.80" title="0.000">br</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.63%); opacity: 0.80" title="0.000">br</span><span style="opacity: 0.80"> &lt;OOV&gt; &lt;OOV&gt; </span><span style="background-color: hsl(120, 100.00%, 86.06%); opacity: 0.84" title="0.002">and</span><span style="opacity: 0.80"> the rest </span><span style="background-color: hsl(120, 100.00%, 88.59%); opacity: 0.83" title="0.002">of</span><span style="opacity: 0.80"> the cast </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.011">rendered</span><span style="opacity: 0.80"> terrible </span><span style="background-color: hsl(120, 100.00%, 87.85%); opacity: 0.84" title="0.002">performances</span><span style="opacity: 0.80"> the </span><span style="background-color: hsl(120, 100.00%, 78.91%); opacity: 0.88" title="0.004">show</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 84.08%); opacity: 0.85" title="0.003">is</span><span style="opacity: 0.80"> flat flat flat </span><span style="background-color: hsl(120, 100.00%, 99.63%); opacity: 0.80" title="0.000">br</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.63%); opacity: 0.80" title="0.000">br</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 92.10%); opacity: 0.82" title="0.001">i</span><span style="opacity: 0.80"> don&#x27;t </span><span style="background-color: hsl(120, 100.00%, 84.91%); opacity: 0.85" title="0.003">know</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 92.28%); opacity: 0.82" title="0.001">how</span><span style="opacity: 0.80"> michael </span><span style="background-color: hsl(120, 100.00%, 83.73%); opacity: 0.86" title="0.003">madison</span><span style="opacity: 0.80"> could have allowed this </span><span style="background-color: hsl(120, 100.00%, 96.76%); opacity: 0.81" title="0.000">one</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 86.15%); opacity: 0.84" title="0.002">on</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 96.09%); opacity: 0.81" title="0.000">his</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 92.71%); opacity: 0.82" title="0.001">plate</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 86.49%); opacity: 0.84" title="0.002">he</span><span style="opacity: 0.80"> almost seemed to </span><span style="background-color: hsl(120, 100.00%, 84.91%); opacity: 0.85" title="0.003">know</span><span style="opacity: 0.80"> this wasn&#x27;t going to </span><span style="background-color: hsl(120, 100.00%, 85.91%); opacity: 0.85" title="0.002">work</span><span style="opacity: 0.80"> out </span><span style="background-color: hsl(120, 100.00%, 86.06%); opacity: 0.84" title="0.002">and</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 96.09%); opacity: 0.81" title="0.000">his</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 64.05%); opacity: 0.97" title="0.009">performance</span><span style="opacity: 0.80"> was </span><span style="background-color: hsl(120, 100.00%, 83.77%); opacity: 0.86" title="0.003">quite</span><span style="opacity: 0.80"> &lt;OOV&gt; so </span><span style="background-color: hsl(120, 100.00%, 91.10%); opacity: 0.82" title="0.001">all</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 74.22%); opacity: 0.91" title="0.006">you</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 83.73%); opacity: 0.86" title="0.003">madison</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 74.31%); opacity: 0.91" title="0.006">fans</span><span style="opacity: 0.80"> give this </span><span style="background-color: hsl(120, 100.00%, 98.09%); opacity: 0.80" title="0.000">a</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 91.25%); opacity: 0.82" title="0.001">miss</span><span style="opacity: 0.80"> &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt;</span>
         </p>
     
     
@@ -2498,7 +3170,7 @@ Getting back to sentiment classification
     
     
         <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
-            <span style="opacity: 0.80">the I</span><span style="background-color: hsl(120, 100.00%, 81.99%); opacity: 0.86" title="0.000">R</span><span style="opacity: 0.80">S is a</span><span style="background-color: hsl(120, 100.00%, 63.57%); opacity: 0.97" title="0.000">f</span><span style="opacity: 0.80">te</span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.000">rr</span><span style="opacity: 0.80"> my ca</span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.000">r</span><span style="opacity: 0.80"> loan</span>
+            <span style="opacity: 0.80">&lt;START&gt; </span><span style="background-color: hsl(120, 100.00%, 84.46%); opacity: 0.85" title="0.003">please</span><span style="opacity: 0.80"> give this </span><span style="background-color: hsl(120, 100.00%, 96.76%); opacity: 0.81" title="0.000">one</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 98.09%); opacity: 0.80" title="0.000">a</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 91.25%); opacity: 0.82" title="0.001">miss</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.63%); opacity: 0.80" title="0.000">br</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.63%); opacity: 0.80" title="0.000">br</span><span style="opacity: 0.80"> &lt;OOV&gt; &lt;OOV&gt; </span><span style="background-color: hsl(120, 100.00%, 86.06%); opacity: 0.84" title="0.002">and</span><span style="opacity: 0.80"> the rest </span><span style="background-color: hsl(120, 100.00%, 88.59%); opacity: 0.83" title="0.002">of</span><span style="opacity: 0.80"> the cast </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.011">rendered</span><span style="opacity: 0.80"> terrible </span><span style="background-color: hsl(120, 100.00%, 87.85%); opacity: 0.84" title="0.002">performances</span><span style="opacity: 0.80"> the </span><span style="background-color: hsl(120, 100.00%, 78.91%); opacity: 0.88" title="0.004">show</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 84.08%); opacity: 0.85" title="0.003">is</span><span style="opacity: 0.80"> flat flat flat </span><span style="background-color: hsl(120, 100.00%, 99.63%); opacity: 0.80" title="0.000">br</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.63%); opacity: 0.80" title="0.000">br</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 92.10%); opacity: 0.82" title="0.001">i</span><span style="opacity: 0.80"> don&#x27;t </span><span style="background-color: hsl(120, 100.00%, 84.91%); opacity: 0.85" title="0.003">know</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 92.28%); opacity: 0.82" title="0.001">how</span><span style="opacity: 0.80"> michael </span><span style="background-color: hsl(120, 100.00%, 83.73%); opacity: 0.86" title="0.003">madison</span><span style="opacity: 0.80"> could have allowed this </span><span style="background-color: hsl(120, 100.00%, 96.76%); opacity: 0.81" title="0.000">one</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 86.15%); opacity: 0.84" title="0.002">on</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 96.09%); opacity: 0.81" title="0.000">his</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 92.71%); opacity: 0.82" title="0.001">plate</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 86.49%); opacity: 0.84" title="0.002">he</span><span style="opacity: 0.80"> almost seemed to </span><span style="background-color: hsl(120, 100.00%, 84.91%); opacity: 0.85" title="0.003">know</span><span style="opacity: 0.80"> this wasn&#x27;t going to </span><span style="background-color: hsl(120, 100.00%, 85.91%); opacity: 0.85" title="0.002">work</span><span style="opacity: 0.80"> out </span><span style="background-color: hsl(120, 100.00%, 86.06%); opacity: 0.84" title="0.002">and</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 96.09%); opacity: 0.81" title="0.000">his</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 64.05%); opacity: 0.97" title="0.009">performance</span><span style="opacity: 0.80"> was </span><span style="background-color: hsl(120, 100.00%, 83.77%); opacity: 0.86" title="0.003">quite</span><span style="opacity: 0.80"> &lt;OOV&gt; so </span><span style="background-color: hsl(120, 100.00%, 91.10%); opacity: 0.82" title="0.001">all</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 74.22%); opacity: 0.91" title="0.006">you</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 83.73%); opacity: 0.86" title="0.003">madison</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 74.31%); opacity: 0.91" title="0.006">fans</span><span style="opacity: 0.80"> give this </span><span style="background-color: hsl(120, 100.00%, 98.09%); opacity: 0.80" title="0.000">a</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 91.25%); opacity: 0.82" title="0.001">miss</span><span style="opacity: 0.80"> &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt;</span>
         </p>
     
     
@@ -2588,7 +3260,7 @@ Getting back to sentiment classification
     
     
         <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
-            <span style="opacity: 0.80">the I</span><span style="background-color: hsl(120, 100.00%, 81.99%); opacity: 0.86" title="0.000">R</span><span style="opacity: 0.80">S is a</span><span style="background-color: hsl(120, 100.00%, 63.57%); opacity: 0.97" title="0.000">f</span><span style="opacity: 0.80">te</span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.000">rr</span><span style="opacity: 0.80"> my ca</span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.000">r</span><span style="opacity: 0.80"> loan</span>
+            <span style="opacity: 0.80">&lt;START&gt; </span><span style="background-color: hsl(120, 100.00%, 84.46%); opacity: 0.85" title="0.003">please</span><span style="opacity: 0.80"> give this </span><span style="background-color: hsl(120, 100.00%, 96.76%); opacity: 0.81" title="0.000">one</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 98.09%); opacity: 0.80" title="0.000">a</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 91.25%); opacity: 0.82" title="0.001">miss</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.63%); opacity: 0.80" title="0.000">br</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.63%); opacity: 0.80" title="0.000">br</span><span style="opacity: 0.80"> &lt;OOV&gt; &lt;OOV&gt; </span><span style="background-color: hsl(120, 100.00%, 86.06%); opacity: 0.84" title="0.002">and</span><span style="opacity: 0.80"> the rest </span><span style="background-color: hsl(120, 100.00%, 88.59%); opacity: 0.83" title="0.002">of</span><span style="opacity: 0.80"> the cast </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.011">rendered</span><span style="opacity: 0.80"> terrible </span><span style="background-color: hsl(120, 100.00%, 87.85%); opacity: 0.84" title="0.002">performances</span><span style="opacity: 0.80"> the </span><span style="background-color: hsl(120, 100.00%, 78.91%); opacity: 0.88" title="0.004">show</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 84.08%); opacity: 0.85" title="0.003">is</span><span style="opacity: 0.80"> flat flat flat </span><span style="background-color: hsl(120, 100.00%, 99.63%); opacity: 0.80" title="0.000">br</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.63%); opacity: 0.80" title="0.000">br</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 92.10%); opacity: 0.82" title="0.001">i</span><span style="opacity: 0.80"> don&#x27;t </span><span style="background-color: hsl(120, 100.00%, 84.91%); opacity: 0.85" title="0.003">know</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 92.28%); opacity: 0.82" title="0.001">how</span><span style="opacity: 0.80"> michael </span><span style="background-color: hsl(120, 100.00%, 83.73%); opacity: 0.86" title="0.003">madison</span><span style="opacity: 0.80"> could have allowed this </span><span style="background-color: hsl(120, 100.00%, 96.76%); opacity: 0.81" title="0.000">one</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 86.15%); opacity: 0.84" title="0.002">on</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 96.09%); opacity: 0.81" title="0.000">his</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 92.71%); opacity: 0.82" title="0.001">plate</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 86.49%); opacity: 0.84" title="0.002">he</span><span style="opacity: 0.80"> almost seemed to </span><span style="background-color: hsl(120, 100.00%, 84.91%); opacity: 0.85" title="0.003">know</span><span style="opacity: 0.80"> this wasn&#x27;t going to </span><span style="background-color: hsl(120, 100.00%, 85.91%); opacity: 0.85" title="0.002">work</span><span style="opacity: 0.80"> out </span><span style="background-color: hsl(120, 100.00%, 86.06%); opacity: 0.84" title="0.002">and</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 96.09%); opacity: 0.81" title="0.000">his</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 64.05%); opacity: 0.97" title="0.009">performance</span><span style="opacity: 0.80"> was </span><span style="background-color: hsl(120, 100.00%, 83.77%); opacity: 0.86" title="0.003">quite</span><span style="opacity: 0.80"> &lt;OOV&gt; so </span><span style="background-color: hsl(120, 100.00%, 91.10%); opacity: 0.82" title="0.001">all</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 74.22%); opacity: 0.91" title="0.006">you</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 83.73%); opacity: 0.86" title="0.003">madison</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 74.31%); opacity: 0.91" title="0.006">fans</span><span style="opacity: 0.80"> give this </span><span style="background-color: hsl(120, 100.00%, 98.09%); opacity: 0.80" title="0.000">a</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 91.25%); opacity: 0.82" title="0.001">miss</span><span style="opacity: 0.80"> &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt;</span>
         </p>
     
     
@@ -2678,7 +3350,7 @@ Getting back to sentiment classification
     
     
         <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
-            <span style="opacity: 0.80">the I</span><span style="background-color: hsl(120, 100.00%, 81.99%); opacity: 0.86" title="0.000">R</span><span style="opacity: 0.80">S</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">i</span><span style="opacity: 0.80">s</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">a</span><span style="background-color: hsl(120, 100.00%, 63.57%); opacity: 0.97" title="0.000">f</span><span style="opacity: 0.80">t</span><span style="opacity: 0.80">e</span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.000">r</span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.000">r</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">m</span><span style="opacity: 0.80">y</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">c</span><span style="opacity: 0.80">a</span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.000">r</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">l</span><span style="opacity: 0.80">o</span><span style="opacity: 0.80">a</span><span style="opacity: 0.80">n</span>
+            <span style="opacity: 0.80">&lt;START&gt; </span><span style="background-color: hsl(120, 100.00%, 84.46%); opacity: 0.85" title="0.003">please</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">give</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">this</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 96.76%); opacity: 0.81" title="0.000">one</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 98.09%); opacity: 0.80" title="0.000">a</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 91.25%); opacity: 0.82" title="0.001">miss</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.63%); opacity: 0.80" title="0.000">br</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.63%); opacity: 0.80" title="0.000">br</span><span style="opacity: 0.80"> &lt;OOV&gt; </span><span style="opacity: 0.80">&lt;OOV&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 86.06%); opacity: 0.84" title="0.002">and</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">the</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">rest</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 88.59%); opacity: 0.83" title="0.002">of</span><span style="opacity: 0.80"> the </span><span style="opacity: 0.80">cast</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.011">rendered</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">terrible</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 87.85%); opacity: 0.84" title="0.002">performances</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">the</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 78.91%); opacity: 0.88" title="0.004">show</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 84.08%); opacity: 0.85" title="0.003">is</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">flat</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">flat</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">flat</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.63%); opacity: 0.80" title="0.000">br</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.63%); opacity: 0.80" title="0.000">br</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 92.10%); opacity: 0.82" title="0.001">i</span><span style="opacity: 0.80"> don&#x27;t </span><span style="background-color: hsl(120, 100.00%, 84.91%); opacity: 0.85" title="0.003">know</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 92.28%); opacity: 0.82" title="0.001">how</span><span style="opacity: 0.80"> michael </span><span style="background-color: hsl(120, 100.00%, 83.73%); opacity: 0.86" title="0.003">madison</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">could</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">have</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">allowed</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">this</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 96.76%); opacity: 0.81" title="0.000">one</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 86.15%); opacity: 0.84" title="0.002">on</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 96.09%); opacity: 0.81" title="0.000">his</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 92.71%); opacity: 0.82" title="0.001">plate</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 86.49%); opacity: 0.84" title="0.002">he</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">almost</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">seemed</span><span style="opacity: 0.80"> to </span><span style="background-color: hsl(120, 100.00%, 84.91%); opacity: 0.85" title="0.003">know</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">this</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">wasn&#x27;t</span><span style="opacity: 0.80"> going </span><span style="opacity: 0.80">to</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 85.91%); opacity: 0.85" title="0.002">work</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">out</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 86.06%); opacity: 0.84" title="0.002">and</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 96.09%); opacity: 0.81" title="0.000">his</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 64.05%); opacity: 0.97" title="0.009">performance</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">was</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 83.77%); opacity: 0.86" title="0.003">quite</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;OOV&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">so</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 91.10%); opacity: 0.82" title="0.001">all</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 74.22%); opacity: 0.91" title="0.006">you</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 83.73%); opacity: 0.86" title="0.003">madison</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 74.31%); opacity: 0.91" title="0.006">fans</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">give</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">this</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 98.09%); opacity: 0.80" title="0.000">a</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 91.25%); opacity: 0.82" title="0.001">miss</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> &lt;PAD&gt;</span>
         </p>
     
     
@@ -2768,7 +3440,7 @@ Getting back to sentiment classification
     
     
         <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
-            <span style="opacity: 0.80">t</span><span style="opacity: 0.80">h</span><span style="opacity: 0.80">e</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">I</span><span style="background-color: hsl(120, 100.00%, 81.99%); opacity: 0.86" title="0.000">R</span><span style="opacity: 0.80">S</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">i</span><span style="opacity: 0.80">s </span><span style="opacity: 0.80">a</span><span style="background-color: hsl(120, 100.00%, 63.57%); opacity: 0.97" title="0.000">f</span><span style="opacity: 0.80">te</span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.000">r</span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.000">r</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">m</span><span style="opacity: 0.80">y</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">c</span><span style="opacity: 0.80">a</span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.000">r</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">l</span><span style="opacity: 0.80">o</span><span style="opacity: 0.80">a</span><span style="opacity: 0.80">n</span>
+            <span style="opacity: 0.80">&lt;START&gt; </span><span style="background-color: hsl(120, 100.00%, 84.46%); opacity: 0.85" title="0.003">please</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">give</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">this</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 96.76%); opacity: 0.81" title="0.000">one</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 98.09%); opacity: 0.80" title="0.000">a</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 91.25%); opacity: 0.82" title="0.001">miss</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.63%); opacity: 0.80" title="0.000">br</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.63%); opacity: 0.80" title="0.000">br</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;OOV&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;OOV&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 86.06%); opacity: 0.84" title="0.002">and</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">the</span><span style="opacity: 0.80"> rest </span><span style="background-color: hsl(120, 100.00%, 88.59%); opacity: 0.83" title="0.002">of</span><span style="opacity: 0.80"> the </span><span style="opacity: 0.80">cast</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.011">rendered</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">terrible</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 87.85%); opacity: 0.84" title="0.002">performances</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">the</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 78.91%); opacity: 0.88" title="0.004">show</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 84.08%); opacity: 0.85" title="0.003">is</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">flat</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">flat</span><span style="opacity: 0.80"> flat </span><span style="background-color: hsl(120, 100.00%, 99.63%); opacity: 0.80" title="0.000">br</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.63%); opacity: 0.80" title="0.000">br</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 92.10%); opacity: 0.82" title="0.001">i</span><span style="opacity: 0.80"> don&#x27;t </span><span style="background-color: hsl(120, 100.00%, 84.91%); opacity: 0.85" title="0.003">know</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 92.28%); opacity: 0.82" title="0.001">how</span><span style="opacity: 0.80"> michael </span><span style="background-color: hsl(120, 100.00%, 83.73%); opacity: 0.86" title="0.003">madison</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">could</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">have</span><span style="opacity: 0.80"> allowed </span><span style="opacity: 0.80">this</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 96.76%); opacity: 0.81" title="0.000">one</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 86.15%); opacity: 0.84" title="0.002">on</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 96.09%); opacity: 0.81" title="0.000">his</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 92.71%); opacity: 0.82" title="0.001">plate</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 86.49%); opacity: 0.84" title="0.002">he</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">almost</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">seemed</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">to</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 84.91%); opacity: 0.85" title="0.003">know</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">this</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">wasn&#x27;t</span><span style="opacity: 0.80"> going to </span><span style="background-color: hsl(120, 100.00%, 85.91%); opacity: 0.85" title="0.002">work</span><span style="opacity: 0.80"> out </span><span style="background-color: hsl(120, 100.00%, 86.06%); opacity: 0.84" title="0.002">and</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 96.09%); opacity: 0.81" title="0.000">his</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 64.05%); opacity: 0.97" title="0.009">performance</span><span style="opacity: 0.80"> was </span><span style="background-color: hsl(120, 100.00%, 83.77%); opacity: 0.86" title="0.003">quite</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;OOV&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">so</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 91.10%); opacity: 0.82" title="0.001">all</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 74.22%); opacity: 0.91" title="0.006">you</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 83.73%); opacity: 0.86" title="0.003">madison</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 74.31%); opacity: 0.91" title="0.006">fans</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">give</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">this</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 98.09%); opacity: 0.80" title="0.000">a</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 91.25%); opacity: 0.82" title="0.001">miss</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> &lt;PAD&gt; </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> &lt;PAD&gt; </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> &lt;PAD&gt; &lt;PAD&gt; </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="opacity: 0.80">&lt;PAD&gt;</span><span style="opacity: 0.80"> &lt;PAD&gt;</span>
         </p>
     
     
@@ -2858,7 +3530,7 @@ Getting back to sentiment classification
     
     
         <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
-            <span style="opacity: 0.80">the I</span><span style="background-color: hsl(120, 100.00%, 81.99%); opacity: 0.86" title="0.000">R</span><span style="opacity: 0.80">S is a</span><span style="background-color: hsl(120, 100.00%, 63.57%); opacity: 0.97" title="0.000">f</span><span style="opacity: 0.80">te</span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.000">rr</span><span style="opacity: 0.80"> my ca</span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.000">r</span><span style="opacity: 0.80"> loan</span>
+            <span style="opacity: 0.80">&lt;START&gt; </span><span style="background-color: hsl(120, 100.00%, 84.46%); opacity: 0.85" title="0.003">please</span><span style="opacity: 0.80"> give this </span><span style="background-color: hsl(120, 100.00%, 96.76%); opacity: 0.81" title="0.000">one</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 98.09%); opacity: 0.80" title="0.000">a</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 91.25%); opacity: 0.82" title="0.001">miss</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.63%); opacity: 0.80" title="0.000">br</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.63%); opacity: 0.80" title="0.000">br</span><span style="opacity: 0.80"> &lt;OOV&gt; &lt;OOV&gt; </span><span style="background-color: hsl(120, 100.00%, 86.06%); opacity: 0.84" title="0.002">and</span><span style="opacity: 0.80"> the rest </span><span style="background-color: hsl(120, 100.00%, 88.59%); opacity: 0.83" title="0.002">of</span><span style="opacity: 0.80"> the cast </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.011">rendered</span><span style="opacity: 0.80"> terrible </span><span style="background-color: hsl(120, 100.00%, 87.85%); opacity: 0.84" title="0.002">performances</span><span style="opacity: 0.80"> the </span><span style="background-color: hsl(120, 100.00%, 78.91%); opacity: 0.88" title="0.004">show</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 84.08%); opacity: 0.85" title="0.003">is</span><span style="opacity: 0.80"> flat flat flat </span><span style="background-color: hsl(120, 100.00%, 99.63%); opacity: 0.80" title="0.000">br</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 99.63%); opacity: 0.80" title="0.000">br</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 92.10%); opacity: 0.82" title="0.001">i</span><span style="opacity: 0.80"> don&#x27;t </span><span style="background-color: hsl(120, 100.00%, 84.91%); opacity: 0.85" title="0.003">know</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 92.28%); opacity: 0.82" title="0.001">how</span><span style="opacity: 0.80"> michael </span><span style="background-color: hsl(120, 100.00%, 83.73%); opacity: 0.86" title="0.003">madison</span><span style="opacity: 0.80"> could have allowed this </span><span style="background-color: hsl(120, 100.00%, 96.76%); opacity: 0.81" title="0.000">one</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 86.15%); opacity: 0.84" title="0.002">on</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 96.09%); opacity: 0.81" title="0.000">his</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 92.71%); opacity: 0.82" title="0.001">plate</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 86.49%); opacity: 0.84" title="0.002">he</span><span style="opacity: 0.80"> almost seemed to </span><span style="background-color: hsl(120, 100.00%, 84.91%); opacity: 0.85" title="0.003">know</span><span style="opacity: 0.80"> this wasn&#x27;t going to </span><span style="background-color: hsl(120, 100.00%, 85.91%); opacity: 0.85" title="0.002">work</span><span style="opacity: 0.80"> out </span><span style="background-color: hsl(120, 100.00%, 86.06%); opacity: 0.84" title="0.002">and</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 96.09%); opacity: 0.81" title="0.000">his</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 64.05%); opacity: 0.97" title="0.009">performance</span><span style="opacity: 0.80"> was </span><span style="background-color: hsl(120, 100.00%, 83.77%); opacity: 0.86" title="0.003">quite</span><span style="opacity: 0.80"> &lt;OOV&gt; so </span><span style="background-color: hsl(120, 100.00%, 91.10%); opacity: 0.82" title="0.001">all</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 74.22%); opacity: 0.91" title="0.006">you</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 83.73%); opacity: 0.86" title="0.003">madison</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 74.31%); opacity: 0.91" title="0.006">fans</span><span style="opacity: 0.80"> give this </span><span style="background-color: hsl(120, 100.00%, 98.09%); opacity: 0.80" title="0.000">a</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 91.25%); opacity: 0.82" title="0.001">miss</span><span style="opacity: 0.80"> &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt; &lt;PAD&gt;</span>
         </p>
     
     
@@ -2906,98 +3578,108 @@ Getting back to sentiment classification
     next
 
 
+The results are roughly the same and usually you do not need to modify
+this argument. Nevertheless, you can try if the overlay seems off.
 
-.. raw:: html
+How it works - ``explain_prediction()`` and ``format_as_html()``.
+-----------------------------------------------------------------
 
-    
-        <style>
-        table.eli5-weights tr:hover {
-            filter: brightness(85%);
-        }
-    </style>
-    
-    
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-    
-        
-    
-        
-    
-        
-    
-        
-            
-    
-        
-    
-            
-    
-            
-    
-    
-        <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
-            <span style="opacity: 0.80">the I</span><span style="background-color: hsl(120, 100.00%, 81.99%); opacity: 0.86" title="0.000">R</span><span style="opacity: 0.80">S is a</span><span style="background-color: hsl(120, 100.00%, 63.57%); opacity: 0.97" title="0.000">f</span><span style="opacity: 0.80">te</span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.000">rr</span><span style="opacity: 0.80"> my ca</span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.000">r</span><span style="opacity: 0.80"> loan</span>
-        </p>
-    
-    
-        
-    
-        
-    
-        
-    
-        
-    
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-    
-    
+What we have seen so far is calls to ``show_prediction()``. What this
+function actually does is call ``explain_prediction()`` to produce an
+``Explanation`` object, and then passes that object to
+``format_as_html()`` to produce highlighted HTML.
 
+Let's check each of these steps
 
+.. code:: ipython3
 
-The results are roughly the same. If highlighting seems off this
-argument may be a thing to try.
+    E = eli5.explain_prediction(binary_model, review, tokens=review_t)
+
+This is an ``Explanation`` object
+
+.. code:: ipython3
+
+    repr(E)
+
+We can get the predicted class and the value for the prediction
+
+.. code:: ipython3
+
+    target = E.targets[0]
+    print(target.target, target.score)
+
+We can also check the produced Grad-CAM ``heatmap`` found on each item
+in ``targets``. You can think of this as an array of "importances" for
+tokens (after padding is removed and the heatmap is resized).
+
+.. code:: ipython3
+
+    heatmap = target.heatmap
+    print(heatmap)
+    print(len(heatmap))
+
+The highlighting for each token is stored in a ``WeightedSpans`` object
+(specifically the ``DocWeightedSpans`` object)
+
+.. code:: ipython3
+
+    weighted_spans = target.weighted_spans
+    print(weighted_spans)
+    
+    doc_ws = weighted_spans.docs_weighted_spans[0]
+    print(doc_ws)
+
+Observe the ``document`` attribute and ``spans``
+
+.. code:: ipython3
+
+    print(doc_ws.document)
+    print(doc_ws.spans)
+
+The ``document`` is the "stringified" version of ``tokens``. If you have
+a custom "tokens -> string" algorithm you may want to set this attribute
+yourself.
+
+The ``spans`` object is a list of weights for each character in
+``document``. We use the indices in ``document`` string to indicate
+which characters should be weighted with a specific value.
+
+Let's format this. HTML formatter is what should be used here.
+
+.. code:: ipython3
+
+    import eli5.formatters.fields as fields
+    F = eli5.format_as_html(E, show=fields.WEIGHTS)
+
+We pass a ``show`` argument to not display the method name or its
+description ("Grad-CAM"). See ``eli5.format_as_html()`` for a list of
+all supported arguments.
+
+The output is an HTML-encoded string.
+
+.. code:: ipython3
+
+    repr(F)
+
+Convert the string to an HTML object and display it in an IPython
+notebook
+
+.. code:: ipython3
+
+    display(HTML(F))
 
 Notes on results
 ----------------
 
+In general, this is experimental work. Unlike for images, there is not
+much talk about Grad-CAM applied to text.
+
+``layer`` is probably a very important argument as we currently use
+basic heuristics to pick a suitable layer. Thus explanations may not
+look as good for your own model.
+
 Multi-label classification
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Does not work
+Did not really work for us. Got non-sensical explanations. Send comment
+if can do it.

@@ -90,4 +90,4 @@ def tokens_to_vectorized(tokens):
     for sample in tokens:
         x = [word_index.get(token, word_index['<OOV>']) for token in sample]
         doc.append(x)
-    return doc
+    return np.array(doc)

@@ -87,6 +87,7 @@ jupyter nbconvert \
         --stdout \
         '../notebooks/keras-text-classifiers.ipynb' \
         > source/_notebooks/keras-text-classifiers.rst
+# TODO: may want to rewrite functions/classes in Sphinx also
 
 
 # to run a notebook before converting (and stop if there are any errors):
