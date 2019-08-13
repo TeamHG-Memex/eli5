@@ -33,6 +33,7 @@ import eli5
 from eli5.keras.explain_prediction import (
     _validate_model,
     _validate_doc,
+    _validate_doc_shape,
     _validate_tokens,
     _get_layer,
     _autoget_layer_image,
@@ -61,27 +62,6 @@ def simple_seq_image():
     print('Summary of model:')
     model.summary()
     return model
-
-
-@pytest.fixture(scope='module')
-def simple_seq_text():
-    """Simple sequential model for text using convolutional layers."""
-    model = Sequential([
-        Embedding(10, 5, input_length=20),             # index 0
-        Conv1D(2, 5),                                  # index 1, conv
-        MaxPooling1D(2),                               # index 2
-        Dense(1),                                      # index 3
-    ])
-    enumerate_layers(model)
-    print('Summary of model:')
-    model.summary()
-    return model
-
-
-@pytest.fixture(scope='module')
-def simple_seq_text_recurrent():
-    """Simple sequential model for text using recurrent layers."""
-    pass
 
 
 @pytest.fixture(scope='module')
@@ -161,18 +141,19 @@ def test_validate_model_invalid():
         _validate_model(Sequential())
 
 
-def test_validate_doc(simple_seq_image):
-    # valid
-    _validate_doc(simple_seq_image, np.zeros((1, 32, 32, 1)))
+def test_validate_doc():
     # wrong type
     with pytest.raises(TypeError):
-        _validate_doc(simple_seq_image, 10)
-    # batch has more than one sample
+        _validate_doc(10)
+
+
+def test_validate_doc_shape(simple_seq_image):
     with pytest.raises(ValueError):
-        _validate_doc(simple_seq_image, np.zeros((3, 32, 32, 1)))
-    # incorrect dimensions (missing batch)
+        # batch has more than one sample
+        _validate_doc_shape(simple_seq_image, np.zeros((3, 32, 32, 1)))
     with pytest.raises(ValueError):
-        _validate_doc(simple_seq_image, np.zeros((32, 32, 1)))
+        # incorrect dimensions (missing batch)
+        _validate_doc_shape(simple_seq_image, np.zeros((32, 32, 1)))
 
 
 def test_validate_doc_2d():
@@ -180,16 +161,8 @@ def test_validate_doc_2d():
     model = Sequential([Dense(1, input_shape=(2, 3))])
     # not matching shape
     with pytest.raises(ValueError):
-        _validate_doc(model, np.zeros((1, 5, 3)))
+        _validate_doc_shape(model, np.zeros((1, 5, 3)))
 
-
-# TODO: test validate doc for text
-
-def test_validate_doc_text(simple_seq_text):
-    _validate_doc(simple_seq_text, np.zeros((1, 20)))
-
-
-# TODO: test validate tokens
 
 def test_validate_tokens():
     _validate_tokens(np.zeros((1, 3)), ['a', 'b', 'c'])

@@ -154,7 +154,6 @@ def explain_prediction_keras(model, # type: Model
 
     # check that only one of image or tokens is passed
     assert image is None or tokens is None
-    _validate_doc(model, doc)
     if image is not None or _maybe_image(model, doc):
         return explain_prediction_keras_image(model,
                                               doc,
@@ -416,6 +415,7 @@ def _maybe_image(model, doc):
 def _maybe_image_input(doc):
     # type: (np.ndarray) -> bool
     """Decide whether ``doc`` represents an image input."""
+    _validate_doc(doc)
     rank = len(doc.shape)
     # image with channels or without (spatial only)
     return rank == 4 or rank == 3
@@ -578,7 +578,8 @@ def _validate_params(model, # type: Model
     # type: (...) -> None
     """Helper for validating all explanation function parameters."""
     _validate_model(model)
-    _validate_doc(model, doc)
+    _validate_doc(doc)
+    _validate_doc_shape(model, doc)
     if targets is not None:
         _validate_targets(targets)
         _validate_classification_target(targets[0], model.output_shape)
@@ -593,16 +594,21 @@ def _validate_model(model):
                          'Got model with layers: "{}"'.format(model.layers))
 
 
-def _validate_doc(model, doc):
-    # type: (Model, np.ndarray) -> None
+def _validate_doc(doc):
+    # type: (np.ndarray) -> None
     """
-    Check that the input ``doc`` is suitable for ``model``.
+    Check that the input ``doc`` has the correct type.
     """
     # TODO: (open issue) be able to take Tensorflow or backend tensors
     if not isinstance(doc, np.ndarray):
         raise TypeError('"doc" must be an instace of numpy.ndarray. '
                         'Got: {} (type "{}")'.format(doc, type(doc)))
         # TODO: take python list (i.e. result of pad_sequences)
+
+
+def _validate_doc_shape(model, doc):
+    # type: (Model, np.ndarray) -> None
+    """Check that ``doc`` has suitable shape for ``model``."""
     doc_sh = doc.shape
     batch_size = doc_sh[0]
 
