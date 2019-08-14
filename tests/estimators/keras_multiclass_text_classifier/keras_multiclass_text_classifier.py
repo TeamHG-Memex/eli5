@@ -14,7 +14,8 @@ maxlen = 3193
 
 
 # TODO: want to download these files, i.e. S3 URL?
-base_path = 'tests/estimators/keras_multiclass_text_classifier'
+# https://stackoverflow.com/questions/4187300/how-do-i-use-a-relative-path-in-a-python-module-when-the-cwd-has-changed
+base_path = os.path.dirname(os.path.abspath(__file__))
 WORD_INDEX = os.path.join(base_path, 'word_index.csv')
 LABELS_INDEX = os.path.join(base_path, 'labels_index.csv')
 # 1k samples to not crash anything
