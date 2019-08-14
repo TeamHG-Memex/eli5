@@ -189,7 +189,7 @@ Check the prediction
 
 
 
-As expected, looks pretty low accuracy.
+As expected, looks pretty low score.
 
 Now let's explain what got us this result with ELI5. We need to pass the
 model, the input, and the associated tokens that will be highlighted.
