@@ -2,11 +2,17 @@
 
 """Utility functions for working with an IMDB sentiment classifier."""
 
+import os.path
+
 import numpy as np
 import keras
 from keras.datasets import imdb
 from keras.preprocessing.sequence import pad_sequences
 from keras.preprocessing.text import text_to_word_sequence
+
+
+base_path = os.path.dirname(os.path.abspath(__file__))
+MODEL = os.path.join(base_path, 'keras_sentiment_classifier.h5')
 
 
 vocablen = 10000
