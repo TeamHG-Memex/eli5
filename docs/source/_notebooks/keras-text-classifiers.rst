@@ -120,7 +120,7 @@ preprocessing.
 .. code:: ipython3
 
     import tests.estimators.keras_sentiment_classifier.keras_sentiment_classifier \
-    as keras_sentiment_classifier
+        as keras_sentiment_classifier
 
 .. code:: ipython3
 
