@@ -22,6 +22,7 @@ from keras.layers import (  # type: ignore
     RNN,
     LSTM,
     GRU,
+    Bidirectional,
 )
 from keras.preprocessing.image import array_to_img # type: ignore
 
@@ -148,6 +149,14 @@ def explain_prediction_keras(model, # type: Model
     -------
       expl : :class:`eli5.base.Explanation`
         An :class:`eli5.base.Explanation` object for the relevant implementation.
+
+        The following attributes are supported by all concrete implementations:
+
+        * ``targets`` a list of :class:`eli5.base.TargetExplanation` objects \
+            for each target. Currently only 1 target is supported.
+        * ``layer`` the hidden activation layer that we chose to do computations with, \
+            as a string (name of the layer).
+
     """
     # Note that this function should only do dispatch 
     # and no other processing
@@ -235,8 +244,9 @@ def explain_prediction_keras_image(model,
     expl : eli5.base.Explanation
       An :class:`eli5.base.Explanation` object with the following attributes:
           * ``image`` a Pillow image representing the input.
-          * ``targets`` a list of :class:`eli5.base.TargetExplanation` objects \
-              for each target. Currently only 1 target is supported.
+          * ``targets`` and ``layer`` attributes:
+            See :func:`eli5.keras.explain_prediction.explain_prediction_keras`.
+
       The :class:`eli5.base.TargetExplanation` objects will have the following attributes:
           * ``heatmap`` a rank 2 numpy array with the localization map \
             values as floats.
@@ -271,7 +281,7 @@ def explain_prediction_keras_image(model,
         error='',
         method='Grad-CAM',
         image=image, # RGBA Pillow image
-        # PR FIXME: Would be good to include retrieved layer as an attribute
+        layer=activation_layer.name,
         targets=[TargetExplanation(
             predicted_idx,
             score=predicted_val, # for now we keep the prediction in the .score field (not .proba)
@@ -340,8 +350,8 @@ def explain_prediction_keras_text(model,
     -------
     expl : eli5.base.Explanation
       An :class:`eli5.base.Explanation` object with the following attributes:
-          * ``targets`` a list of :class:`eli5.base.TargetExplanation` objects \
-              for each target. Currently only 1 target is supported.
+          * ``targets`` and ``layer`` attributes:
+            See :func:`eli5.keras.explain_prediction.explain_prediction_keras`.
 
       The :class:`eli5.base.TargetExplanation` objects will have the following attributes:
           * ``weighted_spans`` a :class:`eli5.base.WeightedSpans` object with \
@@ -391,6 +401,7 @@ def explain_prediction_keras_text(model,
         description=DESCRIPTION_GRADCAM,
         error='',
         method='Grad-CAM',
+        layer=activation_layer.name,
         targets=[TargetExplanation(
             predicted_idx,
             weighted_spans=weighted_spans,
@@ -528,7 +539,7 @@ def _autoget_layer_text(model, character=False):
     return l if l is not None else _middle_layer(model)
 
 
-text_layers = (Conv1D, RNN, LSTM, GRU,)
+text_layers = (Conv1D, RNN, LSTM, GRU, Bidirectional,)
 temporal_layers = (AveragePooling1D, MaxPooling1D,)
 
 
