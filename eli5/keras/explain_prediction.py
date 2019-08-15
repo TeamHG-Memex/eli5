@@ -58,7 +58,6 @@ def explain_prediction_keras(model, # type: Model
                              tokens=None,
                              pad_value=None,
                              pad_token=None,
-                             padding='post',
                              interpolation_kind='linear',
                              ):
     # type: (...) -> Explanation
@@ -179,7 +178,6 @@ def explain_prediction_keras(model, # type: Model
                                              tokens=tokens,
                                              pad_value=pad_value,
                                              pad_token=pad_token,
-                                             padding=padding,
                                              interpolation_kind=interpolation_kind,
                                              targets=targets,
                                              layer=layer,
@@ -298,8 +296,6 @@ def explain_prediction_keras_text(model,
                                   tokens=None, # type: Optional[Union[List[str], np.ndarray]]
                                   pad_value=None, # type: Optional[Union[int, float, str]]
                                   pad_token=None, # type: Optional[str]
-                                  padding='post', # type: str
-                                  # TODO: rename 'padding' to 'pad_side'?
                                   interpolation_kind='linear', # type: Union[str, int]
                                   targets=None,
                                   layer=None,
@@ -341,15 +337,6 @@ def explain_prediction_keras_text(model,
 
         A string token in ``tokens``.
     :type pad_value: str, optional
-
-    :param padding:
-        Padding position, either 'pre' (before sequence)
-        or 'post' (after sequence).
-
-        Default: 'post'.
-
-        Padding characters will be cut off from the heatmap and tokens.
-    :type padding: str, optional
 
     :param interpolation_kind:
         Interpolation method. See :func:`eli5.nn.text.resize_1d` for more details.
@@ -401,7 +388,6 @@ def explain_prediction_keras_text(model,
                                    doc,
                                    pad_value=pad_value,
                                    pad_token=pad_token,
-                                   padding=padding,
                                    interpolation_kind=interpolation_kind,
                                    )
     tokens, heatmap, weighted_spans = text_vals

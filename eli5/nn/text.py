@@ -18,14 +18,13 @@ def gradcam_text_spans(heatmap, # type: np.ndarray
                        doc, # type: np.ndarray
                        pad_value=None, # type: Optional[Union[int, float]]
                        pad_token=None, # type: Optional[str]
-                       padding='post', # type: str
                        interpolation_kind='linear' # type: Union[str, int]
                        ):
     # type: (...) -> Tuple[Union[np.ndarray, list], np.ndarray, WeightedSpans]
     """
     Create text spans from a Grad-CAM ``heatmap`` imposed over ``tokens``.
     Optionally cut off the padding from the explanation
-    with the ``pad_value`` and ``padding`` arguments.
+    with the ``pad_value`` or ``pad_token`` arguments.
 
     Parameters
     ----------
@@ -48,11 +47,6 @@ def gradcam_text_spans(heatmap, # type: np.ndarray
 
         Pass one of either `pad_value` or `pad_token` to cut off padding.
 
-    padding: str, optional
-        Whether padding is `pre` (before text) or `post` (after text).
-
-        Default is `post`.
-
     interpolation_kind: str or int, optional
         Interpolation method. See :func:`eli5.nn.text.resize_1d` for more details.
 
@@ -71,8 +65,7 @@ def gradcam_text_spans(heatmap, # type: np.ndarray
         # remove padding
         pad_indices = _find_padding(pad_value=pad_value, pad_token=pad_token, doc=doc, tokens=tokens)
         # If pad_value is not the actual padding value, behaviour is unknown
-        tokens, heatmap = _trim_padding(pad_indices, padding,
-                                        tokens, heatmap)
+        tokens, heatmap = _trim_padding(pad_indices, tokens, heatmap)
     document = _construct_document(tokens)
     spans = _build_spans(tokens, heatmap, document)
     weighted_spans = WeightedSpans([
@@ -209,27 +202,18 @@ def _find_padding_tokens(pad_token, tokens):
 
 
 def _trim_padding(pad_indices, # type: np.ndarray
-                  padding, # type: str
                   tokens, # type: Union[list, np.ndarray]
                   heatmap, # type: np.ndarray
                   ):
     # type: (...) -> Tuple[Union[list, np.ndarray], np.ndarray]
-    """Removing padding from ``tokens`` and ``heatmap``."""
+    """Remove padding from ``tokens`` and ``heatmap``."""
     # heatmap and tokens must be same length?
     if 0 < len(pad_indices):
         # found some padding symbols
-        if padding == 'post':
-            # `word word pad pad` -> 'word word'
-            first_pad_idx = pad_indices[0]
-            tokens = tokens[:first_pad_idx]
-            heatmap = heatmap[:first_pad_idx]
-        elif padding == 'pre':
-            # `pad pad word word` -> 'word word'
-            last_pad_idx = pad_indices[-1]
-            tokens = tokens[last_pad_idx+1:]
-            heatmap = heatmap[last_pad_idx+1:]
-        else:
-            raise ValueError('padding must be "post" or "pre". '
-                             'Got: {}'.format(padding))
-    # TODO: check that there's no padding symbols inside the text
+
+        # delete all values along indices
+        # this is not as robust as explicitly finding pre and post padding characters
+        # and we can not detect and raise an error if there is padding in the middle of the text
+        tokens = np.delete(tokens, pad_indices)
+        heatmap = np.delete(heatmap, pad_indices)
     return tokens, heatmap
