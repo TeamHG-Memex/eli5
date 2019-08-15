@@ -498,44 +498,27 @@ def _get_layer(model, layer):
 def _autoget_layer_image(model):
     # type: (Model) -> Layer
     """Try find a suitable layer for image ``model``."""
-    l = _search_layer(model, _backward_layers, _is_suitable_image_layer)
+    # TODO: experiment with this, using many models and images, to find what works best
+    # a check that asks "can we resize this activation layer over the image?"
+    l = _search_layer(model,
+                      _backward_layers,
+                      lambda model, layer:
+                      len(layer.output_shape) == model.input_shape
+                      )
     return l if l is not None else _middle_layer(model)
 
 
-def _is_suitable_image_layer(model, layer):
-    # type: (Model, Layer) -> bool
-    """Check whether the layer ``layer`` matches what is required
-    by ``model`` to do Grad-CAM on ``layer``, for image-based models.
-    """
-    # TODO: experiment with this, using many models and images, to find what works best
-    # Some ideas:
-    # check layer type, i.e.: isinstance(l, keras.layers.Conv2D)
-    # check layer name
-    # input wrpt output
-
-    # a check that asks "can we resize this activation layer over the image?"
-    rank = len(layer.output_shape)
-    required_rank = len(model.input_shape)
-    return rank == required_rank
-
-
-def _autoget_layer_text(model, character=False):
-    # type: (Model, Union[np.ndarray, list]) -> Layer
-    """Try find a suitable layer for text ``model``.
-    If ``character`` is `True`, tokenization is character-level.
-    """
-    if character:
-        # Embedding layer seems to give the best results
-        l = _search_layer(model, _forward_layers, lambda model, layer: isinstance(layer, Embedding))
-    else:
-        # search forwards for
-        # 'word level' features
-        # search categories in sequence: text > 1D > embedding
-        l = _search_layer(model, _forward_layers, lambda model, layer: isinstance(layer, text_layers))
+def _autoget_layer_text(model):
+    # type: (Model) -> Layer
+    """Try find a suitable layer for text ``model``."""
+    # search for 'word level' features
+    # search categories in sequence: text > 1D > embedding
+    g = _backward_layers
+    l = _search_layer(model, g, lambda model, layer: isinstance(layer, text_layers))
+    if l is None:
+        l = _search_layer(model, g, lambda model, layer: isinstance(layer, temporal_layers))
         if l is None:
-            l = _search_layer(model, _forward_layers, lambda model, layer: isinstance(layer, temporal_layers))
-            if l is None:
-                l = _search_layer(model, _forward_layers, lambda model, layer: isinstance(layer, Embedding))
+            l = _search_layer(model, g, lambda model, layer: isinstance(layer, Embedding))
     return l if l is not None else _middle_layer(model)
 
 

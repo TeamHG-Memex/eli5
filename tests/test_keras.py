@@ -111,26 +111,17 @@ def test_autoget_layer_image(model, expected_layer_idx):
 
 
 @pytest.mark.parametrize('model, expected_layer_idx', [
-    (Sequential([Dense(1, input_shape=(1,)), Dense(1), Dense(1)]),
+    (Sequential([Dense(1, input_shape=(1,)), Dense(1), Dense(1), ]),
         1),  # no match
-    (Sequential([Embedding(5, 2), LSTM(1, return_sequences=True), GRU(1), ]),
+    (Sequential([Embedding(5, 2), LSTM(1, return_sequences=True), MaxPooling1D(1), ]),
         1),  # text layer
-    (Sequential([Embedding(5, 2), AveragePooling1D(1), ]),
-        1),  # 1D layer
+    (Sequential([Embedding(5, 2), MaxPooling1D(1), AveragePooling1D(1), Dense(1), ]),
+        2),  # 1D layer backwards
     (Sequential([Embedding(5, 2), Dense(1), ]),
         0),  # embedding
 ])
 def test_autoget_layer_text(model, expected_layer_idx):
     l = _autoget_layer_text(model)
-    assert l is model.get_layer(index=expected_layer_idx)
-
-
-@pytest.mark.parametrize('model, expected_layer_idx', [
-    (Sequential([Embedding(5, 2), LSTM(1, return_sequences=True), LSTM(1), ]),
-        0),  # embedding
-])
-def test_autoget_layer_text_character(model, expected_layer_idx):
-    l = _autoget_layer_text(model, character=True)
     assert l is model.get_layer(index=expected_layer_idx)
 
 
