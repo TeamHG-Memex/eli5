@@ -161,6 +161,7 @@ def test_sentiment_classification(sentiment_clf,
     doc, tokens = sentiment_input
     print('Explaining with relu={} and counterfactual={}'.format(relu, counterfactual))
     res = eli5.explain_prediction(model, doc, tokens=tokens, relu=relu, counterfactual=counterfactual)
+    print(res)
     spans, document = get_docs_weighted_spans(res)
     assert_weights_over_spans(spans, positive, negative, neutral)
 
@@ -180,7 +181,7 @@ def test_padding_no_effect(sentiment_clf, sentiment_input_all_pad):
 def test_explain_1d_layer_text(sentiment_clf, sentiment_input_all_pad):
     model = sentiment_clf
     doc, tokens = sentiment_input_all_pad
-    res = eli5.explain_prediction(model, doc, tokens=tokens, layer=-1)
+    eli5.explain_prediction(model, doc, tokens=tokens, layer=-1)
 
 
 # should be able to take tokens without batch dimension
@@ -188,7 +189,7 @@ def test_tokens_not_batched(sentiment_clf, sentiment_input_all_pad):
     model = sentiment_clf
     doc, tokens = sentiment_input_all_pad
     tokens, = tokens
-    res = eli5.explain_prediction(model, doc, tokens=tokens, layer=-1)
+    eli5.explain_prediction(model, doc, tokens=tokens, layer=-1)
 
 
 # check that explain+format == show
@@ -223,8 +224,8 @@ def test_multiclass_classification(multiclass_clf,
                                   tokens=tokens,
                                   targets=targets,
                                   relu=False,
-                                  pad_value='<PAD>',
-                                  padding='post',
+                                  pad_token='<PAD>',
                                   )
+    print(res)
     spans, document = get_docs_weighted_spans(res)
     assert_weights_over_spans(spans, positive, negative, neutral)

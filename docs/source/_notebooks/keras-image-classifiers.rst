@@ -103,7 +103,7 @@ dimensions! Let's resize it:
 
 .. parsed-literal::
 
-    <PIL.Image.Image image mode=RGB size=224x224 at 0x7FE1D535EF60>
+    <PIL.Image.Image image mode=RGB size=224x224 at 0x7F0729186DD8>
 
 
 
@@ -170,7 +170,7 @@ inputting
 
 .. parsed-literal::
 
-    <PIL.Image.Image image mode=RGB size=224x224 at 0x7FE1D5385048>
+    <PIL.Image.Image image mode=RGB size=224x224 at 0x7F067738E5F8>
 
 
 
@@ -496,15 +496,15 @@ Examining the structure of the ``Explanation`` object:
            [0.        , 0.        , 0.        , 0.        , 0.        ,
             0.        , 0.12770046],
            [0.        , 0.        , 0.        , 0.        , 0.        ,
-            0.02705698, 0.16513413]]))], feature_importances=None, decision_tree=None, highlight_spaces=None, transition_features=None, image=<PIL.Image.Image image mode=RGB size=224x224 at 0x7FE1C59D7E48>)
+            0.02705698, 0.16513413]]))], feature_importances=None, decision_tree=None, highlight_spaces=None, transition_features=None, image=<PIL.Image.Image image mode=RGB size=224x224 at 0x7F066AF25550>, layer='out_relu')
 
 
-We can check the score (raw value) or probability (normalized score) of
-the neuron for the predicted class, and get the class ID itself:
+We can check a number of things for the target being explained: the
+class ID predicted, the score (raw value) or probability (normalized
+score) of the neuron for the predicted class.
 
 .. code:: ipython3
 
-    # we can access the various attributes of a target being explained
     print((expl.targets[0].target, expl.targets[0].score, expl.targets[0].proba))
 
 
@@ -513,15 +513,18 @@ the neuron for the predicted class, and get the class ID itself:
     (243, 0.80967486, None)
 
 
-We can also access the original image and the Grad-CAM heatmap:
+We can also access the original image, the Grad-CAM heatmap, and the
+hidden activation layer that we took for calculations:
 
 .. code:: ipython3
 
     image = expl.image
     heatmap = expl.targets[0].heatmap
+    layer = expl.layer
     
     display(image) # the .image attribute is a PIL image
     print(heatmap) # the .heatmap attribute is a numpy array
+    print(layer) # the layer (its name as a string)
 
 
 
@@ -544,6 +547,7 @@ We can also access the original image and the Grad-CAM heatmap:
       0.12770046]
      [0.         0.         0.         0.         0.         0.02705698
       0.16513413]]
+    out_relu
 
 
 Visualizing the heatmap:

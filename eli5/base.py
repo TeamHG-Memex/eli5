@@ -43,6 +43,7 @@ class Explanation(object):
         self.transition_features = transition_features
         self.image = image # if arg is not None, assume we are working with images
         self.layer = layer # neural network layer, keep as a string to make it library independent
+        # if adding new attributes, do not forget to update the test_formatters_as_dict test
 
     def _repr_html_(self):
         """ HTML formatting for the notebook.

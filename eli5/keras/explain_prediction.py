@@ -19,6 +19,8 @@ from keras.layers import (  # type: ignore
     Embedding,
     AveragePooling1D,
     MaxPooling1D,
+    GlobalAveragePooling1D,
+    GlobalMaxPooling1D,
     RNN,
     LSTM,
     GRU,
@@ -294,7 +296,7 @@ def explain_prediction_keras_image(model,
 def explain_prediction_keras_text(model,
                                   doc,
                                   tokens=None, # type: Optional[Union[List[str], np.ndarray]]
-                                  pad_value=None, # type: Optional[Union[int, float, str]]
+                                  pad_value=None, # type: Optional[Union[int, float]]
                                   pad_token=None, # type: Optional[str]
                                   interpolation_kind='linear', # type: Union[str, int]
                                   targets=None,
@@ -370,7 +372,7 @@ def explain_prediction_keras_text(model,
     if layer is not None:
         activation_layer = _get_layer(model, layer)
     else:
-        activation_layer = _autoget_layer_text(model, character=_is_character_tokenization(tokens))
+        activation_layer = _autoget_layer_text(model)
 
     vals = gradcam_backend_keras(model, doc, targets, activation_layer)
     activations, grads, predicted_idx, predicted_val = vals
@@ -391,7 +393,6 @@ def explain_prediction_keras_text(model,
                                    interpolation_kind=interpolation_kind,
                                    )
     tokens, heatmap, weighted_spans = text_vals
-
     return Explanation(
         model.name,
         description=DESCRIPTION_GRADCAM,
@@ -509,17 +510,24 @@ def _autoget_layer_text(model):
     """Try find a suitable layer for text ``model``."""
     # search for 'word level' features
     # search categories in sequence: text > 1D > embedding
-    g = _backward_layers
-    l = _search_layer(model, g, lambda model, layer: isinstance(layer, text_layers))
-    if l is None:
-        l = _search_layer(model, g, lambda model, layer: isinstance(layer, temporal_layers))
-        if l is None:
-            l = _search_layer(model, g, lambda model, layer: isinstance(layer, Embedding))
+    # g = _backward_layers
+    # l = _search_layer(model, g, lambda model, layer: isinstance(layer, text_layers))
+    # if l is None:
+    #     l = _search_layer(model, g, lambda model, layer: isinstance(layer, temporal_layers))
+    #     if l is None:
+    #         l = _search_layer(model, g, lambda model, layer: isinstance(layer, Embedding))
+    l = _search_layer(model,
+                      _backward_layers,
+                      lambda model, layer:
+                      len(layer.output_shape) == 3 and
+                      isinstance(layer, text_layers)
+                      )
     return l if l is not None else _middle_layer(model)
 
 
 text_layers = (Conv1D, RNN, LSTM, GRU, Bidirectional,)
-temporal_layers = (AveragePooling1D, MaxPooling1D,)
+# temporal_layers = (AveragePooling1D, MaxPooling1D,
+#                    GlobalAveragePooling1D, GlobalMaxPooling1D,)
 
 
 def _search_layer(model, # type: Model

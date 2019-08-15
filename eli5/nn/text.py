@@ -171,10 +171,9 @@ def _find_padding(pad_value=None, # type: Union[int, float]
                   ):
     # type: (...) -> np.ndarray
     """Dispatch to a padding finder based on arguments."""
-    # argument pair validation
+    # check that did not pass both pad_value and pad_token
+    # which is ambiguous (which should take precedence?)
     assert pad_value is None or pad_token is None
-    assert doc is None or tokens is None
-    # choose implementation
     if pad_value is not None and doc is not None:
         return _find_padding_values(pad_value, doc)
     elif pad_token is not None and tokens is not None:
