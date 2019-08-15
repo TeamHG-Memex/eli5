@@ -33,7 +33,6 @@ import eli5
 from eli5.keras.explain_prediction import (
     _validate_model,
     _validate_doc,
-    _validate_doc_shape,
     _validate_tokens,
     _get_layer,
     _autoget_layer_image,
@@ -142,26 +141,11 @@ def test_validate_model_invalid():
 
 
 def test_validate_doc():
-    # wrong type
     with pytest.raises(TypeError):
         _validate_doc(10)
-
-
-def test_validate_doc_shape(simple_seq_image):
     with pytest.raises(ValueError):
         # batch has more than one sample
-        _validate_doc_shape(simple_seq_image, np.zeros((3, 32, 32, 1)))
-    with pytest.raises(ValueError):
-        # incorrect dimensions (missing batch)
-        _validate_doc_shape(simple_seq_image, np.zeros((32, 32, 1)))
-
-
-def test_validate_doc_2d():
-    # model with custom (rank 2/3, sequence) input shape
-    model = Sequential([Dense(1, input_shape=(2, 3))])
-    # not matching shape
-    with pytest.raises(ValueError):
-        _validate_doc_shape(model, np.zeros((1, 5, 3)))
+        _validate_doc(np.zeros((3, 2, 2, 1)))
 
 
 def test_validate_tokens():

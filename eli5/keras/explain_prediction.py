@@ -590,7 +590,6 @@ def _validate_params(model, # type: Model
     """Helper for validating all explanation function parameters."""
     _validate_model(model)
     _validate_doc(doc)
-    _validate_doc_shape(model, doc)
     if targets is not None:
         _validate_targets(targets)
         _validate_classification_target(targets[0], model.output_shape)
@@ -608,7 +607,7 @@ def _validate_model(model):
 def _validate_doc(doc):
     # type: (np.ndarray) -> None
     """
-    Check that the input ``doc`` has the correct type.
+    Check that the input ``doc`` has the correct type and values.
     """
     # TODO: (open issue) be able to take Tensorflow or backend tensors
     if not isinstance(doc, np.ndarray):
@@ -616,42 +615,13 @@ def _validate_doc(doc):
                         'Got: {} (type "{}")'.format(doc, type(doc)))
         # TODO: take python list (i.e. result of pad_sequences)
 
-
-def _validate_doc_shape(model, doc):
-    # type: (Model, np.ndarray) -> None
-    """Check that ``doc`` has suitable shape for ``model``."""
-    doc_sh = doc.shape
-    batch_size = doc_sh[0]
-
-    # check maching dims
-    # TODO: might want to delegate this validation to keras itself?
-    input_sh = model.input_shape
-    if not _eq_shapes(input_sh, doc_sh):
-        raise ValueError('"doc" must have shape: {}. '
-                         'Got: {}'.format(input_sh, doc_sh))
-
     # check that batch=1 (batch greater than 1 is currently not supported)
+    batch_size = doc.shape[0]
     if batch_size != 1:
         raise ValueError('"doc" batch size must be 1. '
                          'Got doc with batch size: %d' % batch_size)
 
-
-def _eq_shapes(required, other):
-    # type: (Tuple[int], Tuple[int]) -> bool
-    """
-    Check that ``other`` shape satisfies shape of ``required``.
-
-    For example::
-        _eq_shapes((None, 20), (1, 20)) # -> True
-    """
-    if len(required) != len(other):
-        # short circuit based on length
-        return False
-    matching = [(d1 == d2) # check that same number of dims 
-            if (d1 is not None) # if required takes a specific shape for a dim (not None)
-            else (1 <= d2) # else just check that the other shape has a valid shape for a dim
-            for d1, d2 in zip(required, other)]
-    return all(matching)
+    # Note that validation of the input shape, etc is done by Keras
 
 
 # FIXME: break this function up
