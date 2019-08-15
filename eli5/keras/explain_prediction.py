@@ -57,6 +57,7 @@ def explain_prediction_keras(model, # type: Model
                              image=None,
                              tokens=None,
                              pad_value=None,
+                             pad_token=None,
                              padding='post',
                              interpolation_kind='linear',
                              ):
@@ -177,6 +178,7 @@ def explain_prediction_keras(model, # type: Model
                                              doc,
                                              tokens=tokens,
                                              pad_value=pad_value,
+                                             pad_token=pad_token,
                                              padding=padding,
                                              interpolation_kind=interpolation_kind,
                                              targets=targets,
@@ -295,6 +297,7 @@ def explain_prediction_keras_text(model,
                                   doc,
                                   tokens=None, # type: Optional[Union[List[str], np.ndarray]]
                                   pad_value=None, # type: Optional[Union[int, float, str]]
+                                  pad_token=None, # type: Optional[str]
                                   padding='post', # type: str
                                   # TODO: rename 'padding' to 'pad_side'?
                                   interpolation_kind='linear', # type: Union[str, int]
@@ -325,13 +328,19 @@ def explain_prediction_keras_text(model,
     :type tokens: list[str], optional
 
     :param pad_value:
-        Character for padding. If given, cuts padding off.
+        Number for padding. If given, cuts padding off.
 
-        Either an integer value in ``doc``, or a string token in ``tokens``.
+        An integer value in ``doc``, 
 
         Do not pass this to see the effect of padding on the prediction
         (explain padding).
-    :type pad_value: int or str, optional
+    :type pad_value: int or float, optional
+
+    :param pad_token:
+        Symbol for padding. Works like `pad_value`.
+
+        A string token in ``tokens``.
+    :type pad_value: str, optional
 
     :param padding:
         Padding position, either 'pre' (before sequence)
@@ -391,6 +400,7 @@ def explain_prediction_keras_text(model,
                                    tokens,
                                    doc,
                                    pad_value=pad_value,
+                                   pad_token=pad_token,
                                    padding=padding,
                                    interpolation_kind=interpolation_kind,
                                    )

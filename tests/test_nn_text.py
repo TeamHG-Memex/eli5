@@ -9,6 +9,8 @@ from eli5.nn.text import (
     _build_spans,
     _construct_document,
     _find_padding,
+    _find_padding_values,
+    _find_padding_tokens,
     _trim_padding,
 )
 
@@ -43,25 +45,21 @@ def test_construct_document(tokens, expected_document):
     assert document == expected_document
 
 
-@pytest.mark.parametrize('pad_value, doc, tokens, expected_indices', [
-    ('<PAD>', None, ['the', 'test', '<PAD>', '<PAD>'], [2, 3]),
-    (0, np.array([[0, 0, 1, 2]]), None, np.array([0, 1])),
-    # TODO: test float vectors?
-])
-def test_find_padding(pad_value, doc, tokens, expected_indices):
-    indices = _find_padding(pad_value, doc=doc, tokens=tokens)
-    np.array_equal(indices, expected_indices)
+def test_find_padding_value():
+    indices = _find_padding_values(0, np.array([[0, 0, 1, 2]]))
+    np.array_equal(indices, np.array([0, 1]))
+
+
+def test_find_padding_token():
+    indices = _find_padding_tokens('<PAD>', ['the', 'test', '<PAD>', '<PAD>'])
+    np.array_equal(indices, np.array([2, 3]))
 
 
 def test_find_padding_invalid():
-    # invalid pad_value
+    # invalid combination
     with pytest.raises(TypeError):
-        _find_padding([0, 1], doc=None, tokens=None)
-    # invalid combinations
-    with pytest.raises(TypeError):
-        _find_padding('<PAD>', doc=[0, 2, 1], tokens=None)
-    with pytest.raises(TypeError):
-        _find_padding(0, doc=None, tokens=['a', 'test'])
+        # pad token and doc
+        _find_padding(pad_token='<PAD>', doc=[0, 2, 1], tokens=None)
 
 
 @pytest.mark.parametrize('pad_indices, padding, tokens, heatmap, expected_tokens, expected_heatmap', [

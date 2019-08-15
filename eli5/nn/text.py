@@ -16,7 +16,8 @@ from eli5.base import (
 def gradcam_text_spans(heatmap, # type: np.ndarray
                        tokens, # type: Union[np.ndarray, list]
                        doc, # type: np.ndarray
-                       pad_value=None, # type: Optional[Union[str, int, float]]
+                       pad_value=None, # type: Optional[Union[int, float]]
+                       pad_token=None, # type: Optional[str]
                        padding='post', # type: str
                        interpolation_kind='linear' # type: Union[str, int]
                        ):
@@ -39,10 +40,13 @@ def gradcam_text_spans(heatmap, # type: np.ndarray
     doc: numpy.ndarray
         Original input to the network, from which ``heatmap`` was created.
 
-    pad_value: str or int or float, optional
-        Padding symbol into ``tokens`` or ``doc``.
+    pad_value: int or float, optional
+        Padding number into ``doc``.
 
-        Pass to cut off padding.
+    pad_token: str, optional
+        Padding symbol into ``tokens``.
+
+        Pass one of either `pad_value` or `pad_token` to cut off padding.
 
     padding: str, optional
         Whether padding is `pre` (before text) or `post` (after text).
@@ -63,9 +67,9 @@ def gradcam_text_spans(heatmap, # type: np.ndarray
     heatmap = resize_1d(heatmap, length, interpolation_kind=interpolation_kind)
 
     # values will be cut off from the *resized* heatmap
-    if pad_value is not None:
+    if pad_value is not None or pad_token is not None:
         # remove padding
-        pad_indices = _find_padding(pad_value, doc, tokens)
+        pad_indices = _find_padding(pad_value=pad_value, pad_token=pad_token, doc=doc, tokens=tokens)
         # If pad_value is not the actual padding value, behaviour is unknown
         tokens, heatmap = _trim_padding(pad_indices, padding,
                                         tokens, heatmap)
@@ -167,34 +171,40 @@ def _is_character_tokenization(tokens):
     return ' ' in tokens
 
 
-def _find_padding(pad_value, # type: Union[str, int, float]
+def _find_padding(pad_value=None, # type: Union[int, float]
+                  pad_token=None, # type: str
                   doc=None, # type: Optional[np.ndarray]
                   tokens=None # type: Optional[Union[np.ndarray, list]]
                   ):
     # type: (...) -> np.ndarray
-    """Find padding in input ``doc`` or ``tokens`` based on ``pad_value``,
-    returning a numpy array of indices where padding was found."""
-    if isinstance(pad_value, (int, float)) and doc is not None:
-        indices = _find_doc_padding(pad_value, doc)
-    elif isinstance(pad_value, str) and tokens is not None:
-        indices = _find_tokens_padding(pad_value, tokens)
+    """Dispatch to a padding finder based on arguments."""
+    # argument pair validation
+    assert pad_value is None or pad_token is None
+    assert doc is None or tokens is None
+    # choose implementation
+    if pad_value is not None and doc is not None:
+        return _find_padding_values(pad_value, doc)
+    elif pad_token is not None and tokens is not None:
+        return _find_padding_tokens(pad_token, tokens)
     else:
-        raise TypeError('Pass "doc" and "pad_value" as int or float, '
-                        'or "tokens" and "pad_value" as str. '
-                        'Got: {}'.format(pad_value))
-    return indices
+        raise TypeError('Pass "doc" and "pad_value", '
+                        'or "tokens" and "pad_token".')
     # TODO: warn if indices is empty - passed wrong padding char/value?
 
 
-def _find_doc_padding(pad_value, doc):
+def _find_padding_values(pad_value, doc):
     # type: (Union[int, float], np.ndarray) -> np.ndarray
+    if not isinstance(pad_value, (int, float)):
+        raise TypeError('"pad_value" must be int or float. Got "{}"'.format(type(pad_value)))
     values, indices = np.where(doc == pad_value)
     return indices
 
 
-def _find_tokens_padding(pad_value, tokens):
+def _find_padding_tokens(pad_token, tokens):
     # type: (str, Union[list, np.ndarray]) -> np.ndarray
-    indices = [idx for idx, token in enumerate(tokens) if token == pad_value]
+    if not isinstance(pad_token, str):
+        TypeError('"pad_token" must be str. Got "{}"'.format(type(pad_token)))
+    indices = [idx for idx, token in enumerate(tokens) if token == pad_token]
     return np.array(indices)
 
 
