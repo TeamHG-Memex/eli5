@@ -38,7 +38,7 @@ def prepare_train_test_dataset():
                                                           seed=113,
                                                           start_char=1,
                                                           oov_char=2,
-                                                          index_from=3, # <-- this does not seem to work?
+                                                          index_from=3,  # AFTER this index actual words begin
                                                           )
     np.load = np_load_old
 
