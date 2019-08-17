@@ -80,7 +80,7 @@ Important arguments to :func:`eli5.explain_prediction` when using with ``Model``
     
     - An instance of ``Layer``, a layer name (str), or a layer index (int).
 
-    - `None` for automatically getting a suitable layer, if possible.
+    - `None` for automatically choosing a suitable layer. Layer is searched for by going backwards from the output through the flattened list of layers. The type and the dimensions of the layer are checked. If no suitable layer can be found, the middle layer is taken.
 
 * ``relu`` whether to apply  to the heatmap.
     

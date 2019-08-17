@@ -108,7 +108,8 @@ def explain_prediction_keras(model, # type: Model
         The activation layer in the model to perform Grad-CAM on:
         a valid keras layer name, layer index, or an instance of a Keras layer.
 
-        If None, a suitable layer is attempted to be retrieved.
+        If None, a suitable layer is attempted to be retrieved, by going backwards
+        from the output through the flattened list of layers.
 
         For best results, pick a layer that:
 

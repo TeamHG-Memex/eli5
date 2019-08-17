@@ -103,7 +103,7 @@ dimensions! Let's resize it:
 
 .. parsed-literal::
 
-    <PIL.Image.Image image mode=RGB size=224x224 at 0x7F0729186DD8>
+    <PIL.Image.Image image mode=RGB size=224x224 at 0x7F39A0C4A278>
 
 
 
@@ -170,7 +170,7 @@ inputting
 
 .. parsed-literal::
 
-    <PIL.Image.Image image mode=RGB size=224x224 at 0x7F067738E5F8>
+    <PIL.Image.Image image mode=RGB size=224x224 at 0x7F39A0C4A470>
 
 
 
@@ -404,6 +404,12 @@ The ``layer`` parameter accepts a layer instance, index, name, or None
 (get layer automatically) as its arguments. This is where Grad-CAM
 builds its heatmap from.
 
+If we do not pass this argument, ELI5 tries to choose a layer for us
+automatically. If you do not get good explanations with the
+automatically picked layer, try specifying a layer with spatial
+information in it (convolutional, activation after convolution,
+non-global pooling, etc).
+
 Modifying explanations with the ``counterfactual`` and ``relu`` arguments.
 --------------------------------------------------------------------------
 
@@ -423,7 +429,7 @@ predicted one.
 
 
 
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_36_0.png
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_37_0.png
 
 
 
@@ -443,7 +449,7 @@ classes. This is discussed in the Grad-CAM paper
 
 
 
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_39_0.png
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_40_0.png
 
 
 
@@ -456,7 +462,7 @@ The counter-evidence for "dog" is a "cat".
 
 
 
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_41_0.png
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_42_0.png
 
 
 
@@ -496,7 +502,7 @@ Examining the structure of the ``Explanation`` object:
            [0.        , 0.        , 0.        , 0.        , 0.        ,
             0.        , 0.12770046],
            [0.        , 0.        , 0.        , 0.        , 0.        ,
-            0.02705698, 0.16513413]]))], feature_importances=None, decision_tree=None, highlight_spaces=None, transition_features=None, image=<PIL.Image.Image image mode=RGB size=224x224 at 0x7F066AF25550>, layer='out_relu')
+            0.02705698, 0.16513413]]))], feature_importances=None, decision_tree=None, highlight_spaces=None, transition_features=None, image=<PIL.Image.Image image mode=RGB size=224x224 at 0x7F39808AD908>, layer='out_relu')
 
 
 We can check a number of things for the target being explained: the
@@ -528,7 +534,7 @@ hidden activation layer that we took for calculations:
 
 
 
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_51_0.png
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_52_0.png
 
 
 .. parsed-literal::
@@ -566,7 +572,7 @@ Visualizing the heatmap:
 
 
 
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_54_0.png
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_55_0.png
 
 
 That's only 7x7! This is the spatial dimensions of the
@@ -585,7 +591,7 @@ resampling):
 
 
 
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_56_0.png
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_57_0.png
 
 
 Now it's clear what is being highlighted. We just need to apply some
@@ -599,7 +605,7 @@ colors and overlay the heatmap over the original image, exactly what
 
 
 
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_58_0.png
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_59_0.png
 
 
 Extra arguments to ``format_as_image()``
@@ -616,7 +622,7 @@ Extra arguments to ``format_as_image()``
 
 
 
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_61_0.png
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_62_0.png
 
 
 The ``alpha_limit`` argument controls the maximum opacity that the
@@ -666,7 +672,7 @@ check the explanation:
 
 
 
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_64_1.png
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_65_1.png
 
 
 .. parsed-literal::
@@ -675,7 +681,7 @@ check the explanation:
 
 
 
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_64_3.png
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_65_3.png
 
 
 We see some slight differences. The activations are brighter. Do
@@ -713,7 +719,7 @@ loading another model and explaining a classification of the same image:
 
 
 
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_67_1.png
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_68_1.png
 
 
 .. parsed-literal::
@@ -722,7 +728,7 @@ loading another model and explaining a classification of the same image:
 
 
 
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_67_3.png
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_68_3.png
 
 
 Wow ``show_prediction()`` is so robust!
