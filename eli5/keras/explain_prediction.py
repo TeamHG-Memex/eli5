@@ -403,12 +403,12 @@ def explain_prediction_keras_text(model,
             predicted_idx,
             weighted_spans=weighted_spans,
             score=predicted_val,
-            heatmap=heatmap, # 1D numpy array
+            heatmap=heatmap,  # 1D numpy array
         )],
-        is_regression=False, # might be relevant later when explaining for regression tasks
-        highlight_spaces=None, # might be relevant later when explaining text models
-        # TODO: 'preserve_density' argument for char-based highlighting
+        is_regression=False,  # might be relevant later when explaining for regression tasks
     )
+    # TODO: might want to set feature_weights so that you can see the prediction and score
+    # as in https://eli5.readthedocs.io/en/latest/tutorials/sklearn-text.html
 
 
 def _maybe_image(model, doc):
@@ -423,10 +423,14 @@ def _maybe_image(model, doc):
 def _maybe_image_input(doc):
     # type: (np.ndarray) -> bool
     """Decide whether ``doc`` represents an image input."""
-    _validate_doc(doc)
-    rank = len(doc.shape)
-    # image with channels or without (spatial only)
-    return rank == 4 or rank == 3
+    try:
+        _validate_doc(doc)
+    except (TypeError, ValueError):
+        return False
+    else:
+        rank = len(doc.shape)
+        # image with channels or without (spatial only)
+        return rank == 4 or rank == 3
 
 
 def _maybe_image_model(model):
@@ -500,7 +504,7 @@ def _autoget_layer_image(model):
     l = _search_layer(model,
                       _backward_layers,
                       lambda model, layer:
-                      len(layer.output_shape) == model.input_shape
+                      len(layer.output_shape) == len(model.input_shape)
                       )
     return l if l is not None else _middle_layer(model)
 
@@ -510,24 +514,21 @@ def _autoget_layer_text(model):
     """Try find a suitable layer for text ``model``."""
     # search for 'word level' features
     # search categories in sequence: text > 1D > embedding
-    # g = _backward_layers
-    # l = _search_layer(model, g, lambda model, layer: isinstance(layer, text_layers))
-    # if l is None:
-    #     l = _search_layer(model, g, lambda model, layer: isinstance(layer, temporal_layers))
-    #     if l is None:
-    #         l = _search_layer(model, g, lambda model, layer: isinstance(layer, Embedding))
-    l = _search_layer(model,
-                      _backward_layers,
-                      lambda model, layer:
-                      len(layer.output_shape) == 3 and
-                      isinstance(layer, text_layers)
-                      )
+
+    def wanted(layers):
+        return lambda model, layer: (len(layer.output_shape) == 3 and
+                                     isinstance(layer, layers))
+
+    l = _search_layer(model, _backward_layers, wanted(text_layers))
+    if l is None:
+        l = _search_layer(model, _backward_layers, wanted(temporal_layers))
+        if l is None:
+            l = _search_layer(model, _backward_layers, wanted((Embedding,)))
     return l if l is not None else _middle_layer(model)
 
 
 text_layers = (Conv1D, RNN, LSTM, GRU, Bidirectional,)
-# temporal_layers = (AveragePooling1D, MaxPooling1D,
-#                    GlobalAveragePooling1D, GlobalMaxPooling1D,)
+temporal_layers = (AveragePooling1D, MaxPooling1D, GlobalAveragePooling1D, GlobalMaxPooling1D,)
 
 
 def _search_layer(model, # type: Model
