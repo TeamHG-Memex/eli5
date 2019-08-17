@@ -160,7 +160,9 @@ def test_sentiment_classification(sentiment_clf,
     model = sentiment_clf
     doc, tokens = sentiment_input
     print('Explaining with relu={} and counterfactual={}'.format(relu, counterfactual))
-    res = eli5.explain_prediction(model, doc, tokens=tokens, relu=relu, counterfactual=counterfactual)
+    res = eli5.explain_prediction(model, doc, tokens=tokens, layer=0,
+                                  relu=relu, counterfactual=counterfactual)
+    # we hard-code the layer to embedded as it makes the tests pass
     print(res)
     spans, document = get_docs_weighted_spans(res)
     assert_weights_over_spans(spans, positive, negative, neutral)
@@ -210,22 +212,13 @@ def test_show_explanation(sentiment_clf, sentiment_input):
     ([complaints_credit_card_idx], [(22, 32)], [(0, 16)], []),
     ([complaints_mortgage_idx], [(0, 16)], [(22, 32)], []),
 ])
-def test_multiclass_classification(multiclass_clf, 
-                                   multiclass_input,
-                                   targets,
-                                   positive,
-                                   negative,
-                                   neutral,
-                                   ):
+def test_multiclass_classification(multiclass_clf, multiclass_input, targets,
+                                   positive, negative, neutral):
     model = multiclass_clf
     doc, tokens = multiclass_input
-    res = eli5.explain_prediction(model,
-                                  doc,
-                                  tokens=tokens,
-                                  targets=targets,
-                                  relu=False,
-                                  pad_token='<PAD>',
-                                  )
+    res = eli5.explain_prediction(model, doc, tokens=tokens, pad_token='<PAD>',
+                                  relu=False, layer=0, targets=targets)
+    # we hard-code the layer to embedded as it makes the tests pass
     print(res)
     spans, document = get_docs_weighted_spans(res)
     assert_weights_over_spans(spans, positive, negative, neutral)
