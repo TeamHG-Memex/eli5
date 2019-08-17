@@ -5,6 +5,7 @@ import pytest
 import numpy as np
 
 from eli5.nn.text import (
+    gradcam_text_spans,
     resize_1d,
     _build_spans,
     _construct_document,
@@ -12,6 +13,10 @@ from eli5.nn.text import (
     _find_padding_values,
     _find_padding_tokens,
     _trim_padding,
+)
+from eli5.base import (
+    WeightedSpans,
+    DocWeightedSpans,
 )
 
 
@@ -45,21 +50,27 @@ def test_construct_document(tokens, expected_document):
     assert document == expected_document
 
 
+def test_find_padding_invalid():
+    # invalid combination
+    with pytest.raises(TypeError):
+        # pad token and doc
+        _find_padding(pad_token='<PAD>', doc=[0, 2, 1], tokens=None)
+
+
 def test_find_padding_values():
     indices = _find_padding_values(0, np.array([[0, 0, 1, 2]]))
     np.array_equal(indices, np.array([0, 1]))
+
+    with pytest.raises(TypeError):
+        _find_padding_values('<PAD>', np.ndarray([0]))
 
 
 def test_find_padding_tokens():
     indices = _find_padding_tokens('<PAD>', ['the', 'test', '<PAD>', '<PAD>'])
     np.array_equal(indices, np.array([2, 3]))
 
-
-def test_find_padding_invalid():
-    # invalid combination
     with pytest.raises(TypeError):
-        # pad token and doc
-        _find_padding(pad_token='<PAD>', doc=[0, 2, 1], tokens=None)
+        _find_padding_tokens(0, ['<PAD>'])
 
 
 @pytest.mark.parametrize('pad_indices, tokens, heatmap, expected_tokens, expected_heatmap', [
@@ -74,10 +85,24 @@ def test_trim_padding(pad_indices, tokens, heatmap, expected_tokens, expected_he
     assert np.array_equal(heatmap, expected_heatmap)
 
 
-# def test_trim_padding_invalid():
-#     with pytest.raises(ValueError):
-#         # currently no such 'padding' side supported
-#         _trim_padding([1], 'inner', ['a', 'PAD', 'b'], np.array([0, 1, 2]))
+def test_trim_padding_invalid():
+    tokens = ['a']
+    heatmap = [1]
+    pad_indices = []
+    tokens_trimmed, heatmap_trimmed = _trim_padding(pad_indices, tokens, heatmap)
+    assert np.array_equal(tokens, tokens_trimmed)
+    assert np.array_equal(heatmap, heatmap_trimmed)
+
+    # with pytest.raises(ValueError):
+    #     _trim_padding([1], ['a', 'PAD', 'b'], np.array([1, 0, 2]))
 
 
-# TODO: test gradcam_text_spans with a small example
+def test_gradcam_text_spans():
+    heatmap, tokens, doc = np.array([2.0]), ['a'], [2]
+    res_tokens, res_heatmap, res_weighted_spans = gradcam_text_spans(heatmap, tokens, doc)
+    assert np.array_equal(heatmap, res_heatmap)
+    assert np.array_equal(tokens, res_tokens)
+    assert res_weighted_spans == WeightedSpans([DocWeightedSpans(
+                                                'a',
+                                                spans=[('a', [(0, 1)], 2.0)]
+                                                )])

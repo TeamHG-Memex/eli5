@@ -551,10 +551,10 @@ def _search_layer(model, # type: Model
     return None  # need this for mypy
 
 
-def _forward_layers(model):
-    # type: (Model) -> Generator[Layer, None, None]
-    """Return layers going from input to output."""
-    return (model.get_layer(index=i) for i in range(0, len(model.layers), 1))
+# def _forward_layers(model):
+#     # type: (Model) -> Generator[Layer, None, None]
+#     """Return layers going from input to output."""
+#     return (model.get_layer(index=i) for i in range(0, len(model.layers), 1))
 
 
 def _backward_layers(model):
@@ -645,16 +645,11 @@ def _validate_tokens(doc, tokens):
                              'as in doc batch. Got: "tokens" samples: %d, '
                              'doc samples: %d' % (tokens_batch_size, batch_size))
 
-        if isinstance(tokens, np.ndarray) and 2 < len(tokens.shape):
-            # too many dimensions in numpy array
-            raise ValueError('"tokens" numpy array must have at most two axes. '
-                             'Got tokens with shape "{}" '
-                             '({} axes) '.format(tokens.shape, len(tokens.shape)))
         a_token = an_entry[0]
         if not isinstance(a_token, str):
             # actual contents are not strings
-            raise TypeError('"tokens" must contain strings. '
-                            'Got "{}" (type "{}")'.format(a_token, type(a_token)))
+            raise TypeError('Second axis in "tokens" must contain strings. '
+                             'Found "{}" (type "{}")'.format(a_token, type(a_token)))
 
         # https://stackoverflow.com/a/35791116/11555448
         it = iter(tokens)

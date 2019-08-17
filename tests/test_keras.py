@@ -170,6 +170,9 @@ def test_validate_tokens_invalid():
     with pytest.raises(ValueError):
         # tokens sample lengths do not match
         _validate_tokens(np.zeros((1, 1)), ['a', 'b'])
+    with pytest.raises(TypeError):
+        # too many axes
+        _validate_tokens(np.zeros((1, 1,)), [[['a']]])
 
 
 def test_explain_prediction_attributes(simple_seq_image, dummy_image):

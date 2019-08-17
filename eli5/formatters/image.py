@@ -120,10 +120,8 @@ def format_as_image(expl, # type: Explanation
     # cap the intensity so that it's not too opaque when near maximum value
     _update_alpha(heatmap, starting_array=heatvals, alpha_limit=alpha_limit)
 
-    heatmap = heatmap_to_image(heatmap)
+    heatmap = heatmap_to_image(heatmap)  # -> RGBA Pillow image
     heatmap = expand_heatmap(heatmap, image, resampling_filter=resampling_filter)
-    if heatmap.mode != 'RGBA':
-        heatmap = heatmap.convert('RGBA')
 
     # heatmap and image have same mode and dims
     overlay = _overlay_heatmap(heatmap, image)

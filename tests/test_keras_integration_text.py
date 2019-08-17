@@ -201,7 +201,8 @@ def test_show_explanation(sentiment_clf, sentiment_input):
     res = eli5.explain_prediction(model, doc, tokens=tokens)
     formatted = eli5.format_as_html(res,
                                     force_weights=False,
-                                    show=eli5.formatters.fields.WEIGHTS
+                                    show=eli5.formatters.fields.WEIGHTS,
+                                    pad_value=0,  # test padding with number
                                     )  # -> rendered template (str)
     ipython = eli5.show_prediction(model, doc, tokens=tokens)  # -> display object
     ipython_html = ipython.data  # -> str

@@ -195,7 +195,7 @@ def _find_padding_values(pad_value, doc):
 def _find_padding_tokens(pad_token, tokens):
     # type: (str, Union[list, np.ndarray]) -> np.ndarray
     if not isinstance(pad_token, str):
-        TypeError('"pad_token" must be str. Got "{}"'.format(type(pad_token)))
+        raise TypeError('"pad_token" must be str. Got "{}"'.format(type(pad_token)))
     indices = [idx for idx, token in enumerate(tokens) if token == pad_token]
     return np.array(indices)
 
