@@ -18,8 +18,6 @@ def gradcam_heatmap(activations, grads, relu=True, counterfactual=False):
 
     See Grad-CAM "backends" to obtain the required terms.
 
-    # TODO: explain gradcam
-
     Parameters
     ----------
     activations : numpy.ndarray
@@ -145,8 +143,8 @@ def _generate_maps_weights(activations, weights):
 def compute_weights(grads): # made public for transparency
     # type: (np.ndarray) -> np.ndarray
     """
-    Calculate weights, global average pooling (taking the mean) over 
-    spatial dimensions of ``grads``.
+    Calculate weights, global average pooling (taking the mean) over
+    spatial dimensions of ``grads`` (axes between first and last).
 
     Parameters
     ----------
@@ -160,27 +158,19 @@ def compute_weights(grads): # made public for transparency
     weights : numpy.ndarray
         Gradients pooled.
     """
-    # Global Average Pooling of gradients to get the weights
-    # note that axes are in range [-rank(x), rank(x)) (we start from 1, not 0)
-
-    # TEXT FIXME: conv1d vs conv2d (diff axis counts)
-    # rank 0 = batch
-    # rank 1 = dim
-    # rank 2 ...
-    # rank n = mapno
-    # use np just because Keras backend / tensorflow is harder
-    # https://stackoverflow.com/questions/48082900/in-tensorflow-what-is-the-argument-axis-in-the-function-tf-one-hot
-    # https://medium.com/@aerinykim/tensorflow-101-what-does-it-mean-to-reduce-axis-9f39e5c6dea2
-    # https://www.tensorflow.org/guide/tensors
-    # weights = K.mean(grads, axis=(1, 2)) # +1 axis num because we have batch still?
-    shape = [(axis_no, dim) for (axis_no, dim) in enumerate(grads.shape)]
-    # ignore batch and ignore last (number of maps / channels)
-    pooling_axes = shape[1:-1]
+    shape = [(axis_idx, dim) for (axis_idx, dim) in enumerate(grads.shape)]
+    pooling_axes = shape[1:-1]  # ignore batch and channels/last axis
     if len(pooling_axes) == 0:
-        weights = grads # no need to average
+        weights = grads  # no need to average
     else:
-        axes = [axis_no for (axis_no, dim) in pooling_axes]
+        axes = [axis_idx for (axis_idx, dim) in pooling_axes]
         weights = np.mean(grads, axis=tuple(axes))
+        # weights = K.mean(grads, axis=(1, 2))     # alternative keras.backend/TF implementation
+        # note that axes are in range [-rank(x), rank(x)) (we start from 1, not 0)
+        # +1 axis num because we have batch still?
+        # https://stackoverflow.com/questions/48082900/in-tensorflow-what-is-the-argument-axis-in-the-function-tf-one-hot
+        # https://medium.com/@aerinykim/tensorflow-101-what-does-it-mean-to-reduce-axis-9f39e5c6dea2
+        # https://www.tensorflow.org/guide/tensors
     return weights
 
 

@@ -200,13 +200,14 @@ def explain_prediction_keras_not_supported(model, doc):
     Can not do an explanation based on the passed arguments.
     Did you pass either "image" or "tokens"?
     """
+    # An alternative to giving up is to still generate a heatmap
+    # but not do any formatting, i.e. useful if we do not support some task.
     return Explanation(
         model.name,
         error='model "{}" is not supported, '
               'try passing the "image" argument if explaining an image model, '
               'or the "tokens" argument if explaining a text model.'.format(model.name),
     )
-    # TODO (open issue): implement 'other'/differentiable network type explanations
 
 
 def explain_prediction_keras_image(model,
@@ -277,7 +278,6 @@ def explain_prediction_keras_image(model,
     predicted_val, = predicted_val
     heatmap, = heatmap
 
-    # TODO (open issue): image padding cut off. pass 2-tuple?
     return Explanation(
         model.name,
         description=DESCRIPTION_GRADCAM,
@@ -361,11 +361,6 @@ def explain_prediction_keras_text(model,
           * ``score`` value for predicted class.
 
     """
-    # TODO (open issue): implement document vectorizer
-    #  :param document:
-    #    Full text document for highlighting.
-    #    Not tokenized and without padding.
-    # :type document: str, optional
     assert tokens is not None
     _validate_params(model, doc, targets=targets, tokens=tokens)
     tokens = _unbatch_tokens(tokens)
@@ -393,6 +388,7 @@ def explain_prediction_keras_text(model,
                                    pad_token=pad_token,
                                    interpolation_kind=interpolation_kind,
                                    )
+    # TODO: padding could be relevant for images too?
     tokens, heatmap, weighted_spans = text_vals
     return Explanation(
         model.name,
@@ -598,11 +594,9 @@ def _validate_doc(doc):
     """
     Check that the input ``doc`` has the correct type and values.
     """
-    # TODO: (open issue) be able to take Tensorflow or backend tensors
     if not isinstance(doc, np.ndarray):
         raise TypeError('"doc" must be an instace of numpy.ndarray. '
                         'Got: {} (type "{}")'.format(doc, type(doc)))
-        # TODO: take python list (i.e. result of pad_sequences)
 
     # check that batch=1 (batch greater than 1 is currently not supported)
     batch_size = doc.shape[0]

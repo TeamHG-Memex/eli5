@@ -10,9 +10,6 @@ from eli5.base import (
 )
 
 
-# FIXME: batched operations (batched heatmap, tokens) for this module
-
-
 def gradcam_text_spans(heatmap, # type: np.ndarray
                        tokens, # type: Union[np.ndarray, list]
                        doc, # type: np.ndarray
@@ -57,6 +54,7 @@ def gradcam_text_spans(heatmap, # type: np.ndarray
         A :class:`eli5.base.WeightedSpans` object with a weight for each token.
     """
     # FIXME: might want to do this when formatting the explanation?
+    # TODO: might want to add validation for heatmap and other arguments?
     length = len(tokens)
     heatmap = resize_1d(heatmap, length, interpolation_kind=interpolation_kind)
 
