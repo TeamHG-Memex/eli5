@@ -198,11 +198,11 @@ def test_tokens_not_batched(sentiment_clf, sentiment_input_all_pad):
 def test_show_explanation(sentiment_clf, sentiment_input):
     model = sentiment_clf
     doc, tokens = sentiment_input
-    res = eli5.explain_prediction(model, doc, tokens=tokens)
+    # test passing number for padding
+    res = eli5.explain_prediction(model, doc, tokens=tokens, pad_value=0)
     formatted = eli5.format_as_html(res,
                                     force_weights=False,
                                     show=eli5.formatters.fields.WEIGHTS,
-                                    pad_value=0,  # test padding with number
                                     )  # -> rendered template (str)
     ipython = eli5.show_prediction(model, doc, tokens=tokens)  # -> display object
     ipython_html = ipython.data  # -> str
