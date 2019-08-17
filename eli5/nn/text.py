@@ -161,7 +161,7 @@ def _is_character_tokenization(tokens):
     Check whether tokenization is character-level
     (returns True) or word-level (returns False).
     """
-    return ' ' in tokens
+    return any(' ' in t for t in tokens)
 
 
 def _find_padding(pad_value=None, # type: Union[int, float]
