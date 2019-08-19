@@ -31,7 +31,7 @@ following machine learning frameworks and packages:
   highlight text data accordingly. It also allows to debug scikit-learn
   pipelines which contain HashingVectorizer, by undoing hashing.
 
-* :ref:`library-keras` - explain predictions of image classifiers
+* :ref:`library-keras` - explain predictions of image and text classifiers
   via Grad-CAM visualizations.
 
 * :ref:`library-xgboost` - show feature importances and explain predictions

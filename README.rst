@@ -39,7 +39,7 @@ It provides support for the following machine learning frameworks and packages:
   It also allows to debug scikit-learn pipelines which contain
   HashingVectorizer, by undoing hashing.
 
-* Keras_ - explain predictions of image classifiers via Grad-CAM visualizations.
+* Keras_ - explain predictions of image and text classifiers via Grad-CAM visualizations.
 
 * xgboost_ - show feature importances and explain predictions of XGBClassifier,
   XGBRegressor and xgboost.Booster.
@@ -81,7 +81,7 @@ and formatting on a client.
 .. _xgboost: https://github.com/dmlc/xgboost
 .. _LightGBM: https://github.com/Microsoft/LightGBM
 .. _Catboost: https://github.com/catboost/catboost
-.. _Keras: https://keras.io/
+.. _Keras: https://github.com/keras-team/keras
 .. _Permutation importance: https://eli5.readthedocs.io/en/latest/blackbox/permutation_importance.html
 .. _Inspecting Black-Box Estimators: https://eli5.readthedocs.io/en/latest/blackbox/index.html
 
