@@ -108,8 +108,7 @@ def explain_prediction_keras(model, # type: Model
         The activation layer in the model to perform Grad-CAM on:
         a valid keras layer name, layer index, or an instance of a Keras layer.
 
-        If None, a suitable layer is attempted to be retrieved, by going backwards
-        from the output through the flattened list of layers.
+        If None, a suitable layer is attempted to be chosen automatically.
 
         For best results, pick a layer that:
 
@@ -120,7 +119,7 @@ def explain_prediction_keras(model, # type: Model
 
 
         :raises TypeError: if ``layer`` is not None, str, int, or keras.layers.Layer instance.
-        :raises ValueError: if suitable layer can not be found.
+        :raises ValueError: if suitable layer can not be found automatically.
         :raises ValueError: if differentiation fails with respect to retrieved ``layer``.
     :type layer: int or str or keras.layers.Layer, optional
 
@@ -434,22 +433,16 @@ def _maybe_image_model(model):
     # type: (Model) -> bool
     """Decide whether ``model`` is used for images."""
     # search for the first occurrence of an "image" layer
-    l = _search_layer(model, _backward_layers, _is_possible_image_model_layer)
+    l = _search_layer(model,
+                     _backward_layers,
+                     lambda model, layer:
+                     isinstance(layer, image_model_layers)
+                     )
     return l is not None
 
 
-image_model_layers = (Conv2D,
-                      MaxPooling2D,
-                      AveragePooling2D,
-                      GlobalMaxPooling2D,
-                      GlobalAveragePooling2D,
-                      )
-
-
-def _is_possible_image_model_layer(model, layer):
-    # type: (Model, Layer) -> bool
-    """Check that the given ``layer`` is usually used for images."""
-    return isinstance(layer, image_model_layers)
+image_model_layers = (Conv2D, MaxPooling2D, AveragePooling2D, 
+                      GlobalMaxPooling2D, GlobalAveragePooling2D,)
 
 
 def _extract_image(doc):
@@ -498,12 +491,19 @@ def _autoget_layer_image(model):
     """Try find a suitable layer for image ``model``."""
     # TODO: experiment with this, using many models and images, to find what works best
     # a check that asks "can we resize this activation layer over the image?"
+    # and "is this layer used for 2d operations?"
     l = _search_layer(model,
                       _backward_layers,
                       lambda model, layer:
-                      len(layer.output_shape) == len(model.input_shape)
+                      (len(layer.output_shape) == len(model.input_shape) and
+                       '2d' in layer.__class__.__name__.lower())
                       )
-    return l if l is not None else _middle_layer(model)
+
+    if l is None:
+        raise ValueError('Could not find a suitable image layer automatically. '
+                         'Try passing the "layer" argument.')
+    else:
+        return l
 
 
 def _autoget_layer_text(model):
@@ -521,7 +521,12 @@ def _autoget_layer_text(model):
         l = _search_layer(model, _backward_layers, wanted(temporal_layers))
         if l is None:
             l = _search_layer(model, _backward_layers, wanted((Embedding,)))
-    return l if l is not None else _middle_layer(model)
+
+    if l is None:
+        raise ValueError('Could not find a suitable text layer automatically. '
+                         'Try passing the "layer" argument.')
+    else:
+        return l
 
 
 text_layers = (Conv1D, RNN, LSTM, GRU, Bidirectional,)
@@ -544,7 +549,7 @@ def _search_layer(model, # type: Model
             # linear search succeeded
             return layer
     # linear search ended with no results
-    return None  # need this for mypy
+    return None
 
 
 # def _forward_layers(model):
@@ -557,13 +562,6 @@ def _backward_layers(model):
     # type: (Model) -> Generator[Layer, None, None]
     """Return layers going from output to input (backwards)."""
     return (model.get_layer(index=i) for i in range(len(model.layers)-1, -1, -1))
-
-
-def _middle_layer(model):
-    # type: (Model) -> Layer
-    """Return the middle layer in the ``model``'s flattened list of layers."""
-    mid_idx = len(model.layers) // 2
-    return model.get_layer(index=mid_idx)
 
 
 def _validate_params(model, # type: Model

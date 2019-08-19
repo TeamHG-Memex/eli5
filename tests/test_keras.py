@@ -99,8 +99,6 @@ def test_get_layer_invalid(simple_seq_image):
 
 
 @pytest.mark.parametrize('model, expected_layer_idx', [
-    (Sequential([Dense(1, input_shape=(2, 3,)), ]),
-        0),  # no match
     (Sequential([Conv2D(1, 1, input_shape=(2, 2, 1,)), AveragePooling2D(1),
         GlobalAveragePooling2D(), ]),
         1),  # match (layer rank backwards)
@@ -110,9 +108,13 @@ def test_autoget_layer_image(model, expected_layer_idx):
     assert l is model.get_layer(index=expected_layer_idx)
 
 
+def test_autoget_layer_image_no_match():
+    model = Sequential([Dense(1, input_shape=(2, 3,)), Dense(1), ])
+    with pytest.raises(ValueError):
+        _autoget_layer_image(model)
+
+
 @pytest.mark.parametrize('model, expected_layer_idx', [
-    (Sequential([Dense(1, input_shape=(1,)), Dense(1), Dense(1), ]),
-        1),  # no match
     (Sequential([Embedding(5, 2), LSTM(1, return_sequences=True), MaxPooling1D(1), ]),
         1),  # text layer
     (Sequential([Embedding(5, 2), MaxPooling1D(1), AveragePooling1D(1), Dense(1), ]),
@@ -123,6 +125,12 @@ def test_autoget_layer_image(model, expected_layer_idx):
 def test_autoget_layer_text(model, expected_layer_idx):
     l = _autoget_layer_text(model)
     assert l is model.get_layer(index=expected_layer_idx)
+
+
+def test_autoget_layer_text_no_match():
+    model = Sequential([Dense(1, input_shape=(1,)), Dense(1), ])
+    with pytest.raises(ValueError):
+        _autoget_layer_text(model)
 
 
 def test_validate_model_invalid():
