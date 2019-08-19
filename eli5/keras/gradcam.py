@@ -48,7 +48,7 @@ def gradcam_backend_keras(model, # type: Model
     Returns
     -------
     (activations, gradients, predicted_idx, predicted_val) :
-        (numpy.ndarray, numpy.ndarray, int, float)
+        (numpy.ndarray, np.ndarray, np.ndarray, np.ndarray)
         Values of variables.
     """
     # score for class in targets
