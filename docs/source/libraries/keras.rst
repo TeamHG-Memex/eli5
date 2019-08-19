@@ -172,7 +172,7 @@ An :class:`eli5.base.Explanation` instance is returned with some important attri
 
 * ``image`` if explaining image-based networks, represents the image input into the model. A Pillow image with mode "RGBA".
 
-* ``layer`` the Keras layer name used for Grad-CAM, from the passed layer or the automatically picked layer.
+* ``layer`` the hidden activation used for Grad-CAM, as a Keras layer instance, from the passed layer or the automatically picked layer.
 
 * ``targets`` represents the explanation values for each target class (currently only 1 target is supported). A list of :class:`eli5.base.TargetExplanation` objects with the following attributes set:
 

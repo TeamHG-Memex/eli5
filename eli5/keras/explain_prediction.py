@@ -149,8 +149,7 @@ def explain_prediction_keras(model, # type: Model
 
         * ``targets`` a list of :class:`eli5.base.TargetExplanation` objects \
             for each target. Currently only 1 target is supported.
-        * ``layer`` the hidden activation layer that we chose to do computations with, \
-            as a string (name of the layer).
+        * ``layer`` used for Grad-CAM.
 
     """
     # Note that this function should only do dispatch 
@@ -276,7 +275,7 @@ def explain_prediction_keras_image(model,
         error='',
         method='Grad-CAM',
         image=image, # RGBA Pillow image
-        layer=activation_layer.name,
+        layer=activation_layer,
         targets=[TargetExplanation(
             predicted_idx,
             score=predicted_val, # for now we keep the prediction in the .score field (not .proba)
@@ -388,7 +387,7 @@ def explain_prediction_keras_text(model,
         description=DESCRIPTION_GRADCAM,
         error='',
         method='Grad-CAM',
-        layer=activation_layer.name,
+        layer=activation_layer,
         targets=[TargetExplanation(
             predicted_idx,
             weighted_spans=weighted_spans,

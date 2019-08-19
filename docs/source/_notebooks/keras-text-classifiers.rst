@@ -58,7 +58,7 @@ First some imports
 
 .. parsed-literal::
 
-    sys.version_info(major=3, minor=7, micro=3, releaselevel='final', serial=0)
+    sys.version_info(major=3, minor=6, micro=8, releaselevel='final', serial=0)
     2.2.4
     1.14.0
 
@@ -2365,7 +2365,7 @@ Again check the metrics.
 .. parsed-literal::
 
     ['loss', 'acc']
-    500/500 [==============================] - 8s 16ms/step
+    500/500 [==============================] - 7s 14ms/step
     0.6319513120651246 0.7999999990463257
     Accuracy: 0.7999999990463257
 
@@ -3718,7 +3718,7 @@ This is an ``Explanation`` object
 
 .. parsed-literal::
 
-    "Explanation(estimator='sequential_1', description='\\nGrad-CAM visualization for classification tasks; \\noutput is explanation object that contains a heatmap.\\n', error='', method='Grad-CAM', is_regression=False, targets=[TargetExplanation(target=0, feature_weights=None, proba=None, score=0.5912496, weighted_spans=WeightedSpans(docs_weighted_spans=[DocWeightedSpans(document='<START> hello this is great but not so great', spans=[('<START>', [(0, 7)], 0.04707520170978796), ('hello', [(8, 13)], 0.050255952907264145), ('this', [(14, 18)], 0.051052169244030665), ('is', [(19, 21)], 0.051517811452868045), ('great', [(22, 27)], 0.048895430725679034), ('but', [(28, 31)], 0.03907256391948977), ('not', [(32, 35)], 0.03281831360072829), ('so', [(36, 38)], 0.028806375945350737), ('great', [(39, 44)], 0.023793572530848905)], preserve_density=None, vec_name=None)], other=None), heatmap=array([0.0470752 , 0.05025595, 0.05105217, 0.05151781, 0.04889543,\n       0.03907256, 0.03281831, 0.02880638, 0.02379357]))], feature_importances=None, decision_tree=None, highlight_spaces=None, transition_features=None, image=None, layer='bidirectional_2')"
+    "Explanation(estimator='sequential_1', description='\\nGrad-CAM visualization for classification tasks; \\noutput is explanation object that contains a heatmap.\\n', error='', method='Grad-CAM', is_regression=False, targets=[TargetExplanation(target=0, feature_weights=None, proba=None, score=0.5912496, weighted_spans=WeightedSpans(docs_weighted_spans=[DocWeightedSpans(document='<START> hello this is great but not so great', spans=[('<START>', [(0, 7)], 0.04707520170978796), ('hello', [(8, 13)], 0.050255952907264145), ('this', [(14, 18)], 0.051052169244030665), ('is', [(19, 21)], 0.051517811452868045), ('great', [(22, 27)], 0.048895430725679034), ('but', [(28, 31)], 0.03907256391948977), ('not', [(32, 35)], 0.03281831360072829), ('so', [(36, 38)], 0.028806375945350737), ('great', [(39, 44)], 0.023793572530848905)], preserve_density=None, vec_name=None)], other=None), heatmap=array([0.0470752 , 0.05025595, 0.05105217, 0.05151781, 0.04889543,\n       0.03907256, 0.03281831, 0.02880638, 0.02379357]))], feature_importances=None, decision_tree=None, highlight_spaces=None, transition_features=None, image=None, layer=<keras.layers.wrappers.Bidirectional object at 0x7fdf987da550>)"
 
 
 
@@ -3734,7 +3734,7 @@ the heatmap
 
 .. parsed-literal::
 
-    'bidirectional_2'
+    <keras.layers.wrappers.Bidirectional at 0x7fdf987da550>
 
 
 

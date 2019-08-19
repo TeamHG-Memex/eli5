@@ -103,7 +103,7 @@ dimensions! Let's resize it:
 
 .. parsed-literal::
 
-    <PIL.Image.Image image mode=RGB size=224x224 at 0x7F39A0C4A278>
+    <PIL.Image.Image image mode=RGB size=224x224 at 0x7F7BEF359A58>
 
 
 
@@ -170,7 +170,7 @@ inputting
 
 .. parsed-literal::
 
-    <PIL.Image.Image image mode=RGB size=224x224 at 0x7F39A0C4A470>
+    <PIL.Image.Image image mode=RGB size=224x224 at 0x7F7B7F14D2E8>
 
 
 
@@ -489,20 +489,20 @@ Examining the structure of the ``Explanation`` object:
 
 .. parsed-literal::
 
-    Explanation(estimator='mobilenetv2_1.00_224', description='\nGrad-CAM visualization for classification tasks; \noutput is explanation object that contains a heatmap.\n', error='', method='Grad-CAM', is_regression=False, targets=[TargetExplanation(target=243, feature_weights=None, proba=None, score=0.80967486, weighted_spans=None, heatmap=array([[0.        , 0.83474343, 1.96848748, 1.93253407, 2.16646386,
-            0.28009534, 0.02634634],
-           [0.03688345, 0.92232772, 1.94138698, 2.04755486, 2.29290712,
-            0.68592048, 0.        ],
-           [0.01703225, 0.48736982, 1.85685785, 1.86994048, 2.4055704 ,
-            0.72741652, 0.        ],
-           [0.        , 0.10318486, 1.0815137 , 0.72375675, 0.60417202,
-            0.16290513, 0.        ],
-           [0.03569073, 0.        , 0.        , 0.        , 0.        ,
-            0.01394715, 0.0464034 ],
+    Explanation(estimator='mobilenetv2_1.00_224', description='\nGrad-CAM visualization for classification tasks; \noutput is explanation object that contains a heatmap.\n', error='', method='Grad-CAM', is_regression=False, targets=[TargetExplanation(target=243, feature_weights=None, proba=None, score=0.80967486, weighted_spans=None, heatmap=array([[0.        , 0.35484907, 0.62538716, 0.65194869, 0.69069757,
+            0.30254594, 0.        ],
+           [0.        , 0.37076346, 0.71051264, 0.76753219, 0.80720755,
+            0.42025638, 0.        ],
+           [0.        , 0.28977199, 0.68358975, 0.71907166, 0.78142406,
+            0.44595825, 0.        ],
+           [0.        , 0.16248823, 0.49251841, 0.37528265, 0.3246486 ,
+            0.17787647, 0.        ],
            [0.        , 0.        , 0.        , 0.        , 0.        ,
-            0.        , 0.12770046],
+            0.02532111, 0.02461011],
            [0.        , 0.        , 0.        , 0.        , 0.        ,
-            0.02705698, 0.16513413]]))], feature_importances=None, decision_tree=None, highlight_spaces=None, transition_features=None, image=<PIL.Image.Image image mode=RGB size=224x224 at 0x7F39808AD908>, layer='out_relu')
+            0.        , 0.05448308],
+           [0.04969072, 0.        , 0.        , 0.        , 0.        ,
+            0.06806932, 0.12003538]]))], feature_importances=None, decision_tree=None, highlight_spaces=None, transition_features=None, image=<PIL.Image.Image image mode=RGB size=224x224 at 0x7F7B6EBE30B8>, layer=<keras.layers.convolutional.Conv2D object at 0x7f7b7f44e550>)
 
 
 We can check a number of things for the target being explained: the
@@ -539,21 +539,21 @@ hidden activation layer that we took for calculations:
 
 .. parsed-literal::
 
-    [[0.         0.83474343 1.96848748 1.93253407 2.16646386 0.28009534
-      0.02634634]
-     [0.03688345 0.92232772 1.94138698 2.04755486 2.29290712 0.68592048
+    [[0.         0.35484907 0.62538716 0.65194869 0.69069757 0.30254594
       0.        ]
-     [0.01703225 0.48736982 1.85685785 1.86994048 2.4055704  0.72741652
+     [0.         0.37076346 0.71051264 0.76753219 0.80720755 0.42025638
       0.        ]
-     [0.         0.10318486 1.0815137  0.72375675 0.60417202 0.16290513
+     [0.         0.28977199 0.68358975 0.71907166 0.78142406 0.44595825
       0.        ]
-     [0.03569073 0.         0.         0.         0.         0.01394715
-      0.0464034 ]
+     [0.         0.16248823 0.49251841 0.37528265 0.3246486  0.17787647
+      0.        ]
+     [0.         0.         0.         0.         0.         0.02532111
+      0.02461011]
      [0.         0.         0.         0.         0.         0.
-      0.12770046]
-     [0.         0.         0.         0.         0.         0.02705698
-      0.16513413]]
-    out_relu
+      0.05448308]
+     [0.04969072 0.         0.         0.         0.         0.06806932
+      0.12003538]]
+    <keras.layers.convolutional.Conv2D object at 0x7f7b7f44e550>
 
 
 Visualizing the heatmap:

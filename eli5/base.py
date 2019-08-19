@@ -28,7 +28,7 @@ class Explanation(object):
                  highlight_spaces=None,  # type: Optional[bool]
                  transition_features=None,  # type: Optional[TransitionFeatureWeights]
                  image=None, # type: Any
-                 layer=None,  # type: str
+                 layer=None,  # type: Any
                  ):
         # type: (...) -> None
         self.estimator = estimator
@@ -41,8 +41,8 @@ class Explanation(object):
         self.decision_tree = decision_tree
         self.highlight_spaces = highlight_spaces
         self.transition_features = transition_features
-        self.image = image # if arg is not None, assume we are working with images
-        self.layer = layer # neural network layer, keep as a string to make it library independent
+        self.image = image  # if arg is not None, assume we are working with images
+        self.layer = layer  # neural network layer, backend-dependent instance
         # if adding new attributes, do not forget to update the test_formatters_as_dict test
 
     def _repr_html_(self):
