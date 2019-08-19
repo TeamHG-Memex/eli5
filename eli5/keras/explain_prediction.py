@@ -326,7 +326,7 @@ def explain_prediction_keras_text(model,
     :type tokens: list[str], optional
 
     :param pad_value:
-        Number for padding. If given, cuts padding off.
+        Integer identified of the padding token. If given, cuts padding off.
 
         An integer value in ``doc``, 
 
