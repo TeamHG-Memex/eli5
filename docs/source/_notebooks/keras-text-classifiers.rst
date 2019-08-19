@@ -16,6 +16,9 @@ See also the tutorial for images
 Certain sections such as 'removing softmax' and 'comparing different
 models' are relevant for text as well.
 
+**This is experimental work. Unlike for images, this is not based on any
+paper.**
+
 Set up
 ------
 
@@ -55,7 +58,7 @@ First some imports
 
 .. parsed-literal::
 
-    sys.version_info(major=3, minor=6, micro=8, releaselevel='final', serial=0)
+    sys.version_info(major=3, minor=7, micro=3, releaselevel='final', serial=0)
     2.2.4
     1.14.0
 
@@ -142,20 +145,11 @@ Confirm the accuracy of the model
 
 .. code:: ipython3
 
-    print(binary_model.metrics_names)
-    loss, acc = binary_model.evaluate(x_test, y_test)
-    print(loss, acc)
+    # print(binary_model.metrics_names)
+    # loss, acc = binary_model.evaluate(x_test, y_test)
+    # print(loss, acc)
     
-    print('Accuracy: ', acc)
-
-
-.. parsed-literal::
-
-    ['loss', 'acc']
-    25000/25000 [==============================] - 84s 3ms/step
-    0.4319177031707764 0.81504
-    Accuracy:  0.81504
-
+    # print('Accuracy: ', acc)
 
 Looks good? Let's go on and check one of the test samples.
 
@@ -296,7 +290,7 @@ model, the input, and the associated tokens that will be highlighted.
 
 
 That's unexpected. The input seems to have nothing that makes the
-predicted score *go up*.
+predicted score *go up*. (See the next section for an explanation.)
 
 Let's try a custom input
 
@@ -429,103 +423,9 @@ Now this is something. The words highlighted in green show what makes
 the score "go up", i.e. the "positive" words (check the next section to
 see how to show positive AND negative words with the ``relu`` argument).
 
-Hover over the highlighted words to see their "weight".
-
 Even though the explanation is bright green, the actual prediction is
-not very positive. Pass ``preserve_density=True`` to make the underlying
-formatter show colors "closer" to the values they represent.
-
-.. code:: ipython3
-
-    eli5.show_prediction(binary_model, review, tokens=review_t, preserve_density=True)
-
-
-
-
-.. raw:: html
-
-    
-        <style>
-        table.eli5-weights tr:hover {
-            filter: brightness(85%);
-        }
-    </style>
-    
-    
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-    
-        
-    
-        
-    
-        
-    
-        
-            
-    
-        
-    
-            
-    
-            
-    
-    
-        <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
-            <span style="background-color: hsl(120, 100.00%, 84.38%); opacity: 0.85" title="0.007">&lt;START&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 79.30%); opacity: 0.88" title="0.010">hello</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 75.53%); opacity: 0.90" title="0.013">this</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.026">is</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 87.50%); opacity: 0.84" title="0.005">great</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 75.18%); opacity: 0.90" title="0.013">but</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 78.04%); opacity: 0.88" title="0.011">not</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 73.37%); opacity: 0.91" title="0.014">so</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 92.45%); opacity: 0.82" title="0.002">great</span>
-        </p>
-    
-    
-        
-    
-        
-    
-        
-    
-        
-    
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-    
-    
-
-
-
+not very positive. Hover over the highlighted words to see their actual
+"weight".
 
 Modify explanations with the ``relu`` and ``counterfactual`` arguments
 ----------------------------------------------------------------------
@@ -730,7 +630,8 @@ And for the test sample
 Green is positive, red is negative, white is neutral.
 
 We can see what made the network decide that is is a negative example,
-and why in the previous section there were no highlighted words.
+and why in the previous section there were no highlighted words
+(according to the explanation there are no positive words).
 
 Another argument ``counterfactual`` (default ``False``) highlights the
 counter-evidence for a class, or what makes the score "go down" (set to
@@ -951,31 +852,26 @@ merge layers, but recurrent, convolutional, or embedding layers.
 
 .. code:: ipython3
 
-    from keras.layers import (
-        Embedding,
-        Conv1D,
-        MaxPool1D,
-        AveragePooling1D,
-        GlobalAveragePooling1D,
-        Bidirectional,
-        Dense,
-    )
-
-.. code:: ipython3
-
-    desired = (Embedding, Bidirectional)  # some of the layers that we want to check
+    layer = 'embedding_1'
+    print(layer)
+    display(eli5.show_prediction(binary_model, review, tokens=review_t, relu=False, layer=layer))
     
-    for layer in binary_model.layers:
-        print(layer.name, layer.output_shape)
-        if isinstance(layer, desired):
-            html = eli5.show_prediction(binary_model, review, tokens=review_t, 
-                                        relu=False, layer=layer)
-            display(html)  # if in a loop we need an IPython display call
+    layer = 'bidirectional_1'
+    print(layer)
+    display(eli5.show_prediction(binary_model, review, tokens=review_t, relu=False, layer=layer))
+    
+    layer = 'bidirectional_2'
+    print(layer)
+    display(eli5.show_prediction(binary_model, review, tokens=review_t, relu=False, layer=layer))
+    
+    layer = 'bidirectional_3'
+    print(layer)
+    display(eli5.show_prediction(binary_model, review, tokens=review_t, relu=False, layer=layer))
 
 
 .. parsed-literal::
 
-    embedding_1 (None, None, 8)
+    embedding_1
 
 
 
@@ -1065,10 +961,7 @@ merge layers, but recurrent, convolutional, or embedding layers.
 
 .. parsed-literal::
 
-    masking_1 (None, None, 8)
-    masking_2 (None, None, 8)
-    masking_3 (None, None, 8)
-    bidirectional_1 (None, None, 128)
+    bidirectional_1
 
 
 
@@ -1158,7 +1051,7 @@ merge layers, but recurrent, convolutional, or embedding layers.
 
 .. parsed-literal::
 
-    bidirectional_2 (None, None, 64)
+    bidirectional_2
 
 
 
@@ -1248,7 +1141,7 @@ merge layers, but recurrent, convolutional, or embedding layers.
 
 .. parsed-literal::
 
-    bidirectional_3 (None, 32)
+    bidirectional_3
 
 
 
@@ -1336,27 +1229,34 @@ merge layers, but recurrent, convolutional, or embedding layers.
 
 
 
-.. parsed-literal::
-
-    dense_1 (None, 8)
-    dense_2 (None, 1)
-
+If the ``eli5.show_prediction()`` call is not the last statement in a
+cell (or if it is in a loop), you can use the IPython ``display()`` to
+force-show the explanation.
 
 The test sample
 
 .. code:: ipython3
 
-    for layer in binary_model.layers:
-        print(layer.name, layer.output_shape)
-        if isinstance(layer, desired):
-            html = eli5.show_prediction(binary_model, test_review, tokens=test_review_t, 
-                                        relu=False, layer=layer)
-            display(html)  # if in a loop we need an IPython display call
+    layer = 'embedding_1'
+    print(layer)
+    display(eli5.show_prediction(binary_model, test_review, tokens=test_review_t, relu=False, layer=layer))
+    
+    layer = 'bidirectional_1'
+    print(layer)
+    display(eli5.show_prediction(binary_model, test_review, tokens=test_review_t, relu=False, layer=layer))
+    
+    layer = 'bidirectional_2'
+    print(layer)
+    display(eli5.show_prediction(binary_model, test_review, tokens=test_review_t, relu=False, layer=layer))
+    
+    layer = 'bidirectional_3'
+    print(layer)
+    display(eli5.show_prediction(binary_model, test_review, tokens=test_review_t, relu=False, layer=layer))
 
 
 .. parsed-literal::
 
-    embedding_1 (None, None, 8)
+    embedding_1
 
 
 
@@ -1446,10 +1346,7 @@ The test sample
 
 .. parsed-literal::
 
-    masking_1 (None, None, 8)
-    masking_2 (None, None, 8)
-    masking_3 (None, None, 8)
-    bidirectional_1 (None, None, 128)
+    bidirectional_1
 
 
 
@@ -1539,7 +1436,7 @@ The test sample
 
 .. parsed-literal::
 
-    bidirectional_2 (None, None, 64)
+    bidirectional_2
 
 
 
@@ -1629,7 +1526,7 @@ The test sample
 
 .. parsed-literal::
 
-    bidirectional_3 (None, 32)
+    bidirectional_3
 
 
 
@@ -1717,114 +1614,17 @@ The test sample
 
 
 
-.. parsed-literal::
-
-    dense_1 (None, 8)
-    dense_2 (None, 1)
-
-
-What about the last two dense layers?
+The last two dense layers
 
 .. code:: ipython3
 
-    eli5.show_prediction(binary_model, test_review, tokens=test_review_t,
-                                    relu=False, layer=-1)
-
-
-
-
-.. raw:: html
-
+    layer = 'dense_1'
+    print(layer)
+    display(eli5.show_prediction(binary_model, test_review, tokens=test_review_t, relu=False, layer=layer))
     
-        <style>
-        table.eli5-weights tr:hover {
-            filter: brightness(85%);
-        }
-    </style>
-    
-    
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-    
-        
-    
-        
-    
-        
-    
-        
-            
-    
-        
-    
-            
-    
-            
-    
-    
-        <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
-            <span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.162">&lt;START&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.162">please</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 75.38%); opacity: 0.90" title="0.081">give</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 84.84%); opacity: 0.85" title="0.041">this</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 75.38%); opacity: 0.90" title="0.081">one</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 75.38%); opacity: 0.90" title="0.081">a</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 75.38%); opacity: 0.90" title="0.081">miss</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 84.84%); opacity: 0.85" title="0.041">br</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 84.84%); opacity: 0.85" title="0.041">br</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 81.46%); opacity: 0.87" title="0.054">&lt;OOV&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 81.46%); opacity: 0.87" title="0.054">&lt;OOV&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 75.38%); opacity: 0.90" title="0.081">and</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 81.46%); opacity: 0.87" title="0.054">the</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.162">rest</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.162">of</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 81.46%); opacity: 0.87" title="0.054">the</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.162">cast</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.162">rendered</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.162">terrible</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.162">performances</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 81.46%); opacity: 0.87" title="0.054">the</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.162">show</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.162">is</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 81.46%); opacity: 0.87" title="0.054">flat</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 81.46%); opacity: 0.87" title="0.054">flat</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 81.46%); opacity: 0.87" title="0.054">flat</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 84.84%); opacity: 0.85" title="0.041">br</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 84.84%); opacity: 0.85" title="0.041">br</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.162">i</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.162">don&#x27;t</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 75.38%); opacity: 0.90" title="0.081">know</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.162">how</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.162">michael</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 75.38%); opacity: 0.90" title="0.081">madison</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.162">could</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.162">have</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.162">allowed</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 84.84%); opacity: 0.85" title="0.041">this</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 75.38%); opacity: 0.90" title="0.081">one</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.162">on</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 75.38%); opacity: 0.90" title="0.081">his</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.162">plate</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.162">he</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.162">almost</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.162">seemed</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 75.38%); opacity: 0.90" title="0.081">to</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 75.38%); opacity: 0.90" title="0.081">know</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 84.84%); opacity: 0.85" title="0.041">this</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.162">wasn&#x27;t</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.162">going</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 75.38%); opacity: 0.90" title="0.081">to</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.162">work</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.162">out</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 75.38%); opacity: 0.90" title="0.081">and</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 75.38%); opacity: 0.90" title="0.081">his</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.162">performance</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.162">was</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.162">quite</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 81.46%); opacity: 0.87" title="0.054">&lt;OOV&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.162">so</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.162">all</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.162">you</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 75.38%); opacity: 0.90" title="0.081">madison</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 60.00%); opacity: 1.00" title="0.162">fans</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 75.38%); opacity: 0.90" title="0.081">give</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 84.84%); opacity: 0.85" title="0.041">this</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 75.38%); opacity: 0.90" title="0.081">a</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 75.38%); opacity: 0.90" title="0.081">miss</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 97.72%); opacity: 0.80" title="0.003">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 97.72%); opacity: 0.80" title="0.003">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 97.72%); opacity: 0.80" title="0.003">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 97.72%); opacity: 0.80" title="0.003">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 97.72%); opacity: 0.80" title="0.003">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 97.72%); opacity: 0.80" title="0.003">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 97.72%); opacity: 0.80" title="0.003">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 97.72%); opacity: 0.80" title="0.003">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 97.72%); opacity: 0.80" title="0.003">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 97.72%); opacity: 0.80" title="0.003">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 97.72%); opacity: 0.80" title="0.003">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 97.72%); opacity: 0.80" title="0.003">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 97.72%); opacity: 0.80" title="0.003">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 97.72%); opacity: 0.80" title="0.003">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 97.72%); opacity: 0.80" title="0.003">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 97.72%); opacity: 0.80" title="0.003">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 97.72%); opacity: 0.80" title="0.003">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 97.72%); opacity: 0.80" title="0.003">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 97.72%); opacity: 0.80" title="0.003">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 97.72%); opacity: 0.80" title="0.003">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 97.72%); opacity: 0.80" title="0.003">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 97.72%); opacity: 0.80" title="0.003">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 97.72%); opacity: 0.80" title="0.003">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 97.72%); opacity: 0.80" title="0.003">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 97.72%); opacity: 0.80" title="0.003">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 97.72%); opacity: 0.80" title="0.003">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 97.72%); opacity: 0.80" title="0.003">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 97.72%); opacity: 0.80" title="0.003">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 97.72%); opacity: 0.80" title="0.003">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 97.72%); opacity: 0.80" title="0.003">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 97.72%); opacity: 0.80" title="0.003">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 97.72%); opacity: 0.80" title="0.003">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 97.72%); opacity: 0.80" title="0.003">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 97.72%); opacity: 0.80" title="0.003">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 97.72%); opacity: 0.80" title="0.003">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 97.72%); opacity: 0.80" title="0.003">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 97.72%); opacity: 0.80" title="0.003">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 97.72%); opacity: 0.80" title="0.003">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 97.72%); opacity: 0.80" title="0.003">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 97.72%); opacity: 0.80" title="0.003">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 97.72%); opacity: 0.80" title="0.003">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 97.72%); opacity: 0.80" title="0.003">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 97.72%); opacity: 0.80" title="0.003">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 97.72%); opacity: 0.80" title="0.003">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 97.72%); opacity: 0.80" title="0.003">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 97.72%); opacity: 0.80" title="0.003">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 97.72%); opacity: 0.80" title="0.003">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 97.72%); opacity: 0.80" title="0.003">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 97.72%); opacity: 0.80" title="0.003">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 97.72%); opacity: 0.80" title="0.003">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 97.72%); opacity: 0.80" title="0.003">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 97.72%); opacity: 0.80" title="0.003">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 97.72%); opacity: 0.80" title="0.003">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 97.72%); opacity: 0.80" title="0.003">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 97.72%); opacity: 0.80" title="0.003">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 97.72%); opacity: 0.80" title="0.003">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 97.72%); opacity: 0.80" title="0.003">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 97.72%); opacity: 0.80" title="0.003">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 97.72%); opacity: 0.80" title="0.003">&lt;PAD&gt;</span><span style="opacity: 0.80"> </span><span style="background-color: hsl(120, 100.00%, 97.72%); opacity: 0.80" title="0.003">&lt;PAD&gt;</span>
-        </p>
-    
-    
-        
-    
-        
-    
-        
-    
-        
-    
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-    
-    
-
-
-
-
-.. code:: ipython3
-
-    for layer in binary_model.layers[-2:]:
-        print(layer.name)
-        html = eli5.show_prediction(binary_model, test_review, tokens=test_review_t,
-                                    relu=False, layer=layer)
-        display(html)
+    layer = 'dense_2'
+    print(layer)
+    display(eli5.show_prediction(binary_model, test_review, tokens=test_review_t, relu=False, layer=layer))
 
 
 .. parsed-literal::
@@ -2472,7 +2272,10 @@ from the explanation
 
 
 
-That's something!
+That's something. Though the model still gives different results
+compared to the explanation given for the not-padded ``review`` array.
+That is because we feed the input as it is, but only remove padding from
+the results.
 
 Explaining multiclass model predictions
 ---------------------------------------
@@ -2562,7 +2365,7 @@ Again check the metrics.
 .. parsed-literal::
 
     ['loss', 'acc']
-    500/500 [==============================] - 6s 13ms/step
+    500/500 [==============================] - 8s 16ms/step
     0.6319513120651246 0.7999999990463257
     Accuracy: 0.7999999990463257
 
@@ -2904,23 +2707,55 @@ Our own example
 
 
 
-Let's check all the layers if we can get a better explanation
+Let's check all the layers. Maybe some will give better-looking
+explanations.
 
 .. code:: ipython3
 
-    desired = (Embedding, Conv1D, MaxPool1D, AveragePooling1D, GlobalAveragePooling1D)
+    layer = 'embedding_1'
+    print(layer)
+    display(eli5.show_prediction(multicls_model, complaint, tokens=complaint_t,
+                                 pad_token='<PAD>', layer=layer))
     
-    for layer in multicls_model.layers:
-        print(layer.name, layer.output_shape)
-        if isinstance(layer, desired):
-            html = eli5.show_prediction(multicls_model, complaint, tokens=complaint_t, 
-                                        pad_token='<PAD>', layer=layer, highlight_spaces=True)
-            display(html)
+    layer = 'conv1d_1'
+    print(layer)
+    display(eli5.show_prediction(multicls_model, complaint, tokens=complaint_t,
+                                 pad_token='<PAD>', layer=layer))
+    
+    layer = 'max_pooling1d_1'
+    print(layer)
+    display(eli5.show_prediction(multicls_model, complaint, tokens=complaint_t,
+                                 pad_token='<PAD>', layer=layer))
+    
+    layer = 'conv1d_2'
+    print(layer)
+    display(eli5.show_prediction(multicls_model, complaint, tokens=complaint_t,
+                                 pad_token='<PAD>', layer=layer))
+    
+    layer = 'average_pooling1d_1'
+    print(layer)
+    display(eli5.show_prediction(multicls_model, complaint, tokens=complaint_t,
+                                 pad_token='<PAD>', layer=layer))
+    
+    layer = 'conv1d_3'
+    print(layer)
+    display(eli5.show_prediction(multicls_model, complaint, tokens=complaint_t,
+                                 pad_token='<PAD>', layer=layer))
+    
+    layer = 'max_pooling1d_2'
+    print(layer)
+    display(eli5.show_prediction(multicls_model, complaint, tokens=complaint_t,
+                                 pad_token='<PAD>', layer=layer))
+    
+    layer = 'global_average_pooling1d_1'
+    print(layer)
+    display(eli5.show_prediction(multicls_model, complaint, tokens=complaint_t,
+                                 pad_token='<PAD>', layer=layer))
 
 
 .. parsed-literal::
 
-    embedding_1 (None, 3193, 8)
+    embedding_1
 
 
 
@@ -3010,7 +2845,7 @@ Let's check all the layers if we can get a better explanation
 
 .. parsed-literal::
 
-    conv1d_1 (None, 3179, 128)
+    conv1d_1
 
 
 
@@ -3100,8 +2935,7 @@ Let's check all the layers if we can get a better explanation
 
 .. parsed-literal::
 
-    dropout_1 (None, 3179, 128)
-    max_pooling1d_1 (None, 1589, 128)
+    max_pooling1d_1
 
 
 
@@ -3191,7 +3025,7 @@ Let's check all the layers if we can get a better explanation
 
 .. parsed-literal::
 
-    conv1d_2 (None, 1580, 128)
+    conv1d_2
 
 
 
@@ -3281,8 +3115,7 @@ Let's check all the layers if we can get a better explanation
 
 .. parsed-literal::
 
-    dropout_2 (None, 1580, 128)
-    average_pooling1d_1 (None, 790, 128)
+    average_pooling1d_1
 
 
 
@@ -3372,7 +3205,7 @@ Let's check all the layers if we can get a better explanation
 
 .. parsed-literal::
 
-    conv1d_3 (None, 786, 128)
+    conv1d_3
 
 
 
@@ -3462,8 +3295,7 @@ Let's check all the layers if we can get a better explanation
 
 .. parsed-literal::
 
-    dropout_3 (None, 786, 128)
-    max_pooling1d_2 (None, 393, 128)
+    max_pooling1d_2
 
 
 
@@ -3553,7 +3385,7 @@ Let's check all the layers if we can get a better explanation
 
 .. parsed-literal::
 
-    global_average_pooling1d_1 (None, 128)
+    global_average_pooling1d_1
 
 
 
@@ -3640,16 +3472,6 @@ Let's check all the layers if we can get a better explanation
     
 
 
-
-.. parsed-literal::
-
-    dense_1 (None, 32)
-    dense_2 (None, 11)
-
-
-We passed ``highlight_spaces=True`` to the underlying formatter so that
-we can get highlighting of spaces, which are present in character-based
-tokens.
 
 It should make sense for a Convolutional network that later layers pick
 up "higher level" information than earlier "lower level" layers (such as
@@ -4113,9 +3935,6 @@ notebook
 
 Notes on results
 ----------------
-
-In general, this is experimental work. Unlike for images, this is not
-based on any paper.
 
 Multi-label classification
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
