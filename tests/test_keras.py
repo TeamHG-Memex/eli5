@@ -190,6 +190,15 @@ def test_explain_prediction_attributes(simple_seq_image, dummy_image):
     assert expl.targets[0].proba is None
 
 
+@pytest.mark.parametrize('model, doc', [
+    (Sequential(), np.zeros((0,))),  # bad input
+    (Sequential(), np.zeros((1, 2, 2, 3),)),  # bad model
+])
+def test_explain_prediction_not_supported(model, doc):
+    res = eli5.explain_prediction(model, doc)
+    assert 'supported' in res.error
+
+
 @pytest.fixture(scope='module')
 def differentiable_model():
     inpt = Input(shape=(1,))
