@@ -74,12 +74,6 @@ def get_localization_map(weights, activations, relu=True):
     lmap : numpy.ndarray
         A Grad-CAM localization map,
         with shape like the spatial portion of ``activations``.
-
-    Notes
-    -----
-    We currently make two assumptions in this implementation
-        * We are dealing with images as our input to ``model``.
-        * We are doing a classification. ``model``'s output is a class scores or probabilities vector.
     """
     # For reusability, this function should only use numpy operations
     # No library specific operations

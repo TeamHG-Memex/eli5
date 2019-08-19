@@ -135,7 +135,6 @@ def _build_spans(tokens, # type: Union[np.ndarray, list]
         t_start = document.index(token, running)
         # create span
         t_end = t_start + len(token)
-        # why start and end is list of tuples?
         span = (token, [(t_start, t_end,)], weight)
         spans.append(span)
         # update run
