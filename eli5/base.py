@@ -152,6 +152,8 @@ WeightedSpan = Tuple[
     Feature, # feature name - i.e. token name such as 'john', 'software', 'sky'
     List[Tuple[int, int]],  # list of spans [start, end) for this feature
                             # indices into the document
+                            # use a list when have a bag of words model
+                            # and each feature has multiple spans (multiple occurrences)
     float,  # feature weight
 ]
 
