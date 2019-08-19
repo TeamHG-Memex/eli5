@@ -82,6 +82,13 @@ Important arguments to :func:`eli5.explain_prediction` when using with ``Model``
 
     - `None` for automatically picking a suitable layer. Layer is searched for by going backwards from the output through the flattened list of layers. The type and the dimensions of the layer are checked. If no suitable layer can be found, an error is raised.
 
+    - For best results, pick a layer that:
+        * has spatial or temporal information (conv, recurrent, pooling, embedding)
+          (not dense layers).
+        * shows high level features.
+        * has large enough dimensions for resizing over input to work.
+
+
 * ``relu`` whether to apply  to the heatmap.
     
     - The GradCAM_ paper applies ReLU to the produced heatmap in order to only show what increases a prediction.
@@ -126,17 +133,23 @@ Extra arguments for text-based explanations:
 
     - May have padding if ``doc`` has padding.
 
-* ``pad_value`` padding symbol.
+* ``pad_value`` number identifying padding.
 
-    - Pass ``pad_value`` and ``padding`` in order to remove padding from the explanation.
+    - Number inside ``doc`` that is used to indicate padding.
 
-    - Number inside ``doc`` or string inside ``tokens`` that is used to indicate padding.
+    - For example ``0``.
 
-    - For example, ``'<PAD>'`` or ``0``.
+    - If given, cuts padding off.
 
-* ``padding`` padding location.
+    - Do not pass this to see the effect of padding on the prediction (explain padding).
 
-    - Either ``post`` for padding after the actual text starts, or ``pre`` for padding before the text starts.
+* ``pad_token`` string identifying padding.
+
+    - A string token inside ``tokens`` used to indicate padding.
+
+    - For example ``'<PAD>'``.
+
+    - Works like ``pad_value``. Pass to cut off padding.
 
 * ``interpolation_kind`` method for resizing the heatmap to fit over input.
 
@@ -158,6 +171,8 @@ All other arguments are ignored.
 An :class:`eli5.base.Explanation` instance is returned with some important attributes:
 
 * ``image`` if explaining image-based networks, represents the image input into the model. A Pillow image with mode "RGBA".
+
+* ``layer`` the Keras layer name used for Grad-CAM, from the passed layer or the automatically picked layer.
 
 * ``targets`` represents the explanation values for each target class (currently only 1 target is supported). A list of :class:`eli5.base.TargetExplanation` objects with the following attributes set:
 

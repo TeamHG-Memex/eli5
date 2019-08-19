@@ -86,7 +86,7 @@ def explain_prediction_keras(model, # type: Model
 
 
         :raises TypeError: if ``doc`` is not a numpy array.
-        :raises ValueError: if ``doc`` shape does not match.
+        :raises ValueError: if ``doc`` batch size is not 1.
 
     :param targets:
         Prediction ID's to focus on.
@@ -109,13 +109,6 @@ def explain_prediction_keras(model, # type: Model
         a valid keras layer name, layer index, or an instance of a Keras layer.
 
         If None, a suitable layer is attempted to be chosen automatically.
-
-        For best results, pick a layer that:
-
-        * has spatial or temporal information (conv, recurrent, pooling, embedding)
-          (not dense layers).
-        * shows high level features.
-        * has large enough dimensions for resizing over input to work.
 
 
         :raises TypeError: if ``layer`` is not None, str, int, or keras.layers.Layer instance.
@@ -323,22 +316,23 @@ def explain_prediction_keras_text(model,
         If ``doc`` has batch size = 1, batch dimension from tokens may be omitted.
 
         These tokens will be highlighted for text-based explanations.
+
+
+        :raises TypeError: if ``tokens`` has wrong type or contains wrong types.
+        :raises ValueError: if ``tokens`` dimensions do not match.
     :type tokens: list[str], optional
 
     :param pad_value:
-        Integer identified of the padding token. If given, cuts padding off.
+        Integer identifier of the padding token.
 
-        An integer value in ``doc``, 
-
-        Do not pass this to see the effect of padding on the prediction
-        (explain padding).
+        If given, cuts padding off.
     :type pad_value: int or float, optional
 
     :param pad_token:
-        Symbol for padding. Works like `pad_value`.
+        A string token inside ``tokens`` identifying padding.
 
-        A string token in ``tokens``.
-    :type pad_value: str, optional
+        If given, cuts padding off.
+    :type pad_token: str, optional
 
     :param interpolation_kind:
         Interpolation method. See :func:`eli5.nn.text.resize_1d` for more details.
@@ -550,12 +544,6 @@ def _search_layer(model, # type: Model
             return layer
     # linear search ended with no results
     return None
-
-
-# def _forward_layers(model):
-#     # type: (Model) -> Generator[Layer, None, None]
-#     """Return layers going from input to output."""
-#     return (model.get_layer(index=i) for i in range(0, len(model.layers), 1))
 
 
 def _backward_layers(model):
