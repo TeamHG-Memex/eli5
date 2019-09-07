@@ -5,7 +5,7 @@ import pytest
 import numpy as np
 
 from eli5.nn.text import (
-    gradcam_text_spans,
+    gradcam_spans,
     resize_1d,
     _build_spans,
     _construct_document,
@@ -13,6 +13,7 @@ from eli5.nn.text import (
     _find_padding_values,
     _find_padding_tokens,
     _trim_padding,
+    _validate_tokens,
 )
 from eli5.base import (
     WeightedSpans,
@@ -93,16 +94,49 @@ def test_trim_padding_invalid():
     assert np.array_equal(tokens, tokens_trimmed)
     assert np.array_equal(heatmap, heatmap_trimmed)
 
-    # with pytest.raises(ValueError):
-    #     _trim_padding([1], ['a', 'PAD', 'b'], np.array([1, 0, 2]))
 
-
-def test_gradcam_text_spans():
-    heatmap, tokens, doc = np.array([2.0]), ['a'], [2]
-    res_tokens, res_heatmap, res_weighted_spans = gradcam_text_spans(heatmap, tokens, doc)
+def test_gradcam_spans():
+    heatmap, tokens, doc = np.array([2.0]), ['a'], np.array([[2]])
+    res_tokens, res_heatmap, res_weighted_spans = gradcam_spans(heatmap, tokens, doc)
     assert np.array_equal(heatmap, res_heatmap)
     assert np.array_equal(tokens, res_tokens)
     assert res_weighted_spans == WeightedSpans([DocWeightedSpans(
                                                 'a',
                                                 spans=[('a', [(0, 1)], 2.0)]
                                                 )])
+
+
+def test_validate_tokens():
+    _validate_tokens(np.zeros((1, 3)), ['a', 'b', 'c'])
+    _validate_tokens(np.zeros((2, 2)), [['a', 'b'], ['c', 'd']])
+
+
+def test_validate_tokens_invalid():
+    with pytest.raises(TypeError):
+        # should be in a list
+        _validate_tokens(np.zeros((1, 1)), 'a')
+    with pytest.raises(ValueError):
+        # empty list
+        _validate_tokens(np.zeros((1, 1)), [])
+    with pytest.raises(ValueError):
+        # single list but multiple samples in batch
+        _validate_tokens(np.zeros((3, 2)), ['a', 'b'])
+
+    # list doesn't contain strings
+    with pytest.raises(TypeError):
+        _validate_tokens(np.zeros((1, 1)), [0])
+    with pytest.raises(TypeError):
+        _validate_tokens(np.zeros((1, 1)), [[0]])
+
+    with pytest.raises(ValueError):
+        # not enough samples in batched list
+        _validate_tokens(np.zeros((3, 1)), np.array([['a'], ['b']]))
+    with pytest.raises(ValueError):
+        # tokens lengths vary
+        _validate_tokens(np.zeros((2, 2)), [['a', 'b'], ['c']])
+    with pytest.raises(ValueError):
+        # tokens sample lengths do not match
+        _validate_tokens(np.zeros((1, 1)), ['a', 'b'])
+    with pytest.raises(TypeError):
+        # too many axes
+        _validate_tokens(np.zeros((1, 1,)), [[['a']]])

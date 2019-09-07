@@ -55,6 +55,8 @@ def gradcam_spans(heatmap, # type: np.ndarray
     """
     # FIXME: might want to do this when formatting the explanation?
     # TODO: might want to add validation for heatmap and other arguments?
+    _validate_tokens(doc, tokens)
+
     length = len(tokens)
     heatmap = resize_1d(heatmap, length, interpolation_kind=interpolation_kind)
 
@@ -213,3 +215,59 @@ def _trim_padding(pad_indices, # type: np.ndarray
         tokens = np.delete(tokens, pad_indices)
         heatmap = np.delete(heatmap, pad_indices)
     return tokens, heatmap
+
+
+# FIXME: break this function up
+def _validate_tokens(doc, tokens):
+    # type: (np.ndarray, Union[np.ndarray, list]) -> None
+    """Check that ``tokens`` contains correct items and matches ``doc``."""
+    if not isinstance(tokens, (list, np.ndarray)):
+        # wrong type
+        raise TypeError('"tokens" must be list or numpy.ndarray. '
+                        'Got "{}".'.format(tokens))
+
+    batch_size, doc_len = doc.shape[0], doc.shape[1]
+    if len(tokens) == 0:
+        # empty list
+        raise ValueError('"tokens" is empty: {}'.format(tokens))
+
+    an_entry = tokens[0]
+    if isinstance(an_entry, str):
+        # no batch
+        if batch_size != 1:
+            # doc is batched but tokens is not
+            raise ValueError('If passing "tokens" without batch dimension, '
+                             '"doc" must have batch size = 1.'
+                             'Got "doc" with batch size = %d.' % batch_size)
+        tokens_len = len(tokens)
+    elif isinstance(an_entry, (list, np.ndarray)):
+        # batched
+        tokens_batch_size = len(tokens)
+        if tokens_batch_size != batch_size:
+            # batch lengths do not match
+            raise ValueError('"tokens" must have same number of samples '
+                             'as in doc batch. Got: "tokens" samples: %d, '
+                             'doc samples: %d' % (tokens_batch_size, batch_size))
+
+        a_token = an_entry[0]
+        if not isinstance(a_token, str):
+            # actual contents are not strings
+            raise TypeError('Second axis in "tokens" must contain strings. '
+                            'Found "{}" (type "{}")'.format(a_token, type(a_token)))
+
+        # a way to check that all elements match some condition
+        # https://stackoverflow.com/a/35791116/11555448
+        it = iter(tokens)
+        the_len = len(next(it))
+        if not all(len(l) == the_len for l in it):
+            raise ValueError('"tokens" samples do not have the same length.')
+        tokens_len = the_len
+    else:
+        raise TypeError('"tokens" must be an array of strings, '
+                        'or an array of string arrays. '
+                        'Got "{}".'.format(tokens))
+
+    if tokens_len != doc_len:
+        raise ValueError('"tokens" and "doc" lengths must match. '
+                         '"tokens" length: "%d". "doc" length: "%d"'
+                         % (tokens_len, doc_len))

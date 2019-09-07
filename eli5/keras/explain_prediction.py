@@ -36,8 +36,6 @@ from eli5.explain import explain_prediction
 from eli5.nn.gradcam import (
     gradcam_heatmap,
     DESCRIPTION_GRADCAM,
-    _validate_targets,
-    _validate_classification_target,
 )
 from eli5.nn.text import (
     gradcam_spans,
@@ -247,7 +245,7 @@ def explain_prediction_keras_image(model,
           * ``target`` ID of target class.
           * ``score`` value for predicted class.
     """
-    _validate_params(model, doc, targets=targets)
+    _validate_params(model, doc)
     if image is None:
         image = _extract_image(doc)
 
@@ -353,7 +351,7 @@ def explain_prediction_keras_text(model,
 
     """
     assert tokens is not None
-    _validate_params(model, doc, targets=targets, tokens=tokens)
+    _validate_params(model, doc)
     tokens = _unbatch_tokens(tokens)
 
     if layer is not None:
@@ -552,18 +550,11 @@ def _backward_layers(model):
 
 def _validate_params(model, # type: Model
                      doc, # type: np.ndarray
-                     targets=None, # type: Optional[list]
-                     tokens=None, # type: Optional[Union[np.ndarray, list]]
                      ):
     # type: (...) -> None
     """Helper for validating all explanation function parameters."""
     _validate_model(model)
     _validate_doc(doc)
-    if targets is not None:
-        _validate_targets(targets)
-        _validate_classification_target(targets[0], model.output_shape)
-    if tokens is not None:
-        _validate_tokens(doc, tokens)
 
 
 def _validate_model(model):
@@ -589,58 +580,3 @@ def _validate_doc(doc):
                          'Got doc with batch size: %d' % batch_size)
 
     # Note that validation of the input shape, etc is done by Keras
-
-
-# FIXME: break this function up
-def _validate_tokens(doc, tokens):
-    # type: (np.ndarray, Union[np.ndarray, list]) -> None
-    """Check that ``tokens`` contains correct items and matches ``doc``."""
-    batch_size, doc_len = doc.shape
-    if not isinstance(tokens, (list, np.ndarray)):
-        # wrong type
-        raise TypeError('"tokens" must be list or numpy.ndarray. '
-                        'Got "{}".'.format(tokens))
-
-    if len(tokens) == 0:
-        # empty list
-        raise ValueError('"tokens" is empty: {}'.format(tokens))
-
-    an_entry = tokens[0]
-    if isinstance(an_entry, str):
-        # no batch
-        if batch_size != 1:
-            # doc is batched but tokens is not
-            raise ValueError('If passing "tokens" without batch dimension, '
-                             '"doc" must have batch size = 1.'
-                             'Got "doc" with batch size = %d.' % batch_size)
-        tokens_len = len(tokens)
-    elif isinstance(an_entry, (list, np.ndarray)):
-        # batched
-        tokens_batch_size = len(tokens)
-        if tokens_batch_size != batch_size:
-            # batch lengths do not match
-            raise ValueError('"tokens" must have same number of samples '
-                             'as in doc batch. Got: "tokens" samples: %d, '
-                             'doc samples: %d' % (tokens_batch_size, batch_size))
-
-        a_token = an_entry[0]
-        if not isinstance(a_token, str):
-            # actual contents are not strings
-            raise TypeError('Second axis in "tokens" must contain strings. '
-                             'Found "{}" (type "{}")'.format(a_token, type(a_token)))
-
-        # https://stackoverflow.com/a/35791116/11555448
-        it = iter(tokens)
-        the_len = len(next(it))
-        if not all(len(l) == the_len for l in it):
-            raise ValueError('"tokens" samples do not have the same length.')
-        tokens_len = the_len
-    else:
-        raise TypeError('"tokens" must be an array of strings, '
-                        'or an array of string arrays. '
-                        'Got "{}".'.format(tokens))
-
-    if tokens_len != doc_len:
-        raise ValueError('"tokens" and "doc" lengths must match. '
-                         '"tokens" length: "%d". "doc" length: "%d"'
-                         % (tokens_len, doc_len))

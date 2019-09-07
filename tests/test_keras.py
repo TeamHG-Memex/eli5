@@ -33,7 +33,6 @@ import eli5
 from eli5.keras.explain_prediction import (
     _validate_model,
     _validate_doc,
-    _validate_tokens,
     _get_layer,
     _autoget_layer_image,
     _autoget_layer_text,
@@ -145,42 +144,6 @@ def test_validate_doc():
     with pytest.raises(ValueError):
         # batch has more than one sample
         _validate_doc(np.zeros((3, 2, 2, 1)))
-
-
-def test_validate_tokens():
-    _validate_tokens(np.zeros((1, 3)), ['a', 'b', 'c'])
-    _validate_tokens(np.zeros((2, 2)), [['a', 'b'], ['c', 'd']])
-
-
-def test_validate_tokens_invalid():
-    with pytest.raises(TypeError):
-        # should be in a list
-        _validate_tokens(np.zeros((1, 1)), 'a')
-    with pytest.raises(ValueError):
-        # empty list
-        _validate_tokens(np.zeros((1, 1)), [])
-    with pytest.raises(ValueError):
-        # single list but multiple samples in batch
-        _validate_tokens(np.zeros((3, 2)), ['a', 'b'])
-
-    # list doesn't contain strings
-    with pytest.raises(TypeError):
-        _validate_tokens(np.zeros((1, 1)), [0])
-    with pytest.raises(TypeError):
-        _validate_tokens(np.zeros((1, 1)), [[0]])
-
-    with pytest.raises(ValueError):
-        # not enough samples in batched list
-        _validate_tokens(np.zeros((3, 1)), np.array([['a'], ['b']]))
-    with pytest.raises(ValueError):
-        # tokens lengths vary
-        _validate_tokens(np.zeros((2, 2)), [['a', 'b'], ['c']])
-    with pytest.raises(ValueError):
-        # tokens sample lengths do not match
-        _validate_tokens(np.zeros((1, 1)), ['a', 'b'])
-    with pytest.raises(TypeError):
-        # too many axes
-        _validate_tokens(np.zeros((1, 1,)), [[['a']]])
 
 
 def test_explain_prediction_attributes(simple_seq_image, dummy_image):

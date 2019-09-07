@@ -15,16 +15,21 @@ import keras.backend as K # type: ignore
 from keras.models import Model # type: ignore
 from keras.layers import Layer # type: ignore
 
+from eli5.nn.gradcam import (
+    _validate_targets,
+    _validate_classification_target,
+)
+
 
 def gradcam_backend_keras(model, # type: Model
-    doc, # type: np.ndarray
-    targets, # type: Optional[List[int]]
-    activation_layer, # type: Layer
-    ):
+                          doc, # type: np.ndarray
+                          targets, # type: Optional[List[int]]
+                          activation_layer, # type: Layer
+                          ):
     # type: (...) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]
     """
     Compute the terms and by-products required by the Grad-CAM formula.
-    
+
     Parameters
     ----------
     model : keras.models.Model
@@ -58,6 +63,8 @@ def gradcam_backend_keras(model, # type: Model
     # and https://github.com/ramprs/grad-cam/blob/master/classification.lua
     # TODO: as in pytorch PR, separate out classification tensor code
     if targets is not None:
+        _validate_targets(targets)
+        _validate_classification_target(targets[0], model.output_shape)
         target, = targets
         predicted_idx = K.constant([target], dtype='int64')
     else:
