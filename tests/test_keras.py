@@ -231,3 +231,8 @@ def test_calc_gradient_nondifferentiable(nondifferentiable_model):
 
 
 # TODO: test_autoget_target_prediction with multiple maximum values, etc
+
+
+def test_import():
+    # test that package imports without errors
+    import eli5.keras

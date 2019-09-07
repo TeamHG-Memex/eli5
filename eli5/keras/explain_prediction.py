@@ -40,8 +40,7 @@ from eli5.nn.gradcam import (
     _validate_classification_target,
 )
 from eli5.nn.text import (
-    gradcam_text_spans,
-    _is_character_tokenization,
+    gradcam_spans,
 )
 from .gradcam import (
     gradcam_backend_keras,
@@ -373,13 +372,13 @@ def explain_prediction_keras_text(model,
     predicted_idx, = predicted_idx
     predicted_val, = predicted_val
     heatmap, = heatmap
-    text_vals = gradcam_text_spans(heatmap,
-                                   tokens,
-                                   doc,
-                                   pad_value=pad_value,
-                                   pad_token=pad_token,
-                                   interpolation_kind=interpolation_kind,
-                                   )
+    text_vals = gradcam_spans(heatmap,
+                              tokens,
+                              doc,
+                              pad_value=pad_value,
+                              pad_token=pad_token,
+                              interpolation_kind=interpolation_kind,
+                              )
     # TODO: padding could be relevant for images too?
     tokens, heatmap, weighted_spans = text_vals
     return Explanation(

@@ -64,7 +64,7 @@ def test_validate_targets():
 
 
 # target index must correctly reference one of the nodes in the final layer
-def _validate_classification_target():
+def test_validate_classification_target():
     with pytest.raises(ValueError):
         # one over
         _validate_classification_target(2, (1, 2,))

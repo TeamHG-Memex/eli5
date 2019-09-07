@@ -9,7 +9,6 @@ output is explanation object that contains a heatmap.
 """
 
 
-# FIXME: rename functions
 def gradcam_heatmap(activations, grads, relu=True, counterfactual=False):
     # type: (np.ndarray, np.ndarray, bool, bool) -> np.ndarray
     """

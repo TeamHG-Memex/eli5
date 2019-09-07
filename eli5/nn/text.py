@@ -10,13 +10,13 @@ from eli5.base import (
 )
 
 
-def gradcam_text_spans(heatmap, # type: np.ndarray
-                       tokens, # type: Union[np.ndarray, list]
-                       doc, # type: np.ndarray
-                       pad_value=None, # type: Optional[Union[int, float]]
-                       pad_token=None, # type: Optional[str]
-                       interpolation_kind='linear' # type: Union[str, int]
-                       ):
+def gradcam_spans(heatmap, # type: np.ndarray
+                  tokens, # type: Union[np.ndarray, list]
+                  doc, # type: np.ndarray
+                  pad_value=None, # type: Optional[Union[int, float]]
+                  pad_token=None, # type: Optional[str]
+                  interpolation_kind='linear' # type: Union[str, int]
+                  ):
     # type: (...) -> Tuple[Union[np.ndarray, list], np.ndarray, WeightedSpans]
     """
     Create text spans from a Grad-CAM ``heatmap`` imposed over ``tokens``.

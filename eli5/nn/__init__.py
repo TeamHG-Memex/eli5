@@ -6,6 +6,6 @@ from .gradcam import (
     compute_weights,
 )
 from .text import (
-    gradcam_text_spans,
+    gradcam_spans,
     resize_1d,
 )
