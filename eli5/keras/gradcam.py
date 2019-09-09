@@ -7,7 +7,7 @@ Credits
 """
 
 from __future__ import absolute_import
-from typing import Optional, Tuple, List
+from typing import Any, Optional, Tuple, List
 
 import numpy as np # type: ignore
 import keras # type: ignore
@@ -79,8 +79,8 @@ def gradcam_backend_keras(model, # type: Model
 
 
 def _calc_gradient(ys, xs):
-    # (K.variable, list) -> K.variable
-    # FIXME: K.variable is not the right type to use?
+    # (Any, list) -> Any
+    # TODO: In the future we can replace the annotation Any with a tensor type in Keras backend
     """
     Return the gradient of scalar ``ys`` with respect to each of list ``xs``,
     (must be singleton)
@@ -111,7 +111,7 @@ def _calc_gradient(ys, xs):
 
 
 def _classification_target(model, targets):
-    # type: (Model, Optional[List[int]]) -> Tuple[K.variable, K.variable]
+    # type: (Model, Optional[List[int]]) -> Tuple[Any, Any]
     """Get a predicted index and its value from a classification based model."""
     # TODO: maybe pass the loss/score to the gradcam function.
     # This would be consistent with what is done in
