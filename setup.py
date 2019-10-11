@@ -39,6 +39,7 @@ setup(
         'scikit-learn >= 0.18',
         'graphviz',
         'tabulate>=0.7.7',
+        'multiprocess',
     ],
     extras_require={
         ":python_version<'3.5.6'": [

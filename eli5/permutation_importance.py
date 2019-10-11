@@ -15,7 +15,7 @@ from typing import Tuple, List, Callable, Any
 
 import numpy as np  # type: ignore
 from sklearn.utils import check_random_state  # type: ignore
-
+from multiprocess import Pool # type: ignore
 
 def iter_shuffled(X, columns_to_shuffle=None, pre_shuffle=False,
                   random_state=None):
@@ -58,7 +58,8 @@ def get_score_importances(
         y,
         n_iter=5,  # type: int
         columns_to_shuffle=None,
-        random_state=None
+        random_state=None,
+        n_jobs=1
     ):
     # type: (...) -> Tuple[float, List[np.ndarray]]
     """
@@ -84,12 +85,15 @@ def get_score_importances(
     """
     rng = check_random_state(random_state)
     base_score = score_func(X, y)
+    seed0 = rng.randint(2**32)
+    pool = Pool(n_jobs)
+    result = pool.map(
+        lambda seed: _get_scores_shufled(score_func, X, y,
+                                         columns_to_shuffle=columns_to_shuffle,
+                                         random_state=np.random.RandomState(seed)),
+             range(seed0, seed0+n_iter))
     scores_decreases = []
-    for i in range(n_iter):
-        scores_shuffled = _get_scores_shufled(
-            score_func, X, y, columns_to_shuffle=columns_to_shuffle,
-            random_state=rng
-        )
+    for scores_shuffled in result:
         scores_decreases.append(-scores_shuffled + base_score)
     return base_score, scores_decreases
 
