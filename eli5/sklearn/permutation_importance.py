@@ -87,10 +87,12 @@ class PermutationImportance(BaseEstimator, MetaEstimatorMixin):
 
     scoring : string, callable or None, default=None
         Scoring function to use for computing feature importances.
-        A string with scoring name (see scikit-learn docs) or
+        A string with scoring name (see scikit-learn `docs`_) or
         a scorer callable object / function with signature
         ``scorer(estimator, X, y)``.
         If ``None``, the ``score`` method of the estimator is used.
+
+        .. _docs: https://scikit-learn.org/stable/modules/model_evaluation.html#common-cases-predefined-values
 
     n_iter : int, default 5
         Number of random shuffle iterations. Decrease to improve speed,
