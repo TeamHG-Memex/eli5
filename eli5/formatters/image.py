@@ -7,6 +7,9 @@ from PIL import Image # type: ignore
 import matplotlib.cm # type: ignore
 
 from eli5.base import Explanation
+from eli5.nn.gradcam import (
+    _validate_heatmap,
+)
 
 
 def format_as_image(expl, # type: Explanation
@@ -285,14 +288,6 @@ def _validate_image(image):
     if not isinstance(image, Image.Image):
         raise TypeError('image must be a PIL.Image.Image instance. '
                         'Got: {}'.format(image))
-
-
-def _validate_heatmap(heatmap):
-    # type: (np.ndarray) -> None
-    """Check that ``heatmap`` has the right type."""
-    if not isinstance(heatmap, np.ndarray):
-        raise TypeError('heatmap must be a numpy.ndarray instance. '
-                        'Got: {}'.format(heatmap))
 
 
 def _needs_normalization(heatmap):

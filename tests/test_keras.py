@@ -38,7 +38,6 @@ from eli5.keras.explain_prediction import (
     _autoget_layer_text,
 )
 from eli5.keras.gradcam import (
-    _autoget_target_prediction,
     _calc_gradient,
 )
 
@@ -188,12 +187,12 @@ def test_calc_gradient(differentiable_model):
 
 def test_calc_gradient_nondifferentiable(nondifferentiable_model):
     with pytest.raises(ValueError):
-        grads = _calc_gradient(nondifferentiable_model.output,
-            [nondifferentiable_model.input])
+        _calc_gradient(nondifferentiable_model.output,
+                       [nondifferentiable_model.input])
 
 
 
-# TODO: test_autoget_target_prediction with multiple maximum values, etc
+# TODO: test chossing multiple target from multiple maximum values, etc
 
 
 def test_import():

@@ -196,3 +196,12 @@ def _validate_classification_target(target, output_shape):
         raise ValueError('Prediction target index is ' 
                          'outside the required range [0, {}). ',
                          'Got {}'.format(output_nodes, target))
+
+
+def _validate_heatmap(heatmap):
+    # type: (np.ndarray) -> None
+    """Utility function to check that the ``heatmap``
+    argument has the right type."""
+    if not isinstance(heatmap, np.ndarray):
+        raise TypeError('heatmap must be a numpy.ndarray instance. '
+                        'Got: "{}" (type "{}").'.format(heatmap, type(heatmap)))

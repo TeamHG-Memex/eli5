@@ -15,7 +15,6 @@ from eli5.formatters.image import (
     _cap_alpha,
     _overlay_heatmap,
     _validate_image,
-    _validate_heatmap,
 )
 from .utils_image import assert_pixel_by_pixel_equal
 import eli5
@@ -151,12 +150,6 @@ def test_validate_image():
     with pytest.raises(TypeError):
         # image must be a Pillow image, not a numpy array
         _validate_image(np.zeros((2, 2, 4,)))
-
-
-def test_validate_heatmap():
-    with pytest.raises(TypeError):
-        # heatmap must be a numpy array, not a Pillow image
-        _validate_heatmap(PIL.Image.new('L', (2, 2,)))
 
 
 def test_format_as_image_notransparency(catdog_rgba):

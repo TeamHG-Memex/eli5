@@ -8,6 +8,9 @@ from eli5.base import (
     WeightedSpans,
     DocWeightedSpans,
 )
+from eli5.nn.gradcam import (
+    _validate_heatmap,
+)
 
 
 def gradcam_spans(heatmap, # type: np.ndarray
@@ -30,8 +33,15 @@ def gradcam_spans(heatmap, # type: np.ndarray
 
         **Should be rank 1 (no batch dimension).**
 
+
+        :raises TypeError: if ``heatmap`` is wrong type.
+
     tokens : numpy.ndarray or list
         Tokens that will be highlighted using weights from ``heatmap``.
+
+
+        :raises TypeError: if ``tokens`` is wrong type.
+        :raises ValueError: if ``tokens`` contents are unexpected.
 
     doc: numpy.ndarray
         Original input to the network, from which ``heatmap`` was created.
@@ -53,9 +63,14 @@ def gradcam_spans(heatmap, # type: np.ndarray
         ``tokens`` and ``heatmap`` optionally cut from padding.
         A :class:`eli5.base.WeightedSpans` object with a weight for each token.
     """
-    # FIXME: might want to do this when formatting the explanation?
+    # We call this before returning the explanation, NOT when formatting the explanation
+    # Because WeightedSpans, etc are attributes of a returned explanation
     # TODO: might want to add validation for heatmap and other arguments?
-    _validate_tokens(doc, tokens)
+    _validate_tokens(tokens)
+    _validate_tokens_value(tokens, doc)
+    if isinstance(tokens, list):
+        # convert to a common data type
+        tokens = np.array(tokens)
 
     length = len(tokens)
     heatmap = resize_1d(heatmap, length, interpolation_kind=interpolation_kind)
@@ -64,14 +79,16 @@ def gradcam_spans(heatmap, # type: np.ndarray
     if pad_value is not None or pad_token is not None:
         # remove padding
         pad_indices = _find_padding(pad_value=pad_value, pad_token=pad_token, doc=doc, tokens=tokens)
-        # If pad_value is not the actual padding value, behaviour is unknown
+        # If passed padding argument is not the actual padding token/value, behaviour is unknown
         tokens, heatmap = _trim_padding(pad_indices, tokens, heatmap)
+
     document = _construct_document(tokens)
     spans = _build_spans(tokens, heatmap, document)
     weighted_spans = WeightedSpans([
         DocWeightedSpans(document, spans=spans)
-    ]) # why list? - for each vectorized - don't need multiple vectorizers?
-       # multiple highlights? - could do positive and negative expl?
+    ])
+    # why do we have a list of WeightedSpans? One for each vectorizer?
+    # But we do not use multiple vectorizers?
     return tokens, heatmap, weighted_spans
 
 
@@ -89,6 +106,9 @@ def resize_1d(heatmap, length, interpolation_kind='linear'):
     heatmap : numpy.ndarray
         Heatmap to be resized.
 
+
+        :raises TypeError: if ``heatmap`` is wrong type.
+
     length : int
         Required width.
 
@@ -104,6 +124,8 @@ def resize_1d(heatmap, length, interpolation_kind='linear'):
     heatmap : numpy.ndarray
         The heatmap resized.
     """
+    _validate_heatmap(heatmap)
+    _validate_length(length)
     if len(heatmap.shape) == 1 and heatmap.shape[0] == 1:
         # single weight, no batch
         heatmap = heatmap.repeat(length)
@@ -146,7 +168,7 @@ def _build_spans(tokens, # type: Union[np.ndarray, list]
 
 def _construct_document(tokens):
     # type: (Union[list, np.ndarray]) -> str
-    """Create a document string by joining ``tokens``."""
+    """Create a document string by joining ``tokens`` sequence."""
     if _is_character_tokenization(tokens):
         sep = ''
     else:
@@ -156,10 +178,7 @@ def _construct_document(tokens):
 
 def _is_character_tokenization(tokens):
     # type: (Union[list, np.ndarray]) -> bool
-    """
-    Check whether tokenization is character-level
-    (returns True) or word-level (returns False).
-    """
+    """Check whether tokenization is character-level (True) or word-level (False)."""
     return any(' ' in t for t in tokens)
 
 
@@ -180,27 +199,27 @@ def _find_padding(pad_value=None, # type: Union[int, float]
     else:
         raise TypeError('Pass "doc" and "pad_value", '
                         'or "tokens" and "pad_token".')
-    # TODO: warn if indices is empty - passed wrong padding char/value?
 
 
 def _find_padding_values(pad_value, doc):
     # type: (Union[int, float], np.ndarray) -> np.ndarray
     if not isinstance(pad_value, (int, float)):
         raise TypeError('"pad_value" must be int or float. Got "{}"'.format(type(pad_value)))
+    _validate_doc(doc)
     values, indices = np.where(doc == pad_value)
     return indices
 
 
 def _find_padding_tokens(pad_token, tokens):
-    # type: (str, Union[list, np.ndarray]) -> np.ndarray
+    # type: (str, np.ndarray) -> np.ndarray
     if not isinstance(pad_token, str):
         raise TypeError('"pad_token" must be str. Got "{}"'.format(type(pad_token)))
-    indices = [idx for idx, token in enumerate(tokens) if token == pad_token]
-    return np.array(indices)
+    indices = np.where(tokens == pad_token)
+    return indices
 
 
 def _trim_padding(pad_indices, # type: np.ndarray
-                  tokens, # type: Union[list, np.ndarray]
+                  tokens, # type: np.ndarray
                   heatmap, # type: np.ndarray
                   ):
     # type: (...) -> Tuple[Union[list, np.ndarray], np.ndarray]
@@ -217,37 +236,59 @@ def _trim_padding(pad_indices, # type: np.ndarray
     return tokens, heatmap
 
 
+def _validate_doc(doc):
+    if not isinstance(doc, np.ndarray):
+        raise TypeError('"doc" must be an instance of numpy.ndarray. '
+                        'Got "{}" (type "{}")'.format(doc, type(doc)))
+
+
+def _validate_length(length):
+    if not isinstance(length, int):
+        raise TypeError('"length" must be an integer. Got "{}" '
+                        '(type "{}")'.format(length, type(length)))
+    if length < 0:
+        raise ValueError('"length" must be a non-negative integer. '
+                         'Got "{}"'.format(length))
+
+
+# TODO:
+# docs for raises in here
+# coverage tests for new validation
+
+
 # FIXME: break this function up
-def _validate_tokens(doc, tokens):
-    # type: (np.ndarray, Union[np.ndarray, list]) -> None
+def _validate_tokens(tokens):
+    # type: (Union[np.ndarray, list]) -> None
     """Check that ``tokens`` contains correct items and matches ``doc``."""
     if not isinstance(tokens, (list, np.ndarray)):
         # wrong type
         raise TypeError('"tokens" must be list or numpy.ndarray. '
                         'Got "{}".'.format(tokens))
-
-    batch_size, doc_len = doc.shape[0], doc.shape[1]
     if len(tokens) == 0:
         # empty list
         raise ValueError('"tokens" is empty: {}'.format(tokens))
 
+
+def _validate_tokens_value(tokens, doc):
+    # type: (Union[np.ndarray, list], np.ndarray) -> None
+    doc_batch, doc_len = doc.shape[0], doc.shape[1]
     an_entry = tokens[0]
     if isinstance(an_entry, str):
         # no batch
-        if batch_size != 1:
+        if doc_batch != 1:
             # doc is batched but tokens is not
             raise ValueError('If passing "tokens" without batch dimension, '
                              '"doc" must have batch size = 1.'
-                             'Got "doc" with batch size = %d.' % batch_size)
+                             'Got "doc" with batch size = %d.' % doc_batch)
         tokens_len = len(tokens)
     elif isinstance(an_entry, (list, np.ndarray)):
         # batched
-        tokens_batch_size = len(tokens)
-        if tokens_batch_size != batch_size:
+        tokens_batch = len(tokens)
+        if tokens_batch != doc_batch:
             # batch lengths do not match
             raise ValueError('"tokens" must have same number of samples '
                              'as in doc batch. Got: "tokens" samples: %d, '
-                             'doc samples: %d' % (tokens_batch_size, batch_size))
+                             'doc samples: %d' % (tokens_batch, doc_batch))
 
         a_token = an_entry[0]
         if not isinstance(a_token, str):
@@ -260,7 +301,7 @@ def _validate_tokens(doc, tokens):
         it = iter(tokens)
         the_len = len(next(it))
         if not all(len(l) == the_len for l in it):
-            raise ValueError('"tokens" samples do not have the same length.')
+            raise ValueError('"tokens" samples do not all have the same length.')
         tokens_len = the_len
     else:
         raise TypeError('"tokens" must be an array of strings, '

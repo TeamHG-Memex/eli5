@@ -552,7 +552,7 @@ def _validate_params(model, # type: Model
                      doc, # type: np.ndarray
                      ):
     # type: (...) -> None
-    """Helper for validating all explanation function parameters."""
+    """Helper for validating explanation function parameters."""
     _validate_model(model)
     _validate_doc(doc)
 

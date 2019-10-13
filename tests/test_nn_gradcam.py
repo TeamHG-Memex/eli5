@@ -3,11 +3,13 @@
 
 import pytest
 import numpy as np
+PIL = pytest.importorskip('PIL')
 
 from eli5.nn.gradcam import (
     gradcam_heatmap,
     _validate_targets,
     _validate_classification_target,
+    _validate_heatmap,
 )
 
 
@@ -71,3 +73,12 @@ def test_validate_classification_target():
     with pytest.raises(ValueError):
         # one less
         _validate_classification_target(-1, (1, 1,))
+
+
+def test_validate_heatmap():
+    with pytest.raises(TypeError):
+        # heatmap must be a numpy array, not a Pillow image
+        _validate_heatmap(PIL.Image.new('L', (2, 2,)))
+    with pytest.raises(TypeError):
+        # heatmap must not be a Python list
+        _validate_heatmap([2, 3])
