@@ -451,7 +451,7 @@ def test_explain_random_forest_and_tree_feature_filter(newsgroups_train, clf):
 
 
 def test_explain_empty(newsgroups_train):
-    clf = LogisticRegression(C=0.01, penalty='l1', random_state=42)
+    clf = LogisticRegression(C=0.01, penalty='l1', solver='liblinear', random_state=42)
     docs, y, target_names = newsgroups_train
     vec = TfidfVectorizer()
 
