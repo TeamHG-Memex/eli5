@@ -73,7 +73,7 @@ def test_cv(boston_train):
         *boston_train, noise_ratio=0.99)
 
     reg = PermutationImportance(
-        SVR(C=100),
+        SVR(C=100, gamma='auto'),
         random_state=42,
         cv=None,
         n_iter=50,  # use the same number of experiments as with cv=10
@@ -86,7 +86,7 @@ def test_cv(boston_train):
 
     # CV feature importances
     reg = PermutationImportance(
-        SVR(C=100),
+        SVR(C=100, gamma='auto'),
         random_state=42,
         cv=10,
     ).fit(X_test, y_test)
@@ -132,9 +132,9 @@ def test_feature_selection(boston_train):
         ),
         threshold=0.1,
     )
-    pipe = make_pipeline(sel, SVR(C=10))
+    pipe = make_pipeline(sel, SVR(C=10, gamma='auto'))
     score1 = cross_val_score(pipe, X, y).mean()
-    score2 = cross_val_score(SVR(C=10), X, y).mean()
+    score2 = cross_val_score(SVR(C=10, gamma='auto'), X, y).mean()
     print(score1, score2)
     assert score1 > score2
 
