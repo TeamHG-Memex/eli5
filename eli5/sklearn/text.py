@@ -59,6 +59,10 @@ def _get_doc_weighted_spans(doc,
     if hasattr(vec, 'get_doc_weighted_spans'):
         return vec.get_doc_weighted_spans(doc, feature_weights, feature_fn)
 
+    try:
+        from sklearn.feature_extraction.text import _VectorizerMixin as VectorizerMixin
+    except ImportError:  # Changed in scikit-learn 0.22
+        from sklearn.feature_extraction.text import VectorizerMixin
     if not isinstance(vec, VectorizerMixin):
         return None
 
