@@ -1,8 +1,11 @@
 from __future__ import absolute_import
 from typing import Any, Union, Callable, Dict, List, Optional, Set, Tuple
 
-from sklearn.feature_extraction.text import VectorizerMixin  # type: ignore
 from sklearn.pipeline import FeatureUnion  # type: ignore
+try:
+    from sklearn.feature_extraction.text import _VectorizerMixin as VectorizerMixin
+except ImportError:  # Changed in scikit-learn 0.22
+    from sklearn.feature_extraction.text import VectorizerMixin  # type: ignore
 
 from eli5.base import (
     DocWeightedSpans, WeightedSpans, FeatureWeights, FeatureWeight,
@@ -59,10 +62,6 @@ def _get_doc_weighted_spans(doc,
     if hasattr(vec, 'get_doc_weighted_spans'):
         return vec.get_doc_weighted_spans(doc, feature_weights, feature_fn)
 
-    try:
-        from sklearn.feature_extraction.text import _VectorizerMixin as VectorizerMixin
-    except ImportError:  # Changed in scikit-learn 0.22
-        from sklearn.feature_extraction.text import VectorizerMixin  # type: ignore
     if not isinstance(vec, VectorizerMixin):
         return None
 
