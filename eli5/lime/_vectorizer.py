@@ -13,8 +13,8 @@ from .textutils import TokenizedText
 class SingleDocumentVectorizer(BaseEstimator, TransformerMixin):
     """ Fake vectorizer which converts document just to a vector of ones """
 
-    def __init__(self, token_pattern=None):
-        # type: (Optional[str]) -> None
+    def __init__(self, token_pattern):
+        # type: (str) -> None
         self.token_pattern = token_pattern
 
     def fit(self, X, y=None):

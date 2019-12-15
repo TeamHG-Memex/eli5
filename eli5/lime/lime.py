@@ -148,7 +148,7 @@ class TextExplainer(BaseEstimator):
                  rbf_sigma=None,  # type: float
                  random_state=None,
                  expand_factor=10,  # type: Optional[int]
-                 token_pattern=None,  # type: str
+                 token_pattern=None,  # type: Optional[str]
                  ):
         # type: (...) -> None
         self.n_samples = n_samples
@@ -162,7 +162,7 @@ class TextExplainer(BaseEstimator):
         if char_based is None:
             if token_pattern is None:
                 self.char_based = False  # type: Optional[bool]
-                self.token_pattern = DEFAULT_TOKEN_PATTERN
+                self.token_pattern = DEFAULT_TOKEN_PATTERN  # type: str
             else:
                 self.char_based = None
                 self.token_pattern = token_pattern

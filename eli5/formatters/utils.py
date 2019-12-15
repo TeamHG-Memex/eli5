@@ -144,7 +144,7 @@ def tabulate(data,  # type: List[List[Any]]
 
 def format_weight(value):
     # type: (Real) -> str
-    return '{:+.3f}'.format(value)
+    return '{:+.3f}'.format(value)  # type: ignore
 
 
 def format_value(value):
@@ -154,4 +154,4 @@ def format_value(value):
     elif np.isnan(value):
         return 'Missing'
     else:
-        return '{:.3f}'.format(value)
+        return '{:.3f}'.format(value)  # type: ignore
