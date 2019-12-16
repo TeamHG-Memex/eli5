@@ -2,11 +2,11 @@
 from __future__ import absolute_import
 from typing import Union, Optional, Tuple, List
 
-import numpy as np # type: ignore
-import keras # type: ignore
-import keras.backend as K # type: ignore
-from keras.models import Model # type: ignore
-from keras.layers import Layer # type: ignore
+import numpy as np
+import keras
+import keras.backend as K
+from keras.models import Model
+from keras.layers import Layer
 
 
 def gradcam(weights, activations):

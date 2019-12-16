@@ -3,8 +3,8 @@ from __future__ import absolute_import, division
 from collections import defaultdict
 from typing import DefaultDict, Optional
 
-import numpy as np  # type: ignore
-import lightgbm  # type: ignore
+import numpy as np
+import lightgbm
 
 from eli5.explain import explain_weights, explain_prediction
 from eli5._feature_importances import get_feature_importance_explanation

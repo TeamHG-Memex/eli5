@@ -3,8 +3,8 @@ from __future__ import absolute_import
 from itertools import groupby
 from typing import List, Optional, Tuple
 
-import numpy as np  # type: ignore
-from jinja2 import Environment, PackageLoader  # type: ignore
+import numpy as np
+from jinja2 import Environment, PackageLoader
 
 from eli5 import _graphviz
 from eli5.base import (Explanation, TargetExplanation, FeatureWeights,

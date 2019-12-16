@@ -1,9 +1,9 @@
 import inspect
 
-import attr  # type: ignore
+import attr
 
 try:
-    from functools import singledispatch  # type: ignore
+    from functools import singledispatch
 except ImportError:
     from singledispatch import singledispatch  # type: ignore
 

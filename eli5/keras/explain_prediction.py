@@ -2,21 +2,21 @@
 from __future__ import absolute_import
 from typing import Union, Optional, Callable, Tuple, List, TYPE_CHECKING
 if TYPE_CHECKING:
-    import PIL # type: ignore
+    import PIL
 
-import numpy as np # type: ignore
-import keras # type: ignore
-import keras.backend as K # type: ignore
-from keras.models import Model # type: ignore
-from keras.layers import Layer # type: ignore
-from keras.layers import (  # type: ignore
+import numpy as np
+import keras
+import keras.backend as K
+from keras.models import Model
+from keras.layers import Layer
+from keras.layers import (
     Conv2D,
     MaxPooling2D,
     AveragePooling2D,
     GlobalMaxPooling2D,
     GlobalAveragePooling2D,
 )
-from keras.preprocessing.image import array_to_img # type: ignore
+from keras.preprocessing.image import array_to_img
 
 from eli5.base import Explanation, TargetExplanation
 from eli5.explain import explain_prediction
