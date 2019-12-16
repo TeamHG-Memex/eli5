@@ -160,7 +160,7 @@ def _transition_features_lines(explanation):
     return [
         "",
         "Transition features:",
-        tabulate(tf.coef, headers=tf.class_names, showindex=tf.class_names,  # type: ignore
+        tabulate(tf.coef, headers=tf.class_names, showindex=tf.class_names,
                  floatfmt="0.3f"),
         ""
     ]
