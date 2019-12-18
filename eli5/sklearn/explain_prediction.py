@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 from functools import partial
 
-import numpy as np  # type: ignore
-import scipy.sparse as sp  # type: ignore
-from sklearn.base import BaseEstimator  # type: ignore
-from sklearn.ensemble import (  # type: ignore
+import numpy as np
+import scipy.sparse as sp
+from sklearn.base import BaseEstimator
+from sklearn.ensemble import (
     ExtraTreesClassifier,
     ExtraTreesRegressor,
     GradientBoostingClassifier,
@@ -12,7 +12,7 @@ from sklearn.ensemble import (  # type: ignore
     RandomForestClassifier,
     RandomForestRegressor,
 )
-from sklearn.linear_model import (  # type: ignore
+from sklearn.linear_model import (
     ElasticNet,  # includes Lasso, MultiTaskElasticNet, etc.
     ElasticNetCV,
     HuberRegressor,
@@ -34,7 +34,7 @@ from sklearn.linear_model import (  # type: ignore
     SGDRegressor,
     TheilSenRegressor,
 )
-from sklearn.svm import (  # type: ignore
+from sklearn.svm import (
     LinearSVC,
     LinearSVR,
     SVC,
@@ -43,8 +43,8 @@ from sklearn.svm import (  # type: ignore
     NuSVR,
     OneClassSVM,
 )
-from sklearn.multiclass import OneVsRestClassifier  # type: ignore
-from sklearn.tree import (   # type: ignore
+from sklearn.multiclass import OneVsRestClassifier
+from sklearn.tree import (
     DecisionTreeClassifier,
     DecisionTreeRegressor
 )

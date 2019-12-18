@@ -2,6 +2,7 @@
 from __future__ import absolute_import
 from itertools import chain
 import six
+from tabulate import tabulate
 from typing import List, Optional, Iterator
 
 from eli5.base import Explanation, FeatureImportances
@@ -9,7 +10,8 @@ from . import fields
 from .features import FormattedFeatureName
 from .utils import (
     format_signed, format_value, format_weight, has_any_values_for_weights,
-    replace_spaces, should_highlight_spaces, tabulate)
+    replace_spaces, should_highlight_spaces)
+from .utils import tabulate as eli5_tabulate
 from .trees import tree2text
 
 
@@ -153,7 +155,6 @@ def _decision_tree_lines(explanation):
 
 def _transition_features_lines(explanation):
     # type: (Explanation) -> List[str]
-    from tabulate import tabulate  # type: ignore
     tf = explanation.transition_features
     assert tf is not None
     return [
@@ -203,7 +204,7 @@ def _targets_lines(explanation,  # type: Explanation
 
         w = target.feature_weights
         assert w is not None
-        table = tabulate(
+        table = eli5_tabulate(
             [table_line(fw) for fw in chain(w.pos, reversed(w.neg))],
             header=table_header,
             col_align=col_align,

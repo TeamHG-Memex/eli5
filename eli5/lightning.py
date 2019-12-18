@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 
-from lightning.impl.base import BaseEstimator  # type: ignore
-from lightning import classification, regression   # type: ignore
-from sklearn.multiclass import OneVsRestClassifier   # type: ignore
+from lightning.impl.base import BaseEstimator
+from lightning import classification, regression
+from sklearn.multiclass import OneVsRestClassifier
 
 from eli5.base import Explanation
 from eli5.base_utils import singledispatch

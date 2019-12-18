@@ -3,9 +3,9 @@ from __future__ import absolute_import
 from distutils.version import LooseVersion
 from typing import Any, Optional, List, Tuple
 
-import numpy as np  # type: ignore
-import scipy.sparse as sp  # type: ignore
-from sklearn.multiclass import OneVsRestClassifier  # type: ignore
+import numpy as np
+import scipy.sparse as sp
+from sklearn.multiclass import OneVsRestClassifier
 
 from eli5.sklearn.unhashing import invert_hashing_and_fit, handle_hashing_vec
 from eli5._feature_names import FeatureNames
@@ -214,7 +214,7 @@ def get_num_features(estimator):
 
 
 try:
-    import pandas as pd  # type: ignore
+    import pandas as pd
     pandas_available = True
 except ImportError:
     pandas_available = False
@@ -277,5 +277,5 @@ def sklearn_version():
     >>> sklearn_version() > '0.17'
     True
     """
-    from sklearn import __version__  # type: ignore
+    from sklearn import __version__
     return LooseVersion(__version__)

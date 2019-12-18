@@ -4,9 +4,9 @@ from functools import partial
 import re
 from typing import Any, Dict, List, Tuple, Optional, Pattern
 
-import numpy as np  # type: ignore
-import scipy.sparse as sp  # type: ignore
-from xgboost import (  # type: ignore
+import numpy as np
+import scipy.sparse as sp
+from xgboost import (
     XGBClassifier,
     XGBRegressor,
     Booster,

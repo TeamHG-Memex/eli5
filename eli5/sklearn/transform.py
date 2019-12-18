@@ -1,11 +1,11 @@
 """transform_feature_names implementations for scikit-learn transformers
 """
 
-import numpy as np  # type: ignore
-from sklearn.pipeline import Pipeline, FeatureUnion  # type: ignore
-from sklearn.feature_selection.base import SelectorMixin  # type: ignore
+import numpy as np
+from sklearn.pipeline import Pipeline, FeatureUnion
+from sklearn.feature_selection.base import SelectorMixin
 
-from sklearn.preprocessing import (  # type: ignore
+from sklearn.preprocessing import (
     MinMaxScaler,
     StandardScaler,
     MaxAbsScaler,
@@ -26,7 +26,7 @@ def _select_names(est, in_names=None):
     return [in_names[i] for i in np.flatnonzero(mask)]
 
 try:
-    from sklearn.linear_model import (  # type: ignore
+    from sklearn.linear_model import (
         RandomizedLogisticRegression,
         RandomizedLasso,
     )

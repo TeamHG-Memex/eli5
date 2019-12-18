@@ -2,23 +2,23 @@
 from functools import partial
 from typing import List
 
-import numpy as np  # type: ignore
-from sklearn.model_selection import check_cv  # type: ignore
-from sklearn.utils.metaestimators import if_delegate_has_method  # type: ignore
-from sklearn.utils import check_array, check_random_state  # type: ignore
-from sklearn.base import (  # type: ignore
+import numpy as np
+from sklearn.model_selection import check_cv
+from sklearn.utils.metaestimators import if_delegate_has_method
+from sklearn.utils import check_array, check_random_state
+from sklearn.base import (
     BaseEstimator,
     MetaEstimatorMixin,
     clone,
     is_classifier
 )
-from sklearn.metrics.scorer import check_scoring  # type: ignore
+from sklearn.metrics.scorer import check_scoring
 
 from eli5.permutation_importance import get_score_importances
 from eli5.sklearn.utils import pandas_available
 
 if pandas_available:
-    import pandas as pd   # type: ignore
+    import pandas as pd
 
 CAVEATS_CV_NONE = """
 Feature importances are computed on the same data as used for training, 

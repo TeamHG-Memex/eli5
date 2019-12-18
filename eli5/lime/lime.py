@@ -6,12 +6,12 @@ explain predictions of black-box models.
 from __future__ import absolute_import
 from typing import Any, Callable, Dict, Optional
 
-import numpy as np  # type: ignore
-from sklearn.feature_extraction.text import CountVectorizer  # type: ignore
-from sklearn.linear_model import SGDClassifier  # type: ignore
-from sklearn.model_selection import train_test_split  # type: ignore
-from sklearn.utils import check_random_state  # type: ignore
-from sklearn.base import clone, BaseEstimator  # type: ignore
+import numpy as np
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.linear_model import SGDClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.utils import check_random_state
+from sklearn.base import clone, BaseEstimator
 
 import eli5
 from eli5.sklearn.utils import sklearn_version
@@ -148,7 +148,7 @@ class TextExplainer(BaseEstimator):
                  rbf_sigma=None,  # type: float
                  random_state=None,
                  expand_factor=10,  # type: Optional[int]
-                 token_pattern=None,  # type: str
+                 token_pattern=None,  # type: Optional[str]
                  ):
         # type: (...) -> None
         self.n_samples = n_samples
@@ -162,7 +162,7 @@ class TextExplainer(BaseEstimator):
         if char_based is None:
             if token_pattern is None:
                 self.char_based = False  # type: Optional[bool]
-                self.token_pattern = DEFAULT_TOKEN_PATTERN
+                self.token_pattern = DEFAULT_TOKEN_PATTERN  # type: str
             else:
                 self.char_based = None
                 self.token_pattern = token_pattern
