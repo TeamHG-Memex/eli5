@@ -214,8 +214,12 @@ class PermutationImportance(BaseEstimator, MetaEstimatorMixin):
         cv = check_cv(self.cv, y, is_classifier(self.estimator))
         feature_importances = []  # type: List
         base_scores = []  # type: List[float]
+        weights = fit_params.pop('sample_weight', None)
+        fold_fit_params = fit_params.copy()
         for train, test in cv.split(X, y, groups):
-            est = clone(self.estimator).fit(X[train], y[train], **fit_params)
+            if weights is not None:
+                fold_fit_params['sample_weight'] = weights[train]
+            est = clone(self.estimator).fit(X[train], y[train], **fold_fit_params)
             score_func = partial(self.scorer_, est)
             _base_score, _importances = self._get_score_importances(
                 score_func, X[test], y[test])
