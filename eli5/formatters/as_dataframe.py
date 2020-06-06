@@ -2,7 +2,7 @@ from itertools import chain
 from typing import Any, Dict, List, Optional
 import warnings
 
-import pandas as pd  # type: ignore
+import pandas as pd
 
 import eli5
 from eli5.base import (

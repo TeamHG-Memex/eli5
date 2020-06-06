@@ -73,6 +73,7 @@ def test_explain_weights_regressors(boston_train, reg):
                                               has_bias=False)
 
 
+@pytest.mark.xfail(reason='lightning does not work with pandas dataframes any more')
 @pytest.mark.parametrize(['reg'], _instances(_REGRESSORS)[:2])
 def test_explain_prediction_pandas(reg, boston_train):
     _check_explain_prediction_pandas(reg, boston_train)

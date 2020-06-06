@@ -3,7 +3,7 @@ from __future__ import absolute_import
 from typing import Any, Dict, Tuple
 import warnings
 
-from IPython.display import HTML, Image  # type: ignore
+from IPython.display import HTML, Image
 
 from .explain import explain_weights, explain_prediction
 from .formatters import format_as_html, fields
@@ -11,7 +11,7 @@ try:
     from .formatters.image import format_as_image
 except ImportError as e:
     # missing dependencies
-    format_as_image = e # type: ignore
+    format_as_image = e  # type: ignore
 
 
 FORMAT_KWARGS = {'include_styles', 'force_weights',

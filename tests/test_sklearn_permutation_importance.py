@@ -3,7 +3,7 @@ import pytest
 import numpy as np
 from sklearn.base import is_classifier, is_regressor
 from sklearn.svm import SVR, SVC
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
 from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.pipeline import make_pipeline
 from sklearn.feature_selection import SelectFromModel
@@ -73,7 +73,7 @@ def test_cv(boston_train):
         *boston_train, noise_ratio=0.99)
 
     reg = PermutationImportance(
-        SVR(C=100),
+        SVR(C=100, gamma='auto'),
         random_state=42,
         cv=None,
         n_iter=50,  # use the same number of experiments as with cv=10
@@ -86,7 +86,7 @@ def test_cv(boston_train):
 
     # CV feature importances
     reg = PermutationImportance(
-        SVR(C=100),
+        SVR(C=100, gamma='auto'),
         random_state=42,
         cv=10,
     ).fit(X_test, y_test)
@@ -132,9 +132,9 @@ def test_feature_selection(boston_train):
         ),
         threshold=0.1,
     )
-    pipe = make_pipeline(sel, SVR(C=10))
+    pipe = make_pipeline(sel, SVR(C=10, gamma='auto'))
     score1 = cross_val_score(pipe, X, y).mean()
-    score2 = cross_val_score(SVR(C=10), X, y).mean()
+    score2 = cross_val_score(SVR(C=10, gamma='auto'), X, y).mean()
     print(score1, score2)
     assert score1 > score2
 
@@ -165,6 +165,7 @@ def test_explain_weights(iris_train):
         for _expl in res:
             assert "petal width (cm)" in _expl
 
+
 def test_pandas_xgboost_support(iris_train):
     xgboost = pytest.importorskip('xgboost')
     pd = pytest.importorskip('pandas')
@@ -175,3 +176,17 @@ def test_pandas_xgboost_support(iris_train):
     est.fit(X, y)
     # we expect no exception to be raised here when using xgboost with pd.DataFrame
     perm = PermutationImportance(est).fit(X, y) 
+
+
+def test_cv_sample_weight(iris_train):
+    X, y, feature_names, target_names = iris_train
+    weights_ones = np.ones(len(y))
+    model = RandomForestClassifier(random_state=42)
+
+    # we expect no exception to be raised when passing weights with a CV
+    perm_weights = PermutationImportance(model, cv=5, random_state=42).\
+        fit(X, y, sample_weight=weights_ones)
+    perm = PermutationImportance(model, cv=5, random_state=42).fit(X, y)
+
+    # passing a vector of weights filled with one should be the same as passing no weights
+    assert (perm.feature_importances_ == perm_weights.feature_importances_).all()

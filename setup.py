@@ -37,7 +37,6 @@ setup(
         'scipy',
         'six',
         'scikit-learn >= 0.18',
-        'typing',
         'graphviz',
         'tabulate>=0.7.7',
     ],
@@ -45,6 +44,7 @@ setup(
         ":python_version<'3.5.6'": [
             'singledispatch >= 3.4.0.3',
         ],
+        ":python_version<'3.5'": ['typing'],
     },
     classifiers=[
         'Development Status :: 4 - Beta',

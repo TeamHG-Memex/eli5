@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from typing import Any, List, Tuple, Union, Optional
 
-import numpy as np # type: ignore
+import numpy as np
 
 from .base_utils import attrs
 from .formatters.features import FormattedFeatureName

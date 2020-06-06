@@ -13,8 +13,8 @@ application to random forests. It is known in literature as
 from __future__ import absolute_import
 from typing import Tuple, List, Callable, Any
 
-import numpy as np  # type: ignore
-from sklearn.utils import check_random_state  # type: ignore
+import numpy as np
+from sklearn.utils import check_random_state
 
 
 def iter_shuffled(X, columns_to_shuffle=None, pre_shuffle=False,

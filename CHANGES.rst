@@ -1,6 +1,18 @@
 Changelog
 =========
 
+0.10.1 (2019-08-29)
+-------------------
+
+* Don't include typing dependency on Python 3.5+
+  to fix installation on Python 3.7
+
+0.10.0 (2019-08-21)
+-------------------
+
+* Keras image classifiers: explaining predictions with Grad-CAM
+  (GSoC-2019 project by @teabolt).
+
 0.9.0 (2019-07-05)
 ------------------
 

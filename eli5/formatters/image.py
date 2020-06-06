@@ -2,9 +2,9 @@
 from __future__ import absolute_import
 from typing import Union, Optional, Callable
 
-import numpy as np # type: ignore
-from PIL import Image # type: ignore
-import matplotlib.cm # type: ignore
+import numpy as np
+from PIL import Image
+import matplotlib.cm
 
 from eli5.base import Explanation
 from eli5.nn.gradcam import (

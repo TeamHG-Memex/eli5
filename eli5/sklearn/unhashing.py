@@ -7,14 +7,14 @@ from collections import defaultdict, Counter
 from itertools import chain
 from typing import List, Iterable, Any, Dict, Tuple, Union
 
-import numpy as np  # type: ignore
+import numpy as np
 import six
-from sklearn.base import BaseEstimator, TransformerMixin  # type: ignore
-from sklearn.feature_extraction.text import (  # type: ignore
+from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.feature_extraction.text import (
     HashingVectorizer,
     FeatureHasher,
 )
-from sklearn.pipeline import FeatureUnion  # type: ignore
+from sklearn.pipeline import FeatureUnion
 
 from eli5._feature_names import FeatureNames
 

@@ -2,8 +2,8 @@
 from __future__ import absolute_import
 from typing import Tuple, Callable, Dict, Optional, List
 
-import numpy as np  # type: ignore
-from sklearn.base import BaseEstimator, TransformerMixin  # type: ignore
+import numpy as np
+from sklearn.base import BaseEstimator, TransformerMixin
 
 from eli5.base import DocWeightedSpans, FeatureWeights
 from eli5.sklearn.text import _get_feature_weights_dict
@@ -13,8 +13,8 @@ from .textutils import TokenizedText
 class SingleDocumentVectorizer(BaseEstimator, TransformerMixin):
     """ Fake vectorizer which converts document just to a vector of ones """
 
-    def __init__(self, token_pattern=None):
-        # type: (Optional[str]) -> None
+    def __init__(self, token_pattern):
+        # type: (str) -> None
         self.token_pattern = token_pattern
 
     def fit(self, X, y=None):

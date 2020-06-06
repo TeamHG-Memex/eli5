@@ -24,6 +24,8 @@ def tree2text(tree_obj, indent=4):
         else:
             assert node.left is not None
             assert node.right is not None
+            assert node.threshold is not None
+
             feat_name = node.feature_name
 
             if depth > 0:

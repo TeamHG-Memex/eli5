@@ -210,7 +210,7 @@ def test_explain_linear_unsupported_multiclass(clf, newsgroups_train):
 
 def test_explain_one_class_svm():
     X = np.array([[0,0], [0, 1], [5, 3], [93, 94], [90, 91]])
-    clf = OneClassSVM(kernel='linear', random_state=42).fit(X)
+    clf = OneClassSVM(kernel='linear', gamma='auto').fit(X)
     res = explain_weights(clf)
     assert len(res.targets) == 1
     target = res.targets[0]
@@ -451,7 +451,7 @@ def test_explain_random_forest_and_tree_feature_filter(newsgroups_train, clf):
 
 
 def test_explain_empty(newsgroups_train):
-    clf = LogisticRegression(C=0.01, penalty='l1', random_state=42)
+    clf = LogisticRegression(C=0.01, penalty='l1', solver='liblinear', random_state=42)
     docs, y, target_names = newsgroups_train
     vec = TfidfVectorizer()
 
