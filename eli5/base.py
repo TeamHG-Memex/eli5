@@ -28,6 +28,7 @@ class Explanation(object):
                  highlight_spaces=None,  # type: Optional[bool]
                  transition_features=None,  # type: Optional[TransitionFeatureWeights]
                  image=None, # type: Any
+                 layer=None,  # type: Any
                  ):
         # type: (...) -> None
         self.estimator = estimator
@@ -40,7 +41,9 @@ class Explanation(object):
         self.decision_tree = decision_tree
         self.highlight_spaces = highlight_spaces
         self.transition_features = transition_features
-        self.image = image # if arg is not None, assume we are working with images
+        self.image = image  # if arg is not None, assume we are working with images
+        self.layer = layer  # neural network layer, backend-dependent instance
+        # if adding new attributes, do not forget to update the test_formatters_as_dict test
 
     def _repr_html_(self):
         """ HTML formatting for the notebook.
@@ -144,9 +147,13 @@ class WeightedSpans(object):
         self.other = other
 
 
+# FIXME: can this be replaced with namedtuple?
 WeightedSpan = Tuple[
-    Feature,
-    List[Tuple[int, int]],  # list of spans (start, end) for this feature
+    Feature, # feature name - i.e. token name such as 'john', 'software', 'sky'
+    List[Tuple[int, int]],  # list of spans [start, end) for this feature
+                            # indices into the document
+                            # use a list when have a bag of words model
+                            # and each feature has multiple spans (multiple occurrences)
     float,  # feature weight
 ]
 

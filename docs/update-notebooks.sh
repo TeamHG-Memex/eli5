@@ -79,3 +79,23 @@ mv ../notebooks/keras-image-classifiers_files/ \
     source/_notebooks/
 sed -i 's&.. image:: keras-image-classifiers_files/&.. image:: ../_notebooks/keras-image-classifiers_files/&g' \
     source/_notebooks/keras-image-classifiers.rst
+
+
+# Keras text Grad-CAM (keras-text-classifiers)
+jupyter nbconvert \
+        --to rst \
+        --stdout \
+        '../notebooks/keras-text-classifiers.ipynb' \
+        > source/_notebooks/keras-text-classifiers.rst
+# TODO: may want to rewrite functions/classes in Sphinx also
+
+
+# to run a notebook before converting (and stop if there are any errors):
+# PYTHONPATH=$PWD/.. jupyter nbconvert \
+#         --ExecutePreprocessor.timeout=180 \
+#         --execute \
+#         ...
+
+
+# to only execute one section: (replace # Keras with section comment)
+# sed -n '/# Keras/,/^$/p' update-notebooks.sh | bash

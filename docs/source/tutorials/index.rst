@@ -11,3 +11,4 @@ Tutorials
    ./xgboost-titanic
    ./sklearn_crfsuite
    ./keras-image-classifiers
+   ./keras-text-classifiers

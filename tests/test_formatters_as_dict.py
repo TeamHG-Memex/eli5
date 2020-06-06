@@ -61,4 +61,5 @@ def test_format_as_dict():
            'method': None,
            'transition_features': None,
            'image': None,
+           'layer': None,
            }
