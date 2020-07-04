@@ -194,7 +194,7 @@ def _validate_classification_target(target, output_shape):
     output_nodes = output_shape[1:][0]
     if not (0 <= target < output_nodes):
         raise ValueError('Prediction target index is ' 
-                         'outside the required range [0, {}). ',
+                         'outside the required range [0, {}). '
                          'Got {}'.format(output_nodes, target))
 
 
