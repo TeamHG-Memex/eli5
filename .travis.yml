@@ -42,7 +42,8 @@ addons:
             - liblapack-dev
             - gfortran
     snaps:
-      - cmake
+      - name: cmake
+        confinement: classic
 
 before_install:
     - sudo apt-get -qq update
