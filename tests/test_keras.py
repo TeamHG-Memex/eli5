@@ -191,10 +191,6 @@ def test_calc_gradient_nondifferentiable(nondifferentiable_model):
                        [nondifferentiable_model.input])
 
 
-
-# TODO: test chossing multiple target from multiple maximum values, etc
-
-
 def test_import():
     # test that package imports without errors
     import eli5.keras

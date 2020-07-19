@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 """
 Credits
-    * Jacob Gildenblat for "https://github.com/jacobgil/keras-grad-cam".
-    * Author of "https://github.com/PowerOfCreation/keras-grad-cam" for fixes to Jacob's implementation.
-    * Kotikalapudi, Raghavendra and contributors for "https://github.com/raghakot/keras-vis".
+    * Jacob Gildenblat for https://github.com/jacobgil/keras-grad-cam.
+    * Author of https://github.com/PowerOfCreation/keras-grad-cam for fixes to Jacob's implementation.
+    * Kotikalapudi, Raghavendra and contributors for https://github.com/raghakot/keras-vis.
+    * Authors of https://github.com/ramprs/grad-cam.
 """
 
 from __future__ import absolute_import
@@ -65,7 +66,6 @@ def gradcam_backend_keras(model, # type: Model
     # score w.r.p.t. activation layer
     grads = _calc_gradient(predicted_val, [activation_output])
 
-    # TODO: gradcam on input layer
     evaluate = K.function([model.input],
                           [activation_output,
                            grads,
@@ -80,7 +80,7 @@ def gradcam_backend_keras(model, # type: Model
 
 def _calc_gradient(ys, xs):
     # (Any, list) -> Any
-    # TODO: In the future we can replace the annotation Any with a tensor type in Keras backend
+    # FIXME: Replace Any with a tensor type in Keras backend
     """
     Return the gradient of scalar ``ys`` with respect to each of list ``xs``,
     (must be singleton)
@@ -112,11 +112,7 @@ def _calc_gradient(ys, xs):
 
 def _classification_target(model, targets):
     # type: (Model, Optional[List[int]]) -> Tuple[Any, Any]
-    """Get a predicted index and its value from a classification based model."""
-    # TODO: maybe pass the loss/score to the gradcam function.
-    # This would be consistent with what is done in
-    # https://github.com/ramprs/grad-cam/blob/master/misc/utils.lua
-    # and https://github.com/ramprs/grad-cam/blob/master/classification.lua
+    """Get the predicted index and value from a classification model."""
     if targets is not None:
         _validate_targets(targets)
         target, = targets

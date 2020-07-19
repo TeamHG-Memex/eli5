@@ -92,7 +92,6 @@ def assert_near_zero(val):
 
 def get_docs_weighted_spans(expl):
     """Get document and spans from explanation object."""
-    # TODO: hard-coded for only 1 target
     ws = expl.targets[0].weighted_spans.docs_weighted_spans[0]
     spans = ws.spans  # -> list of ('token', [(start,end)...], weight) tuples
     document = ws.document
@@ -106,7 +105,6 @@ def get_docs_weighted_spans(expl):
 
 def span_in(span, start, end):
     """Check that span's indices are between start and end inclusive."""
-    # FIXME: we assume that a span only contains 1 tuple for its indices
     span_start, span_end = span[1][0]
     return start <= span_start and span_end <= end
 
@@ -164,7 +162,7 @@ def test_sentiment_classification(sentiment_clf,
                                   relu=relu, counterfactual=counterfactual)
     # we hard-code the layer to embedded as it makes the tests pass
     print(res)
-    spans, document = get_docs_weighted_spans(res)
+    spans, _ = get_docs_weighted_spans(res)
     assert_weights_over_spans(spans, positive, negative, neutral)
 
 
@@ -221,5 +219,5 @@ def test_multiclass_classification(multiclass_clf, multiclass_input, targets,
                                   relu=False, layer=0, targets=targets)
     # we hard-code the layer to embedded as it makes the tests pass
     print(res)
-    spans, document = get_docs_weighted_spans(res)
+    spans, _ = get_docs_weighted_spans(res)
     assert_weights_over_spans(spans, positive, negative, neutral)

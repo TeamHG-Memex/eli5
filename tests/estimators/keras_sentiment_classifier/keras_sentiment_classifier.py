@@ -75,7 +75,6 @@ def string_to_vectorized(s, pad=False):
     tokens.insert(0, '<START>')
     tokens = [tokens]
     if pad:
-        # TODO: more control over padding
         tokens = pad_sequences(tokens,
                                maxlen=maxlen,
                                dtype=object,

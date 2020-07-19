@@ -48,11 +48,7 @@ def assert_attention_over_area(expl, area, n=40, invert=False):
     # get a slice of the area
     x1, x2, y1, y2 = area
     crop = heatmap[y1:y2, x1:x2]  # row-first ordering
-    # TODO: instead of hard-coding the height and width offsets
-    # it might be a better idea to use percentages
-    # this makes the tests independent of any resizing done on the image
-    # and the heatmap doesn't have to be resized
-    # however, it might be harder for the user to determine percentages
+    # TODO: Use percentages intead of hard-coded values
 
     # check intensity
     total_intensity = np.sum(heatmap)

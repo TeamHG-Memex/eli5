@@ -35,21 +35,6 @@ def test_gradcam_ones():
     assert np.isclose(heatmap, expected, rtol=epsilon)
 
 
-# TODO: test compute_weights with different shapes
-
-
-# TODO: test get_localization_map with different shapes
-
-
-# TODO: test relu and counterfactual with simple examples
-
-
-# TODO: test relu and counterfactual validation
-
-
-# TODO: test target validation
-
-
 # these might change as the API gets updated
 def test_validate_targets():
     with pytest.raises(TypeError):

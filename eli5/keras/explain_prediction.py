@@ -45,6 +45,10 @@ from .gradcam import (
 )
 
 
+text_layers = (Conv1D, RNN, LSTM, GRU, Bidirectional,)
+temporal_layers = (AveragePooling1D, MaxPooling1D, GlobalAveragePooling1D, GlobalMaxPooling1D,)
+
+
 # note that keras.models.Sequential subclasses keras.models.Model
 @explain_prediction.register(Model)
 def explain_prediction_keras(model, # type: Model
@@ -377,7 +381,6 @@ def explain_prediction_keras_text(model,
                               pad_token=pad_token,
                               interpolation_kind=interpolation_kind,
                               )
-    # TODO: padding could be relevant for images too?
     tokens, heatmap, weighted_spans = text_vals
     return Explanation(
         model.name,
@@ -389,12 +392,10 @@ def explain_prediction_keras_text(model,
             predicted_idx,
             weighted_spans=weighted_spans,
             score=predicted_val,
-            heatmap=heatmap,  # 1D numpy array
+            heatmap=heatmap,
         )],
-        is_regression=False,  # might be relevant later when explaining for regression tasks
+        is_regression=False,
     )
-    # TODO: might want to set feature_weights so that you can see the prediction and score
-    # as in https://eli5.readthedocs.io/en/latest/tutorials/sklearn-text.html
 
 
 def _maybe_image(model, doc):
@@ -478,10 +479,7 @@ def _get_layer(model, layer):
 
 def _autoget_layer_image(model):
     # type: (Model) -> Layer
-    """Try find a suitable layer for image ``model``."""
-    # TODO: experiment with this, using many models and images, to find what works best
-    # a check that asks "can we resize this activation layer over the image?"
-    # and "is this layer used for 2d operations?"
+    """Try find a suitable hidden layer for an image ``model``."""
     l = _search_layer(model,
                       _backward_layers,
                       lambda model, layer:
@@ -498,10 +496,7 @@ def _autoget_layer_image(model):
 
 def _autoget_layer_text(model):
     # type: (Model) -> Layer
-    """Try find a suitable layer for text ``model``."""
-    # search for 'word level' features
-    # search categories in sequence: text > 1D > embedding
-
+    """Try find a suitable hidden layer for a text ``model``."""
     def wanted(layers):
         return lambda model, layer: (len(layer.output_shape) == 3 and
                                      isinstance(layer, layers))
@@ -517,10 +512,6 @@ def _autoget_layer_text(model):
                          'Try passing the "layer" argument.')
     else:
         return l
-
-
-text_layers = (Conv1D, RNN, LSTM, GRU, Bidirectional,)
-temporal_layers = (AveragePooling1D, MaxPooling1D, GlobalAveragePooling1D, GlobalMaxPooling1D,)
 
 
 def _search_layer(model, # type: Model

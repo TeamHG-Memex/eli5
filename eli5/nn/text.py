@@ -65,7 +65,6 @@ def gradcam_spans(heatmap, # type: np.ndarray
     """
     # We call this before returning the explanation, NOT when formatting the explanation
     # Because WeightedSpans, etc are attributes of a returned explanation
-    # TODO: might want to add validation for heatmap and other arguments?
     _validate_tokens(tokens)
     _validate_tokens_value(tokens, doc)
     if isinstance(tokens, list):
@@ -125,7 +124,6 @@ def resize_1d(heatmap, length, interpolation_kind='linear'):
         The heatmap resized.
     """
     _validate_heatmap(heatmap)
-    _validate_length(length)
     if len(heatmap.shape) == 1 and heatmap.shape[0] == 1:
         # single weight, no batch
         heatmap = heatmap.repeat(length)
@@ -206,7 +204,7 @@ def _find_padding_values(pad_value, doc):
     if not isinstance(pad_value, (int, float)):
         raise TypeError('"pad_value" must be int or float. Got "{}"'.format(type(pad_value)))
     _validate_doc(doc)
-    values, indices = np.where(doc == pad_value)
+    _, indices = np.where(doc == pad_value)
     return indices
 
 
@@ -237,29 +235,15 @@ def _trim_padding(pad_indices, # type: np.ndarray
 
 
 def _validate_doc(doc):
+    """Check that ``doc`` has the right type."""
     if not isinstance(doc, np.ndarray):
         raise TypeError('"doc" must be an instance of numpy.ndarray. '
                         'Got "{}" (type "{}")'.format(doc, type(doc)))
 
 
-def _validate_length(length):
-    if not isinstance(length, int):
-        raise TypeError('"length" must be an integer. Got "{}" '
-                        '(type "{}")'.format(length, type(length)))
-    if length < 0:
-        raise ValueError('"length" must be a non-negative integer. '
-                         'Got "{}"'.format(length))
-
-
-# TODO:
-# docs for raises in here
-# coverage tests for new validation
-
-
-# FIXME: break this function up
 def _validate_tokens(tokens):
-    # type: (Union[np.ndarray, list]) -> None
-    """Check that ``tokens`` contains correct items and matches ``doc``."""
+    # type: (np.ndarray) -> None
+    """Check that ``tokens`` contains correct items."""
     if not isinstance(tokens, (list, np.ndarray)):
         # wrong type
         raise TypeError('"tokens" must be list or numpy.ndarray. '
@@ -271,6 +255,7 @@ def _validate_tokens(tokens):
 
 def _validate_tokens_value(tokens, doc):
     # type: (Union[np.ndarray, list], np.ndarray) -> None
+    """Check that the contents of ``tokens`` are consistent with ``doc``."""
     doc_batch, doc_len = doc.shape[0], doc.shape[1]
     an_entry = tokens[0]
     if isinstance(an_entry, str):
@@ -299,10 +284,10 @@ def _validate_tokens_value(tokens, doc):
         # a way to check that all elements match some condition
         # https://stackoverflow.com/a/35791116/11555448
         it = iter(tokens)
-        the_len = len(next(it))
-        if not all(len(l) == the_len for l in it):
+        initial_length = len(next(it))
+        if not all(len(l) == initial_length for l in it):
             raise ValueError('"tokens" samples do not all have the same length.')
-        tokens_len = the_len
+        tokens_len = initial_length
     else:
         raise TypeError('"tokens" must be an array of strings, '
                         'or an array of string arrays. '

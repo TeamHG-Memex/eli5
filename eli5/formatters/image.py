@@ -158,7 +158,6 @@ def heatmap_to_image(heatmap):
         heatmap = _normalize_heatmap(heatmap)
     rank = len(heatmap.shape)
     if rank == 2:
-        # FIXME: unclear if rank 2 means (width, height) OR (dim, channels) ???
         mode = 'L'
     elif rank == 3:
         channels = heatmap.shape[2]
@@ -192,13 +191,14 @@ def _colorize(heatmap, colormap):
 def _update_alpha(image_array, starting_array=None, alpha_limit=None):
     # type: (np.ndarray, Optional[np.ndarray], Optional[Union[float, int]]) -> None
     """
-    Update the alpha channel values of an RGBA rank 3 ndarray ``image_array``,
-    optionally creating the alpha channel from rank 2 ``starting_array``, 
-    and setting upper limit for alpha values (opacity) to ``alpha_limit``.
+    Update the alpha channel values of an RGBA rank 3 ndarray ``image_array``.
+
+    If specified create the alpha channel from rank 2 ``starting_array``.
+
+    If specified cap the alpha values (opacity) to ``alpha_limit``.
 
     This function modifies ``image_array`` in-place.
     """
-    # FIXME: this function may be too specialized and could be refactored
     # get the alpha channel slice
     if isinstance(starting_array, np.ndarray):
         alpha = starting_array
@@ -216,7 +216,7 @@ def _cap_alpha(alpha_arr, alpha_limit):
     """
     Limit the alpha values in ``alpha_arr``
     by setting the maximum alpha value to ``alpha_limit``.
-    Returns a a new array with the values capped.
+    Returns a a new array with the capped values.
     """
     if alpha_limit is None:
         return alpha_arr
