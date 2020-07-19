@@ -41,7 +41,8 @@ addons:
             - libatlas-base-dev
             - liblapack-dev
             - gfortran
-            - cmake
+    snaps:
+      - cmake
 
 before_install:
     - sudo apt-get -qq update
