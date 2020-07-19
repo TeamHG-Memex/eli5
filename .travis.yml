@@ -41,11 +41,16 @@ addons:
             - libatlas-base-dev
             - liblapack-dev
             - gfortran
-    snaps:
-      - name: cmake
-        confinement: classic
 
 before_install:
+    # Some dependencies require a newer CMake version
+    - wget https://github.com/Kitware/CMake/releases/download/v3.18.0/cmake-3.18.0-Linux-x86_64.tar.gz
+    - tar -xzvf cmake-3.18.0-Linux-x86_64.tar.gz
+    - cd cmake-3.18.0-Linux-x86_64/
+    - ./bootstrap
+    - make      
+    - make install
+    # End of CMake install
     - sudo apt-get -qq update
     - if [[ "$TOXENV" != "py35-nodeps" ]]; then sudo apt-get install graphviz; fi
 
