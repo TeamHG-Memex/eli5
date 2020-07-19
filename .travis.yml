@@ -43,14 +43,11 @@ addons:
             - gfortran
 
 before_install:
-    # Some dependencies require a newer CMake version
-    - wget https://github.com/Kitware/CMake/releases/download/v3.18.0/cmake-3.18.0-Linux-x86_64.sh
-    - sh cmake-3.18.0-Linux-x86_64.sh
-    # End of CMake install
     - sudo apt-get -qq update
     - if [[ "$TOXENV" != "py35-nodeps" ]]; then sudo apt-get install graphviz; fi
 
 install:
+    - pip install --upgrade cmake
     - pip install -U pip tox codecov
 
 script: tox
