@@ -41,9 +41,8 @@ class Explanation(object):
         self.decision_tree = decision_tree
         self.highlight_spaces = highlight_spaces
         self.transition_features = transition_features
-        self.image = image  # if arg is not None, assume we are working with images
-        self.layer = layer  # neural network layer, backend-dependent instance
-        # if adding new attributes, do not forget to update the test_formatters_as_dict test
+        self.image = image
+        self.layer = layer
 
     def _repr_html_(self):
         """ HTML formatting for the notebook.
@@ -147,7 +146,7 @@ class WeightedSpans(object):
         self.other = other
 
 
-# FIXME: can this be replaced with namedtuple?
+# TODO: Can this be replaced with a namedtuple?
 WeightedSpan = Tuple[
     Feature, # feature name - i.e. token name such as 'john', 'software', 'sky'
     List[Tuple[int, int]],  # list of spans [start, end) for this feature

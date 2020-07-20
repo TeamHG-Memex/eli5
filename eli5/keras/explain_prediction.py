@@ -45,6 +45,10 @@ from .gradcam import (
 )
 
 
+image_model_layers = (Conv2D, MaxPooling2D, AveragePooling2D, GlobalMaxPooling2D,
+                      GlobalAveragePooling2D,)
+
+
 text_layers = (Conv1D, RNN, LSTM, GRU, Bidirectional,)
 temporal_layers = (AveragePooling1D, MaxPooling1D, GlobalAveragePooling1D, GlobalMaxPooling1D,)
 
@@ -79,7 +83,7 @@ def explain_prediction_keras(model, # type: Model
         An input to ``model`` whose prediction will be explained.
 
         Currently only numpy arrays are supported.
-        Also the only data format supported is "channels last".
+        The data format must be in "channels last".
 
         The tensor must be of suitable shape for the ``model``.
 
@@ -153,11 +157,8 @@ def explain_prediction_keras(model, # type: Model
         * ``layer`` used for Grad-CAM.
 
     """
-    # Note that this function should only do dispatch 
-    # and no other processing
-
-    # check that only one of image or tokens is passed
-    assert image is None or tokens is None
+    # Note that this function should only do dispatch and no other processing
+    assert image is None or tokens is None # only one of image or tokens must be passed
     if image is not None or _maybe_image(model, doc):
         return explain_prediction_keras_image(model,
                                               doc,
@@ -181,10 +182,6 @@ def explain_prediction_keras(model, # type: Model
                                              )
     else:
         return explain_prediction_keras_not_supported(model, doc)
-
-
-# Some parameters to explain_prediction_keras* functions are repeated
-# Watch that the default values match
 
 
 def explain_prediction_keras_not_supported(model, doc):
@@ -432,10 +429,6 @@ def _maybe_image_model(model):
     return l is not None
 
 
-image_model_layers = (Conv2D, MaxPooling2D, AveragePooling2D, 
-                      GlobalMaxPooling2D, GlobalAveragePooling2D,)
-
-
 def _extract_image(doc):
     # type: (np.ndarray) -> 'PIL.Image.Image'
     """Convert ``doc`` tensor to image."""
@@ -474,8 +467,6 @@ def _get_layer(model, layer):
     else:
         raise TypeError('Invalid layer (must be str, int, or keras.layers.Layer): %s' % layer)
 
-
-# Heuristics for getting a suitable activation layer
 
 def _autoget_layer_image(model):
     # type: (Model) -> Layer
@@ -569,5 +560,4 @@ def _validate_doc(doc):
     if batch_size != 1:
         raise ValueError('"doc" batch size must be 1. '
                          'Got doc with batch size: %d' % batch_size)
-
     # Note that validation of the input shape, etc is done by Keras

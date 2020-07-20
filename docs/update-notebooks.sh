@@ -87,15 +87,13 @@ jupyter nbconvert \
         --stdout \
         '../notebooks/keras-text-classifiers.ipynb' \
         > source/_notebooks/keras-text-classifiers.rst
-# TODO: may want to rewrite functions/classes in Sphinx also
 
 
-# to run a notebook before converting (and stop if there are any errors):
+# to run a notebook before converting it (and to stop if there are any errors):
 # PYTHONPATH=$PWD/.. jupyter nbconvert \
 #         --ExecutePreprocessor.timeout=180 \
-#         --execute \
-#         ...
+#         --execute
+#         ...REST OF COMMANDS
 
-
-# to only execute one section: (replace # Keras with section comment)
-# sed -n '/# Keras/,/^$/p' update-notebooks.sh | bash
+# to update a single notebook:
+# sed -n '/# NOTEBOOK COMMENT/,/^$/p' update-notebooks.sh | bash

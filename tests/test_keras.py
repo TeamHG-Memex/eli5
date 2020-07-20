@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Keras unit tests for helpers."""
+"""Keras unit tests for helper functions."""
 
 import pytest
 
@@ -192,5 +192,5 @@ def test_calc_gradient_nondifferentiable(nondifferentiable_model):
 
 
 def test_import():
-    # test that package imports without errors
+    # test that subpackage imports without errors
     import eli5.keras

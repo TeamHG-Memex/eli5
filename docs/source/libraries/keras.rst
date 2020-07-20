@@ -215,6 +215,4 @@ For text, formatting is dispatched to :func:`eli5.format_as_html`.
 Grad-CAM
 --------
 
-ELI5 contains :func:`eli5.keras.gradcam.gradcam_backend_keras`.
-
-This function can be used to obtain the gradients and activations that are later used when computing a Grad-CAM heatmap.
+The function :func:`eli5.keras.gradcam.gradcam_backend_keras` can be used to obtain the gradients and activations that are subsequently used when computing a Grad-CAM heatmap.

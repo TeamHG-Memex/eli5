@@ -20,7 +20,7 @@ ELI5_ is a Python package which helps to debug machine learning
 classifiers and explain their predictions. It provides support for the
 following machine learning frameworks and packages:
 
-* :ref:`library-scikit-learn`. Currently ELI5 allows to explain weights
+* :ref:`library-scikit-learn` - Currently ELI5 allows to explain weights
   and predictions of scikit-learn linear classifiers and regressors,
   print decision trees as text or as SVG, show feature importances
   and explain predictions of decision trees and tree-based ensembles.

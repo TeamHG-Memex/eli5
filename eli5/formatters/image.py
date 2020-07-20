@@ -111,9 +111,6 @@ def format_as_image(expl, # type: Explanation
         # normalize for colorization
         heatmap = _normalize_heatmap(heatmap)
 
-    # The order of our operations is: 1. colorize 2. resize
-    # as opposed: 1. resize 2. colorize
-
     # save the original heatmap values
     heatvals = heatmap
     # apply colours to the grayscale array
@@ -126,7 +123,6 @@ def format_as_image(expl, # type: Explanation
     heatmap = heatmap_to_image(heatmap)  # -> RGBA Pillow image
     heatmap = expand_heatmap(heatmap, image, resampling_filter=resampling_filter)
 
-    # heatmap and image have same mode and dims
     overlay = _overlay_heatmap(heatmap, image)
     return overlay
 
@@ -273,9 +269,11 @@ def expand_heatmap(heatmap, image, resampling_filter=Image.LANCZOS):
 def _overlay_heatmap(heatmap, image):
     # type: (Image, Image) -> Image
     """
-    Blend (combine) ``heatmap`` over ``image``,
-    using alpha channel values appropriately (must have mode `RGBA`).
-    Output is 'RGBA'.
+    Blend or combine ``heatmap`` over ``image``,
+    using alpha channel values appropriately.
+    Both images must have the same dimensions and must have mode `RGBA`.
+
+    Output is `RGBA`.
     """
     # note that the order of alpha_composite arguments matters
     overlayed_image = Image.alpha_composite(image, heatmap)

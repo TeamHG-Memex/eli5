@@ -86,9 +86,8 @@ def _calc_gradient(ys, xs):
     (must be singleton)
     and apply gradient normalization.
     """
-    # differentiate ys (scalar) with respect to each variable in xs
-    # K.gradients tends to produce bigger values than tf.gradients
-    # Note that gradients also point to the direction of the greatest increase in ys
+    # Differentiate ys (scalar) with respect to each variable in xs
+    # The gradients point to the direction of the greatest increase in ys
     # Meaning that the class score is maximized if we move in the direction of the gradient.
     grads = K.gradients(ys, xs)
 
@@ -105,8 +104,7 @@ def _calc_gradient(ys, xs):
                          'Check that the model is differentiable and try again. '
                          'ys: {}. xs: {}. grads: {}'.format(ys, xs, grads))
 
-    # this seems to make the heatmap less noisy
-    grads = K.l2_normalize(grads)
+    grads = K.l2_normalize(grads) # seems to make the heatmap less noisy
     return grads
 
 

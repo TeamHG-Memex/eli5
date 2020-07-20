@@ -3,5 +3,5 @@
 
 
 def test_import():
-    # check that package imports without errors
+    # check that subpackage imports without errors
     import eli5.nn

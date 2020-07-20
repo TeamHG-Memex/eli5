@@ -75,7 +75,7 @@ def get_localization_map(weights, activations, relu=True):
         with shape like the spatial portion of ``activations``.
     """
     # For reusability, this function should only use numpy operations
-    # No library specific operations
+    # No library specific calls should be used here
 
     # we need to multiply (batch, dim1, ..., dimn, maps,) by (batch, maps,) over the dimension axes
     # and add each result to (batch, dim1, ..., dimn) results array
@@ -152,18 +152,17 @@ def compute_weights(grads): # made public for transparency
         Gradients pooled.
     """
     shape = [(axis_idx, dim) for (axis_idx, dim) in enumerate(grads.shape)]
+    # note that axes are in range [-rank(x), rank(x)) (we start from 1, not 0)
+    # https://stackoverflow.com/questions/48082900/in-tensorflow-what-is-the-argument-axis-in-the-function-tf-one-hot
+    # https://medium.com/@aerinykim/tensorflow-101-what-does-it-mean-to-reduce-axis-9f39e5c6dea2
     pooling_axes = shape[1:-1]  # ignore batch and channels/last axis
     if len(pooling_axes) == 0:
         weights = grads  # no need to average
     else:
         axes = [axis_idx for (axis_idx, dim) in pooling_axes]
         weights = np.mean(grads, axis=tuple(axes))
-        # weights = K.mean(grads, axis=(1, 2))     # alternative keras.backend/TF implementation
-        # note that axes are in range [-rank(x), rank(x)) (we start from 1, not 0)
-        # +1 axis num because we have batch still?
-        # https://stackoverflow.com/questions/48082900/in-tensorflow-what-is-the-argument-axis-in-the-function-tf-one-hot
-        # https://medium.com/@aerinykim/tensorflow-101-what-does-it-mean-to-reduce-axis-9f39e5c6dea2
-        # https://www.tensorflow.org/guide/tensors
+        # alternative keras.backend / tensorflow implementation:
+        # weights = K.mean(grads, axis=(1, 2))
     return weights
 
 
