@@ -32,15 +32,17 @@ reversed_word_index = {v:k for k, v in word_index.items()}
 
 
 def prepare_train_test_dataset():
-    np_load_old = np.load
-    np.load = lambda *a,**k: np_load_old(*a, allow_pickle=True, **k)
+    # https://stackoverflow.com/questions/55890813/how-to-fix-object-arrays-cannot-be-loaded-when-allow-pickle-false-for-imdb-loa
+    # Certain numpy versions might require this loading hack (uncomment to use):
+    # np_load_old = np.load
+    # np.load = lambda *a,**k: np_load_old(*a, allow_pickle=True, **k)
     (x_train, y_train), (x_test, y_test) = imdb.load_data(num_words=vocablen,
                                                           seed=113,
                                                           start_char=1,
                                                           oov_char=2,
                                                           index_from=3,  # AFTER this index actual words begin
                                                           )
-    np.load = np_load_old
+    # np.load = np_load_old
 
     x_train = pad_sequences(x_train,
                             maxlen=maxlen,

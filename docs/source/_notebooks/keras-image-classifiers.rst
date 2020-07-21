@@ -1,12 +1,11 @@
-
 Explaining Keras image classifier predictions with Grad-CAM
 ===========================================================
 
 If we have a model that takes in an image as its input, and outputs
-class scores, i.e. probabilities that a certain object is present in the
+class scores, i.e. probabilities that a certain object is present in the
 image, then we can use ELI5 to check what is it in the image that made
 the model predict a certain class score. We do that using a method
-called 'Grad-CAM' (see the paper at https://arxiv.org/abs/1610.02391).
+called ‘Grad-CAM’ (see the paper at https://arxiv.org/abs/1610.02391).
 
 We will be using images from ImageNet (http://image-net.org/), and
 classifiers from ``keras.applications``.
@@ -17,29 +16,50 @@ This has been tested with Python 3.7.3, Keras 2.2.4, and Tensorflow
 Loading our model and data
 --------------------------
 
-To start out, let's get our modules in place
+To start out, let’s get our modules in place
 
 .. code:: ipython3
 
+    import os
+    import os.path
+    import sys
+    # access packages in top level eli5 directory
+    sys.path.insert(1, os.path.join(sys.path[0], '..'))
+    
+    import logging
+    import warnings
+    
     from PIL import Image
     from IPython.display import display
     import numpy as np
     
-    # you may want to keep logging enabled when doing your own work
-    import logging
     import tensorflow as tf
     tf.get_logger().setLevel(logging.ERROR) # disable Tensorflow warnings for this tutorial
-    import warnings
-    warnings.simplefilter("ignore") # disable Keras warnings for this tutorial
+    
     import keras
+    warnings.simplefilter("ignore") # disable Keras warnings for this tutorial
     from keras.applications import mobilenet_v2
     
     import eli5
 
 
+.. code:: ipython3
+
+    # for reproducibility, the tutorial was ran with the following versions
+    print('python', sys.version_info)
+    print('keras', keras.__version__)
+    print('tensorflow', tf.__version__)
+    print('numpy', np.__version__)
+    print('PIL', Image.__version__)
+
+
 .. parsed-literal::
 
-    Using TensorFlow backend.
+    python sys.version_info(major=3, minor=7, micro=7, releaselevel='final', serial=0)
+    keras 2.2.5
+    tensorflow 1.14.0
+    numpy 1.19.0
+    PIL 7.2.0
 
 
 And load our image classifier (a light-weight model from
@@ -85,11 +105,11 @@ Loading our sample image:
 
 
 
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_5_1.png
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_6_1.png
 
 
 We see that this image will need some preprocessing to have the correct
-dimensions! Let's resize it:
+dimensions! Let’s resize it:
 
 .. code:: ipython3
 
@@ -103,11 +123,11 @@ dimensions! Let's resize it:
 
 .. parsed-literal::
 
-    <PIL.Image.Image image mode=RGB size=224x224 at 0x7F7BEF359A58>
+    <PIL.Image.Image image mode=RGB size=224x224 at 0x7F4E28A33B10>
 
 
 
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_7_1.png
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_8_1.png
 
 
 Looking good. Now we need to convert the image to a numpy array.
@@ -157,7 +177,7 @@ Looking good. Now we need to convert the image to a numpy array.
     <class 'numpy.ndarray'> (1, 224, 224, 3)
 
 
-Let's convert back the array to an image just to check what we are
+Let’s convert back the array to an image just to check what we are
 inputting
 
 .. code:: ipython3
@@ -170,19 +190,19 @@ inputting
 
 .. parsed-literal::
 
-    <PIL.Image.Image image mode=RGB size=224x224 at 0x7F7B7F14D2E8>
+    <PIL.Image.Image image mode=RGB size=224x224 at 0x7F4E289B7BD0>
 
 
 
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_13_1.png
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_14_1.png
 
 
 Ready to go!
 
-Explaining our model's prediction
+Explaining our model’s prediction
 ---------------------------------
 
-Let's classify our image and see where the network 'looks' when making
+Let’s classify our image and see where the network ‘looks’ when making
 that classification:
 
 .. code:: ipython3
@@ -211,7 +231,7 @@ that classification:
 
 .. parsed-literal::
 
-    [[('n02108422', 'bull_mastiff', 0.80967486), ('n02108089', 'boxer', 0.098359644), ('n02123045', 'tabby', 0.0066504036), ('n02123159', 'tiger_cat', 0.0048087277), ('n02110958', 'pug', 0.0039409986)]]
+    [[('n02108422', 'bull_mastiff', 0.80967444), ('n02108089', 'boxer', 0.09836006), ('n02123045', 'tabby', 0.0066503873), ('n02123159', 'tiger_cat', 0.004808723), ('n02110958', 'pug', 0.0039409795)]]
     [243 242 281 282 254]
 
 
@@ -219,7 +239,7 @@ Indeed there is a dog in that picture The class ID (index into the
 output layer) ``243`` stands for ``bull mastiff`` in ImageNet with 1000
 classes (https://gist.github.com/yrevar/942d3a0ac09ec9e5eb3a ).
 
-But how did the network know that? Let's check where the model "looked"
+But how did the network know that? Let’s check where the model “looked”
 for a dog with ELI5:
 
 .. code:: ipython3
@@ -231,16 +251,16 @@ for a dog with ELI5:
 
 
 
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_19_0.png
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_20_0.png
 
 
 
 The dog region is highlighted. Makes sense!
 
 When explaining image based models, we can optionally pass the image
-associated with the input as a Pillow image object. If we don't, the
+associated with the input as a Pillow image object. If we don’t, the
 image will be created from ``doc``. This may not work with custom models
-or inputs, in which case it's worth passing the image explicitly.
+or inputs, in which case it’s worth passing the image explicitly.
 
 .. code:: ipython3
 
@@ -249,7 +269,7 @@ or inputs, in which case it's worth passing the image explicitly.
 
 
 
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_22_0.png
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_23_0.png
 
 
 
@@ -267,7 +287,7 @@ classifier looks to find those objects.
 
 
 
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_24_0.png
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_25_0.png
 
 
 
@@ -285,15 +305,15 @@ Currently only one class can be explained at a time.
 
 
 
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_26_0.png
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_27_0.png
 
 
 
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_26_1.png
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_27_1.png
 
 
-That's quite noisy! Perhaps the model is weak at classifying 'window
-screens'! On the other hand the nonsense 'turtle' example could be
+That’s quite noisy! Perhaps the model is weak at classifying ‘window
+screens’! On the other hand the nonsense ‘turtle’ example could be
 excused.
 
 Note that we need to wrap ``show_prediction()`` with
@@ -307,7 +327,7 @@ Under the hood Grad-CAM takes a hidden layer inside the network and
 differentiates it with respect to the output scores. We have the ability
 to choose which hidden layer we do our computations on.
 
-Let's check what layers the network consists of:
+Let’s check what layers the network consists of:
 
 .. code:: ipython3
 
@@ -359,8 +379,8 @@ Let's check what layers the network consists of:
     Logits,	Dense,	(None, 1000),	1281000
 
 
-Rough print but okay. Let's pick a few convolutional layers that are
-'far apart' and do Grad-CAM on them:
+Rough print but okay. Let’s pick a few convolutional layers that are
+‘far apart’ and do Grad-CAM on them:
 
 .. code:: ipython3
 
@@ -375,7 +395,7 @@ Rough print but okay. Let's pick a few convolutional layers that are
 
 
 
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_31_1.png
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_32_1.png
 
 
 .. parsed-literal::
@@ -384,7 +404,7 @@ Rough print but okay. Let's pick a few convolutional layers that are
 
 
 
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_31_3.png
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_32_3.png
 
 
 .. parsed-literal::
@@ -393,12 +413,12 @@ Rough print but okay. Let's pick a few convolutional layers that are
 
 
 
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_31_5.png
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_32_5.png
 
 
 These results should make intuitive sense for Convolutional Neural
-Networks. Initial layers detect 'low level' features, ending layers
-detect 'high level' features!
+Networks. Initial layers detect ‘low level’ features, ending layers
+detect ‘high level’ features!
 
 The ``layer`` parameter accepts a layer instance, index, name, or None
 (get layer automatically) as its arguments. This is where Grad-CAM
@@ -429,18 +449,18 @@ predicted one.
 
 
 
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_37_0.png
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_38_0.png
 
 
 
-Woah! There's quite a lot of color, which makes sense given that we are
+Woah! There’s quite a lot of color, which makes sense given that we are
 dealing with 1000 ImageNet classes.
 
 The other argument is ``counterfactual``. Set it to ``True`` in order to
-highlight what makes the prediction *go down*, i.e. highlight
+highlight what makes the prediction *go down*, i.e. highlight
 counter-evidence for the predicted class, such as the presence of other
 classes. This is discussed in the Grad-CAM paper
-(https://arxiv.org/abs/1610.02391) as "counterfactual explanations".
+(https://arxiv.org/abs/1610.02391) as “counterfactual explanations”.
 
 .. code:: ipython3
 
@@ -449,11 +469,11 @@ classes. This is discussed in the Grad-CAM paper
 
 
 
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_40_0.png
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_41_0.png
 
 
 
-The counter-evidence for "dog" is a "cat".
+The counter-evidence for “dog” is a “cat”.
 
 .. code:: ipython3
 
@@ -462,11 +482,11 @@ The counter-evidence for "dog" is a "cat".
 
 
 
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_42_0.png
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_43_0.png
 
 
 
-The counter-evidence for "cat" is "dog"!
+The counter-evidence for “cat” is “dog”!
 
 Under the hood - ``explain_prediction()`` and ``format_as_image()``
 -------------------------------------------------------------------
@@ -489,20 +509,20 @@ Examining the structure of the ``Explanation`` object:
 
 .. parsed-literal::
 
-    Explanation(estimator='mobilenetv2_1.00_224', description='\nGrad-CAM visualization for classification tasks; \noutput is explanation object that contains a heatmap.\n', error='', method='Grad-CAM', is_regression=False, targets=[TargetExplanation(target=243, feature_weights=None, proba=None, score=0.80967486, weighted_spans=None, heatmap=array([[0.        , 0.35484907, 0.62538716, 0.65194869, 0.69069757,
-            0.30254594, 0.        ],
-           [0.        , 0.37076346, 0.71051264, 0.76753219, 0.80720755,
-            0.42025638, 0.        ],
-           [0.        , 0.28977199, 0.68358975, 0.71907166, 0.78142406,
-            0.44595825, 0.        ],
-           [0.        , 0.16248823, 0.49251841, 0.37528265, 0.3246486 ,
-            0.17787647, 0.        ],
+    Explanation(estimator='mobilenetv2_1.00_224', description='\nGrad-CAM visualization for classification tasks; \noutput is explanation object that contains a heatmap.\n', error='', method='Grad-CAM', is_regression=False, targets=[TargetExplanation(target=243, feature_weights=None, proba=None, score=0.80967444, weighted_spans=None, heatmap=array([[0.        , 0.35484815, 0.62538594, 0.65194757, 0.69069639,
+            0.3025453 , 0.        ],
+           [0.        , 0.37076223, 0.71051137, 0.76753061, 0.80720627,
+            0.4202556 , 0.        ],
+           [0.        , 0.28977112, 0.6835884 , 0.71907057, 0.78142301,
+            0.44595764, 0.        ],
+           [0.        , 0.1624876 , 0.49251784, 0.37528226, 0.32464841,
+            0.17787641, 0.        ],
            [0.        , 0.        , 0.        , 0.        , 0.        ,
-            0.02532111, 0.02461011],
+            0.02532156, 0.0246102 ],
            [0.        , 0.        , 0.        , 0.        , 0.        ,
-            0.        , 0.05448308],
-           [0.04969072, 0.        , 0.        , 0.        , 0.        ,
-            0.06806932, 0.12003538]]))], feature_importances=None, decision_tree=None, highlight_spaces=None, transition_features=None, image=<PIL.Image.Image image mode=RGB size=224x224 at 0x7F7B6EBE30B8>, layer=<keras.layers.convolutional.Conv2D object at 0x7f7b7f44e550>)
+            0.        , 0.05448305],
+           [0.04969073, 0.        , 0.        , 0.        , 0.        ,
+            0.06806933, 0.12003508]]))], feature_importances=None, decision_tree=None, highlight_spaces=None, transition_features=None, image=<PIL.Image.Image image mode=RGB size=224x224 at 0x7F4E0CCE1810>, layer=<keras.layers.convolutional.Conv2D object at 0x7f4ec07ea310>)
 
 
 We can check a number of things for the target being explained: the
@@ -516,7 +536,7 @@ score) of the neuron for the predicted class.
 
 .. parsed-literal::
 
-    (243, 0.80967486, None)
+    (243, 0.80967444, None)
 
 
 We can also access the original image, the Grad-CAM heatmap, and the
@@ -534,26 +554,26 @@ hidden activation layer that we took for calculations:
 
 
 
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_52_0.png
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_53_0.png
 
 
 .. parsed-literal::
 
-    [[0.         0.35484907 0.62538716 0.65194869 0.69069757 0.30254594
+    [[0.         0.35484815 0.62538594 0.65194757 0.69069639 0.3025453
       0.        ]
-     [0.         0.37076346 0.71051264 0.76753219 0.80720755 0.42025638
+     [0.         0.37076223 0.71051137 0.76753061 0.80720627 0.4202556
       0.        ]
-     [0.         0.28977199 0.68358975 0.71907166 0.78142406 0.44595825
+     [0.         0.28977112 0.6835884  0.71907057 0.78142301 0.44595764
       0.        ]
-     [0.         0.16248823 0.49251841 0.37528265 0.3246486  0.17787647
+     [0.         0.1624876  0.49251784 0.37528226 0.32464841 0.17787641
       0.        ]
-     [0.         0.         0.         0.         0.         0.02532111
-      0.02461011]
+     [0.         0.         0.         0.         0.         0.02532156
+      0.0246102 ]
      [0.         0.         0.         0.         0.         0.
-      0.05448308]
-     [0.04969072 0.         0.         0.         0.         0.06806932
-      0.12003538]]
-    <keras.layers.convolutional.Conv2D object at 0x7f7b7f44e550>
+      0.05448305]
+     [0.04969073 0.         0.         0.         0.         0.06806933
+      0.12003508]]
+    <keras.layers.convolutional.Conv2D object at 0x7f4ec07ea310>
 
 
 Visualizing the heatmap:
@@ -572,15 +592,15 @@ Visualizing the heatmap:
 
 
 
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_55_0.png
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_56_0.png
 
 
-That's only 7x7! This is the spatial dimensions of the
+That’s only 7x7! This is the spatial dimensions of the
 activation/feature maps in the last layers of the network. What Grad-CAM
 produces is only a rough approximation (which depends on the chosen
 activation layer by the ``layer`` argument).
 
-Let's resize the heatmap (we have to pass the heatmap and the image with
+Let’s resize the heatmap (we have to pass the heatmap and the image with
 the required dimensions as Pillow images, and the filter for
 resampling):
 
@@ -591,10 +611,10 @@ resampling):
 
 
 
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_57_0.png
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_58_0.png
 
 
-Now it's clear what is being highlighted. We just need to apply some
+Now it’s clear what is being highlighted. We just need to apply some
 colors and overlay the heatmap over the original image, exactly what
 ``eli5.format_as_image()`` does!
 
@@ -605,7 +625,7 @@ colors and overlay the heatmap over the original image, exactly what
 
 
 
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_59_0.png
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_60_0.png
 
 
 Extra arguments to ``format_as_image()``
@@ -622,7 +642,7 @@ Extra arguments to ``format_as_image()``
 
 
 
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_62_0.png
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_63_0.png
 
 
 The ``alpha_limit`` argument controls the maximum opacity that the
@@ -643,7 +663,7 @@ Removing softmax
 The original Grad-CAM paper (https://arxiv.org/pdf/1610.02391.pdf)
 suggests that we should use the output of the layer before softmax when
 doing Grad-CAM (use raw score values, not probabilities). Currently ELI5
-simply takes the model as-is. Let's try and swap the softmax (logits)
+simply takes the model as-is. Let’s try and swap the softmax (logits)
 layer of our current model with a linear (no activation) layer, and
 check the explanation:
 
@@ -659,8 +679,10 @@ check the explanation:
     l.activation = keras.activations.linear # swap activation
     
     # save and load back the model as a trick to reload the graph
-    model.save('tmp_model_save_rmsoftmax') # note that this creates a file of the model
-    model = keras.models.load_model('tmp_model_save_rmsoftmax')
+    TMP_SAVE_FILE = 'tmp_model_save_rmsoftmax'
+    model.save(TMP_SAVE_FILE) # note that this creates a file of the model
+    model = keras.models.load_model(TMP_SAVE_FILE)
+    os.remove(TMP_SAVE_FILE)
     
     print('without softmax')
     display(eli5.show_prediction(model, doc))
@@ -672,7 +694,7 @@ check the explanation:
 
 
 
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_65_1.png
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_66_1.png
 
 
 .. parsed-literal::
@@ -681,7 +703,7 @@ check the explanation:
 
 
 
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_65_3.png
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_66_3.png
 
 
 We see some slight differences. The activations are brighter. Do
@@ -692,7 +714,7 @@ Comparing explanations of different models
 
 According to the paper at https://arxiv.org/abs/1711.06104, if an
 explanation method such as Grad-CAM is any good, then explaining
-different models should yield different results. Let's verify that by
+different models should yield different results. Let’s verify that by
 loading another model and explaining a classification of the same image:
 
 .. code:: ipython3
@@ -719,7 +741,7 @@ loading another model and explaining a classification of the same image:
 
 
 
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_68_1.png
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_69_1.png
 
 
 .. parsed-literal::
@@ -728,7 +750,7 @@ loading another model and explaining a classification of the same image:
 
 
 
-.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_68_3.png
+.. image:: ../_notebooks/keras-image-classifiers_files/keras-image-classifiers_69_3.png
 
 
 Wow ``show_prediction()`` is so robust!

@@ -1,20 +1,19 @@
-
 Explaining Keras text classifier predictions with Grad-CAM
 ==========================================================
 
-We can use ELI5 to explain text-based classifiers, i.e. models that take
+We can use ELI5 to explain text-based classifiers, i.e. models that take
 in a text and assign it to some class. Common examples include sentiment
 classification, labelling into categories, etc.
 
-The underlying method used is 'Grad-CAM'
+The underlying method used is ‘Grad-CAM’
 (https://arxiv.org/abs/1610.02391). This technique shows what parts of
 the input are the most important to the predicted result, by overlaying
-a "heatmap" over the original input.
+a “heatmap” over the original input.
 
 See also the tutorial for images
 (https://eli5.readthedocs.io/en/latest/tutorials/keras-image-classifiers.html).
-Certain sections such as 'removing softmax' and 'comparing different
-models' are relevant for text as well.
+Certain sections such as ‘removing softmax’ and ‘comparing different
+models’ are relevant for text as well.
 
 **This is experimental work. Unlike for images, this is not based on any
 paper.**
@@ -27,40 +26,45 @@ First some imports
 .. code:: ipython3
 
     import os
+    import os.path
     import sys
+    # access packages in top level eli5 directory
+    sys.path.insert(1, os.path.join(sys.path[0], '..'))
+    
+    import logging
+    import warnings
     
     import numpy as np
     import pandas as pd
     from IPython.display import display, HTML  # our explanations will be formatted in HTML
     
-    # you may want to keep logging enabled when doing your own work
-    import logging
     import tensorflow as tf
     tf.get_logger().setLevel(logging.ERROR) # disable Tensorflow warnings for this tutorial
-    import warnings
-    warnings.simplefilter("ignore") # disable Keras warnings for this tutorial
+    
     import keras
+    warnings.simplefilter("ignore") # disable Keras warnings for this tutorial
     from keras.preprocessing.sequence import pad_sequences
     
     import eli5
 
 
-.. parsed-literal::
-
-    Using TensorFlow backend.
-
-
 .. code:: ipython3
 
-    # for reproducibility, the tutorial was ran with these Python and package versions
-    print(sys.version_info, keras.__version__, tf.__version__, sep='\n')
+    # for reproducibility, the tutorial was ran with the following versions
+    print('python', sys.version_info)
+    print('keras', keras.__version__)
+    print('tensorflow', tf.__version__)
+    print('numpy', np.__version__)
+    print('pandas', pd.__version__)
 
 
 .. parsed-literal::
 
-    sys.version_info(major=3, minor=6, micro=8, releaselevel='final', serial=0)
-    2.2.4
-    1.14.0
+    python sys.version_info(major=3, minor=7, micro=7, releaselevel='final', serial=0)
+    keras 2.2.5
+    tensorflow 1.14.0
+    numpy 1.19.0
+    pandas 1.0.5
 
 
 The rest of what we need in this tutorial is stored in the
@@ -73,8 +77,8 @@ Explaining binary (sentiment) classifications
 
 In binary classification there is only one possible class to which a
 piece of text can either belong to or not. In sentiment classification,
-that class is whether the text is "positive" (belongs to the class) or
-"negative" (doesn't belong to the class).
+that class is whether the text is “positive” (belongs to the class) or
+“negative” (doesn’t belong to the class).
 
 In this example we will have a recurrent model with word level
 tokenization, trained on the IMDB dataset
@@ -83,7 +87,7 @@ The model has one output node that gives probabilities. Output close to
 1 is positive, and close to 0 is negative.
 
 See
-https://www.tensorflow.org/beta/tutorials/text/text\_classification\_rnn
+https://www.tensorflow.org/beta/tutorials/text/text_classification_rnn
 for a simple example of how to build such a model and prepare its input.
 
 For exact details of how we trained our model and what data we used see
@@ -96,7 +100,7 @@ file in the ELI5 repo.
     import tests.estimators.keras_sentiment_classifier.keras_sentiment_classifier \
         as keras_sentiment_classifier
 
-Let's load our pre-trained model
+Let’s load our pre-trained model
 
 .. code:: ipython3
 
@@ -106,6 +110,7 @@ Let's load our pre-trained model
 
 .. parsed-literal::
 
+    Model: "sequential_1"
     _________________________________________________________________
     Layer (type)                 Output Shape              Param #   
     =================================================================
@@ -145,13 +150,22 @@ Confirm the accuracy of the model
 
 .. code:: ipython3
 
-    # print(binary_model.metrics_names)
-    # loss, acc = binary_model.evaluate(x_test, y_test)
-    # print(loss, acc)
+    print(binary_model.metrics_names)
+    loss, acc = binary_model.evaluate(x_test, y_test)
+    print(loss, acc)
     
-    # print('Accuracy: ', acc)
+    print('Accuracy: ', acc)
 
-Looks good? Let's go on and check one of the test samples.
+
+.. parsed-literal::
+
+    ['loss', 'acc']
+    25000/25000 [==============================] - 43s 2ms/step
+    0.4319177031707764 0.81504
+    Accuracy:  0.81504
+
+
+Looks good? Let’s go on and check one of the test samples.
 
 .. code:: ipython3
 
@@ -194,7 +208,7 @@ Check the prediction
 
 As expected, looks pretty low score.
 
-Now let's explain what got us this result with ELI5. We need to pass the
+Now let’s explain what got us this result with ELI5. We need to pass the
 model, the input, and the associated tokens that will be highlighted.
 
 .. code:: ipython3
@@ -215,33 +229,33 @@ model, the input, and the associated tokens that will be highlighted.
     
     
     
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
     
     
-        
     
-        
     
-        
     
-        
-            
     
-        
     
-            
     
-            
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
         <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
@@ -249,39 +263,39 @@ model, the input, and the associated tokens that will be highlighted.
         </p>
     
     
-        
-    
-        
-    
-        
-    
-        
     
     
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
     
     
-        
     
-        
     
-        
     
-        
     
-        
     
-        
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
     
@@ -289,10 +303,10 @@ model, the input, and the associated tokens that will be highlighted.
 
 
 
-That's unexpected. The input seems to have nothing that makes the
+That’s unexpected. The input seems to have nothing that makes the
 predicted score *go up*. (See the next section for an explanation.)
 
-Let's try a custom input
+Let’s try a custom input
 
 .. code:: ipython3
 
@@ -345,33 +359,33 @@ What makes the score go up?
     
     
     
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
     
     
-        
     
-        
     
-        
     
-        
-            
     
-        
     
-            
     
-            
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
         <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
@@ -379,39 +393,39 @@ What makes the score go up?
         </p>
     
     
-        
-    
-        
-    
-        
-    
-        
     
     
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
     
     
-        
     
-        
     
-        
     
-        
     
-        
     
-        
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
     
@@ -420,18 +434,18 @@ What makes the score go up?
 
 
 Now this is something. The words highlighted in green show what makes
-the score "go up", i.e. the "positive" words (check the next section to
+the score “go up”, i.e. the “positive” words (check the next section to
 see how to show positive AND negative words with the ``relu`` argument).
 
 Even though the explanation is bright green, the actual prediction is
 not very positive. Hover over the highlighted words to see their actual
-"weight".
+“weight”.
 
 Modify explanations with the ``relu`` and ``counterfactual`` arguments
 ----------------------------------------------------------------------
 
-In the last section we only saw the "positive" words in our input, what
-made the class score "go up". To "fix" this and see the "negative" words
+In the last section we only saw the “positive” words in our input, what
+made the class score “go up”. To “fix” this and see the “negative” words
 too, we can pass two boolean arguments.
 
 ``relu`` (default ``True``) only shows what makes the predicted score go
@@ -459,33 +473,33 @@ likely to belong to other classes according to the Grad-CAM paper
     
     
     
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
     
     
-        
     
-        
     
-        
     
-        
-            
     
-        
     
-            
     
-            
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
         <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
@@ -493,39 +507,39 @@ likely to belong to other classes according to the Grad-CAM paper
         </p>
     
     
-        
-    
-        
-    
-        
-    
-        
     
     
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
     
     
-        
     
-        
     
-        
     
-        
     
-        
     
-        
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
     
@@ -553,33 +567,33 @@ And for the test sample
     
     
     
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
     
     
-        
     
-        
     
-        
     
-        
-            
     
-        
     
-            
     
-            
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
         <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
@@ -587,39 +601,39 @@ And for the test sample
         </p>
     
     
-        
-    
-        
-    
-        
-    
-        
     
     
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
     
     
-        
     
-        
     
-        
     
-        
     
-        
     
-        
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
     
@@ -634,7 +648,7 @@ and why in the previous section there were no highlighted words
 (according to the explanation there are no positive words).
 
 Another argument ``counterfactual`` (default ``False``) highlights the
-counter-evidence for a class, or what makes the score "go down" (set to
+counter-evidence for a class, or what makes the score “go down” (set to
 ``True`` to enable). This is mentioned in the Grad-CAM paper
 (https://arxiv.org/abs/1610.02391).
 
@@ -656,33 +670,33 @@ counter-evidence for a class, or what makes the score "go down" (set to
     
     
     
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
     
     
-        
     
-        
     
-        
     
-        
-            
     
-        
     
-            
     
-            
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
         <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
@@ -690,39 +704,39 @@ counter-evidence for a class, or what makes the score "go down" (set to
         </p>
     
     
-        
-    
-        
-    
-        
-    
-        
     
     
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
     
     
-        
     
-        
     
-        
     
-        
     
-        
     
-        
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
     
@@ -730,7 +744,7 @@ counter-evidence for a class, or what makes the score "go down" (set to
 
 
 
-This shows the "negative" words in green, i.e. inverts the classes.
+This shows the “negative” words in green, i.e. inverts the classes.
 
 What happens if we pass both ``counterfactual`` and ``relu``?
 
@@ -752,33 +766,33 @@ What happens if we pass both ``counterfactual`` and ``relu``?
     
     
     
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
     
     
-        
     
-        
     
-        
     
-        
-            
     
-        
     
-            
     
-            
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
         <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
@@ -786,39 +800,39 @@ What happens if we pass both ``counterfactual`` and ``relu``?
         </p>
     
     
-        
-    
-        
-    
-        
-    
-        
     
     
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
     
     
-        
     
-        
     
-        
     
-        
     
-        
     
-        
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
     
@@ -845,9 +859,9 @@ Grad-CAM method closer, as opposed to some other Gradient-based method.
 However, note that we found that using lower layers (closer to the
 input) for word-level tokenization text models gave better results.
 
-If you don't get good explanations from ELI5 out of the box, it may be
+If you don’t get good explanations from ELI5 out of the box, it may be
 worth looking into this parameter. We advice to pick layers that contain
-"spatial or temporal" information, i.e. NOT dense/fully-connected or
+“spatial or temporal” information, i.e. NOT dense/fully-connected or
 merge layers, but recurrent, convolutional, or embedding layers.
 
 .. code:: ipython3
@@ -886,33 +900,33 @@ merge layers, but recurrent, convolutional, or embedding layers.
     
     
     
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
     
     
-        
     
-        
     
-        
     
-        
-            
     
-        
     
-            
     
-            
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
         <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
@@ -920,39 +934,39 @@ merge layers, but recurrent, convolutional, or embedding layers.
         </p>
     
     
-        
-    
-        
-    
-        
-    
-        
     
     
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
     
     
-        
     
-        
     
-        
     
-        
     
-        
     
-        
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
     
@@ -976,33 +990,33 @@ merge layers, but recurrent, convolutional, or embedding layers.
     
     
     
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
     
     
-        
     
-        
     
-        
     
-        
-            
     
-        
     
-            
     
-            
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
         <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
@@ -1010,39 +1024,39 @@ merge layers, but recurrent, convolutional, or embedding layers.
         </p>
     
     
-        
-    
-        
-    
-        
-    
-        
     
     
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
     
     
-        
     
-        
     
-        
     
-        
     
-        
     
-        
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
     
@@ -1066,33 +1080,33 @@ merge layers, but recurrent, convolutional, or embedding layers.
     
     
     
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
     
     
-        
     
-        
     
-        
     
-        
-            
     
-        
     
-            
     
-            
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
         <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
@@ -1100,39 +1114,39 @@ merge layers, but recurrent, convolutional, or embedding layers.
         </p>
     
     
-        
-    
-        
-    
-        
-    
-        
     
     
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
     
     
-        
     
-        
     
-        
     
-        
     
-        
     
-        
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
     
@@ -1156,33 +1170,33 @@ merge layers, but recurrent, convolutional, or embedding layers.
     
     
     
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
     
     
-        
     
-        
     
-        
     
-        
-            
     
-        
     
-            
     
-            
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
         <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
@@ -1190,39 +1204,39 @@ merge layers, but recurrent, convolutional, or embedding layers.
         </p>
     
     
-        
-    
-        
-    
-        
-    
-        
     
     
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
     
     
-        
     
-        
     
-        
     
-        
     
-        
     
-        
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
     
@@ -1271,33 +1285,33 @@ The test sample
     
     
     
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
     
     
-        
     
-        
     
-        
     
-        
-            
     
-        
     
-            
     
-            
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
         <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
@@ -1305,39 +1319,39 @@ The test sample
         </p>
     
     
-        
-    
-        
-    
-        
-    
-        
     
     
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
     
     
-        
     
-        
     
-        
     
-        
     
-        
     
-        
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
     
@@ -1361,33 +1375,33 @@ The test sample
     
     
     
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
     
     
-        
     
-        
     
-        
     
-        
-            
     
-        
     
-            
     
-            
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
         <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
@@ -1395,39 +1409,39 @@ The test sample
         </p>
     
     
-        
-    
-        
-    
-        
-    
-        
     
     
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
     
     
-        
     
-        
     
-        
     
-        
     
-        
     
-        
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
     
@@ -1451,33 +1465,33 @@ The test sample
     
     
     
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
     
     
-        
     
-        
     
-        
     
-        
-            
     
-        
     
-            
     
-            
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
         <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
@@ -1485,39 +1499,39 @@ The test sample
         </p>
     
     
-        
-    
-        
-    
-        
-    
-        
     
     
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
     
     
-        
     
-        
     
-        
     
-        
     
-        
     
-        
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
     
@@ -1541,33 +1555,33 @@ The test sample
     
     
     
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
     
     
-        
     
-        
     
-        
     
-        
-            
     
-        
     
-            
     
-            
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
         <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
@@ -1575,39 +1589,39 @@ The test sample
         </p>
     
     
-        
-    
-        
-    
-        
-    
-        
     
     
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
     
     
-        
     
-        
     
-        
     
-        
     
-        
     
-        
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
     
@@ -1644,33 +1658,33 @@ The last two dense layers
     
     
     
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
     
     
-        
     
-        
     
-        
     
-        
-            
     
-        
     
-            
     
-            
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
         <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
@@ -1678,39 +1692,39 @@ The last two dense layers
         </p>
     
     
-        
-    
-        
-    
-        
-    
-        
     
     
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
     
     
-        
     
-        
     
-        
     
-        
     
-        
     
-        
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
     
@@ -1734,33 +1748,33 @@ The last two dense layers
     
     
     
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
     
     
-        
     
-        
     
-        
     
-        
-            
     
-        
     
-            
     
-            
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
         <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
@@ -1768,47 +1782,47 @@ The last two dense layers
         </p>
     
     
-        
-    
-        
-    
-        
-    
-        
     
     
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
     
     
-        
     
-        
     
-        
     
-        
     
-        
     
-        
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
     
 
 
 
-What's up with the final dense layers? They do not have spatial
-information so it's mostly a visualization of the activations of each
+What’s up with the final dense layers? They do not have spatial
+information so it’s mostly a visualization of the activations of each
 node, ignoring the underlying tokens.
 
 Removing padding with ``pad_value`` or ``pad_token`` arguments
@@ -1855,33 +1869,33 @@ after the text.
     
     
     
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
     
     
-        
     
-        
     
-        
     
-        
-            
     
-        
     
-            
     
-            
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
         <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
@@ -1889,39 +1903,39 @@ after the text.
         </p>
     
     
-        
-    
-        
-    
-        
-    
-        
     
     
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
     
     
-        
     
-        
     
-        
     
-        
     
-        
     
-        
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
     
@@ -1974,33 +1988,33 @@ Notice the number used for padding is ``0``.
     
     
     
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
     
     
-        
     
-        
     
-        
     
-        
-            
     
-        
     
-            
     
-            
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
         <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
@@ -2008,39 +2022,39 @@ Notice the number used for padding is ``0``.
         </p>
     
     
-        
-    
-        
-    
-        
-    
-        
     
     
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
     
     
-        
     
-        
     
-        
     
-        
     
-        
     
-        
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
     
@@ -2048,7 +2062,7 @@ Notice the number used for padding is ``0``.
 
 
 
-Let's try to add padding to the sample and explain that
+Let’s try to add padding to the sample and explain that
 
 .. code:: ipython3
 
@@ -2102,33 +2116,33 @@ Let's try to add padding to the sample and explain that
     
     
     
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
     
     
-        
     
-        
     
-        
     
-        
-            
     
-        
     
-            
     
-            
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
         <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
@@ -2136,39 +2150,39 @@ Let's try to add padding to the sample and explain that
         </p>
     
     
-        
-    
-        
-    
-        
-    
-        
     
     
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
     
     
-        
     
-        
     
-        
     
-        
     
-        
     
-        
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
     
@@ -2198,33 +2212,33 @@ from the explanation
     
     
     
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
     
     
-        
     
-        
     
-        
     
-        
-            
     
-        
     
-            
     
-            
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
         <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
@@ -2232,39 +2246,39 @@ from the explanation
         </p>
     
     
-        
-    
-        
-    
-        
-    
-        
     
     
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
     
     
-        
     
-        
     
-        
     
-        
     
-        
     
-        
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
     
@@ -2272,7 +2286,7 @@ from the explanation
 
 
 
-That's something. Though the model still gives different results
+That’s something. Though the model still gives different results
 compared to the explanation given for the not-padded ``review`` array.
 That is because we feed the input as it is, but only remove padding from
 the results.
@@ -2290,7 +2304,7 @@ finanial complaints dataset
 used character-level tokenization and a convolutional network that takes
 fixed-length input. For this model the output will be a vector (since we
 have many classes). The entry with the highest value will be the
-"predicted" class.
+“predicted” class.
 
 For full details of how we trained the model and the data check
 https://www.kaggle.com/tobalt/keras-text-model-multiclass or the
@@ -2312,6 +2326,7 @@ Load the model
 
 .. parsed-literal::
 
+    Model: "sequential_1"
     _________________________________________________________________
     Layer (type)                 Output Shape              Param #   
     =================================================================
@@ -2365,12 +2380,12 @@ Again check the metrics.
 .. parsed-literal::
 
     ['loss', 'acc']
-    500/500 [==============================] - 7s 14ms/step
+    500/500 [==============================] - 2s 5ms/step
     0.6319513120651246 0.7999999990463257
     Accuracy: 0.7999999990463257
 
 
-Let's see the possible classes that consumer complaint narratives can
+Let’s see the possible classes that consumer complaint narratives can
 fall into
 
 .. code:: ipython3
@@ -2396,7 +2411,7 @@ fall into
 
 
 
-Let's explain one of the test samples
+Let’s explain one of the test samples
 
 .. code:: ipython3
 
@@ -2433,7 +2448,7 @@ Let's explain one of the test samples
     Ocwen financial services claims simultaneously to have a loan with me ( despite my never having done business with them or having been notified of said loan ) and to have written off said loan with the IRS in XX/XX/XXXX. Further, they continue to insert themselves in a legal case I have against XXXX XXXX XXXX company regarding my foreclosure. Ocwen has claimed in a legal deposition that they are the current holder of an unsigned original, legally executed Note. XXXX has claimed that the holder of the note is the owner of the property. However, Ocwen appears to have discharged the Note according to the IRS. This Note was discharged previously by IndyMac Mortgage Services in XX/XX/XXXX ( which Ocwen is aware of as the evidence of this was shown to them at a legal deposition ). Ocwen appears to have applied a court ordered use and occupancy payment made out to XXXX to a loan ( number XXXX XXXX which Ocwen pretends to have with me. I have r
 
 
-Let's check what the model predicts (to which category the financial
+Let’s check what the model predicts (to which category the financial
 complaint belongs)
 
 .. code:: ipython3
@@ -2485,7 +2500,7 @@ And the ground truth
 
 Seems reasonable!
 
-Now let's explain this prediction with ELI5.
+Now let’s explain this prediction with ELI5.
 
 .. code:: ipython3
 
@@ -2505,33 +2520,33 @@ Now let's explain this prediction with ELI5.
     
     
     
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
     
     
-        
     
-        
     
-        
     
-        
-            
     
-        
     
-            
     
-            
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
         <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
@@ -2541,39 +2556,39 @@ Now let's explain this prediction with ELI5.
         </p>
     
     
-        
-    
-        
-    
-        
-    
-        
     
     
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
     
     
-        
     
-        
     
-        
     
-        
     
-        
     
-        
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
     
@@ -2589,8 +2604,6 @@ Our own example
 .. code:: ipython3
 
     s = """first of all I should not be charged and debited for the private car loan"""
-    # s = "tried to collect debt for a van vehicle loan that I did not have"
-    # s = "mortgage interest and credit card"
     complaint, complaint_t = keras_multiclass_text_classifier.string_to_vectorized(s)
     print(complaint)
     print(complaint_t[0, :50])  # note that this model requires fixed length input
@@ -2633,33 +2646,33 @@ Our own example
     
     
     
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
     
     
-        
     
-        
     
-        
     
-        
-            
     
-        
     
-            
     
-            
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
         <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
@@ -2667,39 +2680,39 @@ Our own example
         </p>
     
     
-        
-    
-        
-    
-        
-    
-        
     
     
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
     
     
-        
     
-        
     
-        
     
-        
     
-        
     
-        
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
     
@@ -2707,7 +2720,7 @@ Our own example
 
 
 
-Let's check all the layers. Maybe some will give better-looking
+Let’s check all the layers. Maybe some will give better-looking
 explanations.
 
 .. code:: ipython3
@@ -2770,33 +2783,33 @@ explanations.
     
     
     
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
     
     
-        
     
-        
     
-        
     
-        
-            
     
-        
     
-            
     
-            
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
         <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
@@ -2804,39 +2817,39 @@ explanations.
         </p>
     
     
-        
-    
-        
-    
-        
-    
-        
     
     
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
     
     
-        
     
-        
     
-        
     
-        
     
-        
     
-        
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
     
@@ -2860,33 +2873,33 @@ explanations.
     
     
     
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
     
     
-        
     
-        
     
-        
     
-        
-            
     
-        
     
-            
     
-            
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
         <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
@@ -2894,39 +2907,39 @@ explanations.
         </p>
     
     
-        
-    
-        
-    
-        
-    
-        
     
     
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
     
     
-        
     
-        
     
-        
     
-        
     
-        
     
-        
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
     
@@ -2950,33 +2963,33 @@ explanations.
     
     
     
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
     
     
-        
     
-        
     
-        
     
-        
-            
     
-        
     
-            
     
-            
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
         <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
@@ -2984,39 +2997,39 @@ explanations.
         </p>
     
     
-        
-    
-        
-    
-        
-    
-        
     
     
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
     
     
-        
     
-        
     
-        
     
-        
     
-        
     
-        
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
     
@@ -3040,33 +3053,33 @@ explanations.
     
     
     
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
     
     
-        
     
-        
     
-        
     
-        
-            
     
-        
     
-            
     
-            
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
         <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
@@ -3074,39 +3087,39 @@ explanations.
         </p>
     
     
-        
-    
-        
-    
-        
-    
-        
     
     
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
     
     
-        
     
-        
     
-        
     
-        
     
-        
     
-        
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
     
@@ -3130,33 +3143,33 @@ explanations.
     
     
     
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
     
     
-        
     
-        
     
-        
     
-        
-            
     
-        
     
-            
     
-            
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
         <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
@@ -3164,39 +3177,39 @@ explanations.
         </p>
     
     
-        
-    
-        
-    
-        
-    
-        
     
     
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
     
     
-        
     
-        
     
-        
     
-        
     
-        
     
-        
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
     
@@ -3220,33 +3233,33 @@ explanations.
     
     
     
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
     
     
-        
     
-        
     
-        
     
-        
-            
     
-        
     
-            
     
-            
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
         <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
@@ -3254,39 +3267,39 @@ explanations.
         </p>
     
     
-        
-    
-        
-    
-        
-    
-        
     
     
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
     
     
-        
     
-        
     
-        
     
-        
     
-        
     
-        
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
     
@@ -3310,33 +3323,33 @@ explanations.
     
     
     
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
     
     
-        
     
-        
     
-        
     
-        
-            
     
-        
     
-            
     
-            
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
         <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
@@ -3344,39 +3357,39 @@ explanations.
         </p>
     
     
-        
-    
-        
-    
-        
-    
-        
     
     
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
     
     
-        
     
-        
     
-        
     
-        
     
-        
     
-        
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
     
@@ -3400,33 +3413,33 @@ explanations.
     
     
     
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
     
     
-        
     
-        
     
-        
     
-        
-            
     
-        
     
-            
     
-            
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
         <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
@@ -3434,39 +3447,39 @@ explanations.
         </p>
     
     
-        
-    
-        
-    
-        
-    
-        
     
     
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
     
     
-        
     
-        
     
-        
     
-        
     
-        
     
-        
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
     
@@ -3474,7 +3487,7 @@ explanations.
 
 
 It should make sense for a Convolutional network that later layers pick
-up "higher level" information than earlier "lower level" layers (such as
+up “higher level” information than earlier “lower level” layers (such as
 the Embedding layer that only highlights characters).
 
 Choosing a classification target to focus on via ``targets``
@@ -3483,18 +3496,18 @@ Choosing a classification target to focus on via ``targets``
 In the last text we saw that it could be classified into more than just
 one category.
 
-We can use ELI5 to "force" the network to classify the input into a
+We can use ELI5 to “force” the network to classify the input into a
 certain category, and then highlight evidence for that category.
 
 We use the ``targets`` argument for this. We pass a list that contains
 integer indices. Those indices represent a class in the final output
 layer.
 
-Let's check two sensible categories
+Let’s check two sensible categories
 
 .. code:: ipython3
 
-    debt_idx = 0  # we get this from the labels index
+    debt_idx = 0  # we get this from the labels' index
     loan_idx = 1
 
 .. code:: ipython3
@@ -3525,33 +3538,33 @@ Let's check two sensible categories
     
     
     
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
     
     
-        
     
-        
     
-        
     
-        
-            
     
-        
     
-            
     
-            
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
         <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
@@ -3559,39 +3572,39 @@ Let's check two sensible categories
         </p>
     
     
-        
-    
-        
-    
-        
-    
-        
     
     
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
     
     
-        
     
-        
     
-        
     
-        
     
-        
     
-        
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
     
@@ -3615,33 +3628,33 @@ Let's check two sensible categories
     
     
     
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
     
     
-        
     
-        
     
-        
     
-        
-            
     
-        
     
-            
     
-            
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
         <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
@@ -3649,39 +3662,39 @@ Let's check two sensible categories
         </p>
     
     
-        
-    
-        
-    
-        
-    
-        
     
     
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
     
     
-        
     
-        
     
-        
     
-        
     
-        
     
-        
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
     
@@ -3701,7 +3714,7 @@ function actually does is call ``explain_prediction()`` to produce an
 ``Explanation`` object, and then passes that object to
 ``format_as_html()`` to produce highlighted HTML.
 
-Let's check each of these steps
+Let’s check each of these steps
 
 .. code:: ipython3
 
@@ -3718,7 +3731,7 @@ This is an ``Explanation`` object
 
 .. parsed-literal::
 
-    "Explanation(estimator='sequential_1', description='\\nGrad-CAM visualization for classification tasks; \\noutput is explanation object that contains a heatmap.\\n', error='', method='Grad-CAM', is_regression=False, targets=[TargetExplanation(target=0, feature_weights=None, proba=None, score=0.5912496, weighted_spans=WeightedSpans(docs_weighted_spans=[DocWeightedSpans(document='<START> hello this is great but not so great', spans=[('<START>', [(0, 7)], 0.04707520170978796), ('hello', [(8, 13)], 0.050255952907264145), ('this', [(14, 18)], 0.051052169244030665), ('is', [(19, 21)], 0.051517811452868045), ('great', [(22, 27)], 0.048895430725679034), ('but', [(28, 31)], 0.03907256391948977), ('not', [(32, 35)], 0.03281831360072829), ('so', [(36, 38)], 0.028806375945350737), ('great', [(39, 44)], 0.023793572530848905)], preserve_density=None, vec_name=None)], other=None), heatmap=array([0.0470752 , 0.05025595, 0.05105217, 0.05151781, 0.04889543,\n       0.03907256, 0.03281831, 0.02880638, 0.02379357]))], feature_importances=None, decision_tree=None, highlight_spaces=None, transition_features=None, image=None, layer=<keras.layers.wrappers.Bidirectional object at 0x7fdf987da550>)"
+    "Explanation(estimator='sequential_1', description='\\nGrad-CAM visualization for classification tasks; \\noutput is explanation object that contains a heatmap.\\n', error='', method='Grad-CAM', is_regression=False, targets=[TargetExplanation(target=0, feature_weights=None, proba=None, score=0.5912496, weighted_spans=WeightedSpans(docs_weighted_spans=[DocWeightedSpans(document='<START> hello this is great but not so great', spans=[('<START>', [(0, 7)], 0.04707520170978796), ('hello', [(8, 13)], 0.050255952907264145), ('this', [(14, 18)], 0.051052169244030665), ('is', [(19, 21)], 0.051517811452868045), ('great', [(22, 27)], 0.048895430725679034), ('but', [(28, 31)], 0.03907256391948977), ('not', [(32, 35)], 0.03281831360072829), ('so', [(36, 38)], 0.028806375945350737), ('great', [(39, 44)], 0.023793572530848905)], preserve_density=None, vec_name=None)], other=None), heatmap=array([0.0470752 , 0.05025595, 0.05105217, 0.05151781, 0.04889543,\n       0.03907256, 0.03281831, 0.02880638, 0.02379357]))], feature_importances=None, decision_tree=None, highlight_spaces=None, transition_features=None, image=None, layer=<keras.layers.wrappers.Bidirectional object at 0x7f7354366dd0>)"
 
 
 
@@ -3734,7 +3747,7 @@ the heatmap
 
 .. parsed-literal::
 
-    <keras.layers.wrappers.Bidirectional at 0x7fdf987da550>
+    <keras.layers.wrappers.Bidirectional at 0x7f7354366dd0>
 
 
 
@@ -3752,7 +3765,7 @@ We can get the predicted class and the value for the prediction
 
 
 We can also check the produced Grad-CAM ``heatmap`` found on each item
-in ``targets``. You can think of this as an array of "importances" for
+in ``targets``. You can think of this as an array of “importances” for
 tokens (after padding is removed and the heatmap is resized).
 
 .. code:: ipython3
@@ -3801,15 +3814,15 @@ Observe the ``document`` attribute and ``spans``
     [('<START>', [(0, 7)], 0.04707520170978796), ('hello', [(8, 13)], 0.050255952907264145), ('this', [(14, 18)], 0.051052169244030665), ('is', [(19, 21)], 0.051517811452868045), ('great', [(22, 27)], 0.048895430725679034), ('but', [(28, 31)], 0.03907256391948977), ('not', [(32, 35)], 0.03281831360072829), ('so', [(36, 38)], 0.028806375945350737), ('great', [(39, 44)], 0.023793572530848905)]
 
 
-The ``document`` is the "stringified" version of ``tokens``. If you have
-a custom "tokens -> string" algorithm you may want to set this attribute
+The ``document`` is the “stringified” version of ``tokens``. If you have
+a custom “tokens -> string” algorithm you may want to set this attribute
 yourself.
 
 The ``spans`` object is a list of weights for each character in
 ``document``. We use the indices in ``document`` string to indicate
 which characters should be weighted with a specific value.
 
-Let's format this. HTML formatter is what should be used here.
+Let’s format this. HTML formatter is what should be used here.
 
 .. code:: ipython3
 
@@ -3817,7 +3830,7 @@ Let's format this. HTML formatter is what should be used here.
     F = eli5.format_as_html(E, show=fields.WEIGHTS)
 
 We pass a ``show`` argument to not display the method name or its
-description ("Grad-CAM"). See ``eli5.format_as_html()`` for a list of
+description (“Grad-CAM”). See ``eli5.format_as_html()`` for a list of
 all supported arguments.
 
 The output is an HTML-encoded string.
@@ -3855,38 +3868,38 @@ notebook
     
     
     
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
     
     
-        
     
-        
     
-        
     
-        
-            
     
-        
     
-            
-                
-                    
-                    
-                
-            
     
-            
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
         <p style="margin-bottom: 2.5em; margin-top:-0.5em;">
@@ -3894,39 +3907,39 @@ notebook
         </p>
     
     
-        
-    
-        
-    
-        
-    
-        
     
     
-        
-    
-        
-    
-        
-    
-        
-    
-        
-    
-        
     
     
-        
     
-        
     
-        
     
-        
     
-        
     
-        
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
     
@@ -3940,4 +3953,4 @@ Multi-label classification
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Did not really work for us. Got non-sensical explanations. Feel free to
-send feedback if could explain multi-label models.
+send feedback if you could explain multi-label models.
