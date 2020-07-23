@@ -316,7 +316,6 @@ def show_prediction(estimator, doc, **kwargs):
             return format_as_image(expl, **format_kwargs)
     else:
         # use default implementation
-        # TODO: a better design / refactorings might be needed
         _set_html_kwargs_defaults(format_kwargs)
         html = format_as_html(expl, **format_kwargs)
         return HTML(html)

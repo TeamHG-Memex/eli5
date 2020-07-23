@@ -20,7 +20,7 @@ ELI5_ is a Python package which helps to debug machine learning
 classifiers and explain their predictions. It provides support for the
 following machine learning frameworks and packages:
 
-* :ref:`library-scikit-learn`. Currently ELI5 allows to explain weights
+* :ref:`library-scikit-learn` - Currently ELI5 allows to explain weights
   and predictions of scikit-learn linear classifiers and regressors,
   print decision trees as text or as SVG, show feature importances
   and explain predictions of decision trees and tree-based ensembles.
@@ -31,7 +31,7 @@ following machine learning frameworks and packages:
   highlight text data accordingly. It also allows to debug scikit-learn
   pipelines which contain HashingVectorizer, by undoing hashing.
 
-* :ref:`library-keras` - explain predictions of image classifiers
+* :ref:`library-keras` - explain predictions of image and text classifiers
   via Grad-CAM visualizations.
 
 * :ref:`library-xgboost` - show feature importances and explain predictions
@@ -45,7 +45,7 @@ following machine learning frameworks and packages:
 * :ref:`library-lightning` - explain weights and predictions of lightning
   classifiers and regressors.
 
-* :ref:`library-sklearn-crfsuite`. ELI5 allows to check weights of
+* :ref:`library-sklearn-crfsuite` - ELI5 allows to check weights of
   sklearn_crfsuite.CRF models.
 
 ELI5 also implements several algorithms for inspecting black-box models

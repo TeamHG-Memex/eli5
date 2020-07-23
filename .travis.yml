@@ -41,13 +41,13 @@ addons:
             - libatlas-base-dev
             - liblapack-dev
             - gfortran
-            - cmake
 
 before_install:
     - sudo apt-get -qq update
     - if [[ "$TOXENV" != "py35-nodeps" ]]; then sudo apt-get install graphviz; fi
 
 install:
+    - pip install --upgrade cmake
     - pip install -U pip tox codecov
 
 script: tox

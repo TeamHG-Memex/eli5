@@ -10,39 +10,104 @@ and experimental neural network architectures.
 
 .. _Keras: https://keras.io/
 
+.. _GradCAM: https://arxiv.org/abs/1610.02391/
+
+.. _ReLU: https://en.wikipedia.org/wiki/Rectifier_(neural_networks)
 
 .. _keras-explain-prediction:
 
 explain_prediction
 ------------------
 
-Currently ELI5 supports :func:`eli5.explain_prediction` for Keras image classifiers.
-:func:`eli5.explain_prediction` explains image classifications through `Grad-CAM <https://arxiv.org/pdf/1610.02391.pdf>`_.
+Currently ELI5 supports :func:`eli5.explain_prediction` for Keras image and text classifiers.
 
-The returned :class:`eli5.base.Explanation` instance contains some important objects:
+Explanations are done using the GradCAM_ technique. Using it, we feed an input into the network, and differentiate the model's output with respect to a hidden layer (that contains spatial information). We do a bunch of computations with those values and get a Grad-CAM "heatmap" (or "localization map"). The heatmap highlights what parts of the input (actually the parts of the hidden layer, but it can be resized) contributed to the prediction the most (positively or negatively).
 
-* ``image`` represents the image input into the model. A Pillow image.
+Roughly, the "formula" to calculate the localization map ``lmap`` is::
 
-* ``targets`` represents the explanation values for each target class (currently only 1 target is supported). A list of :class:`eli5.base.TargetExplanation` objects with the following attributes set:
+    lmap = relu(sum(w*A))
 
-    * ``heatmap``  a grayscale "localization map" (rank 2 (2D) numpy array, with float values in the interval `[0, 1]`). The numbers indicate how important the region in the image is for the target class (even if the target class was not the predicted class). Higher numbers mean that the region tends to increase the predicted value for a class. Lower numbers mean that the region has smaller effect on the predicted class score.
+where: 
 
-    * ``target`` the integer ID of the class (same as the argument to ``targets`` if one was passed, or the predicted class ID if no argument was passed).
+* ``w`` is the weights corresponding to activation maps ``A``.
+* ``A`` is the activation maps for the hidden layer, i.e. the output at that hidden layer for a given input.
+* ``relu`` is the ReLU_ rectifier operation (caps negative numbers at 0).
+    * For classification tasks, this can be thought as removing the influence on the explanation of other classes that may be present.
+* ``sum`` adds all its terms together into a single result.
+* ``w*A`` takes a linear combination of its terms.
 
-    * ``score`` the output of the network for the predicted class.
+To compute ``w``, we do::
+
+    w = pool(dy/dA)
+
+where:
+
+* ``dy/dA`` is the gradients of the output with respect to the activation maps.
+    * ``y`` may be a single target class in a classification task, i.e. a scalar value.
+* ``pool`` is the Global Average Pooling operation that takes gradients and averages them over certain axes.
 
 
-Important arguments to :func:`eli5.explain_prediction` for ``Model`` and ``Sequential``:
+This is the formula presented in the Grad-CAM paper (https://arxiv.org/abs/1610.02391/).
 
-* ``doc`` is an image as a tensor that can be inputted to the model.
+
+Depending on circumstances ELI5 may use a variation of the above formula. For example, you can pass
+an argument to skip ReLU, which can be useful for explaining binary classification. Pooling is
+skipped if there are not enough axes in the hidden layer to take an average on. Additionally, the
+computed gradients have gradient stabilization applied to them.
+
+
+Important arguments to :func:`eli5.explain_prediction` when using with ``Model`` and ``Sequential``:
+
+* ``model`` is the neural network model to be explained.
+
+* ``doc`` input tensor into the network that will be explained.
     
-    - The tensor must be an instance of ``numpy.ndarray``.
+    - **The tensor must be an instance of ``numpy.ndarray``.**
 
-    - Usually the tensor has the format `(batch, dims, ..., channels)` (channels last format, `dims=(height, width)`, `batch=1`, one image), i.e. `BHWC`.
+    - Usually the tensor has the format `(batch, height, width, channels)` for images and `(batch, series)` for text.
     
-    - Check ``model.input_shape`` to confirm the required dimensions of the input tensor.
+    - Check ``model.input_shape`` to see the required dimensions of the input tensor for your model.
 
-* ``image`` Pillow image, corresponds to doc input.
+    - **Currently only the first sample in a batch is explained. It's best to pass input with `batch=1`.**
+
+    - **Currently only "channels last" tensor format is supported.**
+
+* ``targets`` are the output classes to focus on. Possible values include: 
+
+    - A list of integers (class ID's). **Only the first prediction from the list is currently taken. The list must be length one.**
+
+    - `None` for automatically taking the top prediction that the model makes.
+
+* ``layer`` is the layer in the model from which the heatmap will be generated. Possible values are:
+    
+    - An instance of ``Layer``, a layer name (str), or a layer index (int).
+
+    - `None` for automatically picking a suitable layer. Layer is searched for by going backwards from the output through the flattened list of layers. The type and the dimensions of the layer are checked. If no suitable layer can be found, an error is raised.
+
+    - For best results, pick a layer that:
+        * has spatial or temporal information (conv, recurrent, pooling, embedding)
+          (not dense layers).
+        * shows high level features.
+        * has large enough dimensions for resizing over input to work.
+
+
+* ``relu`` whether to apply  to the heatmap.
+    
+    - The GradCAM_ paper applies ReLU to the produced heatmap in order to only show what increases a prediction.
+
+    - Set to `False` in order to see negative values in the heatmap. This lets you see what makes the class score go down, or other classes present in the input.
+
+* ``counterfactual`` whether to negate gradients when computing the heatmap.
+
+    - The GradCAM_ paper mentions "counterfactual explanations". Such explanations show what makes the predicted class score go down. For example, this highlights other classes that are present in the input.
+
+    - Set to `True` to produce counterfactual explanations.
+
+
+Extra arguments for image-based explanations:
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+* ``image`` Pillow image, corresponds to ``doc`` input.
 
     - Image over which to overlay the heatmap.
 
@@ -50,24 +115,88 @@ Important arguments to :func:`eli5.explain_prediction` for ``Model`` and ``Seque
 
     - Useful if ELI5 fails in case you have a custom image model or image input.
 
-* ``targets`` are the output classes to focus on. Possible values include: 
+Image explanations are dispatched to :func:`eli5.keras.explain_prediction.explain_prediction_keras_image`.
 
-    - A list of integers (class ID's). *Only the first prediction from the list is currently taken*. The list must be length one. 
 
-    - None for automatically taking the top prediction of the model.
+Extra arguments for text-based explanations:
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-* ``layer`` is the layer in the model from which the heatmap will be generated. Possible values are:
-    
-    - An instance of ``Layer``, a name (str), or an index (int)
+* ``tokens`` array of strings, corresponding to ``doc`` input.
 
-    - None for automatically getting a suitable layer, if possible.
+    - **Must be passed for text explanations.** This is what will be highlighted for text explanations. Each token should correspond to an integer in ``doc``.
+
+    - List or numpy array containing strings. For example, ``['a', 'sample', 'input']`` 
+
+    - May have a batch dimension (i.e. numpy array with shape (numsamples, len), or a list of lists). *Note that only the first sample in the batch is currently explained.*
+
+    - **Must be the same length as** ``doc``.
+
+    - **If passing without batch dimension,** ``doc`` **must have batch size 1.**
+
+    - May have padding if ``doc`` has padding.
+
+* ``pad_value`` number identifying padding.
+
+    - Number inside ``doc`` that is used to indicate padding.
+
+    - For example ``0``.
+
+    - If given, cuts padding off.
+
+    - Do not pass this to see the effect of padding on the prediction (explain padding).
+
+* ``pad_token`` string identifying padding.
+
+    - A string token inside ``tokens`` used to indicate padding.
+
+    - For example ``'<PAD>'``.
+
+    - Works like ``pad_value``. Pass to cut off padding.
+
+* ``interpolation_kind`` method for resizing the heatmap to fit over input.
+
+    - ``scipy`` interpolation method as a string.
+
+    - See ``kind`` argument to `interp1d <https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.interp1d.html>`_.
+
+    - Default is ``linear``.
+
+Text explanations are dispatched to :func:`eli5.keras.explain_prediction.explain_prediction_keras_text`.
+
 
 All other arguments are ignored.
 
 
+:func:`eli5.explain_prediction` return value
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+An :class:`eli5.base.Explanation` instance is returned with some important attributes:
+
+* ``image`` if explaining image-based networks, represents the image input into the model. A Pillow image with mode "RGBA".
+
+* ``layer`` the hidden activation used for Grad-CAM, as a Keras layer instance, from the passed layer or the automatically picked layer.
+
+* ``targets`` represents the explanation values for each target class (currently only 1 target is supported). A list of :class:`eli5.base.TargetExplanation` objects with the following attributes set:
+
+    * ``heatmap``  is a "localization map" (a numpy array with float values). The numbers indicate how important the region in the image is for the target class (even if the target class was not the predicted class). Higher numbers mean that the region tends to increase the predicted value for a class. Lower numbers mean that the region has smaller effect on the predicted class score.
+        
+        - is a 2D numpy array for images.
+
+        - is a 1D numpy array for text.
+
+    * ``target`` the integer ID of the class explained (same as the argument to ``targets`` if one was passed, or the predicted class ID if no argument was passed).
+
+    * ``score`` the output of the network for the predicted class.
+
+    * ``weighted_spans`` an :class:`eli5.base.WeightedSpans` instance, if explaining text-based networks, text to be highlighted and the corresponding weights.
+
+
+If neither ``image`` nor ``tokens`` are passed, an error explanation is returned.
+
+
 .. note::
     Top-level :func:`eli5.explain_prediction` calls are dispatched
-    to :func:`eli5.keras.explain_prediction_keras` for
+    to :func:`eli5.keras.explain_prediction.explain_prediction_keras` for
     ``keras.models.Model`` and ``keras.models.Sequential``.
 
 
@@ -76,9 +205,11 @@ All other arguments are ignored.
 show_prediction
 ---------------
 
-ELI5 supports :func:`eli5.show_prediction` to conveniently 
-invoke ``explain_prediction`` with ``format_as_image``, and display the explanation in an
-IPython cell.
+ELI5 supports :func:`eli5.show_prediction` to conveniently display explanations in an IPython cell.
+:func:`eli5.explain_prediction` is called on a Keras model and the result is passed to a formatter.
+
+For images, formatting is dispatched to :func:`eli5.format_as_image`.
+For text, formatting is dispatched to :func:`eli5.format_as_html`.
 
 
 .. _keras-gradcam:
@@ -86,6 +217,4 @@ IPython cell.
 Grad-CAM
 --------
 
-ELI5 contains :func:`eli5.keras.gradcam.gradcam` and :func:`eli5.keras.gradcam.gradcam_backend`.
-
-These functions can be used to obtain finer details of a Grad-CAM explanation.
+The function :func:`eli5.keras.gradcam.gradcam_backend_keras` can be used to obtain the gradients and activations that are subsequently used when computing a Grad-CAM heatmap.

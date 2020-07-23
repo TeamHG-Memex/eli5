@@ -74,8 +74,26 @@ jupyter nbconvert \
         '../notebooks/keras-image-classifiers.ipynb'
 mv ../notebooks/keras-image-classifiers.rst \
     source/_notebooks/
-rm -r source/_notebooks/keras-image-classifiers_files
+rm -rf source/_notebooks/keras-image-classifiers_files
 mv ../notebooks/keras-image-classifiers_files/ \
     source/_notebooks/
 sed -i 's&.. image:: keras-image-classifiers_files/&.. image:: ../_notebooks/keras-image-classifiers_files/&g' \
     source/_notebooks/keras-image-classifiers.rst
+
+
+# Keras text Grad-CAM (keras-text-classifiers)
+jupyter nbconvert \
+        --to rst \
+        --stdout \
+        '../notebooks/keras-text-classifiers.ipynb' \
+        > source/_notebooks/keras-text-classifiers.rst
+
+
+# to run a notebook before converting it (and to stop if there are any errors):
+# PYTHONPATH=$PWD/.. jupyter nbconvert \
+#         --ExecutePreprocessor.timeout=180 \
+#         --execute
+#         ...REST OF COMMANDS
+
+# to update a single notebook:
+# sed -n '/# NOTEBOOK COMMENT/,/^$/p' update-notebooks.sh | bash
