@@ -50,8 +50,10 @@ where:
 This is the formula presented in the Grad-CAM paper (https://arxiv.org/abs/1610.02391/).
 
 
-Depending on circumstances, in this library we may skip or modify some operations (like ReLU or pooling).
-We may also add extra operations like gradient stabilization.
+Depending on circumstances ELI5 may use a variation of the above formula. For example, you can pass
+an argument to skip ReLU, which can be useful for explaining binary classification. Pooling is
+skipped if there are not enough axes in the hidden layer to take an average on. Additionally, the
+computed gradients have gradient stabilization applied to them.
 
 
 Important arguments to :func:`eli5.explain_prediction` when using with ``Model`` and ``Sequential``:
