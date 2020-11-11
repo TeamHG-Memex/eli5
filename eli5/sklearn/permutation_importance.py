@@ -196,7 +196,7 @@ class PermutationImportance(BaseEstimator, MetaEstimatorMixin):
             self.estimator_ = clone(self.estimator)
             self.estimator_.fit(X, y, **fit_params)
 
-        X = check_array(X, force_all_finite=False)
+        X = check_array(X, force_all_finite='allow-nan')
 
         if self.cv not in (None, "prefit"):
             si = self._cv_scores_importances(X, y, groups=groups, **fit_params)
