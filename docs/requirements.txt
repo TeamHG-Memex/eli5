@@ -4,5 +4,5 @@ sphinx_rtd_theme
 ipython
 scipy
 numpy > 1.9.0
-scikit-learn >= 0.18
+scikit-learn >= 0.20
 typing
