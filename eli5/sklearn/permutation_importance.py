@@ -12,7 +12,7 @@ from sklearn.base import (
     clone,
     is_classifier
 )
-from sklearn.metrics.scorer import check_scoring
+from sklearn.metrics import check_scoring
 
 from eli5.permutation_importance import get_score_importances
 from eli5.sklearn.utils import pandas_available
