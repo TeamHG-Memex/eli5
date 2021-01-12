@@ -3,7 +3,7 @@
 
 import numpy as np
 from sklearn.pipeline import Pipeline, FeatureUnion
-from sklearn.feature_selection.base import SelectorMixin
+from sklearn.feature_selection import SelectorMixin
 
 from sklearn.preprocessing import (
     MinMaxScaler,
