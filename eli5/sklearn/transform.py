@@ -3,7 +3,10 @@
 
 import numpy as np
 from sklearn.pipeline import Pipeline, FeatureUnion
-from sklearn.feature_selection.base import SelectorMixin
+try:
+    from sklearn.feature_selection.base import SelectorMixin
+except ModuleNotFoundError:
+    from sklearn.feature_selection import SelectorMixin
 
 from sklearn.preprocessing import (
     MinMaxScaler,

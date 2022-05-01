@@ -18,10 +18,13 @@ from .features import FormattedFeatureName
 from .trees import tree2text
 from .text_helpers import prepare_weighted_spans, PreparedWeightedSpans
 
-
-template_env = Environment(
-    loader=PackageLoader('eli5', 'templates'),
-    extensions=['jinja2.ext.with_'])
+try:
+    template_env = Environment(
+            loader=PackageLoader('eli5', 'templates'),
+            extensions=['jinja2.ext.with_'])
+except AttributeError:
+    template_env = Environment(
+        loader=PackageLoader('eli5', 'templates'))
 template_env.globals.update(dict(zip=zip, numpy=np))
 template_env.filters.update(dict(
     weight_color=lambda w, w_range: format_hsl(weight_color_hsl(w, w_range)),
@@ -104,7 +107,7 @@ def format_as_html(explanation,  # type: Explanation
             abs(fw.weight) for fw in explanation.feature_importances.importances)
         if explanation.feature_importances else 0,
         target_weight_range=max_or_0(
-            get_weight_range(t.feature_weights) for t in targets 
+            get_weight_range(t.feature_weights) for t in targets
         if t.feature_weights is not None),
         other_weight_range=max_or_0(
             get_weight_range(other)
