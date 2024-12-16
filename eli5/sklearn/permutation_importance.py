@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 from functools import partial
-from typing import List
 
 import numpy as np
 from sklearn.model_selection import check_cv
-from sklearn.utils.metaestimators import if_delegate_has_method
+from sklearn.utils.metaestimators import available_if
 from sklearn.utils import check_array, check_random_state
 from sklearn.base import (
     BaseEstimator,
@@ -12,7 +11,7 @@ from sklearn.base import (
     clone,
     is_classifier
 )
-from sklearn.metrics.scorer import check_scoring
+from sklearn.metrics import check_scoring
 
 from eli5.permutation_importance import get_score_importances
 from eli5.sklearn.utils import pandas_available
@@ -38,6 +37,13 @@ If feature importances are computed on the same data as used for training,
 they don't reflect importance of features for generalization. Use a held-out
 dataset if you want generalization feature importances.
 """
+
+def _estimator_has(attr):
+    """Check if we can delegate a method to the underlying estimator.
+    First, we check the fitted estimator if available, otherwise we
+    check the unfitted estimator.
+    """
+    return lambda self: hasattr(self.wrapped_estimator_, attr)
 
 
 class PermutationImportance(BaseEstimator, MetaEstimatorMixin):
@@ -247,23 +253,23 @@ class PermutationImportance(BaseEstimator, MetaEstimatorMixin):
 
     # ============= Exposed methods of a wrapped estimator:
 
-    @if_delegate_has_method(delegate='wrapped_estimator_')
+    @available_if(_estimator_has('score'))
     def score(self, X, y=None, *args, **kwargs):
         return self.wrapped_estimator_.score(X, y, *args, **kwargs)
 
-    @if_delegate_has_method(delegate='wrapped_estimator_')
+    @available_if(_estimator_has('predict'))
     def predict(self, X):
         return self.wrapped_estimator_.predict(X)
 
-    @if_delegate_has_method(delegate='wrapped_estimator_')
+    @available_if(_estimator_has('predict_proba'))
     def predict_proba(self, X):
         return self.wrapped_estimator_.predict_proba(X)
 
-    @if_delegate_has_method(delegate='wrapped_estimator_')
+    @available_if(_estimator_has('predict_log_proba'))
     def predict_log_proba(self, X):
         return self.wrapped_estimator_.predict_log_proba(X)
 
-    @if_delegate_has_method(delegate='wrapped_estimator_')
+    @available_if(_estimator_has('decision_function'))
     def decision_function(self, X):
         return self.wrapped_estimator_.decision_function(X)
 

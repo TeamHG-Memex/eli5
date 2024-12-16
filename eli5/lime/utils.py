@@ -6,7 +6,7 @@ import numpy as np
 from scipy.stats import entropy
 from sklearn.pipeline import Pipeline
 from sklearn.utils import check_random_state, issparse
-from sklearn.utils.metaestimators import if_delegate_has_method
+from sklearn.utils.metaestimators import available_if
 from sklearn.utils import shuffle as _shuffle
 
 from eli5.utils import vstack
@@ -69,11 +69,17 @@ def fix_multiclass_predict_proba(y_proba,          # type: np.ndarray
     y_proba_fixed[:, class_mapping] = y_proba
     return y_proba_fixed
 
+def _estimator_has(attr):
+    """Check if we can delegate a method to the underlying estimator.
+    First, we check the fitted estimator if available, otherwise we
+    check the unfitted estimator.
+    """
+    return lambda self: hasattr(self._final_estimator, attr)
 
 class _PipelinePatched(Pipeline):
     # Patch from https://github.com/scikit-learn/scikit-learn/pull/7723;
     # only needed for scikit-learn < 0.19.
-    @if_delegate_has_method(delegate='_final_estimator')
+    @available_if(_estimator_has('score'))
     def score(self, X, y=None, **score_params):
         Xt = X
         for name, transform in self.steps[:-1]:
