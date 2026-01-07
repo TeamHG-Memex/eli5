@@ -1,0 +1,3 @@
+./runtests_nodeps.sh
+./runtests_extra.sh
+./runtests_default.sh

@@ -1,0 +1,268 @@
+{
+    "rules": [
+    {
+	    "id" : "07kwRDfGEGxIqlUsk3232" 
+	    "title: repo organization:",
+	    "category": "required before merge",
+	    "content" : "to_implement/  build/  include/  lib/  docs/  src/  bin/ <--- the binary or binaries i will use, called sane things  Makefile or build.sh or pf task file (something to build that builds all the work)  QUICKSTART.md  README.md  VERSION. Additional directories may be added in an ORGANIZED manner if they do not fit any of these categories. Subfolders should be equally as organized in a very similar way as well."
+    }
+    {
+      "id": "07kwRDfGEGxIqlUskCf32",
+      "title": "pf tool usage",
+      "category": "tools",
+	"content": "if you do not have access to the pf-web-poly-compile-helper-runner repo at P4x-ng/pf-web-poly-compile-helper-runner on github or code at /home/punk/Projects/AlexRepos/pf-web-poly-compile-helper-runner/ you may skip this task. Otherwise, if there are any broken pf tasks, fix them OR fix the grammar in the repo, overall we should be supporting any intuitively written tasks. Rule id 07kwRDfGEGxIqlUskCf32 still applies to all."
+    },	
+    {
+      "id": "07kwRDfGEGxIqlUskCf32",
+      "title": "pf tool usage",
+      "category": "tools",
+	"content": "Code cleanliness rules:  docs go in docs/ please, the repo should be fairly flat, example of good: ```src/ include/ build/ bin/ lib/ py/ main.c main.py```   example of bad:    `src/ src-all/src/prod bin/src/prod build/build/src` in other words, not too many embedded dirs, dirs should have unique names, if there are embedded dirs it should be because different components are required and have separate builds, in which there should be one unified build. But overall, keep things flat, if things need to be integrated integrate them. Also, check all pf tasks and fix them OR remove them if they are no longer relevant."
+    },
+    {
+      "id": "07kwRDfGEGxIqlUskCfmp8",
+      "title": "pf tool usage",
+      "category": "tools",
+      "content": "Use the pf tool at /usr/local/bin. It is NOT bash - it's for simple command running and grouping commands. Avoid complex bash syntax like 'bash -lc'. Use simple commands like: ls -al | grep whatever && ./script.sh"
+    },
+    {
+      "id": "2DZfPjDisCAbGN0eN3CJCg",
+      "title": "Demo code organization",
+      "category": "code-organization",
+      "rules": [
+        "NO DEMO CODE mixed with production",
+        "NO CALCULATION BASED EMULATIONS",
+        "Demo code should be clearly marked and put in a demo/ directory",
+        "Document and be well organized. In a docs/ directory with categories of subdirs please."
+      ]
+    },
+    {
+      "id": "2ESPh9w6c0yEEOjeFmfBuY",
+      "title": "Database preference",
+      "category": "architecture",
+      "content": "Prefer key-value store instead of Postgres for database needs"
+    },
+    {
+      "id": "4aSzJFzCO4U9PIgsCoDnOi",
+      "title": "Justfile structure (DEPRECATED - use pf.py)",
+      "category": "build-tools",
+      "content": "Split Justfile into separate runner scripts: Justfile.tests, Justfile.builds, Justfile.demos, Justfile.cleanup, Justfile.dev (development superset), and Justfile (user-focused with includes)"
+    },
+    {
+      "id": "5t4qAzabAxNhPAZ7Kw1DIR",
+      "title": "Performance metrics",
+      "category": "metrics",
+      "content": "Track pcpu throughput as a performance metric and include this context in WARP.md for reference"
+    },
+    {
+      "id": "BAIhf6C1OOs5EfRuK5VCUC",
+      "title": "Container runtime",
+      "category": "tools",
+      "rule": "PODMAN > Docker",
+      "content": "Use podman, never docker. You may install podman docker compatibility, but use podman here"
+    },
+    {
+      "id": "CLnubWNBAjKTRDVzT2FMzQ",
+      "title": "Security - TLS",
+      "category": "security",
+      "content": "Prefer using TLS (Transport Layer Security) for secure communications. Good security practices are REQUIRED"
+    },
+    {
+      "id": "CM8n5UWim5J4dOhdcRb6Ko",
+      "title": "pf file structure",
+      "category": "build-tools",
+      "content": "When writing a pf file, use helper scripts. Do not use any long commands"
+    },
+    {
+      "id": "Cq2U8ZLkwWDZc86Tbcsp43",
+      "title": "Output formatting",
+      "category": "style",
+      "rules": [
+        "NO EMOJIS",
+        "NO COLOR",
+        "ASCII skulls are OK"
+      ]
+    },
+    {
+      "id": "I3v2uJ8F5lEvaCpsbeC9Rc",
+      "title": "Cleanup rule",
+      "category": "organization",
+      "rule_version": "v1.1",
+      "content": "First task item in each task list should be 'clean up this directory'. Questions: Is this directory cleanly and intuitively laid out? Do imports work properly? Is there old/unimplemented functionality? Communicate your cleanup actions in the plan"
+    },
+    {
+      "id": "MdtnS6a7KC7YAAqtiKSPCR",
+      "title": "Container management",
+      "category": "containers",
+      "content": "Standardize on rebuilding containers whenever big changes are made or changes with volumes that need rebuilding"
+    },
+    {
+      "id": "PvoHcANXykvQbXAzGLIeAI",
+      "title": "WARP context",
+      "category": "tools",
+      "content": "You are being used from WARP, consider that in all answers"
+    },
+    {
+      "id": "QxD09LUQsVFM7V45ZTXwMe",
+      "title": "Code restrictions",
+      "category": "code-quality",
+      "rules": [
+        "no_demo_code: true",
+        "only_prod_or_real_tests: true"
+      ]
+    },
+    {
+      "id": "WBCrwc74pxm0po76XaM8r0",
+      "title": "Automation mode",
+      "category": "automation",
+      "content": "If AUTOMATION.txt exists: keep building until it's removed. First task: check for AUTOMATION.txt. Last task: plan next task. Replace tasks like 'present to user' or 'finish build' with 'KEEP BUILDING'"
+    },
+    {
+      "id": "WtBnml2asBLZYH8fuWGwRa",
+      "title": "Web testing",
+      "category": "testing",
+      "content": "Prefer Playwright scripts for automated web testing, including detection of HTTP errors (502, 404) and file uploads with test files"
+    },
+    {
+      "id": "XbJgGWHKUWsRYTmjCOhWQs",
+      "title": "LLVM integration",
+      "category": "toolchain",
+      "content": "LLVM should be an integral part of development and build processes"
+    },
+    {
+      "id": "XfUwjg7MdHYO7ANfWDdaQv",
+      "title": "Python venv",
+      "category": "python",
+      "rules": [
+        "Central venv sometimes activated by user, sometimes not",
+        "Set python, pip, and other python tools to use FULL PATH of venv at /home/punk/.venv/bin/ or necessary directory"
+      ]
+    },
+    {
+      "id": "Yoen0Bgo0cSoUGuCFpoBAh",
+      "title": "Performance metrics - CPUpwn",
+      "category": "metrics",
+      "content": "Track CPUpwn as a metric measuring performance relative to CPU processing linearly to gauge speed improvements"
+    },
+    {
+      "id": "clPgJ7hct9G9Z2wo4g2KfM",
+      "title": "Complex program runs - planfile.json",
+      "category": "execution",
+      "content": "Complex programs with many parts must be run using planfile.json. Full schema available in rule details"
+    },
+    {
+      "id": "dfCF31dZnTmP5nBOESpVQu",
+      "title": "Demo data handling",
+      "category": "code-organization",
+      "rules": [
+        "ALL DEMO DATA moved to demo/ folder",
+        "Don't use it in any production runs",
+        "If using demo data, application must show LARGE 'DEMO' banner at top"
+      ]
+    },
+    {
+      "id": "eOpzwDgpsLoyAbBs93F2TT",
+      "title": "Web app validation",
+      "category": "testing",
+      "content": "When building web applications, use Playwright MCP to visit EACH PAGE and validate that it works before handing off to user"
+    },
+    {
+      "id": "ffDrRBtXeViteZNzZFtlJY",
+      "title": "pf.py tool (replaces Just)",
+      "category": "build-tools",
+      "deprecated": "Justfiles deprecated in place of pf.py",
+      "content": "pf — tiny Fabric runner with symbol-free DSL, parallel SSH, and live output. Syntax: pf [<pf_file>] <task> [params...]"
+    },
+    {
+      "id": "k3tzmesS000dHCsjSMA6pP",
+      "title": "Fast file finding",
+      "category": "tools",
+      "content": "Use plocate (instant) or fdfind (much faster than find) as alternatives to find command"
+    },
+    {
+      "id": "l97X1BaMznW0KhJjwzyT1I",
+      "title": "Central Python venv",
+      "category": "python",
+      "content": "Use central venv at /home/punk/.venv unless conflicts prevent it. OK to install as root, but change ownership back to punk:punk user and group when done"
+    },
+    {
+      "id": "nEPKDioWrzRjPM66LagDL6",
+      "title": "Kubernetes preference",
+      "category": "infrastructure",
+      "content": "Prefer charmed kubernetes instead of k3s for Kubernetes orchestration"
+    },
+    {
+      "id": "nXE9yT8KaZ1AR35JHVNueZ",
+      "title": "pf script simplicity",
+      "category": "build-tools",
+      "content": "Keep pf scripts super simple - essentially just calls to other shell scripts and combining them, avoiding complexity"
+    },
+    {
+      "id": "p8sPc6hUTzckfWR4ZSFIzZ",
+      "title": "Justfile categories (DEPRECATED - use pf.py)",
+      "category": "build-tools",
+      "content": "Structure with category prefixes: dev- for development, prod- for production, test- for testing, and other relevant categories"
+    },
+    {
+      "id": "pwFzpJBqaPLvuStmxSw6Zf",
+      "title": "Default command",
+      "category": "usability",
+      "content": "Have a 'just <do thing>' command that performs a default, reasonable action based on project purpose for inexperienced users"
+    },
+    {
+      "id": "pzmsFt0kDrVk1G326GC4iv",
+      "title": "Context gathering",
+      "category": "workflow",
+      "rule_version": "v1.2",
+      "content": "Always check WARP.md, PROJECT.txt, and .pf files before beginning tasks. Gather context from code to understand what needs to be done and what the project is about"
+    },
+    {
+      "id": "v5aBevIUENpSFjR53G3Csq",
+      "title": "VMKit usage",
+      "category": "tools",
+      "content": "Use VMKit for virtualization or related tasks always. If it can't do it, add the feature"
+    },
+    {
+      "id": "vsmNyCgHb8bbN9l2Fck0fu",
+      "title": "pf.py tool preference",
+      "category": "build-tools",
+      "content": "Prefer to use pf.py instead of other tools for task running and automation"
+    },
+    {
+      "id": "vwyqnlJFEyfkWJ8GhiBeOT",
+      "title": "File writing verification",
+      "category": "quality",
+      "content": "When you say you're WRITING A FILE, actually write the file. Double check to make sure you wrote a file. Overwrite if needed to be sure"
+    },
+    {
+      "id": "xmvaREHAmaQfiXurNDt7Y5",
+      "title": "AI Agent autonomy",
+      "category": "workflow",
+      "content": "You are being used as an AI Agent with more autonomy. Write files, perform privileged actions (send warning if sudo needed), or anything required"
+    },
+    {
+      "id": "zob0ECwpEWHONzcGVLCeGj",
+      "title": "Switch to pf",
+      "category": "build-tools",
+      "content": "ALL PF FILES MUST BE TESTED BEFORE YOU STOP WORKING. Every entry.",
+    }
+  ],
+  "categories": {
+    "tools": "Tool preferences and configurations",
+    "code-organization": "How code should be organized and structured",
+    "architecture": "Architectural decisions and preferences",
+    "build-tools": "Build system and task runner preferences",
+    "metrics": "Performance metrics and tracking",
+    "security": "Security practices and requirements",
+    "style": "Output and code style preferences",
+    "containers": "Container management and practices",
+    "testing": "Testing approaches and tools",
+    "python": "Python-specific configurations",
+    "infrastructure": "Infrastructure and orchestration preferences",
+    "usability": "User experience and default behaviors",
+    "workflow": "Development workflow practices",
+    "quality": "Code and output quality standards",
+    "automation": "Automation and continuous execution modes",
+    "toolchain": "Build and compilation toolchain preferences"
+  },
+  "precedence_note": "Rules listed in ASCENDING order of precedence. Later rules override earlier rules. Project rules (with file paths) override personal rules. Subdirectory rules override parent directory rules."
+}
