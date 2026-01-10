@@ -327,8 +327,9 @@ def _xgb_n_targets(xgb):
 
 def _xgb_feature_importances(booster, importance_type):
     fs = booster.get_score(importance_type=importance_type)
+    feature_names = booster.feature_names or ["f{0}".format(i) for i in range(booster.num_features())]
     all_features = np.array(
-        [fs.get(f, 0.) for f in booster.feature_names], dtype=np.float32)
+        [fs.get(f, 0.) for f in feature_names], dtype=np.float32)
     return all_features / all_features.sum()
 
 
