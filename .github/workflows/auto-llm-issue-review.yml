@@ -1,0 +1,365 @@
+name: "LLM Issue Review (Model Label Trigger)"
+
+on:
+  issues:
+    types: [labeled]
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: "Issue number"
+        required: true
+        type: number
+      llm_provider:
+        description: "LLM provider"
+        required: false
+        default: ""
+        type: choice
+        options:
+          - ""
+          - openai
+          - gemini
+          - anthropic
+      llm_model:
+        description: "Model name (provider-specific)"
+        required: false
+        default: ""
+        type: string
+      trigger_label:
+        description: "Label to emulate (optional)"
+        required: false
+        default: ""
+        type: string
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: llm-issue-review-${{ github.repository }}-${{ github.event.issue.number || github.event.inputs.issue_number }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run LLM issue review and comment
+        uses: actions/github-script@v7
+        env:
+          ISSUE_NUMBER: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.issue_number || github.event.issue.number }}
+          TRIGGER_LABEL: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.trigger_label || github.event.label.name }}
+          LLM_PROVIDER: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.llm_provider || '' }}
+          LLM_MODEL: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.llm_model || '' }}
+          OPENAI_BASE_URL: ${{ vars.OPENAI_BASE_URL || 'https://api.openai.com/v1' }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            const issueNumber = Number(process.env.ISSUE_NUMBER || "0");
+            if (!issueNumber) {
+              core.setFailed("ISSUE_NUMBER is required (set inputs.issue_number for workflow_dispatch).");
+              return;
+            }
+
+            const triggerLabel = (process.env.TRIGGER_LABEL || "").trim();
+            if (!triggerLabel) {
+              core.info("No trigger label found; skipping.");
+              return;
+            }
+
+            function parseProviderModelFromLabel(label) {
+              const raw = String(label || "").trim();
+              if (!raw) return null;
+
+              // Explicit formats:
+              // - llm:<provider>:<model>
+              // - <provider>:<model> (provider in {openai, gemini, anthropic})
+              let m = raw.match(/^llm:([^:]+):(.+)$/i);
+              if (m) return { provider: m[1].toLowerCase(), model: m[2].trim(), raw };
+
+              m = raw.match(/^(openai|gemini|anthropic):(.+)$/i);
+              if (m) return { provider: m[1].toLowerCase(), model: m[2].trim(), raw };
+
+              // Short formats based on common model prefixes
+              if (/^gpt-/i.test(raw) || /^o\d/i.test(raw) || /^o1/i.test(raw)) {
+                return { provider: "openai", model: raw, raw };
+              }
+              if (/^gemini/i.test(raw)) {
+                const model = raw.toLowerCase() === "gemini3" ? "gemini-3" : raw;
+                return { provider: "gemini", model, raw };
+              }
+              if (/^claude-/i.test(raw)) {
+                return { provider: "anthropic", model: raw, raw };
+              }
+
+              return null;
+            }
+
+            const labelParsed = parseProviderModelFromLabel(triggerLabel);
+            if (!labelParsed) {
+              core.info(`Label '${triggerLabel}' does not look like a model label; skipping.`);
+              return;
+            }
+
+            const provider = (process.env.LLM_PROVIDER || labelParsed.provider || "").trim().toLowerCase();
+            const model = (process.env.LLM_MODEL || labelParsed.model || "").trim();
+            if (!provider || !model) {
+              core.setFailed(`Unable to determine provider/model from label '${triggerLabel}'.`);
+              return;
+            }
+
+            const marker = `<!-- llm-issue-review:${triggerLabel} -->`;
+
+            // Skip if already commented for this label
+            const { data: comments } = await github.rest.issues.listComments({
+              owner,
+              repo,
+              issue_number: issueNumber,
+              per_page: 100,
+            });
+
+            if (comments.some(c => typeof c.body === "string" && c.body.includes(marker))) {
+              core.info("A review comment for this label already exists; skipping.");
+              return;
+            }
+
+            const issueResp = await github.rest.issues.get({
+              owner,
+              repo,
+              issue_number: issueNumber,
+            });
+            const issue = issueResp.data;
+
+            async function tryGetRepoFile(path) {
+              try {
+                const res = await github.rest.repos.getContent({
+                  owner,
+                  repo,
+                  path,
+                });
+
+                if (!res?.data || Array.isArray(res.data) || res.data.type !== "file") return null;
+                const b64 = res.data.content || "";
+                const buf = Buffer.from(b64, "base64");
+                const text = buf.toString("utf8");
+                return text;
+              } catch (e) {
+                return null;
+              }
+            }
+
+            function extractLikelyPaths(text) {
+              const body = String(text || "");
+              const found = new Set();
+
+              // Backticked paths
+              for (const m of body.matchAll(/`([^`]+)`/g)) {
+                const p = (m[1] || "").trim();
+                if (p.includes("/") && !p.startsWith("http")) found.add(p);
+              }
+
+              // Loose paths (very heuristic)
+              for (const m of body.matchAll(/(^|\s)([\w./-]+\.[\w]+)(\s|$)/g)) {
+                const p = (m[2] || "").trim();
+                if (p.includes("/") && !p.startsWith("http")) found.add(p);
+              }
+
+              return Array.from(found).slice(0, 5);
+            }
+
+            const referencedPaths = extractLikelyPaths(issue.body || "");
+            const fileSnippets = [];
+
+            for (const p of referencedPaths) {
+              const content = await tryGetRepoFile(p);
+              if (!content) continue;
+
+              const snippet = content.length > 6000 ? content.slice(0, 6000) + "\n...(truncated)..." : content;
+              fileSnippets.push({ path: p, snippet });
+            }
+
+            const automationTxt = await tryGetRepoFile("AUTOMATION.txt");
+
+            const systemPrompt = [
+              "You are an expert software engineer.",
+              "You are reviewing a GitHub issue and optionally some referenced code.",
+              "Be specific, actionable, and concise.",
+              "Prioritize correctness, security, maintainability, and tests.",
+              "If information is missing, ask short clarifying questions.",
+            ].join(" ");
+
+            const promptParts = [];
+            promptParts.push(`Repository: ${owner}/${repo}`);
+            promptParts.push(`Issue #${issueNumber}: ${issue.title || ""}`);
+            promptParts.push(`Trigger label: ${triggerLabel}`);
+            promptParts.push("");
+            promptParts.push("Issue body:");
+            promptParts.push(issue.body || "(no body)");
+
+            if (automationTxt) {
+              promptParts.push("");
+              promptParts.push("AUTOMATION.txt (guidance):");
+              promptParts.push(automationTxt.length > 4000 ? automationTxt.slice(0, 4000) + "\n...(truncated)..." : automationTxt);
+            }
+
+            if (fileSnippets.length) {
+              promptParts.push("");
+              promptParts.push("Referenced file snippets:");
+              for (const f of fileSnippets) {
+                promptParts.push(`---\nFile: ${f.path}\n\n${f.snippet}`);
+              }
+            }
+
+            promptParts.push("");
+            promptParts.push("Output format:");
+            promptParts.push("- Short summary");
+            promptParts.push("- Issues and risks (High/Medium/Low)");
+            promptParts.push("- Proposed plan (next steps)");
+            promptParts.push("- Suggested tests");
+
+            const userPrompt = promptParts.join("\n");
+
+            async function callOpenAI({ apiKey, baseUrl, model, messages }) {
+              if (!apiKey) throw new Error("OPENAI_API_KEY is not set.");
+              const url = `${baseUrl.replace(/\/$/, "")}/chat/completions`;
+              const payload = { model, messages };
+
+              const isGpt5ish = /gpt-?5/i.test(model) || /^o\d/i.test(model) || /^o1/i.test(model);
+              if (isGpt5ish) {
+                payload.max_completion_tokens = 2048;
+              } else {
+                payload.max_tokens = 2048;
+                payload.temperature = 0.2;
+              }
+
+              const resp = await fetch(url, {
+                method: "POST",
+                headers: {
+                  "Authorization": `Bearer ${apiKey}`,
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify(payload),
+              });
+
+              if (!resp.ok) {
+                const text = await resp.text();
+                throw new Error(`OpenAI API error (${resp.status}): ${text}`);
+              }
+
+              const data = await resp.json();
+              const content = data?.choices?.[0]?.message?.content;
+              if (!content) throw new Error("OpenAI API returned no content.");
+              return content;
+            }
+
+            async function callGemini({ apiKey, model, prompt }) {
+              if (!apiKey) throw new Error("GEMINI_API_KEY is not set.");
+              const geminiModel = model || "gemini-1.5-pro";
+              const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(geminiModel)}:generateContent?key=${encodeURIComponent(apiKey)}`;
+              const payload = {
+                contents: [{ role: "user", parts: [{ text: prompt }] }],
+                generationConfig: { temperature: 0.2, maxOutputTokens: 2048 },
+              };
+
+              const resp = await fetch(url, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+              });
+
+              if (!resp.ok) {
+                const text = await resp.text();
+                throw new Error(`Gemini API error (${resp.status}): ${text}`);
+              }
+
+              const data = await resp.json();
+              const parts = data?.candidates?.[0]?.content?.parts || [];
+              const text = parts.map(p => p.text || "").join("").trim();
+              if (!text) throw new Error("Gemini API returned no content.");
+              return text;
+            }
+
+            async function callAnthropic({ apiKey, model, system, prompt }) {
+              if (!apiKey) throw new Error("ANTHROPIC_API_KEY is not set.");
+              const anthropicModel = model || "claude-3-5-sonnet-latest";
+              const url = "https://api.anthropic.com/v1/messages";
+              const payload = {
+                model: anthropicModel,
+                max_tokens: 2048,
+                temperature: 0.2,
+                system,
+                messages: [{ role: "user", content: prompt }],
+              };
+
+              const resp = await fetch(url, {
+                method: "POST",
+                headers: {
+                  "x-api-key": apiKey,
+                  "anthropic-version": "2023-06-01",
+                  "content-type": "application/json",
+                },
+                body: JSON.stringify(payload),
+              });
+
+              if (!resp.ok) {
+                const text = await resp.text();
+                throw new Error(`Anthropic API error (${resp.status}): ${text}`);
+              }
+
+              const data = await resp.json();
+              const text = (data?.content || []).map(p => p.text || "").join("").trim();
+              if (!text) throw new Error("Anthropic API returned no content.");
+              return text;
+            }
+
+            let reviewText = "";
+            try {
+              if (provider === "openai") {
+                reviewText = await callOpenAI({
+                  apiKey: process.env.OPENAI_API_KEY,
+                  baseUrl: process.env.OPENAI_BASE_URL,
+                  model,
+                  messages: [
+                    { role: "system", content: systemPrompt },
+                    { role: "user", content: userPrompt },
+                  ],
+                });
+              } else if (provider === "gemini") {
+                reviewText = await callGemini({
+                  apiKey: process.env.GEMINI_API_KEY,
+                  model,
+                  prompt: `${systemPrompt}\n\n${userPrompt}`,
+                });
+              } else if (provider === "anthropic") {
+                reviewText = await callAnthropic({
+                  apiKey: process.env.ANTHROPIC_API_KEY,
+                  model,
+                  system: systemPrompt,
+                  prompt: userPrompt,
+                });
+              } else {
+                throw new Error(`Unsupported provider: ${provider}`);
+              }
+            } catch (e) {
+              core.setFailed(e.message || String(e));
+              return;
+            }
+
+            const commentBody = [
+              marker,
+              `Provider: ${provider}`,
+              `Model: ${model}`,
+              "",
+              reviewText,
+            ].join("\n");
+
+            await github.rest.issues.createComment({
+              owner,
+              repo,
+              issue_number: issueNumber,
+              body: commentBody,
+            });

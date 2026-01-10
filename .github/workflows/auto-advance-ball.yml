@@ -1,0 +1,347 @@
+name: "Automation: Advance the Ball (6h)"
+
+on:
+  schedule:
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+    inputs:
+      llm_provider:
+        description: "LLM provider"
+        required: false
+        default: ""
+        type: choice
+        options:
+          - ""
+          - openai
+          - gemini
+          - anthropic
+      llm_model:
+        description: "Model name (provider-specific)"
+        required: false
+        default: ""
+        type: string
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: advance-ball-${{ github.repository }}
+  cancel-in-progress: true
+
+jobs:
+  advance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Gather repo context
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          {
+            echo "Repository: ${GITHUB_REPOSITORY}"
+            echo "Run URL: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+            echo "Ref: ${GITHUB_REF_NAME}"
+            echo "SHA: ${GITHUB_SHA}"
+            echo ""
+            echo "Top-level files/directories:"
+            ls -la
+            echo ""
+            echo "Recent commits (last 20):"
+            git log --oneline -20 2>/dev/null || true
+            echo ""
+            echo "Recent changed files (best-effort):"
+            git diff --name-only HEAD~20..HEAD 2>/dev/null | head -n 200 || true
+            echo ""
+            echo "Recent open PRs/issues pointers:"
+            echo "- See: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/pulls"
+            echo "- See: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/issues"
+          } > /tmp/automation_context.txt
+
+          if [ -f "AUTOMATION.txt" ]; then
+            cat "AUTOMATION.txt" > /tmp/automation_guidance.txt
+          else
+            : > /tmp/automation_guidance.txt
+          fi
+
+      - name: Generate direction and write/update issue
+        uses: actions/github-script@v7
+        env:
+          LLM_PROVIDER: ${{ (github.event_name == 'workflow_dispatch' && github.event.inputs.llm_provider) || vars.AUTOMATION_LLM_PROVIDER || vars.LLM_PROVIDER || 'openai' }}
+          LLM_MODEL: ${{ (github.event_name == 'workflow_dispatch' && github.event.inputs.llm_model) || vars.AUTOMATION_LLM_MODEL || vars.LLM_MODEL || 'gpt-5.2' }}
+          OPENAI_BASE_URL: ${{ vars.OPENAI_BASE_URL || 'https://api.openai.com/v1' }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require("fs");
+
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            const provider = (process.env.LLM_PROVIDER || "openai").trim().toLowerCase();
+            const model = (process.env.LLM_MODEL || "").trim();
+            if (!model) {
+              core.setFailed("LLM model is required (set vars.AUTOMATION_LLM_MODEL or workflow_dispatch input llm_model).");
+              return;
+            }
+
+            const contextText = fs.readFileSync("/tmp/automation_context.txt", "utf8");
+            const guidanceText = fs.readFileSync("/tmp/automation_guidance.txt", "utf8").trim();
+
+            const marker = "<!-- advance-ball -->";
+            const now = new Date().toISOString();
+
+            const defaultInstruction = [
+              "Analyze this repository and propose a concrete direction.",
+              "If there is no AUTOMATION.txt guidance, decide a direction and proceed by producing an actionable plan.",
+              "Document your direction, assumptions, risks, and next steps.",
+              "Prefer small, safe changes that increase reliability and reduce toil.",
+              "Include suggested tests and a short checklist for verifying progress.",
+            ].join(" ");
+
+            const systemPrompt = [
+              "You are an expert software engineer and technical lead.",
+              "You are producing an automation direction update for a repository.",
+              "Be specific, actionable, and concise.",
+              "Avoid hand-wavy advice; prefer concrete steps and file paths.",
+            ].join(" ");
+
+            const userPromptParts = [];
+            userPromptParts.push(`Repository: ${owner}/${repo}`);
+            userPromptParts.push(`Timestamp: ${now}`);
+            userPromptParts.push("");
+            userPromptParts.push("Repository context:");
+            userPromptParts.push(contextText);
+
+            if (guidanceText) {
+              userPromptParts.push("");
+              userPromptParts.push("AUTOMATION.txt guidance (highest priority):");
+              userPromptParts.push(guidanceText.length > 6000 ? guidanceText.slice(0, 6000) + "\n...(truncated)..." : guidanceText);
+            } else {
+              userPromptParts.push("");
+              userPromptParts.push("No AUTOMATION.txt was found. Use this default instruction:");
+              userPromptParts.push(defaultInstruction);
+            }
+
+            userPromptParts.push("");
+            userPromptParts.push("Output format:");
+            userPromptParts.push("- Summary");
+            userPromptParts.push("- Direction (what and why)");
+            userPromptParts.push("- Plan (next 1-3 steps)");
+            userPromptParts.push("- Risks/unknowns");
+            userPromptParts.push("- Suggested tests");
+
+            const userPrompt = userPromptParts.join("\n");
+
+            async function callOpenAI({ apiKey, baseUrl, model, messages }) {
+              if (!apiKey) throw new Error("OPENAI_API_KEY is not set.");
+              const url = `${baseUrl.replace(new RegExp('/$'), "")}/chat/completions`;
+              const payload = { model, messages };
+
+              const gpt5Pattern = new RegExp('(gpt-?5|^o\\d|^o1)', 'i');
+              const isGpt5ish = gpt5Pattern.test(model);
+              if (isGpt5ish) {
+                payload.max_completion_tokens = 2048;
+              } else {
+                payload.max_tokens = 2048;
+                payload.temperature = 0.2;
+              }
+
+              const resp = await fetch(url, {
+                method: "POST",
+                headers: {
+                  "Authorization": `Bearer ${apiKey}`,
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify(payload),
+              });
+
+              if (!resp.ok) {
+                const text = await resp.text();
+                throw new Error(`OpenAI API error (${resp.status}): ${text}`);
+              }
+
+              const data = await resp.json();
+              const content = data?.choices?.[0]?.message?.content;
+              if (!content) throw new Error("OpenAI API returned no content.");
+              return content;
+            }
+
+            async function callGemini({ apiKey, model, prompt }) {
+              if (!apiKey) throw new Error("GEMINI_API_KEY is not set.");
+              const geminiModel = model || "gemini-1.5-pro";
+              const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(geminiModel)}:generateContent?key=${encodeURIComponent(apiKey)}`;
+              const payload = {
+                contents: [{ role: "user", parts: [{ text: prompt }] }],
+                generationConfig: { temperature: 0.2, maxOutputTokens: 2048 },
+              };
+
+              const resp = await fetch(url, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+              });
+
+              if (!resp.ok) {
+                const text = await resp.text();
+                throw new Error(`Gemini API error (${resp.status}): ${text}`);
+              }
+
+              const data = await resp.json();
+              const parts = data?.candidates?.[0]?.content?.parts || [];
+              const text = parts.map(p => p.text || "").join("").trim();
+              if (!text) throw new Error("Gemini API returned no content.");
+              return text;
+            }
+
+            async function callAnthropic({ apiKey, model, system, prompt }) {
+              if (!apiKey) throw new Error("ANTHROPIC_API_KEY is not set.");
+              const anthropicModel = model || "claude-3-5-sonnet-latest";
+              const url = "https://api.anthropic.com/v1/messages";
+              const payload = {
+                model: anthropicModel,
+                max_tokens: 2048,
+                temperature: 0.2,
+                system,
+                messages: [{ role: "user", content: prompt }],
+              };
+
+              const resp = await fetch(url, {
+                method: "POST",
+                headers: {
+                  "x-api-key": apiKey,
+                  "anthropic-version": "2023-06-01",
+                  "content-type": "application/json",
+                },
+                body: JSON.stringify(payload),
+              });
+
+              if (!resp.ok) {
+                const text = await resp.text();
+                throw new Error(`Anthropic API error (${resp.status}): ${text}`);
+              }
+
+              const data = await resp.json();
+              const text = (data?.content || []).map(p => p.text || "").join("").trim();
+              if (!text) throw new Error("Anthropic API returned no content.");
+              return text;
+            }
+
+            let direction = "";
+            try {
+              if (provider === "openai") {
+                direction = await callOpenAI({
+                  apiKey: process.env.OPENAI_API_KEY,
+                  baseUrl: process.env.OPENAI_BASE_URL,
+                  model,
+                  messages: [
+                    { role: "system", content: systemPrompt },
+                    { role: "user", content: userPrompt },
+                  ],
+                });
+              } else if (provider === "gemini") {
+                direction = await callGemini({
+                  apiKey: process.env.GEMINI_API_KEY,
+                  model,
+                  prompt: `${systemPrompt}\n\n${userPrompt}`,
+                });
+              } else if (provider === "anthropic") {
+                direction = await callAnthropic({
+                  apiKey: process.env.ANTHROPIC_API_KEY,
+                  model,
+                  system: systemPrompt,
+                  prompt: userPrompt,
+                });
+              } else {
+                throw new Error(`Unsupported provider: ${provider}`);
+              }
+            } catch (e) {
+              core.setFailed(e.message || String(e));
+              return;
+            }
+
+            async function ensureLabel(name, color, description) {
+              try {
+                await github.rest.issues.getLabel({ owner, repo, name });
+                return;
+              } catch (e) {
+                // Not found -> create
+              }
+              await github.rest.issues.createLabel({
+                owner,
+                repo,
+                name,
+                color,
+                description,
+              });
+            }
+
+            const labelName = "automation";
+            try {
+              await ensureLabel(labelName, "5319E7", "Automation-generated direction and planning");
+            } catch (e) {
+              core.info(`Could not ensure label '${labelName}': ${e.message || e}`);
+            }
+
+            const issueTitle = "Automation: Direction";
+            const newBody = [
+              marker,
+              `Last generated: ${now}`,
+              `Provider: ${provider}`,
+              `Model: ${model}`,
+              "",
+              direction,
+            ].join("\n");
+
+            // Find existing open issue with our marker
+            let existingIssueNumber = null;
+            try {
+              const search = await github.rest.search.issuesAndPullRequests({
+                q: `repo:${owner}/${repo} is:issue is:open in:body \"${marker}\"`,
+                per_page: 10,
+              });
+              const first = (search.data.items || [])[0];
+              if (first && typeof first.number === "number") existingIssueNumber = first.number;
+            } catch (e) {
+              // Search can be delayed; fall back to listing recent issues
+            }
+
+            if (!existingIssueNumber) {
+              const recent = await github.rest.issues.listForRepo({
+                owner,
+                repo,
+                state: "open",
+                per_page: 50,
+              });
+              const found = (recent.data || []).find(i => typeof i.body === "string" && i.body.includes(marker));
+              if (found) existingIssueNumber = found.number;
+            }
+
+            if (existingIssueNumber) {
+              await github.rest.issues.update({
+                owner,
+                repo,
+                issue_number: existingIssueNumber,
+                title: issueTitle,
+                body: newBody,
+              });
+              core.info(`Updated issue #${existingIssueNumber}`);
+            } else {
+              const created = await github.rest.issues.create({
+                owner,
+                repo,
+                title: issueTitle,
+                body: newBody,
+                labels: [labelName],
+              });
+              core.info(`Created issue #${created.data.number}`);
+            }

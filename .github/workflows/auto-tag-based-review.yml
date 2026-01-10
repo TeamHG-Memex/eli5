@@ -1,0 +1,313 @@
+name: "Tag-based Code Review"
+
+on:
+  push:
+    tags:
+      - 'e2eweekly'
+      - 'weeklyreview'
+      - 'e2e-*'
+      - 'review-*'
+  workflow_dispatch:
+    inputs:
+      review_type:
+        description: 'Type of review to perform'
+        required: true
+        default: 'e2e'
+        type: choice
+        options:
+          - e2e
+          - weekly
+          - full
+      ai_model:
+        description: 'AI Model to use for review'
+        required: false
+        default: 'gpt-5.1-codex'
+        type: choice
+        options:
+          - gpt-5.1-codex
+          - gpt-5.1
+          - gpt-5
+          - amazonq
+          - codex
+          - gemini
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  actions: read
+
+jobs:
+  tag-based-review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@main
+        with:
+          fetch-depth: 0
+
+      - name: Determine Review Type
+        id: review-type
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "type=${{ inputs.review_type }}" >> $GITHUB_OUTPUT
+            echo "model=${{ inputs.ai_model }}" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.ref }}" == *"e2eweekly"* ]] || [[ "${{ github.ref }}" == *"e2e"* ]]; then
+            echo "type=e2e" >> $GITHUB_OUTPUT
+            echo "model=gpt-5.1-codex" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.ref }}" == *"weeklyreview"* ]] || [[ "${{ github.ref }}" == *"review"* ]]; then
+            echo "type=weekly" >> $GITHUB_OUTPUT
+            echo "model=gpt-5.1" >> $GITHUB_OUTPUT
+          else
+            echo "type=full" >> $GITHUB_OUTPUT
+            echo "model=gpt-5.1-codex" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Setup Node.js
+        uses: actions/setup-node@main
+        with:
+          node-version: '20'
+        continue-on-error: true
+
+      - name: Setup Python
+        uses: actions/setup-python@main
+        with:
+          python-version: '3.11'
+        continue-on-error: true
+
+      - name: E2E Review with Selected Model
+        if: steps.review-type.outputs.type == 'e2e'
+        uses: austenstone/copilot-cli-action@v2
+        with:
+          copilot-token: ${{ secrets.COPILOT_TOKEN }}
+          prompt: |
+            Perform a comprehensive end-to-end code review using ${{ steps.review-type.outputs.model }}:
+            
+            **E2E Testing Focus:**
+            1. Integration Points
+               - Review all API endpoints and their integrations
+               - Check database connections and queries
+               - Verify external service integrations
+               - Test authentication and authorization flows
+            
+            2. User Flows
+               - Identify critical user journeys
+               - Check for broken workflows
+               - Verify error handling in user paths
+               - Test edge cases in user interactions
+            
+            3. Data Flow Analysis
+               - Trace data from input to output
+               - Check data validation at each step
+               - Verify data transformations
+               - Identify potential data loss points
+            
+            4. Performance & Reliability
+               - Identify performance bottlenecks in E2E scenarios
+               - Check for race conditions
+               - Verify timeout handling
+               - Review retry mechanisms
+            
+            5. Security in E2E Context
+               - Verify secure data transmission
+               - Check authentication at each boundary
+               - Review authorization for sensitive operations
+               - Identify injection vulnerabilities
+            
+            Provide specific findings with file names, line numbers, and actionable recommendations.
+        continue-on-error: true
+
+      - name: Weekly Review with Selected Model
+        if: steps.review-type.outputs.type == 'weekly'
+        uses: austenstone/copilot-cli-action@v2
+        with:
+          copilot-token: ${{ secrets.COPILOT_TOKEN }}
+          prompt: |
+            Perform a comprehensive weekly code review using ${{ steps.review-type.outputs.model }}:
+            
+            **Weekly Review Scope:**
+            1. Architecture & Design
+               - Review overall system architecture
+               - Identify architectural improvements
+               - Check design pattern usage
+               - Verify separation of concerns
+            
+            2. Code Quality Trends
+               - Identify code quality improvements/regressions
+               - Review recent commits for patterns
+               - Check for technical debt accumulation
+               - Suggest refactoring opportunities
+            
+            3. Testing Strategy
+               - Assess test coverage changes
+               - Review test quality
+               - Identify missing test scenarios
+               - Suggest testing improvements
+            
+            4. Documentation
+               - Check if recent changes are documented
+               - Review README and API documentation
+               - Verify inline documentation quality
+               - Identify documentation gaps
+            
+            5. Dependencies & Security
+               - Review dependency updates
+               - Check for security vulnerabilities
+               - Suggest version upgrades
+               - Identify deprecated dependencies
+            
+            6. Performance Analysis
+               - Review performance-impacting changes
+               - Identify optimization opportunities
+               - Check for resource leaks
+               - Suggest performance improvements
+            
+            Provide a comprehensive summary with priorities and action items.
+        continue-on-error: true
+
+      - name: Full Review with Selected Model
+        if: steps.review-type.outputs.type == 'full'
+        uses: austenstone/copilot-cli-action@v2
+        with:
+          copilot-token: ${{ secrets.COPILOT_TOKEN }}
+          prompt: |
+            Perform a full comprehensive code review using ${{ steps.review-type.outputs.model }}:
+            
+            **Complete Code Review:**
+            1. Code Quality & Architecture
+            2. Security Analysis
+            3. Performance Optimization
+            4. Testing Strategy
+            5. Documentation Quality
+            6. Best Practices Adherence
+            7. E2E Integration
+            8. API Design
+            9. Error Handling
+            10. Maintainability
+            
+            Provide detailed analysis with specific recommendations.
+        continue-on-error: true
+
+      - name: Generate Review Report
+        id: generate-report
+        run: |
+          echo "## Tag-Based Code Review Report" > /tmp/tag-review-report.md
+          echo "" >> /tmp/tag-review-report.md
+          echo "**Review Type:** ${{ steps.review-type.outputs.type }}" >> /tmp/tag-review-report.md
+          echo "**AI Model:** ${{ steps.review-type.outputs.model }}" >> /tmp/tag-review-report.md
+          echo "**Triggered by:** ${{ github.event_name }}" >> /tmp/tag-review-report.md
+          echo "**Tag/Branch:** ${{ github.ref }}" >> /tmp/tag-review-report.md
+          echo "**Date:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> /tmp/tag-review-report.md
+          echo "" >> /tmp/tag-review-report.md
+          
+          # Add repository stats
+          echo "### Repository Statistics:" >> /tmp/tag-review-report.md
+          python_files=$(find . -name "*.py" ! -path "*/.venv/*" ! -path "*/node_modules/*" | wc -l)
+          js_files=$(find . -name "*.js" ! -path "*/node_modules/*" ! -path "*/dist/*" | wc -l)
+          ts_files=$(find . -name "*.ts" ! -path "*/node_modules/*" ! -path "*/dist/*" | wc -l)
+          
+          echo "- Python files: $python_files" >> /tmp/tag-review-report.md
+          echo "- JavaScript files: $js_files" >> /tmp/tag-review-report.md
+          echo "- TypeScript files: $ts_files" >> /tmp/tag-review-report.md
+          
+          # Add recent commits
+          echo "" >> /tmp/tag-review-report.md
+          echo "### Recent Changes:" >> /tmp/tag-review-report.md
+          git log --oneline -10 >> /tmp/tag-review-report.md || echo "No recent commits" >> /tmp/tag-review-report.md
+          
+          cat /tmp/tag-review-report.md
+        continue-on-error: true
+
+      - name: Create Review Issue
+        uses: actions/github-script@main
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            let report = '';
+            try {
+              report = fs.readFileSync('/tmp/tag-review-report.md', 'utf8');
+            } catch (e) {
+              report = 'Report generation failed';
+            }
+            
+            const date = new Date().toISOString().split('T')[0];
+            const reviewType = '${{ steps.review-type.outputs.type }}';
+            const model = '${{ steps.review-type.outputs.model }}';
+            const title = `${reviewType.toUpperCase()} Code Review (${model}) - ${date}`;
+            
+            const body = `# Tag-Based Code Review Report
+            
+            ${report}
+            
+            ## Review Configuration
+            
+            - **Review Type:** ${reviewType}
+            - **AI Model:** ${model}
+            - **Repository:** ${{ github.repository }}
+            - **Branch/Tag:** ${{ github.ref }}
+            - **Commit:** ${{ github.sha }}
+            - **Triggered by:** ${{ github.event_name }}
+            
+            ## About This Review
+            
+            This review was triggered by a tag or manual dispatch. The review type determines the focus:
+            
+            - **E2E Review:** Comprehensive end-to-end testing and integration analysis
+            - **Weekly Review:** Broad code quality, architecture, and trend analysis
+            - **Full Review:** Complete analysis covering all aspects
+            
+            ## Action Items
+            
+            Review the findings above and:
+            - [ ] Address high-priority security issues
+            - [ ] Implement suggested architectural improvements
+            - [ ] Add missing tests for E2E scenarios
+            - [ ] Update documentation as needed
+            - [ ] Plan refactoring for technical debt
+            
+            ---
+            *This issue was automatically generated by the Tag-based Code Review workflow using ${model}.*
+            `;
+            
+            // Check for existing issues
+            const issues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: ['tag-review', 'automated'],
+              per_page: 10
+            });
+            
+            const recentIssue = issues.data.find(issue => {
+              const createdAt = new Date(issue.created_at);
+              const daysSinceCreation = (Date.now() - createdAt) / (1000 * 60 * 60 * 24);
+              return daysSinceCreation < 7 && issue.title.includes(reviewType);
+            });
+            
+            if (recentIssue) {
+              console.log(`Recent ${reviewType} review issue found: #${recentIssue.number}, updating`);
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: recentIssue.number,
+                body: `## Updated Review (${date})\n\n${report}`
+              });
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: title,
+                body: body,
+                labels: ['tag-review', reviewType, 'automated', 'code-review', 'needs-review']
+              });
+            }
+        continue-on-error: true
+
+      - name: Upload Review Report
+        uses: actions/upload-artifact@main
+        with:
+          name: tag-review-report
+          path: /tmp/tag-review-report.md
+          retention-days: 90
+        continue-on-error: true

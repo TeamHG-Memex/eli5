@@ -1,0 +1,120 @@
+name: Autonomous Progress (Org Sweep)
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+    inputs:
+      workflow_file:
+        description: 'Workflow file to dispatch to repos (must exist in target repos)'
+        required: false
+        default: 'auto-complete-cicd-review.yml'
+        type: string
+      ref:
+        description: 'Git ref to run workflow from'
+        required: false
+        default: 'main'
+        type: string
+      all_accounts:
+        description: 'Dispatch to all accounts (P4X-ng, HyperionGray, TeamHG-Memex, hyp3ri0n-ng)'
+        required: false
+        default: true
+        type: boolean
+      include_archived:
+        description: 'Include archived repositories'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Dispatch workflow across repositories
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+          DEFAULT_WORKFLOW_FILE: 'auto-complete-cicd-review.yml'
+          DEFAULT_REF: 'main'
+        run: |
+          WORKFLOW_FILE="${DEFAULT_WORKFLOW_FILE}"
+          REF="${DEFAULT_REF}"
+          ALL_ACCOUNTS="true"
+          INCLUDE_ARCHIVED="false"
+
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            INCLUDE_ARCHIVED="${{ github.event.inputs.include_archived }}"
+          fi
+
+          if [ -z "${INCLUDE_ARCHIVED}" ]; then
+            INCLUDE_ARCHIVED="false"
+          fi
+
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            WORKFLOW_FILE="${{ github.event.inputs.workflow_file }}"
+            REF="${{ github.event.inputs.ref }}"
+            ALL_ACCOUNTS="${{ github.event.inputs.all_accounts }}"
+          fi
+
+          if [ -z "${WORKFLOW_FILE}" ]; then
+            WORKFLOW_FILE="${DEFAULT_WORKFLOW_FILE}"
+          fi
+          if [ -z "${REF}" ]; then
+            REF="${DEFAULT_REF}"
+          fi
+          if [ -z "${ALL_ACCOUNTS}" ]; then
+            ALL_ACCOUNTS="true"
+          fi
+
+          echo "Dispatching workflow: ${WORKFLOW_FILE}"
+          echo "Ref: ${REF}"
+
+          ARCHIVED_FLAG=""
+          if [ "${INCLUDE_ARCHIVED}" = "true" ]; then
+            ARCHIVED_FLAG="--include-archived"
+          fi
+
+          if [ "${ALL_ACCOUNTS}" = "true" ] || [ "${{ github.event_name }}" = "schedule" ]; then
+            python trigger_workflow_all_repos.py \
+              "${WORKFLOW_FILE}" \
+              --all-accounts \
+              --ref "${REF}" \
+              ${ARCHIVED_FLAG} \
+              --delay 1.5
+          else
+            python trigger_workflow_all_repos.py \
+              P4X-ng \
+              "${WORKFLOW_FILE}" \
+              --ref "${REF}" \
+              ${ARCHIVED_FLAG} \
+              --delay 1.5
+          fi
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Autonomous Progress Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Trigger:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "**Workflow file:** ${{ github.event.inputs.workflow_file }}" >> $GITHUB_STEP_SUMMARY
+            echo "**Ref:** ${{ github.event.inputs.ref }}" >> $GITHUB_STEP_SUMMARY
+            echo "**All accounts:** ${{ github.event.inputs.all_accounts }}" >> $GITHUB_STEP_SUMMARY
+            echo "**Include archived:** ${{ github.event.inputs.include_archived }}" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "**Workflow file:** auto-complete-cicd-review.yml" >> $GITHUB_STEP_SUMMARY
+            echo "**Ref:** main" >> $GITHUB_STEP_SUMMARY
+            echo "**All accounts:** true" >> $GITHUB_STEP_SUMMARY
+            echo "**Include archived:** false" >> $GITHUB_STEP_SUMMARY
+          fi

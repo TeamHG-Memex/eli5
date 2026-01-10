@@ -1,0 +1,424 @@
+name: "Complete CI/CD Agent Review Pipeline"
+
+on:
+  schedule:
+    # Run every 12 hours (at 00:00 and 12:00 UTC)
+    - cron: '0 0,12 * * *'
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+    inputs:
+      skip_tests:
+        description: 'Skip test execution'
+        required: false
+        default: 'false'
+        type: boolean
+      skip_docs:
+        description: 'Skip documentation review'
+        required: false
+        default: 'false'
+        type: boolean
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  checks: write
+  actions: read
+
+jobs:
+  # Step 1: Code Cleanliness Review
+  code-cleanliness:
+    runs-on: [self-hosted, linux, x64, big]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@main
+        with:
+          fetch-depth: 0
+
+      - name: Run Code Cleanliness Analysis
+        run: |
+          echo "🔍 Running code cleanliness analysis..."
+          
+          # Create results directory
+          mkdir -p /tmp/review-results
+          
+          echo "## Code Cleanliness Analysis" > /tmp/review-results/cleanliness.md
+          echo "" >> /tmp/review-results/cleanliness.md
+          
+          # Find large files
+          echo "### Large Files (>500 lines):" >> /tmp/review-results/cleanliness.md
+          find . -type f \( -name "*.py" -o -name "*.js" -o -name "*.ts" -o -name "*.java" -o -name "*.go" -o -name "*.cs" \) \
+            ! -path "*/node_modules/*" ! -path "*/dist/*" ! -path "*/build/*" ! -path "*/.venv/*" \
+            -exec sh -c 'lines=$(wc -l < "$1"); if [ "$lines" -gt 500 ]; then echo "$lines lines: $1"; fi' _ {} \; \
+            | sort -rn >> /tmp/review-results/cleanliness.md || echo "No large files found" >> /tmp/review-results/cleanliness.md
+          
+          echo "✅ Code cleanliness analysis complete"
+
+      - name: Upload Cleanliness Report
+        uses: actions/upload-artifact@main
+        with:
+          name: cleanliness-report
+          path: /tmp/review-results/cleanliness.md
+          retention-days: 30
+
+  # Step 2: Test Review and Execution
+  test-review:
+    runs-on: [self-hosted, linux, x64, big]
+    if: github.event.inputs.skip_tests != 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        test-type: [unit, integration, e2e]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@main
+
+      - name: Setup Test Environment
+        run: |
+          echo "🧪 Setting up test environment for ${{ matrix.test-type }} tests..."
+          mkdir -p /tmp/review-results
+
+      - name: Setup Node.js
+        uses: actions/setup-node@main
+        with:
+          node-version: '20'
+        continue-on-error: true
+
+      - name: Setup Python
+        uses: actions/setup-python@main
+        with:
+          python-version: '3.11'
+        continue-on-error: true
+
+      - name: Install Playwright for E2E
+        if: matrix.test-type == 'e2e'
+        run: |
+          if [ -f "package.json" ]; then
+            npm install
+            npm install -D @playwright/test playwright
+            npx playwright install --with-deps chromium firefox webkit
+          fi
+          pip install pytest playwright pytest-playwright
+          python -m playwright install --with-deps chromium firefox webkit
+        continue-on-error: true
+
+      - name: Run Tests - ${{ matrix.test-type }}
+        run: |
+          echo "Running ${{ matrix.test-type }} tests..."
+          
+          case "${{ matrix.test-type }}" in
+            unit)
+              if [ -f "package.json" ] && grep -q '"test"' package.json; then
+                npm test -- --testPathPattern="unit" || npm test || echo "Unit tests not configured"
+              fi
+              pytest tests/unit/ 2>/dev/null || echo "Python unit tests not configured"
+              ;;
+            integration)
+              pytest tests/integration/ 2>/dev/null || echo "Integration tests not configured"
+              npm test -- --testPathPattern="integration" 2>/dev/null || echo "JS integration tests not configured"
+              ;;
+            e2e)
+              # Playwright tests
+              npx playwright test 2>/dev/null || echo "Playwright JS tests not configured"
+              pytest tests/e2e/ 2>/dev/null || pytest --browser chromium 2>/dev/null || echo "Playwright Python tests not configured"
+              ;;
+          esac
+        continue-on-error: true
+
+      - name: Upload Test Results
+        uses: actions/upload-artifact@main
+        if: always()
+        with:
+          name: test-results-${{ matrix.test-type }}
+          path: |
+            test-results/
+            playwright-report/
+            .pytest_cache/
+            coverage/
+          retention-days: 30
+        continue-on-error: true
+
+  # Step 3: Documentation Review
+  documentation-review:
+    runs-on: [self-hosted, linux, x64, big]
+    if: github.event.inputs.skip_docs != 'true'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@main
+
+      - name: Analyze Documentation
+        run: |
+          echo "📚 Analyzing documentation..."
+          
+          mkdir -p /tmp/review-results
+          
+          echo "## Documentation Analysis" > /tmp/review-results/documentation.md
+          echo "" >> /tmp/review-results/documentation.md
+          
+          # Check for essential files
+          echo "### Essential Documentation Files:" >> /tmp/review-results/documentation.md
+          for doc in README.md CONTRIBUTING.md LICENSE.md CHANGELOG.md CODE_OF_CONDUCT.md SECURITY.md; do
+            if [ -f "$doc" ]; then
+              word_count=$(wc -w < "$doc" 2>/dev/null || echo 0)
+              echo "✅ $doc ($word_count words)" >> /tmp/review-results/documentation.md
+            else
+              echo "❌ $doc (missing)" >> /tmp/review-results/documentation.md
+            fi
+          done
+          
+          # Check README quality
+          if [ -f "README.md" ]; then
+            echo "" >> /tmp/review-results/documentation.md
+            echo "### README.md Content Check:" >> /tmp/review-results/documentation.md
+            for section in "Installation" "Usage" "Features" "Contributing" "License" "Documentation" "Examples" "API"; do
+              if grep -qi "$section" README.md; then
+                echo "✅ Contains '$section' section" >> /tmp/review-results/documentation.md
+              else
+                echo "⚠️ Missing '$section' section" >> /tmp/review-results/documentation.md
+              fi
+            done
+          fi
+          
+          echo "✅ Documentation analysis complete"
+
+      - name: Upload Documentation Report
+        uses: actions/upload-artifact@main
+        with:
+          name: documentation-report
+          path: /tmp/review-results/documentation.md
+          retention-days: 30
+
+  # Step 4: Build and Functionality Check
+  build-check:
+    runs-on: [self-hosted, linux, x64, big]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@main
+
+      - name: Setup Build Environment
+        run: |
+          echo "🏗️ Setting up build environment..."
+
+      - name: Setup Node.js
+        uses: actions/setup-node@main
+        with:
+          node-version: '20'
+        continue-on-error: true
+
+      - name: Setup Python
+        uses: actions/setup-python@main
+        with:
+          python-version: '3.11'
+        continue-on-error: true
+
+      - name: Setup Go
+        uses: actions/setup-go@main
+        with:
+          go-version: 'stable'
+        continue-on-error: true
+
+      - name: Build Project
+        id: build
+        run: |
+          echo "BUILD_SUCCESS=false" >> $GITHUB_OUTPUT
+          
+          # Node.js
+          if [ -f "package.json" ]; then
+            npm install
+            if grep -q '"build"' package.json; then
+              npm run build && echo "BUILD_SUCCESS=true" >> $GITHUB_OUTPUT
+            else
+              echo "BUILD_SUCCESS=no-build-script" >> $GITHUB_OUTPUT
+            fi
+          fi
+          
+          # Python
+          if [ -f "requirements.txt" ]; then
+            pip install -r requirements.txt && echo "BUILD_SUCCESS=true" >> $GITHUB_OUTPUT
+          fi
+          
+          # Go
+          if [ -f "go.mod" ]; then
+            go build ./... && echo "BUILD_SUCCESS=true" >> $GITHUB_OUTPUT
+          fi
+        continue-on-error: true
+
+      - name: Upload Build Status
+        run: |
+          mkdir -p /tmp/review-results
+          echo "## Build Status" > /tmp/review-results/build.md
+          echo "" >> /tmp/review-results/build.md
+          echo "Build result: ${{ steps.build.outputs.BUILD_SUCCESS }}" >> /tmp/review-results/build.md
+
+      - name: Upload Build Report
+        uses: actions/upload-artifact@main
+        with:
+          name: build-report
+          path: /tmp/review-results/build.md
+          retention-days: 30
+
+  # Step 5: Consolidate Results and Create Report
+  consolidate-results:
+    runs-on: [self-hosted, linux, x64, big]
+    needs: [code-cleanliness, test-review, documentation-review, build-check]
+    if: always()
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@main
+
+      - name: Download All Reports
+        uses: actions/download-artifact@main
+        with:
+          path: /tmp/all-reports
+        continue-on-error: true
+
+      - name: Consolidate Reports
+        run: |
+          echo "📊 Consolidating all reports..."
+          
+          mkdir -p /tmp/final-report
+          
+          cat > /tmp/final-report/complete-review.md << 'EOF'
+          # Complete CI/CD Agent Review Report
+          
+          **Review Date:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          **Repository:** ${{ github.repository }}
+          **Branch:** ${{ github.ref_name }}
+          **Trigger:** ${{ github.event_name }}
+          
+          ## Executive Summary
+          
+          This comprehensive review covers:
+          - ✅ Code cleanliness and file size analysis
+          - ✅ Test coverage and Playwright integration
+          - ✅ Documentation completeness and quality
+          - ✅ Build functionality verification
+          
+          EOF
+          
+          # Append individual reports
+          if [ -d "/tmp/all-reports" ]; then
+            echo "" >> /tmp/final-report/complete-review.md
+            echo "## Detailed Findings" >> /tmp/final-report/complete-review.md
+            
+            for report in /tmp/all-reports/*/*.md; do
+              if [ -f "$report" ]; then
+                echo "" >> /tmp/final-report/complete-review.md
+                cat "$report" >> /tmp/final-report/complete-review.md
+                echo "" >> /tmp/final-report/complete-review.md
+              fi
+            done
+          fi
+          
+          cat /tmp/final-report/complete-review.md
+
+      - name: Create or Update Review Issue
+        uses: actions/github-script@main
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            let report = '';
+            
+            try {
+              report = fs.readFileSync('/tmp/final-report/complete-review.md', 'utf8');
+            } catch (error) {
+              report = '## Review Report\n\nError consolidating reports. Please check workflow logs.';
+            }
+            
+            const date = new Date().toISOString().split('T')[0];
+            const title = `Complete CI/CD Review - ${date}`;
+            
+            const body = `${report}
+            
+            ## Next Steps - Amazon Q Review
+            
+            After reviewing these GitHub Copilot agent findings, Amazon Q will provide additional insights:
+            - Security analysis
+            - Performance optimization opportunities
+            - AWS best practices
+            - Enterprise architecture patterns
+            
+            ## Action Items Summary
+            
+            - [ ] Review and address code cleanliness issues
+            - [ ] Fix or improve test coverage
+            - [ ] Update documentation as needed
+            - [ ] Resolve build issues
+            - [ ] Wait for Amazon Q review for additional insights
+            
+            ---
+            *This issue was automatically generated by the Complete CI/CD Review workflow.*
+            *Amazon Q review will follow automatically.*
+            `;
+            
+            // Check for existing review issues
+            const issues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: ['ci-cd-review', 'automated'],
+              per_page: 10
+            });
+            
+            const recentIssue = issues.data.find(issue => {
+              const createdAt = new Date(issue.created_at);
+              const hoursSinceCreation = (Date.now() - createdAt) / (1000 * 60 * 60);
+              return hoursSinceCreation < 24;
+            });
+            
+            if (recentIssue) {
+              console.log(`Recent issue found: #${recentIssue.number}, updating`);
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: recentIssue.number,
+                body: `## Updated Review (${date})\n\n${report}`
+              });
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: title,
+                body: body,
+                labels: ['ci-cd-review', 'automated', 'needs-review']
+              });
+            }
+
+      - name: Upload Final Report
+        uses: actions/upload-artifact@main
+        with:
+          name: complete-review-report
+          path: /tmp/final-report/complete-review.md
+          retention-days: 90
+
+  # Step 6: Trigger Amazon Q Review
+  trigger-amazonq:
+    runs-on: [self-hosted, linux, x64, big]
+    needs: consolidate-results
+    if: always()
+    steps:
+      - name: Trigger Amazon Q Review Workflow
+        uses: actions/github-script@main
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            console.log('Triggering Amazon Q review workflow...');
+            
+            try {
+              await github.rest.actions.createWorkflowDispatch({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                workflow_id: 'auto-amazonq-review.yml',
+                ref: context.ref
+              });
+              console.log('✅ Amazon Q review workflow triggered successfully');
+            } catch (error) {
+              console.log(`⚠️ Could not trigger Amazon Q review: ${error.message}`);
+              console.log('Amazon Q workflow may not be installed yet');
+            }

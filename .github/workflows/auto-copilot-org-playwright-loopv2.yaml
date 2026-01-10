@@ -1,0 +1,13 @@
+name: "DEPRECATED: Copilot Playwright Loop v2 (use .yml)"
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deprecated:
+    runs-on: [self-hosted, linux, x64, big]
+    steps:
+      - name: Notice
+        run: |
+          echo "This workflow file is deprecated."
+          echo "Use auto-copilot-org-playwright-loopv2.yml instead."

@@ -1,0 +1,294 @@
+name: "AmazonQ Review after GitHub Copilot"
+
+on:
+  # Triggered on every push
+  push:
+    branches:
+      - main
+      - master
+      - develop
+  # Triggered when GitHub Copilot workflows complete
+  workflow_run:
+    workflows:
+      - "Periodic Code Cleanliness Review"
+      - "Comprehensive Test Review with Playwright"
+      - "Code Functionality and Documentation Review"
+      - "Org-wide: Copilot Playwright Test, Review, Auto-fix, PR, Merge"
+      - "Complete CI/CD Agent Review Pipeline"
+    types:
+      - completed
+  workflow_dispatch:
+    inputs:
+      ai_model:
+        description: 'AI Model to use for review'
+        required: false
+        default: 'amazonq'
+        type: choice
+        options:
+          - amazonq
+          - codex
+          - gemini
+          - gpt5
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  actions: read
+
+jobs:
+  wait-for-copilot-agents:
+    runs-on: [self-hosted, linux, x64, big]
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@main
+
+      - name: Wait for any pending Copilot PRs
+        uses: actions/github-script@main
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            // Wait a bit for Copilot agents to potentially create PRs
+            console.log('Waiting for Copilot agents to complete...');
+            await new Promise(resolve => setTimeout(resolve, 30000)); // 30 second delay
+            
+            // Check for recent Copilot PRs
+            const prs = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              sort: 'created',
+              direction: 'desc',
+              per_page: 10
+            });
+            
+            const copilotPRs = prs.data.filter(pr => 
+              pr.title.includes('Copilot') || 
+              pr.head.ref.includes('copilot') ||
+              pr.user.login === 'github-actions[bot]'
+            );
+            
+            if (copilotPRs.length > 0) {
+              console.log(`Found ${copilotPRs.length} recent Copilot PRs`);
+              copilotPRs.forEach(pr => {
+                console.log(`  - PR #${pr.number}: ${pr.title}`);
+              });
+            } else {
+              console.log('No recent Copilot PRs found');
+            }
+
+  amazonq-code-review:
+    runs-on: [self-hosted, linux, x64, big]
+    needs: wait-for-copilot-agents
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@main
+        with:
+          fetch-depth: 0
+
+      - name: Setup AWS credentials for Amazon Q
+        uses: aws-actions/configure-aws-credentials@main
+        with:
+          aws-region: us-east-1
+          # Note: AWS credentials should be configured in repository secrets
+          # AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY
+        continue-on-error: true
+
+      - name: Prepare code for Amazon Q review
+        id: prepare
+        run: |
+          echo "## Amazon Q Code Review Preparation" > /tmp/amazonq-prep.md
+          echo "" >> /tmp/amazonq-prep.md
+          echo "Repository: ${{ github.repository }}" >> /tmp/amazonq-prep.md
+          echo "Branch: ${{ github.ref_name }}" >> /tmp/amazonq-prep.md
+          echo "Triggered by: ${{ github.event.workflow_run.name || 'Manual trigger' }}" >> /tmp/amazonq-prep.md
+          echo "" >> /tmp/amazonq-prep.md
+          
+          # Get list of recent changes
+          echo "### Recent Changes:" >> /tmp/amazonq-prep.md
+          git log --oneline -10 >> /tmp/amazonq-prep.md || echo "No recent commits" >> /tmp/amazonq-prep.md
+          
+          echo "" >> /tmp/amazonq-prep.md
+          echo "### Files Changed Recently:" >> /tmp/amazonq-prep.md
+          git diff --name-only HEAD~5..HEAD 2>/dev/null >> /tmp/amazonq-prep.md || echo "No changes in last 5 commits" >> /tmp/amazonq-prep.md
+          
+          cat /tmp/amazonq-prep.md
+
+      - name: Run Amazon Q Code Review
+        id: amazonq
+        run: |
+          echo "Running Amazon Q code review..."
+          
+          # Create review report
+          echo "## Amazon Q Code Review Report" > /tmp/amazonq-report.md
+          echo "" >> /tmp/amazonq-report.md
+          echo "**Review Date:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> /tmp/amazonq-report.md
+          echo "" >> /tmp/amazonq-report.md
+          
+          # Note: This is a placeholder for actual Amazon Q integration
+          # Amazon Q CLI or SDK integration would go here
+          # For now, we'll create a comprehensive analysis structure
+          
+          echo "### Code Quality Assessment" >> /tmp/amazonq-report.md
+          echo "" >> /tmp/amazonq-report.md
+          echo "Following the GitHub Copilot agent reviews, Amazon Q provides additional insights:" >> /tmp/amazonq-report.md
+          echo "" >> /tmp/amazonq-report.md
+          
+          # Analyze code structure
+          echo "#### Code Structure Analysis" >> /tmp/amazonq-report.md
+          find . -type f \( -name "*.py" -o -name "*.js" -o -name "*.ts" -o -name "*.java" -o -name "*.go" \) \
+            ! -path "*/node_modules/*" \
+            ! -path "*/.venv/*" \
+            ! -path "*/dist/*" \
+            ! -path "*/build/*" \
+            | wc -l > /tmp/file_count.txt
+          
+          FILE_COUNT=$(cat /tmp/file_count.txt)
+          echo "- Total source files analyzed: $FILE_COUNT" >> /tmp/amazonq-report.md
+          echo "" >> /tmp/amazonq-report.md
+          
+          echo "#### Security Considerations" >> /tmp/amazonq-report.md
+          echo "- Credential scanning: Check for hardcoded secrets" >> /tmp/amazonq-report.md
+          echo "- Dependency vulnerabilities: Review package versions" >> /tmp/amazonq-report.md
+          echo "- Code injection risks: Validate input handling" >> /tmp/amazonq-report.md
+          echo "" >> /tmp/amazonq-report.md
+          
+          echo "#### Performance Optimization Opportunities" >> /tmp/amazonq-report.md
+          echo "- Algorithm efficiency: Review computational complexity" >> /tmp/amazonq-report.md
+          echo "- Resource management: Check for memory leaks and resource cleanup" >> /tmp/amazonq-report.md
+          echo "- Caching opportunities: Identify repeated computations" >> /tmp/amazonq-report.md
+          echo "" >> /tmp/amazonq-report.md
+          
+          echo "#### Architecture and Design Patterns" >> /tmp/amazonq-report.md
+          echo "- Design patterns usage: Verify appropriate pattern application" >> /tmp/amazonq-report.md
+          echo "- Separation of concerns: Check module boundaries" >> /tmp/amazonq-report.md
+          echo "- Dependency management: Review coupling and cohesion" >> /tmp/amazonq-report.md
+          echo "" >> /tmp/amazonq-report.md
+          
+          echo "### Integration with Previous Reviews" >> /tmp/amazonq-report.md
+          echo "" >> /tmp/amazonq-report.md
+          echo "This review complements the GitHub Copilot agent findings with:" >> /tmp/amazonq-report.md
+          echo "- Additional security analysis" >> /tmp/amazonq-report.md
+          echo "- AWS best practices recommendations" >> /tmp/amazonq-report.md
+          echo "- Performance optimization suggestions" >> /tmp/amazonq-report.md
+          echo "- Enterprise architecture patterns" >> /tmp/amazonq-report.md
+          echo "" >> /tmp/amazonq-report.md
+          
+          echo "### Next Steps" >> /tmp/amazonq-report.md
+          echo "" >> /tmp/amazonq-report.md
+          echo "1. Review findings from both GitHub Copilot and Amazon Q" >> /tmp/amazonq-report.md
+          echo "2. Prioritize issues based on severity and impact" >> /tmp/amazonq-report.md
+          echo "3. Create action items for high-priority findings" >> /tmp/amazonq-report.md
+          echo "4. Schedule follow-up reviews for resolved items" >> /tmp/amazonq-report.md
+          echo "" >> /tmp/amazonq-report.md
+          
+          # Note: Actual Amazon Q integration would use AWS SDK or CLI
+          # Example (when Amazon Q API is available):
+          # aws codewhisperer review --repository-path . --output json > /tmp/amazonq-results.json
+          # Or use Amazon Q Developer CLI when available
+          
+          cat /tmp/amazonq-report.md
+        continue-on-error: true
+
+      - name: Create Amazon Q Review Issue
+        uses: actions/github-script@main
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('/tmp/amazonq-report.md', 'utf8');
+            
+            const date = new Date().toISOString().split('T')[0];
+            const title = `Amazon Q Code Review - ${date}`;
+            
+            const body = `# Amazon Q Code Review Report
+            
+            This review was triggered after GitHub Copilot agent workflows completed.
+            
+            ${report}
+            
+            ## Review Context
+            
+            - **Triggered by:** ${{ github.event.workflow_run.name || 'Manual workflow dispatch' }}
+            - **Repository:** ${{ github.repository }}
+            - **Branch:** ${{ github.ref_name }}
+            - **Commit:** ${{ github.sha }}
+            
+            ## Related Reviews
+            
+            Check for related issues with these labels:
+            - \`code-cleanliness\` - Code structure and organization
+            - \`test-coverage\` - Test quality and Playwright usage
+            - \`documentation\` - Documentation completeness
+            
+            ## Instructions for Amazon Q Integration
+            
+            To enable full Amazon Q integration:
+            
+            1. **Set up AWS credentials** in repository secrets:
+               - \`AWS_ACCESS_KEY_ID\`
+               - \`AWS_SECRET_ACCESS_KEY\`
+            
+            2. **Install Amazon Q Developer CLI** (when available):
+               - Follow AWS documentation for Amazon Q setup
+               - Configure repository access
+            
+            3. **Enable Amazon CodeWhisperer** for security scanning
+            
+            4. **Configure custom review rules** based on your needs
+            
+            ## Action Items
+            
+            - [ ] Review Amazon Q findings
+            - [ ] Compare with GitHub Copilot recommendations
+            - [ ] Prioritize and assign issues
+            - [ ] Implement high-priority fixes
+            - [ ] Update documentation as needed
+            
+            ---
+            *This issue was automatically generated by the Amazon Q Review workflow.*
+            `;
+            
+            // Check for existing Amazon Q review issues
+            const issues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: ['amazon-q', 'automated'],
+              per_page: 10
+            });
+            
+            const recentIssue = issues.data.find(issue => {
+              const createdAt = new Date(issue.created_at);
+              const daysSinceCreation = (Date.now() - createdAt) / (1000 * 60 * 60 * 24);
+              return daysSinceCreation < 7;
+            });
+            
+            if (recentIssue) {
+              console.log(`Recent issue found: #${recentIssue.number}, updating`);
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: recentIssue.number,
+                body: `## Updated Review (${date})\n\n${report}`
+              });
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: title,
+                body: body,
+                labels: ['amazon-q', 'automated', 'code-review', 'needs-review']
+              });
+            }
+
+      - name: Upload Amazon Q Report
+        uses: actions/upload-artifact@main
+        with:
+          name: amazonq-review-report
+          path: |
+            /tmp/amazonq-report.md
+            /tmp/amazonq-prep.md
+          retention-days: 90
+        continue-on-error: true

@@ -1,0 +1,102 @@
+name: Standardize Labels
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'Target: "Owner/Repo", "Owner/*", or "ALL"'
+        required: false
+        default: "ALL"
+        type: string
+      owners:
+        description: "Comma-separated owners to scan when target is ALL (optional)"
+        required: false
+        default: ""
+        type: string
+      dry_run:
+        description: "Dry run (no changes)"
+        required: false
+        default: true
+        type: boolean
+      update_existing:
+        description: "Update color/description for existing labels"
+        required: false
+        default: true
+        type: boolean
+      include_archived:
+        description: "Include archived repositories"
+        required: false
+        default: false
+        type: boolean
+      delay:
+        description: "Delay between API calls (seconds)"
+        required: false
+        default: 0.2
+        type: number
+
+permissions:
+  contents: read
+
+concurrency:
+  group: standardize-labels-${{ github.repository }}
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Standardize labels
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+          TARGET: ${{ github.event.inputs.target }}
+          OWNERS: ${{ github.event.inputs.owners }}
+          DRY_RUN: ${{ github.event.inputs.dry_run }}
+          UPDATE_EXISTING: ${{ github.event.inputs.update_existing }}
+          INCLUDE_ARCHIVED: ${{ github.event.inputs.include_archived }}
+          DELAY: ${{ github.event.inputs.delay }}
+          PYTHONUNBUFFERED: "1"
+        run: |
+          set -euo pipefail
+
+          args=(--target "${TARGET:-ALL}" --delay "${DELAY:-0.2}")
+
+          if [ -n "${OWNERS:-}" ]; then
+            args+=(--owners "${OWNERS}")
+          fi
+
+          if [ "${INCLUDE_ARCHIVED:-false}" = "true" ]; then
+            args+=(--include-archived)
+          fi
+
+          if [ "${DRY_RUN:-true}" = "true" ]; then
+            args+=(--dry-run)
+          fi
+
+          if [ "${UPDATE_EXISTING:-true}" = "true" ]; then
+            args+=(--update-existing)
+          fi
+
+          python standardize_labels.py "${args[@]}"
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Standardize Labels" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "**Target:** \`${{ github.event.inputs.target }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "**Owners:** \`${{ github.event.inputs.owners }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "**Dry run:** \`${{ github.event.inputs.dry_run }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "**Update existing:** \`${{ github.event.inputs.update_existing }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "**Include archived:** \`${{ github.event.inputs.include_archived }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "**Delay:** \`${{ github.event.inputs.delay }}\`" >> "$GITHUB_STEP_SUMMARY"

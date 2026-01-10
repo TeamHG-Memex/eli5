@@ -1,0 +1,26 @@
+# Auto-label new issues with your default labels!
+# Set or add labels in the 'labels' list.
+
+name: Auto Label New Issues
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  label:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Add labels
+        uses: actions/github-script@main
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            // Add or tweak your labels here
+            const labels = ["triage", "copilot"]; // <-- TUNE ME!
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              labels
+            });

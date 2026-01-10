@@ -1,0 +1,418 @@
+name: "LLM PR Review (Label Trigger)"
+
+on:
+  pull_request_target:
+    types: [labeled, synchronize]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "Pull request number"
+        required: true
+        type: number
+      review_label:
+        description: "Label that enables review"
+        required: false
+        default: "ai-review"
+        type: string
+      llm_provider:
+        description: "LLM provider"
+        required: false
+        default: "openai"
+        type: choice
+        options:
+          - openai
+          - gemini
+          - anthropic
+      llm_model:
+        description: "Model name (provider-specific)"
+        required: false
+        default: ""
+        type: string
+
+permissions:
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: llm-pr-review-${{ github.repository }}-${{ github.event.pull_request.number || github.event.inputs.pr_number }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    if: >-
+      ${{
+        github.event_name == 'workflow_dispatch' ||
+        (
+          github.event_name == 'pull_request_target' &&
+          (
+            (
+              github.event.action == 'labeled' &&
+              (
+                github.event.label.name == (vars.LLM_REVIEW_LABEL || 'ai-review') ||
+                startsWith(github.event.label.name, 'gpt-') ||
+                startsWith(github.event.label.name, 'claude-') ||
+                startsWith(github.event.label.name, 'gemini') ||
+                startsWith(github.event.label.name, 'llm:') ||
+                startsWith(github.event.label.name, 'openai:') ||
+                startsWith(github.event.label.name, 'gemini:') ||
+                startsWith(github.event.label.name, 'anthropic:')
+              )
+            ) ||
+            (
+              github.event.action == 'synchronize' &&
+              (
+                contains(github.event.pull_request.labels.*.name, (vars.LLM_REVIEW_LABEL || 'ai-review')) ||
+                contains(join(github.event.pull_request.labels.*.name, ','), 'gpt-') ||
+                contains(join(github.event.pull_request.labels.*.name, ','), 'claude-') ||
+                contains(join(github.event.pull_request.labels.*.name, ','), 'gemini') ||
+                contains(join(github.event.pull_request.labels.*.name, ','), 'llm:') ||
+                contains(join(github.event.pull_request.labels.*.name, ','), 'openai:') ||
+                contains(join(github.event.pull_request.labels.*.name, ','), 'gemini:') ||
+                contains(join(github.event.pull_request.labels.*.name, ','), 'anthropic:')
+              )
+            )
+          )
+        )
+      }}
+    steps:
+      - name: Run LLM review and comment
+        uses: actions/github-script@v7
+        env:
+          PR_NUMBER: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.pr_number || github.event.pull_request.number }}
+          REVIEW_LABEL: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.review_label || vars.LLM_REVIEW_LABEL || 'ai-review' }}
+          LLM_PROVIDER: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.llm_provider || vars.LLM_PROVIDER || 'openai' }}
+          LLM_MODEL: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.llm_model || vars.LLM_MODEL || '' }}
+          OPENAI_BASE_URL: ${{ vars.OPENAI_BASE_URL || 'https://api.openai.com/v1' }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            const prNumber = Number(process.env.PR_NUMBER || "0");
+            if (!prNumber) {
+              core.setFailed("PR_NUMBER is required (set inputs.pr_number for workflow_dispatch).");
+              return;
+            }
+
+            const reviewLabel = (process.env.REVIEW_LABEL || "ai-review").trim();
+            const providerFromEnv = (process.env.LLM_PROVIDER || "openai").trim().toLowerCase();
+            const modelOverride = (process.env.LLM_MODEL || "").trim();
+            const marker = "<!-- llm-pr-review -->";
+
+            const prResp = await github.rest.pulls.get({
+              owner,
+              repo,
+              pull_number: prNumber
+            });
+
+            const pr = prResp.data;
+            const prLabels = (pr.labels || []).map(l => l.name);
+
+            function parseProviderModelFromLabel(label) {
+              const raw = String(label || "").trim();
+              if (!raw) return null;
+
+              // Explicit formats:
+              // - llm:<provider>:<model>
+              // - <provider>:<model> (provider in {openai, gemini, anthropic})
+              let m = raw.match(/^llm:([^:]+):(.+)$/i);
+              if (m) return { provider: m[1].toLowerCase(), model: m[2].trim(), raw };
+
+              m = raw.match(/^(openai|gemini|anthropic):(.+)$/i);
+              if (m) return { provider: m[1].toLowerCase(), model: m[2].trim(), raw };
+
+              // Short formats based on common model prefixes
+              if (/^gpt-/i.test(raw) || /^o\d/i.test(raw) || /^o1/i.test(raw)) {
+                return { provider: "openai", model: raw, raw };
+              }
+              if (/^gemini/i.test(raw)) {
+                const model = raw.toLowerCase() === "gemini3" ? "gemini-3" : raw;
+                return { provider: "gemini", model, raw };
+              }
+              if (/^claude-/i.test(raw)) {
+                return { provider: "anthropic", model: raw, raw };
+              }
+              return null;
+            }
+
+            const triggeredLabel = String(context?.payload?.label?.name || "").trim();
+            let labelParsed = parseProviderModelFromLabel(triggeredLabel);
+            if (!labelParsed) {
+              for (const l of prLabels) {
+                const parsed = parseProviderModelFromLabel(l);
+                if (parsed) {
+                  labelParsed = parsed;
+                  break;
+                }
+              }
+            }
+
+            const hasReviewLabel = prLabels.includes(reviewLabel);
+            const hasModelLabel = Boolean(labelParsed);
+            if (context.eventName !== "workflow_dispatch" && !hasReviewLabel && !hasModelLabel) {
+              core.info(`Skipping: PR #${prNumber} has neither label '${reviewLabel}' nor a model label.`);
+              return;
+            }
+
+            const files = await github.paginate(github.rest.pulls.listFiles, {
+              owner,
+              repo,
+              pull_number: prNumber,
+              per_page: 100
+            });
+
+            const MAX_FILES = 25;
+            const MAX_PATCH_CHARS = 6000;
+            const MAX_TOTAL_CHARS = 120000;
+
+            let usedFiles = 0;
+            let truncatedFiles = 0;
+            let truncatedOutput = false;
+
+            const parts = [];
+            for (const file of files) {
+              if (usedFiles >= MAX_FILES) {
+                truncatedFiles += 1;
+                continue;
+              }
+
+              const header = [
+                `File: ${file.filename}`,
+                `Status: ${file.status}`,
+                `Changes: +${file.additions} -${file.deletions}`,
+              ].join("\n");
+
+              let patch = file.patch || "";
+              if (!patch) {
+                patch = "(patch omitted by GitHub API for this file)";
+              }
+
+              if (patch.length > MAX_PATCH_CHARS) {
+                patch = patch.slice(0, MAX_PATCH_CHARS) + "\n...(patch truncated)...";
+              }
+
+              const chunk = `${header}\n\n${patch}`;
+              const nextSize = parts.join("\n\n---\n\n").length + chunk.length;
+              if (nextSize > MAX_TOTAL_CHARS) {
+                truncatedOutput = true;
+                break;
+              }
+
+              parts.push(chunk);
+              usedFiles += 1;
+            }
+
+            const diffText = parts.join("\n\n---\n\n");
+
+            const systemPrompt = [
+              "You are an expert software engineer performing a pull request review.",
+              "Be specific, actionable, and concise.",
+              "Focus on correctness, security, maintainability, tests, and edge cases.",
+              "If you suggest changes, include concrete code snippets or a minimal diff-style suggestion.",
+            ].join(" ");
+
+            const userPrompt = [
+              `Repository: ${owner}/${repo}`,
+              `PR #${prNumber}: ${pr.title}`,
+              "",
+              "PR description:",
+              pr.body || "(no description)",
+              "",
+              "Changed files and patches:",
+              diffText || "(no diff content available)",
+              "",
+              "Output format:",
+              "- Start with a short summary",
+              "- Then list issues grouped by severity (High/Medium/Low)",
+              "- Include suggested tests",
+              "- End with a short 'Approve / Request changes' recommendation",
+            ].join("\n");
+
+            async function callOpenAI({ apiKey, baseUrl, model, messages }) {
+              if (!apiKey) throw new Error("OPENAI_API_KEY is not set.");
+              const url = `${baseUrl.replace(/\/$/, "")}/chat/completions`;
+              const payload = { model, messages };
+
+              const isGpt5ish = /gpt-?5/i.test(model) || /^o\d/i.test(model) || /^o1/i.test(model);
+              if (isGpt5ish) {
+                payload.max_completion_tokens = 2048;
+              } else {
+                payload.max_tokens = 2048;
+                payload.temperature = 0.2;
+              }
+
+              const resp = await fetch(url, {
+                method: "POST",
+                headers: {
+                  "Authorization": `Bearer ${apiKey}`,
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify(payload),
+              });
+
+              if (!resp.ok) {
+                const text = await resp.text();
+                throw new Error(`OpenAI API error (${resp.status}): ${text}`);
+              }
+
+              const data = await resp.json();
+              const content = data?.choices?.[0]?.message?.content;
+              if (!content) throw new Error("OpenAI API returned no content.");
+              return content;
+            }
+
+            async function callGemini({ apiKey, model, prompt }) {
+              if (!apiKey) throw new Error("GEMINI_API_KEY is not set.");
+              const geminiModel = model || "gemini-1.5-pro";
+              const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(geminiModel)}:generateContent?key=${encodeURIComponent(apiKey)}`;
+              const payload = {
+                contents: [{ role: "user", parts: [{ text: prompt }] }],
+                generationConfig: { temperature: 0.2, maxOutputTokens: 2048 },
+              };
+
+              const resp = await fetch(url, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+              });
+
+              if (!resp.ok) {
+                const text = await resp.text();
+                throw new Error(`Gemini API error (${resp.status}): ${text}`);
+              }
+
+              const data = await resp.json();
+              const parts = data?.candidates?.[0]?.content?.parts || [];
+              const text = parts.map(p => p.text || "").join("").trim();
+              if (!text) throw new Error("Gemini API returned no content.");
+              return text;
+            }
+
+            async function callAnthropic({ apiKey, model, system, prompt }) {
+              if (!apiKey) throw new Error("ANTHROPIC_API_KEY is not set.");
+              const anthropicModel = model || "claude-3-5-sonnet-latest";
+              const url = "https://api.anthropic.com/v1/messages";
+              const payload = {
+                model: anthropicModel,
+                max_tokens: 2048,
+                temperature: 0.2,
+                system,
+                messages: [{ role: "user", content: prompt }],
+              };
+
+              const resp = await fetch(url, {
+                method: "POST",
+                headers: {
+                  "x-api-key": apiKey,
+                  "anthropic-version": "2023-06-01",
+                  "content-type": "application/json",
+                },
+                body: JSON.stringify(payload),
+              });
+
+              if (!resp.ok) {
+                const text = await resp.text();
+                throw new Error(`Anthropic API error (${resp.status}): ${text}`);
+              }
+
+              const data = await resp.json();
+              const text = (data?.content || []).map(p => p.text || "").join("").trim();
+              if (!text) throw new Error("Anthropic API returned no content.");
+              return text;
+            }
+
+            let reviewText = "";
+            let chosenModel = modelOverride;
+            let provider = providerFromEnv;
+            let chosenLabel = reviewLabel;
+
+            if (labelParsed) {
+              provider = labelParsed.provider;
+              chosenModel = labelParsed.model;
+              chosenLabel = labelParsed.raw;
+            }
+
+            if (provider === "openai") {
+              chosenModel = chosenModel || "gpt-5";
+              reviewText = await callOpenAI({
+                apiKey: process.env.OPENAI_API_KEY,
+                baseUrl: process.env.OPENAI_BASE_URL || "https://api.openai.com/v1",
+                model: chosenModel,
+                messages: [
+                  { role: "system", content: systemPrompt },
+                  { role: "user", content: userPrompt },
+                ],
+              });
+            } else if (provider === "gemini") {
+              chosenModel = chosenModel || "gemini-1.5-pro";
+              reviewText = await callGemini({
+                apiKey: process.env.GEMINI_API_KEY,
+                model: chosenModel,
+                prompt: `${systemPrompt}\n\n${userPrompt}`,
+              });
+            } else if (provider === "anthropic") {
+              chosenModel = chosenModel || "claude-3-5-sonnet-latest";
+              reviewText = await callAnthropic({
+                apiKey: process.env.ANTHROPIC_API_KEY,
+                model: chosenModel,
+                system: systemPrompt,
+                prompt: userPrompt,
+              });
+            } else {
+              core.setFailed(`Unsupported LLM_PROVIDER: ${provider}`);
+              return;
+            }
+
+            const now = new Date().toISOString();
+            const headerLines = [
+              marker,
+              `## LLM PR Review`,
+              ``,
+              `- Provider: \`${provider}\``,
+              `- Model: \`${chosenModel}\``,
+              `- Trigger: \`${chosenLabel}\``,
+              `- Generated: \`${now}\``,
+              ``,
+            ];
+
+            if (truncatedFiles || truncatedOutput) {
+              headerLines.push("> Note: Diff context was truncated to stay within workflow limits.");
+              headerLines.push("");
+            }
+
+            const commentBody = `${headerLines.join("\n")}\n${reviewText}\n`;
+
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner,
+              repo,
+              issue_number: prNumber,
+              per_page: 100
+            });
+
+            const existing = comments.find(c =>
+              c?.body?.includes(marker) &&
+              (c?.user?.type === "Bot" || c?.user?.login === "github-actions[bot]")
+            );
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner,
+                repo,
+                comment_id: existing.id,
+                body: commentBody
+              });
+              core.info(`Updated existing review comment (id=${existing.id}).`);
+            } else {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: prNumber,
+                body: commentBody
+              });
+              core.info("Created new review comment.");
+            }

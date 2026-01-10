@@ -1,0 +1,13 @@
+name: "DEPRECATED: Copilot Playwright Loop (legacy)"
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deprecated:
+    runs-on: [self-hosted, linux, x64, big]
+    steps:
+      - name: Notice
+        run: |
+          echo "This legacy workflow referenced non-existent Copilot agent actions."
+          echo "Use auto-copilot-org-playwright-loopv2.yml instead."

@@ -1,0 +1,63 @@
+name: "Trigger Workflow on All Repos"
+
+on:
+  workflow_dispatch:
+    inputs:
+      workflow_file:
+        description: 'Workflow file name to trigger (e.g., workflows-sync.yml)'
+        required: true
+        type: string
+      ref:
+        description: 'Git reference (branch/tag/SHA) to run workflow from'
+        required: false
+        default: 'main'
+        type: string
+      include_archived:
+        description: 'Include archived repositories'
+        required: false
+        default: false
+        type: boolean
+      check_only:
+        description: 'Only check which repos have the workflow (do not trigger)'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  trigger-all:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@main
+
+      - name: Set up Python
+        uses: actions/setup-python@main
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install requests
+
+      - name: Trigger workflow on all repositories
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          python trigger_workflow_all_repos.py \
+            P4X-ng \
+            "${{ inputs.workflow_file }}" \
+            --ref "${{ inputs.ref }}" \
+            ${{ inputs.include_archived && '--include-archived' || '' }} \
+            ${{ inputs.check_only && '--check-only' || '' }} \
+            --delay 1.5
+
+      - name: Summary
+        run: |
+          echo "## Workflow Dispatch Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Workflow:** ${{ inputs.workflow_file }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Reference:** ${{ inputs.ref }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Include archived:** ${{ inputs.include_archived }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Check only:** ${{ inputs.check_only }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "See logs above for detailed results." >> $GITHUB_STEP_SUMMARY

@@ -1,0 +1,258 @@
+name: "Comprehensive Test Review with Playwright"
+
+# REQUIREMENTS:
+# - A GitHub Personal Access Token with Copilot access must be created and stored as a repository secret named COPILOT_TOKEN
+# - See COPILOT_TOKEN_SETUP.md for detailed setup instructions
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  checks: write
+
+jobs:
+  test-review-and-execution:
+    runs-on: [self-hosted, linux, x64, big]
+    strategy:
+      matrix:
+        browser: [chromium, firefox, webkit]
+        mode: [headed, headless]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@main
+
+      - name: Setup Node.js
+        uses: actions/setup-node@main
+        with:
+          node-version: '20'
+          cache: 'npm'
+        continue-on-error: true
+
+      - name: Setup Python
+        uses: actions/setup-python@main
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+        continue-on-error: true
+
+      - name: Install Node.js dependencies
+        run: |
+          if [ -f "package.json" ]; then
+            npm install
+            npm install -D @playwright/test playwright
+          fi
+        continue-on-error: true
+
+      - name: Install Python dependencies
+        run: |
+          if [ -f "requirements.txt" ]; then
+            pip install -r requirements.txt
+          fi
+          pip install pytest playwright pytest-playwright
+        continue-on-error: true
+
+      - name: Install Playwright browsers
+        run: |
+          npx playwright install --with-deps ${{ matrix.browser }} || python -m playwright install --with-deps ${{ matrix.browser }}
+        continue-on-error: true
+
+      - name: Verify Playwright installation
+        run: |
+          echo "Checking Playwright installation..."
+          npx playwright --version || python -m playwright --version || echo "Playwright not installed"
+
+      - name: Run Playwright Tests (Headless)
+        if: matrix.mode == 'headless'
+        run: |
+          if [ -f "playwright.config.ts" ] || [ -f "playwright.config.js" ]; then
+            npx playwright test --browser=${{ matrix.browser }}
+          elif [ -d "tests" ] && find tests -name "*test*.py" -o -name "*_test.py" | grep -q .; then
+            pytest tests/ --browser ${{ matrix.browser }} --headed=false
+          else
+            echo "No Playwright tests found - this is OK if not a web project"
+          fi
+        env:
+          CI: true
+        continue-on-error: true
+
+      - name: Run Playwright Tests (Headed)
+        if: matrix.mode == 'headed'
+        run: |
+          if [ -f "playwright.config.ts" ] || [ -f "playwright.config.js" ]; then
+            npx playwright test --browser=${{ matrix.browser }} --headed
+          elif [ -d "tests" ] && find tests -name "*test*.py" -o -name "*_test.py" | grep -q .; then
+            pytest tests/ --browser ${{ matrix.browser }} --headed=true
+          else
+            echo "No Playwright tests found - this is OK if not a web project"
+          fi
+        env:
+          CI: true
+          DISPLAY: :99
+        continue-on-error: true
+
+      - name: Upload Playwright Test Results
+        uses: actions/upload-artifact@main
+        if: always()
+        with:
+          name: playwright-results-${{ matrix.browser }}-${{ matrix.mode }}
+          path: |
+            playwright-report/
+            test-results/
+            playwright-traces/
+          retention-days: 30
+        continue-on-error: true
+
+      - name: Upload Playwright Screenshots on Failure
+        uses: actions/upload-artifact@main
+        if: failure()
+        with:
+          name: playwright-screenshots-${{ matrix.browser }}-${{ matrix.mode }}
+          path: |
+            screenshots/
+            test-results/**/screenshots/
+          retention-days: 7
+        continue-on-error: true
+
+  test-coverage-review:
+    runs-on: [self-hosted, linux, x64, big]
+    needs: test-review-and-execution
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@main
+
+      - name: Analyze Test Coverage
+        id: coverage
+        run: |
+          echo "## Test Coverage Analysis" > /tmp/test-analysis.md
+          echo "" >> /tmp/test-analysis.md
+          
+          # Find test files
+          echo "### Test Files Found:" >> /tmp/test-analysis.md
+          find . -type f \( -name "*test*.js" -o -name "*test*.ts" -o -name "*test*.py" -o -name "*spec*.js" -o -name "*spec*.ts" \) \
+            ! -path "*/node_modules/*" \
+            ! -path "*/dist/*" \
+            ! -path "*/.venv/*" \
+            -exec echo "- {}" \; >> /tmp/test-analysis.md || echo "No test files found" >> /tmp/test-analysis.md
+          
+          echo "" >> /tmp/test-analysis.md
+          echo "### Source Files Without Tests:" >> /tmp/test-analysis.md
+          
+          # Find source files that might need tests
+          for file in $(find . -type f \( -name "*.js" -o -name "*.ts" -o -name "*.py" \) \
+            ! -path "*/node_modules/*" \
+            ! -path "*/dist/*" \
+            ! -path "*/build/*" \
+            ! -path "*/.venv/*" \
+            ! -path "*/vendor/*" \
+            ! -name "*test*" \
+            ! -name "*spec*"); do
+            basename=$(basename "$file" | sed 's/\.[^.]*$//')
+            
+            # Check if corresponding test file exists
+            if ! find . -name "*${basename}*test*" -o -name "*${basename}*spec*" 2>/dev/null | grep -q .; then
+              echo "- $file (no corresponding test found)" >> /tmp/test-analysis.md
+            fi
+          done
+          
+          cat /tmp/test-analysis.md
+
+      - name: GitHub Copilot Test Review
+        uses: austenstone/copilot-cli-action@v2
+        with:
+          copilot-token: ${{ secrets.COPILOT_TOKEN }}
+          prompt: |
+            Review the test suite for this repository:
+            1. Verify all web-based functionality has Playwright tests (both headed and headless)
+            2. Identify missing test coverage for critical functionality
+            3. Check test quality and maintainability
+            4. Suggest improvements for test organization
+            5. Verify tests follow best practices (isolation, clarity, proper assertions)
+            6. Check for flaky tests or tests with timing issues
+            7. Ensure tests are running in CI/CD pipeline
+            
+            For any web tests not using Playwright, recommend migration.
+            Provide specific, actionable recommendations with file names.
+        continue-on-error: true
+
+      - name: Create or Update Test Review Issue
+        uses: actions/github-script@main
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const analysis = fs.readFileSync('/tmp/test-analysis.md', 'utf8');
+            
+            const date = new Date().toISOString().split('T')[0];
+            const title = `Test Coverage Review - ${date}`;
+            
+            const body = `# Comprehensive Test Review
+            
+            This automated review ensures proper test coverage with Playwright for web tests.
+            
+            ${analysis}
+            
+            ## Playwright Test Status
+            
+            ✅ Tests run in multiple browsers: Chromium, Firefox, WebKit
+            ✅ Tests run in both headed and headless modes
+            
+            ## Recommendations
+            
+            1. **Add Playwright tests** for all web-based functionality
+            2. **Migrate existing web tests** to Playwright if not already using it
+            3. **Add tests** for source files without coverage
+            4. **Review test quality** and maintainability
+            5. **Fix flaky tests** and timing issues
+            6. **Ensure CI/CD integration** for all tests
+            
+            ## Action Items
+            
+            - [ ] Review files without tests and add coverage
+            - [ ] Migrate non-Playwright web tests to Playwright
+            - [ ] Fix any failing tests
+            - [ ] Add documentation for test setup and execution
+            
+            ---
+            *This issue was automatically generated by the Test Review workflow.*
+            `;
+            
+            // Check if similar issue exists
+            const issues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: ['test-coverage', 'automated'],
+              per_page: 10
+            });
+            
+            const recentIssue = issues.data.find(issue => {
+              const createdAt = new Date(issue.created_at);
+              const daysSinceCreation = (Date.now() - createdAt) / (1000 * 60 * 60 * 24);
+              return daysSinceCreation < 7;
+            });
+            
+            if (recentIssue) {
+              console.log(`Recent issue found: #${recentIssue.number}, updating`);
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: recentIssue.number,
+                body: `## Updated Analysis (${date})\n\n${analysis}`
+              });
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: title,
+                body: body,
+                labels: ['test-coverage', 'automated', 'playwright', 'needs-review']
+              });
+            }

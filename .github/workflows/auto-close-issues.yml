@@ -1,0 +1,17 @@
+name: "Close stale issues and PRs once a week"
+on:
+  schedule:
+    - cron: '0 0 * * 0'
+jobs:
+  close_stale:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/stale@main
+        with:
+          days-before-stale: 21
+          days-before-close: 7
+          stale-issue-message: "This issue has been marked stale and will be closed in 7 days unless updated."
+          close-issue-message: "Closing as stale, feel free to reopen!"
+          stale-pr-message: "This PR has been marked stale and will be closed in 7 days unless updated."
+          close-pr-message: "Closing as stale, feel free to reopen!"
+          exempt-issue-labels: "pinned,security"

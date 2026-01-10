@@ -1,0 +1,158 @@
+name: "Periodic Code Cleanliness Review"
+
+# REQUIREMENTS:
+# - A GitHub Personal Access Token with Copilot access must be created and stored as a repository secret named COPILOT_TOKEN
+# - See COPILOT_TOKEN_SETUP.md for detailed setup instructions
+
+on:
+  schedule:
+    # Run every 12 hours (at 00:00 and 12:00 UTC)
+    - cron: '0 0,12 * * *'
+  workflow_dispatch:  # Allow manual trigger
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  code-cleanliness-review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@main
+        with:
+          fetch-depth: 0  # Full history for better analysis
+
+      - name: Analyze Large Files
+        id: analyze
+        run: |
+          echo "## Large Files Analysis" > /tmp/analysis.md
+          echo "" >> /tmp/analysis.md
+          echo "Files larger than 500 lines that may benefit from splitting:" >> /tmp/analysis.md
+          echo "" >> /tmp/analysis.md
+          
+          # Find files larger than 500 lines (excluding common large files)
+          find . -type f \( -name "*.py" -o -name "*.js" -o -name "*.ts" -o -name "*.java" -o -name "*.go" -o -name "*.cs" -o -name "*.rb" \) \
+            ! -path "*/node_modules/*" \
+            ! -path "*/dist/*" \
+            ! -path "*/build/*" \
+            ! -path "*/.venv/*" \
+            ! -path "*/vendor/*" \
+            -exec wc -l {} \; | \
+            awk '$1 > 500 {print $1 " lines: " $2}' | \
+            sort -rn >> /tmp/analysis.md || echo "No large files found" >> /tmp/analysis.md
+          
+          echo "" >> /tmp/analysis.md
+          echo "## Code Complexity Analysis" >> /tmp/analysis.md
+          echo "" >> /tmp/analysis.md
+          echo "Files with potential complexity issues:" >> /tmp/analysis.md
+          
+          # Find files with many functions/classes (basic heuristic)
+          for ext in py js ts java go cs rb; do
+            if [ "$ext" = "py" ]; then
+              pattern="^def |^class "
+            elif [ "$ext" = "js" ] || [ "$ext" = "ts" ]; then
+              pattern="^function |^class |const.*=.*=>|function.*{$"
+            else
+              pattern="^class |^def |^func "
+            fi
+            
+            find . -type f -name "*.$ext" \
+              ! -path "*/node_modules/*" \
+              ! -path "*/dist/*" \
+              ! -path "*/build/*" \
+              ! -path "*/.venv/*" \
+              ! -path "*/vendor/*" \
+              -exec sh -c 'count=$(grep -c "$1" "$2" 2>/dev/null || echo 0); if [ "$count" -gt 20 ]; then echo "$count definitions in $2"; fi' _ "$pattern" {} \; \
+              2>/dev/null || true
+          done | sort -rn >> /tmp/analysis.md
+          
+          cat /tmp/analysis.md
+
+      - name: GitHub Copilot Code Review
+        uses: austenstone/copilot-cli-action@v2
+        with:
+          copilot-token: ${{ secrets.COPILOT_TOKEN }}
+          prompt: |
+            Review the codebase for code cleanliness issues:
+            1. Identify files that are too large (>500 lines) and suggest how to split them into smaller, focused modules
+            2. Look for code duplication and suggest refactoring opportunities
+            3. Check for consistent code style and formatting
+            4. Identify complex functions that could be simplified
+            5. Suggest improvements for code organization and structure
+            6. Check for proper separation of concerns
+            
+            Provide actionable recommendations with specific file names and line numbers.
+        continue-on-error: true
+
+      - name: Create Issue for Code Cleanliness Review
+        uses: actions/github-script@main
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const analysis = fs.readFileSync('/tmp/analysis.md', 'utf8');
+            
+            const date = new Date().toISOString().split('T')[0];
+            const title = `Code Cleanliness Review - ${date}`;
+            
+            const body = `# Periodic Code Cleanliness Review
+            
+            This is an automated review conducted every 12 hours to maintain code quality.
+            
+            ${analysis}
+            
+            ## Recommendations
+            
+            Please review the analysis above and:
+            1. Split large files (>500 lines) into smaller, focused modules
+            2. Refactor complex functions into smaller, testable units
+            3. Remove code duplication
+            4. Ensure consistent code style
+            5. Improve code organization and structure
+            
+            ## Next Steps
+            
+            - Assign this issue to relevant team members
+            - Create follow-up PRs to address findings
+            - Document any architectural decisions
+            
+            ---
+            *This issue was automatically generated by the Code Cleanliness Review workflow.*
+            `;
+            
+            // Check if similar issue exists (open, created in last 24 hours)
+            const issues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: ['code-cleanliness', 'automated'],
+              per_page: 10
+            });
+            
+            const recentIssue = issues.data.find(issue => {
+              const createdAt = new Date(issue.created_at);
+              const hoursSinceCreation = (Date.now() - createdAt) / (1000 * 60 * 60);
+              return hoursSinceCreation < 24;
+            });
+            
+            if (recentIssue) {
+              console.log(`Recent issue found: #${recentIssue.number}, skipping creation`);
+              // Update existing issue with new analysis
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: recentIssue.number,
+                body: `## Updated Analysis (${date})\n\n${analysis}`
+              });
+            } else {
+              // Create new issue
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: title,
+                body: body,
+                labels: ['code-cleanliness', 'automated', 'needs-review']
+              });
+            }

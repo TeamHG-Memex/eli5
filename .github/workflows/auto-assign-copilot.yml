@@ -1,0 +1,161 @@
+name: Auto Assign Copilot to Issues
+
+on:
+  issues:
+    types:
+      - opened
+      - labeled
+
+permissions:
+  issues: write
+
+jobs:
+  ensure-labels:
+    runs-on: ubuntu-latest
+    if: github.event.action == 'opened' || (github.event.action == 'labeled' && github.event.label.name == 'copilot')
+    steps:
+      - name: Ensure required labels exist
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            // Define all required labels
+            const requiredLabels = [
+              {
+                name: 'copilot',
+                color: '0E8A16',
+                description: 'Assign this issue to GitHub Copilot'
+              },
+              {
+                name: 'copilot-gpt-5.1-codex',
+                color: '1D76DB',
+                description: 'Use GPT-5.1-Codex model for Copilot'
+              },
+              {
+                name: 'copilot-gpt-5.1',
+                color: '5319E7',
+                description: 'Use GPT-5.1 model for Copilot'
+              },
+              {
+                name: 'copilot-claude-4.5-opus',
+                color: 'D93F0B',
+                description: 'Use Claude 4.5 Opus model for Copilot'
+              }
+            ];
+
+            // Get existing labels in the repository
+            const { data: existingLabels } = await github.rest.issues.listLabelsForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              per_page: 100
+            });
+
+            const existingLabelNames = new Set(existingLabels.map(l => l.name));
+
+            // Create missing labels
+            for (const label of requiredLabels) {
+              if (!existingLabelNames.has(label.name)) {
+                try {
+                  await github.rest.issues.createLabel({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    name: label.name,
+                    color: label.color,
+                    description: label.description
+                  });
+                  console.log(`✅ Created label: ${label.name}`);
+                } catch (error) {
+                  console.log(`⚠️ Failed to create label ${label.name}: ${error.message}`);
+                }
+              } else {
+                console.log(`ℹ️ Label already exists: ${label.name}`);
+              }
+            }
+
+  auto-assign:
+    runs-on: ubuntu-latest
+    needs: ensure-labels
+    if: contains(github.event.issue.labels.*.name, 'copilot')
+    steps:
+      - name: Assign Copilot to issue
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const copilotUsername = "copilot";
+
+            // Check if issue is already assigned to copilot
+            const currentAssignees = context.payload.issue.assignees.map(u => u.login);
+
+            if (!currentAssignees.includes(copilotUsername)) {
+              console.log(`Issue has 'copilot' label. Assigning @${copilotUsername}...`);
+
+              try {
+                await github.rest.issues.addAssignees({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.issue.number,
+                  assignees: [copilotUsername]
+                });
+                console.log(`✅ Assigned @${copilotUsername} to issue #${context.issue.number}`);
+              } catch (error) {
+                console.log(`⚠️ Failed to assign Copilot: ${error.message}`);
+                console.log("Note: You must have a Copilot seat assigned to your account/org for this to work.");
+              }
+            } else {
+              console.log(`ℹ️ @${copilotUsername} is already assigned to issue #${context.issue.number}`);
+            }
+
+      - name: Add comment about model selection
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const issueLabels = context.payload.issue.labels.map(l => l.name);
+            
+            // Check which model label is present
+            const modelLabels = [
+              'copilot-gpt-5.1-codex',
+              'copilot-gpt-5.1',
+              'copilot-claude-4.5-opus'
+            ];
+            
+            const selectedModel = modelLabels.find(label => issueLabels.includes(label));
+            
+            // Check if we've already commented
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number
+            });
+            
+            const botComment = comments.find(c => 
+              c.user.type === 'Bot' && 
+              c.body.includes('GitHub Copilot has been assigned')
+            );
+            
+            if (!botComment) {
+              let message = '🤖 **GitHub Copilot has been assigned to this issue!**\n\n';
+              
+              if (selectedModel) {
+                message += `📊 **Model selected:** \`${selectedModel}\`\n\n`;
+              } else {
+                message += '📊 **Model selection:** To specify a Copilot model, add one of these labels:\n';
+                message += '- `copilot-gpt-5.1-codex` - Best for code generation and analysis\n';
+                message += '- `copilot-gpt-5.1` - Latest GPT model\n';
+                message += '- `copilot-claude-4.5-opus` - Claude model for code review\n\n';
+              }
+              
+              message += '💡 **Next steps:**\n';
+              message += '- Copilot will analyze the issue and provide assistance\n';
+              message += '- You can interact with Copilot by mentioning `@copilot` in comments\n';
+              
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: message
+              });
+              
+              console.log('✅ Added informational comment');
+            }

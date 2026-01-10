@@ -1,0 +1,16 @@
+name: "Security Scan on PR"
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+jobs:
+  security_scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@main
+      - name: Run CodeQL Scan
+        uses: github/codeql-action/init@main
+        with:
+          languages: 'python,javascript'
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@main

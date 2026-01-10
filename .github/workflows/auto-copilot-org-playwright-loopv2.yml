@@ -1,0 +1,148 @@
+name: "Org-wide: Copilot Playwright Test, Review, Auto-fix, PR, Merge"
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  actions: read
+
+jobs:
+  playwright-review-fix:
+    runs-on: [self-hosted, linux, x64, big]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Check for requirements.txt
+        id: check-requirements
+        run: |
+          if [ -f "requirements.txt" ]; then
+            echo "requirements_exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "requirements_exists=false" >> $GITHUB_OUTPUT
+            echo "No requirements.txt found, skipping dependency installation"
+          fi
+
+      - name: Install dependencies
+        if: steps.check-requirements.outputs.requirements_exists == 'true'
+        run: |
+          pip install -r requirements.txt
+        continue-on-error: true
+
+      - name: Install Playwright and testing dependencies
+        run: |
+          pip install pytest playwright pytest-playwright
+        continue-on-error: true
+
+      - name: Install Playwright browsers
+        run: |
+          python -m playwright install --with-deps
+        continue-on-error: true
+
+      - name: Check for tests directory
+        id: check-tests
+        run: |
+          if [ -d "tests" ] || [ -d "test" ] || find . -name "*test*.py" -type f | head -1 | grep -q .; then
+            echo "tests_exist=true" >> $GITHUB_OUTPUT
+            echo "Tests found, proceeding with test execution"
+          else
+            echo "tests_exist=false" >> $GITHUB_OUTPUT
+            echo "No tests found, skipping test execution"
+          fi
+
+      - name: Run Playwright Tests
+        if: steps.check-tests.outputs.tests_exist == 'true'
+        run: |
+          # Try different test directory patterns
+          if [ -d "tests" ]; then
+            pytest tests/ -v --tb=short
+          elif [ -d "test" ]; then
+            pytest test/ -v --tb=short
+          else
+            pytest . -k "test" -v --tb=short
+          fi
+        continue-on-error: true
+
+      - name: Generate test report
+        if: steps.check-tests.outputs.tests_exist == 'true'
+        run: |
+          echo "## Test Results" >> test_report.md
+          echo "Playwright tests have been executed." >> test_report.md
+          echo "Check the logs above for detailed results." >> test_report.md
+        continue-on-error: true
+
+      - name: Create Issue for Test Failures
+        if: failure() && steps.check-tests.outputs.tests_exist == 'true'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GH_PAT || secrets.GITHUB_TOKEN }}
+          script: |
+            const title = `Playwright Tests Failed - ${new Date().toISOString().split('T')[0]}`;
+            const body = `
+            ## Playwright Test Failure Report
+            
+            **Repository:** ${{ github.repository }}
+            **Branch:** ${{ github.ref_name }}
+            **Commit:** ${{ github.sha }}
+            **Workflow Run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            
+            The automated Playwright tests have failed. Please review the workflow logs for details.
+            
+            ### Next Steps:
+            1. Review the test failures in the workflow logs
+            2. Fix the failing tests locally
+            3. Push the fixes to trigger a new test run
+            
+            This issue was automatically created by the Playwright testing workflow.
+            `;
+            
+            // Check if similar issue already exists
+            const issues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: ['playwright-failure', 'automated']
+            });
+            
+            const existingIssue = issues.data.find(issue => 
+              issue.title.includes('Playwright Tests Failed') && 
+              issue.created_at > new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+            );
+            
+            if (!existingIssue) {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: title,
+                body: body,
+                labels: ['playwright-failure', 'automated', 'bug']
+              });
+            }
+        continue-on-error: true
+
+      - name: Summary
+        run: |
+          echo "## Playwright Workflow Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Repository:** ${{ github.repository }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Requirements found:** ${{ steps.check-requirements.outputs.requirements_exists }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Tests found:** ${{ steps.check-tests.outputs.tests_exist }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.check-tests.outputs.tests_exist }}" = "true" ]; then
+            echo "✅ Playwright tests were executed. Check logs for results." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "ℹ️ No tests found - workflow completed successfully without test execution." >> $GITHUB_STEP_SUMMARY
+          fi

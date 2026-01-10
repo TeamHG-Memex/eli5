@@ -1,0 +1,427 @@
+name: "Code Functionality and Documentation Review"
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  functionality-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@main
+
+      - name: Setup Node.js
+        uses: actions/setup-node@main
+        with:
+          node-version: '20'
+        continue-on-error: true
+
+      - name: Setup Python
+        uses: actions/setup-python@main
+        with:
+          python-version: '3.11'
+        continue-on-error: true
+
+      - name: Setup Go
+        uses: actions/setup-go@main
+        with:
+          go-version: 'stable'
+        continue-on-error: true
+
+      - name: Install Dependencies and Build
+        id: build
+        run: |
+          echo "BUILD_STATUS=unknown" >> $GITHUB_OUTPUT
+          
+          # Node.js project
+          if [ -f "package.json" ]; then
+            echo "Detected Node.js project"
+            npm install || echo "npm install failed"
+            
+            if grep -q '"build"' package.json; then
+              npm run build && echo "BUILD_STATUS=success" >> $GITHUB_OUTPUT || echo "BUILD_STATUS=failed" >> $GITHUB_OUTPUT
+            else
+              echo "BUILD_STATUS=no-build-script" >> $GITHUB_OUTPUT
+            fi
+          fi
+          
+          # Python project
+          if [ -f "requirements.txt" ] || [ -f "setup.py" ] || [ -f "pyproject.toml" ]; then
+            echo "Detected Python project"
+            if [ -f "requirements.txt" ]; then
+              pip install -r requirements.txt || echo "pip install failed"
+            fi
+            if [ -f "setup.py" ]; then
+              pip install -e . || echo "setup.py install failed"
+            fi
+            echo "BUILD_STATUS=success" >> $GITHUB_OUTPUT
+          fi
+          
+          # Go project
+          if [ -f "go.mod" ]; then
+            echo "Detected Go project"
+            go build ./... && echo "BUILD_STATUS=success" >> $GITHUB_OUTPUT || echo "BUILD_STATUS=failed" >> $GITHUB_OUTPUT
+          fi
+          
+          # Java/Maven project
+          if [ -f "pom.xml" ]; then
+            echo "Detected Maven project"
+            mvn clean compile && echo "BUILD_STATUS=success" >> $GITHUB_OUTPUT || echo "BUILD_STATUS=failed" >> $GITHUB_OUTPUT
+          fi
+          
+          # Gradle project
+          if [ -f "build.gradle" ] || [ -f "build.gradle.kts" ]; then
+            echo "Detected Gradle project"
+            ./gradlew build -x test && echo "BUILD_STATUS=success" >> $GITHUB_OUTPUT || echo "BUILD_STATUS=failed" >> $GITHUB_OUTPUT
+          fi
+        continue-on-error: true
+
+      - name: Run Basic Functionality Tests
+        run: |
+          # Try to run tests if they exist
+          if [ -f "package.json" ] && grep -q '"test"' package.json; then
+            npm test || echo "Tests failed or not configured"
+          fi
+          
+          if [ -f "pytest.ini" ] || [ -d "tests" ]; then
+            pytest || echo "Pytest tests failed or not configured"
+          fi
+          
+          if [ -f "go.mod" ]; then
+            go test ./... || echo "Go tests failed or not configured"
+          fi
+        continue-on-error: true
+
+  documentation-review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@main
+
+      - name: Analyze Documentation
+        id: doc-analysis
+        run: |
+          echo "## Documentation Analysis" > /tmp/doc-analysis.md
+          echo "" >> /tmp/doc-analysis.md
+          
+          # Check for main documentation files
+          echo "### Main Documentation Files:" >> /tmp/doc-analysis.md
+          for doc in README.md CONTRIBUTING.md LICENSE.md CHANGELOG.md CODE_OF_CONDUCT.md SECURITY.md; do
+            if [ -f "$doc" ]; then
+              echo "✅ $doc exists" >> /tmp/doc-analysis.md
+            else
+              echo "❌ $doc is missing" >> /tmp/doc-analysis.md
+            fi
+          done
+          
+          echo "" >> /tmp/doc-analysis.md
+          echo "### README.md Quality Check:" >> /tmp/doc-analysis.md
+          
+          if [ -f "README.md" ]; then
+            word_count=$(wc -w < README.md)
+            echo "- Word count: $word_count" >> /tmp/doc-analysis.md
+            
+            if [ $word_count -lt 50 ]; then
+              echo "⚠️ README.md is very short (< 50 words)" >> /tmp/doc-analysis.md
+            else
+              echo "✅ README.md has adequate content" >> /tmp/doc-analysis.md
+            fi
+            
+            # Check for common sections
+            for section in "Installation" "Usage" "Features" "Contributing" "License" "Documentation"; do
+              if grep -qi "$section" README.md; then
+                echo "✅ Contains '$section' section" >> /tmp/doc-analysis.md
+              else
+                echo "⚠️ Missing '$section' section" >> /tmp/doc-analysis.md
+              fi
+            done
+          else
+            echo "❌ README.md does not exist" >> /tmp/doc-analysis.md
+          fi
+          
+          echo "" >> /tmp/doc-analysis.md
+          echo "### Additional Documentation:" >> /tmp/doc-analysis.md
+          
+          # Find all markdown files
+          find . -name "*.md" \
+            ! -path "*/node_modules/*" \
+            ! -path "*/.venv/*" \
+            ! -path "*/vendor/*" \
+            -type f | while read -r file; do
+            echo "- $file" >> /tmp/doc-analysis.md
+          done || echo "No additional markdown files found" >> /tmp/doc-analysis.md
+          
+          echo "" >> /tmp/doc-analysis.md
+          echo "### Code with Missing Documentation:" >> /tmp/doc-analysis.md
+          
+          # Check for undocumented functions/classes (basic heuristic)
+          # Python
+          if find . -name "*.py" ! -path "*/.venv/*" ! -path "*/node_modules/*" | grep -q .; then
+            echo "" >> /tmp/doc-analysis.md
+            echo "#### Python files:" >> /tmp/doc-analysis.md
+            find . -name "*.py" \
+              ! -path "*/.venv/*" \
+              ! -path "*/node_modules/*" \
+              ! -path "*/dist/*" \
+              ! -name "__init__.py" \
+              -type f | while read -r file; do
+              # Count functions and classes
+              func_count=$(grep -c "^def " "$file" 2>/dev/null || echo 0)
+              class_count=$(grep -c "^class " "$file" 2>/dev/null || echo 0)
+              docstring_count=$(grep -c '"""' "$file" 2>/dev/null || echo 0)
+              
+              total=$((func_count + class_count))
+              if [ $total -gt 0 ] && [ $docstring_count -eq 0 ]; then
+                echo "⚠️ $file: $total definitions, no docstrings" >> /tmp/doc-analysis.md
+              fi
+            done
+          fi
+          
+          # JavaScript/TypeScript
+          if find . \( -name "*.js" -o -name "*.ts" \) ! -path "*/node_modules/*" ! -path "*/dist/*" | grep -q .; then
+            echo "" >> /tmp/doc-analysis.md
+            echo "#### JavaScript/TypeScript files:" >> /tmp/doc-analysis.md
+            find . \( -name "*.js" -o -name "*.ts" \) \
+              ! -path "*/node_modules/*" \
+              ! -path "*/dist/*" \
+              ! -path "*/build/*" \
+              -type f | while read -r file; do
+              # Count functions and classes
+              func_count=$(grep -cE "(^function |^export function |^const .* = .*=>)" "$file" 2>/dev/null || echo 0)
+              class_count=$(grep -c "^class " "$file" 2>/dev/null || echo 0)
+              jsdoc_count=$(grep -c '/\*\*' "$file" 2>/dev/null || echo 0)
+              
+              total=$((func_count + class_count))
+              if [ $total -gt 5 ] && [ $jsdoc_count -eq 0 ]; then
+                echo "⚠️ $file: ~$total definitions, no JSDoc comments" >> /tmp/doc-analysis.md
+              fi
+            done
+          fi
+          
+          cat /tmp/doc-analysis.md
+
+      - name: Documentation Quality Analysis
+        run: |
+          echo "" >> /tmp/doc-analysis.md
+          echo "## Documentation Quality Analysis" >> /tmp/doc-analysis.md
+          echo "" >> /tmp/doc-analysis.md
+          
+          # Check README.md completeness and quality
+          echo "### 1. README.md Analysis" >> /tmp/doc-analysis.md
+          if [ -f "README.md" ]; then
+            readme_lines=$(wc -l < README.md)
+            echo "- README.md exists with $readme_lines lines" >> /tmp/doc-analysis.md
+            
+            # Check for essential sections
+            if grep -q -i "installation\|install\|setup" README.md; then
+              echo "- ✅ Installation instructions found" >> /tmp/doc-analysis.md
+            else
+              echo "- ❌ Missing installation instructions" >> /tmp/doc-analysis.md
+            fi
+            
+            if grep -q -i "usage\|example\|getting started" README.md; then
+              echo "- ✅ Usage examples found" >> /tmp/doc-analysis.md
+            else
+              echo "- ❌ Missing usage examples" >> /tmp/doc-analysis.md
+            fi
+            
+            if grep -q -i "contributing\|contribute" README.md; then
+              echo "- ✅ Contributing guidelines found" >> /tmp/doc-analysis.md
+            else
+              echo "- ❌ Missing contributing guidelines" >> /tmp/doc-analysis.md
+            fi
+            
+            if grep -q -i "license" README.md; then
+              echo "- ✅ License information found" >> /tmp/doc-analysis.md
+            else
+              echo "- ❌ Missing license information" >> /tmp/doc-analysis.md
+            fi
+          else
+            echo "- ❌ README.md not found" >> /tmp/doc-analysis.md
+          fi
+          
+          # Check for other documentation files
+          echo "" >> /tmp/doc-analysis.md
+          echo "### 2. Additional Documentation" >> /tmp/doc-analysis.md
+          
+          docs_count=$(find . -name "*.md" | wc -l)
+          echo "- Total markdown files: $docs_count" >> /tmp/doc-analysis.md
+          
+          if [ -f "CONTRIBUTING.md" ]; then
+            echo "- ✅ CONTRIBUTING.md exists" >> /tmp/doc-analysis.md
+          else
+            echo "- ❌ CONTRIBUTING.md missing" >> /tmp/doc-analysis.md
+          fi
+          
+          if [ -f "LICENSE" ] || [ -f "LICENSE.md" ] || [ -f "LICENSE.txt" ]; then
+            echo "- ✅ License file exists" >> /tmp/doc-analysis.md
+          else
+            echo "- ❌ License file missing" >> /tmp/doc-analysis.md
+          fi
+          
+          if [ -d "docs" ]; then
+            docs_files=$(find docs -name "*.md" | wc -l)
+            echo "- ✅ Documentation directory exists with $docs_files files" >> /tmp/doc-analysis.md
+          else
+            echo "- ⚠️ No dedicated docs directory" >> /tmp/doc-analysis.md
+          fi
+          
+          # Check code comments and inline documentation
+          echo "" >> /tmp/doc-analysis.md
+          echo "### 3. Code Documentation" >> /tmp/doc-analysis.md
+          
+          # Python docstrings
+          python_docstrings=$(grep -r '"""' . --include="*.py" 2>/dev/null | wc -l || echo "0")
+          echo "- Python docstrings found: $python_docstrings" >> /tmp/doc-analysis.md
+          
+          # JavaScript/TypeScript comments
+          js_comments=$(grep -r '/\*\*' . --include="*.js" --include="*.ts" 2>/dev/null | wc -l || echo "0")
+          echo "- JavaScript/TypeScript JSDoc comments: $js_comments" >> /tmp/doc-analysis.md
+          
+          # General comments
+          total_comments=$(grep -r '#\|//\|/\*' . --include="*.py" --include="*.js" --include="*.ts" --include="*.java" --include="*.go" 2>/dev/null | wc -l || echo "0")
+          echo "- Total code comments: $total_comments" >> /tmp/doc-analysis.md
+          
+          # API documentation check
+          echo "" >> /tmp/doc-analysis.md
+          echo "### 4. API Documentation" >> /tmp/doc-analysis.md
+          
+          if find . -name "*.py" -exec grep -l "flask\|fastapi\|django" {} \; | head -1 > /dev/null 2>&1; then
+            echo "- Python web framework detected - consider API documentation" >> /tmp/doc-analysis.md
+          fi
+          
+          if find . -name "*.js" -o -name "*.ts" -exec grep -l "express\|koa\|nest" {} \; | head -1 > /dev/null 2>&1; then
+            echo "- Node.js web framework detected - consider API documentation" >> /tmp/doc-analysis.md
+          fi
+          
+          # Recommendations
+          echo "" >> /tmp/doc-analysis.md
+          echo "### 5. Documentation Improvement Recommendations" >> /tmp/doc-analysis.md
+          echo "- Ensure README.md includes clear installation steps" >> /tmp/doc-analysis.md
+          echo "- Add usage examples with code snippets" >> /tmp/doc-analysis.md
+          echo "- Include troubleshooting section" >> /tmp/doc-analysis.md
+          echo "- Add API documentation if applicable" >> /tmp/doc-analysis.md
+          echo "- Consider adding architecture diagrams" >> /tmp/doc-analysis.md
+          echo "- Include changelog or release notes" >> /tmp/doc-analysis.md
+          
+          cat /tmp/doc-analysis.md
+        continue-on-error: true
+
+      - name: GitHub Copilot Documentation Review (optional)
+        if: ${{ secrets.COPILOT_TOKEN != '' }}
+        uses: austenstone/copilot-cli-action@v2
+        with:
+          copilot-token: ${{ secrets.COPILOT_TOKEN }}
+          prompt: |
+            Review the documentation for this repository:
+            1. Check README.md completeness and quality
+            2. Verify all features and functionality are documented
+            3. Check for installation and usage instructions
+            4. Identify missing or outdated documentation
+            5. Suggest improvements for clarity and completeness
+            6. Verify code comments and inline documentation
+            7. Check for API documentation if applicable
+            8. Ensure contributing guidelines are present
+
+            Provide specific recommendations with file names and sections.
+        continue-on-error: true
+
+      - name: Create Documentation Review Report
+        uses: actions/github-script@main
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const analysis = fs.readFileSync('/tmp/doc-analysis.md', 'utf8');
+            
+            const date = new Date().toISOString().split('T')[0];
+            const title = `Code Functionality & Documentation Review - ${date}`;
+            
+            const buildStatus = process.env.BUILD_STATUS || 'unknown';
+            const buildEmoji = buildStatus === 'success' ? '✅' : 
+                              buildStatus === 'failed' ? '❌' : '⚠️';
+            
+            const body = `# Code Functionality and Documentation Review
+            
+            ## Build Status: ${buildEmoji} ${buildStatus}
+            
+            ${analysis}
+            
+            ## Functionality Review
+            
+            - Build status: ${buildStatus}
+            - Tests execution: See workflow logs for details
+            
+            ## Recommendations
+            
+            ### Documentation:
+            1. **Complete README.md** with all required sections
+            2. **Add missing documentation files** (CONTRIBUTING.md, CHANGELOG.md, etc.)
+            3. **Document all public APIs** and exported functions
+            4. **Add inline code comments** for complex logic
+            5. **Create usage examples** and tutorials
+            6. **Update outdated documentation** to match current code
+            
+            ### Functionality:
+            1. **Ensure code builds successfully** in CI environment
+            2. **Fix any broken functionality** identified in tests
+            3. **Add error handling** and validation
+            4. **Verify all features work as documented**
+            
+            ## Action Items
+            
+            - [ ] Add/update missing documentation files
+            - [ ] Improve README.md quality and completeness
+            - [ ] Add code comments and docstrings
+            - [ ] Fix build issues if any
+            - [ ] Verify all features are documented
+            
+            ---
+            *This issue was automatically generated by the Functionality & Documentation Review workflow.*
+            `;
+            
+            // Check for existing issues
+            const issues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: ['documentation', 'automated'],
+              per_page: 10
+            });
+            
+            const recentIssue = issues.data.find(issue => {
+              const createdAt = new Date(issue.created_at);
+              const daysSinceCreation = (Date.now() - createdAt) / (1000 * 60 * 60 * 24);
+              return daysSinceCreation < 7;
+            });
+            
+            if (recentIssue) {
+              console.log(`Recent issue found: #${recentIssue.number}, updating`);
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: recentIssue.number,
+                body: `## Updated Analysis (${date})\n\nBuild Status: ${buildEmoji} ${buildStatus}\n\n${analysis}`
+              });
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: title,
+                body: body,
+                labels: ['documentation', 'functionality', 'automated', 'needs-review']
+              });
+            }
+        env:
+          BUILD_STATUS: ${{ steps.build.outputs.BUILD_STATUS }}
