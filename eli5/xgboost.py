@@ -360,18 +360,19 @@ def _parse_tree_dump(text_dump):
 def _parse_dump_line(line):
     # type: (str) -> Tuple[int, Dict[str, Any]]
     branch_match = re.match(
-        '^(\t*)(\d+):\[([^<]+)<([^\]]+)\] '
+        '^(\t*)(\d+):\[([^<]+)<?([^\]]*)\] '
         'yes=(\d+),no=(\d+),missing=(\d+),'
         'gain=([^,]+),cover=(.+)$', line)
     if branch_match:
         tabs, node_id, feature, condition, yes, no, missing, gain, cover = \
             branch_match.groups()
         depth = len(tabs)
+        split_condition = float(condition) if condition else 0.
         return depth, {
             'depth': depth,
             'nodeid': int(node_id),
             'split': feature,
-            'split_condition': float(condition),
+            'split_condition': split_condition,
             'yes': int(yes),
             'no': int(no),
             'missing': int(missing),
