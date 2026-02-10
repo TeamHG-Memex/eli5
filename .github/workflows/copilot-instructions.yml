@@ -1,0 +1,14 @@
+instructions:
+  enabled: true
+  prompt: |
+    Follow the repository Copilot instructions in `.github/copilot-instructions.md` exactly.
+    Also follow security and privacy guidelines.
+
+models:
+  allowCustomModels: true
+  defaultModel: gpt-5.2
+  allowedModels:
+    - gpt-5.1-codex
+    - gpt-5.2
+    - gpt-5.2-pro
+    - gpt-5.1
