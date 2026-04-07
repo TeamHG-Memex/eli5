@@ -1,8 +1,8 @@
 name: "Periodic Code Cleanliness Review"
 
 # REQUIREMENTS:
-# - A GitHub Personal Access Token with Copilot access must be created and stored as a repository secret named COPILOT_TOKEN
-# - See COPILOT_TOKEN_SETUP.md for detailed setup instructions
+# - The repository or organization must allow GitHub Copilot CLI in Actions
+# - Optional: COPILOT_TOKEN may be provided to override the default github.token
 
 on:
   schedule:
@@ -17,10 +17,10 @@ permissions:
 
 jobs:
   code-cleanliness-review:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, big]
     steps:
       - name: Checkout code
-        uses: actions/checkout@main
+        uses: actions/checkout@v4.3.1
         with:
           fetch-depth: 0  # Full history for better analysis
 
@@ -71,9 +71,12 @@ jobs:
           cat /tmp/analysis.md
 
       - name: GitHub Copilot Code Review
-        uses: austenstone/copilot-cli-action@v2
+        uses: austenstone/copilot-cli@v3
         with:
-          copilot-token: ${{ secrets.COPILOT_TOKEN }}
+          copilot-token: ${{ secrets.COPILOT_TOKEN || github.token }}
+          repo-token: ${{ github.token }}
+          model: gpt-5.3-codex
+          reasoning-effort: xhigh
           prompt: |
             Review the codebase for code cleanliness issues:
             1. Identify files that are too large (>500 lines) and suggest how to split them into smaller, focused modules
@@ -87,7 +90,7 @@ jobs:
         continue-on-error: true
 
       - name: Create Issue for Code Cleanliness Review
-        uses: actions/github-script@main
+        uses: actions/github-script@v7.1.0
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
