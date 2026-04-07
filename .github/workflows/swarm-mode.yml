@@ -1,0 +1,106 @@
+name: Swarm Mode - Continuous Progress
+
+on:
+  workflow_dispatch:
+    inputs:
+      duration_minutes:
+        description: 'Duration in minutes (default: 60)'
+        required: false
+        default: '60'
+        type: string
+      issue_prefix:
+        description: 'Prefix for swarm issues (default: "Swarm Task")'
+        required: false
+        default: 'Swarm Task'
+        type: string
+
+jobs:
+  swarm-mode:
+    runs-on: [self-hosted, linux, x64, big]
+    timeout-minutes: 120
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.3.1
+
+      - name: Run swarm mode
+        uses: actions/github-script@v7.1.0
+        env:
+          DURATION_MINUTES: ${{ github.event.inputs.duration_minutes || '60' }}
+          ISSUE_PREFIX: ${{ github.event.inputs.issue_prefix || 'Swarm Task' }}
+        with:
+          script: |
+            const durationMinutes = parseInt(process.env.DURATION_MINUTES) || 60;
+            const issuePrefix = process.env.ISSUE_PREFIX || 'Swarm Task';
+            const startTime = Date.now();
+            const endTime = startTime + (durationMinutes * 60 * 1000);
+            
+            console.log(`Starting swarm mode for ${durationMinutes} minutes`);
+            console.log(`Will run until ${new Date(endTime).toISOString()}`);
+            
+            let taskCounter = 1;
+            
+            // Function to create next swarm task
+            async function createSwarmTask(counter) {
+              const issueTitle = `${issuePrefix} #${counter}: ${new Date().toISOString().split('T')[0]}`;
+              
+              const body = `## Swarm Task #${counter}
+              
+              This is task #${counter} in the swarm mode session.
+              
+              @copilot please:
+              1. Analyze the repository to identify the highest priority task
+              2. Complete one focused, incremental improvement
+              3. Ensure the change is well-tested and documented
+              4. Keep changes minimal and focused on forward progress
+              5. Close this issue when complete
+              
+              **Guidelines:**
+              - Focus on quick wins (5-15 minutes per task)
+              - Make one clear improvement at a time
+              - Ensure all changes are tested
+              - Document changes in commit messages
+              - Move forward continuously
+              
+              **Session Info:**
+              - Session duration: ${durationMinutes} minutes
+              - Task number: ${counter}
+              - Started: ${new Date().toISOString()}
+              `;
+              
+              const issue = await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: issueTitle,
+                body: body,
+                labels: ['automation', 'swarm-mode', 'copilot']
+              });
+              
+              console.log(`Created task #${counter}:`, issue.data.html_url);
+              
+              // Assign to copilot
+              await github.rest.issues.addAssignees({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.data.number,
+                assignees: ['copilot']
+              });
+              
+              return issue.data;
+            }
+            
+            // Create initial batch of tasks
+            const batchSize = 3; // Create 3 tasks at a time
+            console.log(`Creating initial batch of ${batchSize} tasks...`);
+            
+            for (let i = 0; i < batchSize; i++) {
+              await createSwarmTask(taskCounter++);
+              await new Promise(resolve => setTimeout(resolve, 2000)); // 2 second delay
+            }
+            
+            console.log(`Created ${batchSize} initial tasks`);
+            console.log(`Swarm mode session initiated. Tasks will be processed by @copilot.`);
+            console.log(`Additional tasks can be created manually or by scheduling another swarm run.`);
