@@ -10,17 +10,12 @@ on:
         required: true
         type: number
       llm_provider:
-        description: "LLM provider"
+        description: "LLM provider (optional: openai, gemini, anthropic)"
         required: false
         default: ""
-        type: choice
-        options:
-          - ""
-          - openai
-          - gemini
-          - anthropic
+        type: string
       llm_model:
-        description: "Model name (provider-specific)"
+        description: "Model name (provider-specific, e.g. gpt-5.4, gpt-5.4-pro, gpt-5.3-codex)"
         required: false
         default: ""
         type: string
@@ -40,10 +35,10 @@ concurrency:
 
 jobs:
   review:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, big]
     steps:
       - name: Run LLM issue review and comment
-        uses: actions/github-script@v7
+        uses: actions/github-script@v7.1.0
         env:
           ISSUE_NUMBER: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.issue_number || github.event.issue.number }}
           TRIGGER_LABEL: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.trigger_label || github.event.label.name }}
@@ -223,14 +218,88 @@ jobs:
 
             const userPrompt = promptParts.join("\n");
 
+            function getOpenAIReasoningEffort(model) {
+              const normalized = String(model || "").trim().toLowerCase();
+              if (!normalized) return null;
+              if (normalized === "gpt-5.4" || normalized === "gpt-5.4-pro" || normalized === "gpt-5.3-codex") {
+                return "xhigh";
+              }
+              if (normalized === "gpt-5-pro") {
+                return "high";
+              }
+              if (/^gpt-5(?:[.-]|$)/.test(normalized)) {
+                return "high";
+              }
+              return null;
+            }
+
+            function extractResponsesText(data) {
+              if (typeof data?.output_text === "string" && data.output_text.trim()) {
+                return data.output_text.trim();
+              }
+
+              const parts = [];
+              for (const item of data?.output || []) {
+                if (item?.type !== "message") continue;
+                for (const content of item.content || []) {
+                  if ((content?.type === "output_text" || content?.type === "text") && typeof content.text === "string") {
+                    parts.push(content.text);
+                  }
+                }
+              }
+
+              return parts.join("\n").trim();
+            }
+
             async function callOpenAI({ apiKey, baseUrl, model, messages }) {
               if (!apiKey) throw new Error("OPENAI_API_KEY is not set.");
+              const normalizedModel = String(model || "").trim().toLowerCase();
+              const reasoningEffort = getOpenAIReasoningEffort(normalizedModel);
+
+              if (normalizedModel === "gpt-5.3-codex") {
+                const url = `${baseUrl.replace(/\/$/, "")}/responses`;
+                const payload = {
+                  model,
+                  input: messages.map(message => ({
+                    role: message.role,
+                    content: message.content,
+                  })),
+                  max_output_tokens: 2048,
+                };
+
+                if (reasoningEffort) {
+                  payload.reasoning = { effort: reasoningEffort };
+                }
+
+                const resp = await fetch(url, {
+                  method: "POST",
+                  headers: {
+                    "Authorization": `Bearer ${apiKey}`,
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify(payload),
+                });
+
+                if (!resp.ok) {
+                  const text = await resp.text();
+                  throw new Error(`OpenAI Responses API error (${resp.status}): ${text}`);
+                }
+
+                const data = await resp.json();
+                const content = extractResponsesText(data);
+                if (!content) throw new Error("OpenAI Responses API returned no content.");
+                return { content, reasoningEffort };
+              }
+
               const url = `${baseUrl.replace(/\/$/, "")}/chat/completions`;
               const payload = { model, messages };
 
               const isGpt5ish = /gpt-?5/i.test(model) || /^o\d/i.test(model) || /^o1/i.test(model);
               if (isGpt5ish) {
                 payload.max_completion_tokens = 2048;
+                if (reasoningEffort) {
+                  payload.reasoning_effort = reasoningEffort;
+                }
               } else {
                 payload.max_tokens = 2048;
                 payload.temperature = 0.2;
@@ -253,7 +322,7 @@ jobs:
               const data = await resp.json();
               const content = data?.choices?.[0]?.message?.content;
               if (!content) throw new Error("OpenAI API returned no content.");
-              return content;
+              return { content, reasoningEffort };
             }
 
             async function callGemini({ apiKey, model, prompt }) {
@@ -317,9 +386,10 @@ jobs:
             }
 
             let reviewText = "";
+            let reasoningEffort = "";
             try {
               if (provider === "openai") {
-                reviewText = await callOpenAI({
+                const openAIResult = await callOpenAI({
                   apiKey: process.env.OPENAI_API_KEY,
                   baseUrl: process.env.OPENAI_BASE_URL,
                   model,
@@ -328,6 +398,8 @@ jobs:
                     { role: "user", content: userPrompt },
                   ],
                 });
+                reviewText = openAIResult.content;
+                reasoningEffort = openAIResult.reasoningEffort || "";
               } else if (provider === "gemini") {
                 reviewText = await callGemini({
                   apiKey: process.env.GEMINI_API_KEY,
@@ -353,6 +425,7 @@ jobs:
               marker,
               `Provider: ${provider}`,
               `Model: ${model}`,
+              ...(reasoningEffort ? [`Reasoning effort: ${reasoningEffort}`] : []),
               "",
               reviewText,
             ].join("\n");
