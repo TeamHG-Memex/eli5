@@ -1,0 +1,72 @@
+name: Runner Smoke Test
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke-test:
+    runs-on: [self-hosted, linux, x64, big]
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4.3.1
+
+      - name: Verify required tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          command -v bash
+          command -v git
+          command -v python3
+
+          bash --version | head -1
+          git --version
+          python3 --version
+
+      - name: Collect runner details
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "RUNNER_NAME=${RUNNER_NAME:-unknown}"
+          echo "RUNNER_OS=${RUNNER_OS:-unknown}"
+          echo "RUNNER_ARCH=${RUNNER_ARCH:-unknown}"
+          uname -a
+          id
+          pwd
+
+      - name: Check optional tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          for tool in gh podman node npm; do
+            if command -v "$tool" >/dev/null 2>&1; then
+              echo "$tool: available"
+              "$tool" --version | head -1
+            else
+              echo "$tool: missing"
+            fi
+          done
+
+      - name: Verify workspace write access
+        shell: bash
+        run: |
+          set -euo pipefail
+          touch .runner-smoke-test
+          rm .runner-smoke-test
+
+      - name: Write summary
+        shell: bash
+        run: |
+          {
+            echo "## Runner Smoke Test"
+            echo ""
+            echo "- Runner name: ${RUNNER_NAME:-unknown}"
+            echo "- Runner OS: ${RUNNER_OS:-unknown}"
+            echo "- Runner architecture: ${RUNNER_ARCH:-unknown}"
+            echo "- Checkout: passed"
+            echo "- Required tools: bash, git, python3"
+            echo "- Optional tools reported in logs: gh, podman, node, npm"
+          } >> "$GITHUB_STEP_SUMMARY"
