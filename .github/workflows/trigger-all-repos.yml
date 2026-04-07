@@ -25,25 +25,25 @@ on:
 
 jobs:
   trigger-all:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, big]
     steps:
       - name: Checkout repository
-        uses: actions/checkout@main
+        uses: actions/checkout@v4.3.1
 
       - name: Set up Python
-        uses: actions/setup-python@main
+        uses: actions/setup-python@v5.6.0
         with:
           python-version: '3.11'
 
       - name: Install dependencies
         run: |
-          pip install requests
+          python3 -m pip install requests
 
       - name: Trigger workflow on all repositories
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
         run: |
-          python trigger_workflow_all_repos.py \
+          python3 trigger_workflow_all_repos.py \
             P4X-ng \
             "${{ inputs.workflow_file }}" \
             --ref "${{ inputs.ref }}" \
