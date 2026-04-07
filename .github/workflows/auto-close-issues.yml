@@ -4,9 +4,9 @@ on:
     - cron: '0 0 * * 0'
 jobs:
   close_stale:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, big]
     steps:
-      - uses: actions/stale@main
+      - uses: actions/stale@v10.2.0
         with:
           days-before-stale: 21
           days-before-close: 7
