@@ -5,8 +5,10 @@ on:
     tags:
       - 'e2eweekly'
       - 'weeklyreview'
+      - 'proreview'
       - 'e2e-*'
       - 'review-*'
+      - 'proreview-*'
   workflow_dispatch:
     inputs:
       review_type:
@@ -18,18 +20,28 @@ on:
           - e2e
           - weekly
           - full
+          - pro
       ai_model:
         description: 'AI Model to use for review'
         required: false
-        default: 'gpt-5.1-codex'
+        default: 'gpt-5.4'
         type: choice
         options:
-          - gpt-5.1-codex
-          - gpt-5.1
+          - gpt-5.4
+          - gpt-5.3-codex
+          - gpt-5.4-pro
           - gpt-5
-          - amazonq
-          - codex
-          - gemini
+      reasoning_effort:
+        description: 'Reasoning effort preference'
+        required: false
+        default: 'xhigh'
+        type: choice
+        options:
+          - xhigh
+          - high
+          - medium
+          - low
+          - none
 
 permissions:
   contents: write
@@ -39,10 +51,10 @@ permissions:
 
 jobs:
   tag-based-review:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, big]
     steps:
       - name: Checkout code
-        uses: actions/checkout@main
+        uses: actions/checkout@v4.3.1
         with:
           fetch-depth: 0
 
@@ -52,37 +64,48 @@ jobs:
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "type=${{ inputs.review_type }}" >> $GITHUB_OUTPUT
             echo "model=${{ inputs.ai_model }}" >> $GITHUB_OUTPUT
+            echo "effort=${{ inputs.reasoning_effort }}" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.ref }}" == *"proreview"* ]]; then
+            echo "type=pro" >> $GITHUB_OUTPUT
+            echo "model=gpt-5.4-pro" >> $GITHUB_OUTPUT
+            echo "effort=xhigh" >> $GITHUB_OUTPUT
           elif [[ "${{ github.ref }}" == *"e2eweekly"* ]] || [[ "${{ github.ref }}" == *"e2e"* ]]; then
             echo "type=e2e" >> $GITHUB_OUTPUT
-            echo "model=gpt-5.1-codex" >> $GITHUB_OUTPUT
+            echo "model=gpt-5.3-codex" >> $GITHUB_OUTPUT
+            echo "effort=xhigh" >> $GITHUB_OUTPUT
           elif [[ "${{ github.ref }}" == *"weeklyreview"* ]] || [[ "${{ github.ref }}" == *"review"* ]]; then
             echo "type=weekly" >> $GITHUB_OUTPUT
-            echo "model=gpt-5.1" >> $GITHUB_OUTPUT
+            echo "model=gpt-5.4" >> $GITHUB_OUTPUT
+            echo "effort=xhigh" >> $GITHUB_OUTPUT
           else
             echo "type=full" >> $GITHUB_OUTPUT
-            echo "model=gpt-5.1-codex" >> $GITHUB_OUTPUT
+            echo "model=gpt-5.4" >> $GITHUB_OUTPUT
+            echo "effort=xhigh" >> $GITHUB_OUTPUT
           fi
 
       - name: Setup Node.js
-        uses: actions/setup-node@main
+        uses: actions/setup-node@v4.4.0
         with:
           node-version: '20'
         continue-on-error: true
 
       - name: Setup Python
-        uses: actions/setup-python@main
+        uses: actions/setup-python@v5.6.0
         with:
           python-version: '3.11'
         continue-on-error: true
 
       - name: E2E Review with Selected Model
         if: steps.review-type.outputs.type == 'e2e'
-        uses: austenstone/copilot-cli-action@v2
+        uses: austenstone/copilot-cli@v3
         with:
-          copilot-token: ${{ secrets.COPILOT_TOKEN }}
+          copilot-token: ${{ secrets.COPILOT_TOKEN || github.token }}
+          repo-token: ${{ github.token }}
+          model: ${{ steps.review-type.outputs.model }}
+          reasoning-effort: ${{ steps.review-type.outputs.effort == 'none' && '' || steps.review-type.outputs.effort }}
           prompt: |
-            Perform a comprehensive end-to-end code review using ${{ steps.review-type.outputs.model }}:
-            
+            Perform a comprehensive end-to-end code review.
+
             **E2E Testing Focus:**
             1. Integration Points
                - Review all API endpoints and their integrations
@@ -119,12 +142,15 @@ jobs:
 
       - name: Weekly Review with Selected Model
         if: steps.review-type.outputs.type == 'weekly'
-        uses: austenstone/copilot-cli-action@v2
+        uses: austenstone/copilot-cli@v3
         with:
-          copilot-token: ${{ secrets.COPILOT_TOKEN }}
+          copilot-token: ${{ secrets.COPILOT_TOKEN || github.token }}
+          repo-token: ${{ github.token }}
+          model: ${{ steps.review-type.outputs.model }}
+          reasoning-effort: ${{ steps.review-type.outputs.effort == 'none' && '' || steps.review-type.outputs.effort }}
           prompt: |
-            Perform a comprehensive weekly code review using ${{ steps.review-type.outputs.model }}:
-            
+            Perform a comprehensive weekly code review.
+
             **Weekly Review Scope:**
             1. Architecture & Design
                - Review overall system architecture
@@ -167,12 +193,15 @@ jobs:
 
       - name: Full Review with Selected Model
         if: steps.review-type.outputs.type == 'full'
-        uses: austenstone/copilot-cli-action@v2
+        uses: austenstone/copilot-cli@v3
         with:
-          copilot-token: ${{ secrets.COPILOT_TOKEN }}
+          copilot-token: ${{ secrets.COPILOT_TOKEN || github.token }}
+          repo-token: ${{ github.token }}
+          model: ${{ steps.review-type.outputs.model }}
+          reasoning-effort: ${{ steps.review-type.outputs.effort == 'none' && '' || steps.review-type.outputs.effort }}
           prompt: |
-            Perform a full comprehensive code review using ${{ steps.review-type.outputs.model }}:
-            
+            Perform a full comprehensive code review.
+
             **Complete Code Review:**
             1. Code Quality & Architecture
             2. Security Analysis
@@ -188,6 +217,29 @@ jobs:
             Provide detailed analysis with specific recommendations.
         continue-on-error: true
 
+      - name: Pro Review with Selected Model
+        if: steps.review-type.outputs.type == 'pro'
+        uses: austenstone/copilot-cli@v3
+        with:
+          copilot-token: ${{ secrets.COPILOT_TOKEN || github.token }}
+          repo-token: ${{ github.token }}
+          model: ${{ steps.review-type.outputs.model }}
+          reasoning-effort: ${{ steps.review-type.outputs.effort == 'none' && '' || steps.review-type.outputs.effort }}
+          prompt: |
+            Perform a deep, long-horizon Pro review.
+
+            **Pro Review Focus:**
+            1. Deep architecture and system boundary risks
+            2. Hidden correctness issues and edge-case failures
+            3. Non-obvious security, privacy, and abuse-path concerns
+            4. Performance bottlenecks, scaling constraints, and operational risks
+            5. Rollout safety, migration risks, and observability gaps
+            6. Test strategy depth, especially missing high-value scenarios
+
+            Prefer fewer, higher-confidence findings over broad speculation.
+            Provide a prioritized review with specific files, concrete risks, and recommended fixes.
+        continue-on-error: true
+
       - name: Generate Review Report
         id: generate-report
         run: |
@@ -195,6 +247,7 @@ jobs:
           echo "" >> /tmp/tag-review-report.md
           echo "**Review Type:** ${{ steps.review-type.outputs.type }}" >> /tmp/tag-review-report.md
           echo "**AI Model:** ${{ steps.review-type.outputs.model }}" >> /tmp/tag-review-report.md
+          echo "**Reasoning Effort:** ${{ steps.review-type.outputs.effort }}" >> /tmp/tag-review-report.md
           echo "**Triggered by:** ${{ github.event_name }}" >> /tmp/tag-review-report.md
           echo "**Tag/Branch:** ${{ github.ref }}" >> /tmp/tag-review-report.md
           echo "**Date:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> /tmp/tag-review-report.md
@@ -219,7 +272,7 @@ jobs:
         continue-on-error: true
 
       - name: Create Review Issue
-        uses: actions/github-script@main
+        uses: actions/github-script@v7.1.0
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -234,6 +287,7 @@ jobs:
             const date = new Date().toISOString().split('T')[0];
             const reviewType = '${{ steps.review-type.outputs.type }}';
             const model = '${{ steps.review-type.outputs.model }}';
+            const effort = '${{ steps.review-type.outputs.effort }}';
             const title = `${reviewType.toUpperCase()} Code Review (${model}) - ${date}`;
             
             const body = `# Tag-Based Code Review Report
@@ -244,6 +298,7 @@ jobs:
             
             - **Review Type:** ${reviewType}
             - **AI Model:** ${model}
+            - **Reasoning Effort:** ${effort}
             - **Repository:** ${{ github.repository }}
             - **Branch/Tag:** ${{ github.ref }}
             - **Commit:** ${{ github.sha }}
@@ -256,6 +311,7 @@ jobs:
             - **E2E Review:** Comprehensive end-to-end testing and integration analysis
             - **Weekly Review:** Broad code quality, architecture, and trend analysis
             - **Full Review:** Complete analysis covering all aspects
+            - **Pro Review:** Deep long-horizon review with extra reasoning time
             
             ## Action Items
             
@@ -305,7 +361,7 @@ jobs:
         continue-on-error: true
 
       - name: Upload Review Report
-        uses: actions/upload-artifact@main
+        uses: actions/upload-artifact@v4.6.2
         with:
           name: tag-review-report
           path: /tmp/tag-review-report.md
