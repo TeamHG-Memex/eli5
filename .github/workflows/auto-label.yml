@@ -9,10 +9,10 @@ on:
 
 jobs:
   label:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, big]
     steps:
       - name: Add labels
-        uses: actions/github-script@main
+        uses: actions/github-script@v7.1.0
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
