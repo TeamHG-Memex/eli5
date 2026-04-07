@@ -27,16 +27,16 @@ jobs:
         language: [ 'javascript', 'python' ]
     steps:
       - name: Checkout code
-        uses: actions/checkout@main
+        uses: actions/checkout@v4.3.1
 
       - name: Setup Node.js
-        uses: actions/setup-node@main
+        uses: actions/setup-node@v4.4.0
         with:
           node-version: '20'
         continue-on-error: true
 
       - name: Setup Python
-        uses: actions/setup-python@main
+        uses: actions/setup-python@v5.6.0
         with:
           python-version: '3.11'
         continue-on-error: true
@@ -66,20 +66,22 @@ jobs:
         continue-on-error: true
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
+        uses: github/codeql-action/init@v3.35.1
         with:
           languages: ${{ matrix.language }}
         continue-on-error: true
 
       - name: Autobuild
-        uses: github/codeql-action/autobuild@v3
+        uses: github/codeql-action/autobuild@v3.35.1
         continue-on-error: true
 
-      - name: Copilot LLM Code Review (optional)
-        if: ${{ secrets.COPILOT_TOKEN != '' }}
-        uses: austenstone/copilot-cli-action@v2
+      - name: Copilot LLM Code Review
+        uses: austenstone/copilot-cli@v3
         with:
-          copilot-token: ${{ secrets.COPILOT_TOKEN }}
+          copilot-token: ${{ secrets.COPILOT_TOKEN || github.token }}
+          repo-token: ${{ github.token }}
+          model: gpt-5.3-codex
+          reasoning-effort: xhigh
           prompt: |
             Perform a comprehensive code analysis of this repository:
 
@@ -92,11 +94,13 @@ jobs:
             Provide actionable recommendations with file names and line numbers where applicable.
         continue-on-error: true
 
-      - name: Copilot LLM Test Coverage Review (optional)
-        if: ${{ secrets.COPILOT_TOKEN != '' }}
-        uses: austenstone/copilot-cli-action@v2
+      - name: Copilot LLM Test Coverage Review
+        uses: austenstone/copilot-cli@v3
         with:
-          copilot-token: ${{ secrets.COPILOT_TOKEN }}
+          copilot-token: ${{ secrets.COPILOT_TOKEN || github.token }}
+          repo-token: ${{ github.token }}
+          model: gpt-5.4
+          reasoning-effort: xhigh
           prompt: |
             Analyze the repository's testing strategy:
 
@@ -108,7 +112,7 @@ jobs:
         continue-on-error: true
 
       - name: Advanced Code Analysis with CodeQL
-        uses: github/codeql-action/analyze@v3
+        uses: github/codeql-action/analyze@v3.35.1
         with:
           category: "/language:${{matrix.language}}"
         continue-on-error: true
@@ -245,7 +249,7 @@ jobs:
         continue-on-error: true
 
       - name: Create Advanced Code Analysis Report
-        uses: actions/github-script@main
+        uses: actions/github-script@v7.1.0
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -347,7 +351,7 @@ jobs:
                   repo: context.repo.repo,
                   title: title,
                   body: body,
-                  labels: ['code-analysis', 'automated', 'security', 'performance']
+                  labels: ['gpt5', 'code-analysis', 'automated', 'security', 'performance']
                 });
               }
             }
