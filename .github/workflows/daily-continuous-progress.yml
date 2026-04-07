@@ -1,0 +1,82 @@
+name: Daily Continuous Progress
+
+on:
+  schedule:
+    # Daily at 9:00 UTC
+    - cron: '0 9 * * *'
+  workflow_dispatch:
+
+jobs:
+  continuous-progress:
+    runs-on: [self-hosted, linux, x64, big]
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.3.1
+
+      - name: Analyze repo and create progress issue
+        uses: actions/github-script@v7.1.0
+        with:
+          script: |
+            const issueTitle = 'Daily Progress: ' + new Date().toISOString().split('T')[0];
+            
+            // Check if issue already exists for today
+            const existingIssues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'automation,continuous-progress'
+            });
+            
+            const todayIssue = existingIssues.data.find(i => i.title === issueTitle);
+            if (todayIssue) {
+              console.log('Issue already exists for today:', todayIssue.html_url);
+              return;
+            }
+            
+            // Create new daily progress issue
+            const body = `## Daily Continuous Progress
+            
+            This issue tracks continuous progress for ${new Date().toISOString().split('T')[0]}.
+            
+            @copilot please analyze the repository and:
+            1. Review recent commits and identify the natural direction of the project
+            2. Suggest next logical improvements or features to implement
+            3. Create actionable tasks that align with the project goals
+            4. Prioritize quick wins and incremental progress
+            
+            **Context:**
+            - Look at recent issues and PRs
+            - Review README and documentation
+            - Identify incomplete features or TODOs
+            - Consider project structure and organization
+            `;
+            
+            const issue = await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: issueTitle,
+              body: body,
+              labels: ['automation', 'continuous-progress', 'copilot', 'warp']
+            });
+            
+            console.log('Created issue:', issue.data.html_url);
+            
+            // Assign to copilot
+            await github.rest.issues.addAssignees({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issue.data.number,
+              assignees: ['copilot']
+            });
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issue.data.number,
+              body: '@copilot please open a PR for this.'
+            });
