@@ -1,0 +1,217 @@
+name: Oz Auto-Fixer & Reviewer
+
+on:
+  issues:
+    types: [labeled]
+  issue_comment:
+    types: [created]
+  pull_request_review_comment:
+    types: [created]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  issue_label_fix:
+    runs-on: [self-hosted, linux, x64, big]
+    if: github.event_name == 'issues' && github.event.label.name == 'warp'
+    steps:
+      - uses: actions/checkout@v4.3.1
+        with:
+          fetch-depth: 0
+
+      - name: Work the labeled issue
+        uses: warpdotdev/oz-agent-action@v1
+        with:
+          warp_api_key: ${{ secrets.WARP_API_KEY }}
+          prompt: |
+            You are working Issue #${{ github.event.issue.number }}: "${{ github.event.issue.title }}"
+
+            Issue body:
+            "${{ github.event.issue.body }}"
+
+            Trigger:
+            - The issue was labeled `warp`.
+
+            Goal:
+            - Triage the issue, make the needed code changes, and open or update a pull request when code changes are warranted.
+            - It is fine if humans also work on this issue. Coordinate with the current repo state instead of assuming exclusive ownership.
+
+            Execution rules:
+            1. Inspect the repository and determine the smallest correct change that moves the issue forward.
+            2. If the issue needs clarification before coding, leave a concise comment with the blocking question or a short plan.
+            3. If you implement a fix, create a branch, commit the changes, push the branch, and use `gh pr create` to open a PR against the default branch.
+            4. Reference the issue number in the commit message and PR body.
+            5. Summarize exactly what you changed and how you verified it.
+
+  issue_comment_follow_up:
+    runs-on: [self-hosted, linux, x64, big]
+    if: github.event_name == 'issue_comment' && !github.event.issue.pull_request
+    steps:
+      - name: Validate trigger comment
+        id: trigger
+        shell: bash
+        env:
+          AUTHOR_ASSOCIATION: ${{ github.event.comment.author_association }}
+          COMMENT_BODY: ${{ github.event.comment.body }}
+        run: |
+          trusted=false
+          case "$AUTHOR_ASSOCIATION" in
+            OWNER|MEMBER|COLLABORATOR)
+              trusted=true
+              ;;
+          esac
+
+          matched=false
+          lower_comment=$(printf '%s' "$COMMENT_BODY" | tr '[:upper:]' '[:lower:]')
+          if printf '%s\n' "$lower_comment" | grep -Eq '(^|[^[:alnum:]_])@?warp([^[:alnum:]_]|$)'; then
+            matched=true
+          fi
+
+          echo "trusted=$trusted" >> "$GITHUB_OUTPUT"
+          echo "matched=$matched" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v4.3.1
+        if: steps.trigger.outputs.trusted == 'true' && steps.trigger.outputs.matched == 'true'
+        with:
+          fetch-depth: 0
+
+      - name: Address issue comment
+        if: steps.trigger.outputs.trusted == 'true' && steps.trigger.outputs.matched == 'true'
+        uses: warpdotdev/oz-agent-action@v1
+        with:
+          warp_api_key: ${{ secrets.WARP_API_KEY }}
+          prompt: |
+            A trusted user invoked Warp on Issue #${{ github.event.issue.number }}.
+
+            Issue title:
+            "${{ github.event.issue.title }}"
+
+            Issue body:
+            "${{ github.event.issue.body }}"
+
+            Latest comment:
+            "${{ github.event.comment.body }}"
+
+            Goal:
+            - Address the comment directly.
+            - If the comment requests a code change, implement it and open or update a pull request.
+            - If the comment asks for clarification, answer in a comment with a concise, technical response.
+
+            Execution rules:
+            1. Treat the latest comment as the highest-priority instruction.
+            2. If code changes are required, create or update a branch and PR tied to this issue.
+            3. Reply with a short summary of what you changed or why you did not change code.
+
+  pr_comment_follow_up:
+    runs-on: [self-hosted, linux, x64, big]
+    if: github.event_name == 'issue_comment' && github.event.issue.pull_request
+    steps:
+      - name: Validate trigger comment
+        id: trigger
+        shell: bash
+        env:
+          AUTHOR_ASSOCIATION: ${{ github.event.comment.author_association }}
+          COMMENT_BODY: ${{ github.event.comment.body }}
+        run: |
+          trusted=false
+          case "$AUTHOR_ASSOCIATION" in
+            OWNER|MEMBER|COLLABORATOR)
+              trusted=true
+              ;;
+          esac
+
+          matched=false
+          lower_comment=$(printf '%s' "$COMMENT_BODY" | tr '[:upper:]' '[:lower:]')
+          if printf '%s\n' "$lower_comment" | grep -Eq '(^|[^[:alnum:]_])@?warp([^[:alnum:]_]|$)'; then
+            matched=true
+          fi
+
+          echo "trusted=$trusted" >> "$GITHUB_OUTPUT"
+          echo "matched=$matched" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v4.3.1
+        if: steps.trigger.outputs.trusted == 'true' && steps.trigger.outputs.matched == 'true'
+        with:
+          fetch-depth: 0
+
+      - name: Address PR conversation comment
+        if: steps.trigger.outputs.trusted == 'true' && steps.trigger.outputs.matched == 'true'
+        uses: warpdotdev/oz-agent-action@v1
+        with:
+          warp_api_key: ${{ secrets.WARP_API_KEY }}
+          prompt: |
+            A trusted user invoked Warp on Pull Request #${{ github.event.issue.number }}.
+
+            Pull request title:
+            "${{ github.event.issue.title }}"
+
+            Latest PR conversation comment:
+            "${{ github.event.comment.body }}"
+
+            Goal:
+            - Address the latest PR comment.
+            - If the comment requests a code change, implement it on the current PR branch and push.
+            - If the comment requests review feedback or an answer, respond directly on the PR.
+
+            Execution rules:
+            1. Inspect the current PR diff and repository state before changing code.
+            2. If you make a code change, commit it clearly and push to the current PR branch.
+            3. Use `gh pr comment` or `gh pr review --comment` to explain the change or answer.
+
+  pr_review_comment_follow_up:
+    runs-on: [self-hosted, linux, x64, big]
+    if: github.event_name == 'pull_request_review_comment'
+    steps:
+      - name: Validate trigger comment
+        id: trigger
+        shell: bash
+        env:
+          AUTHOR_ASSOCIATION: ${{ github.event.comment.author_association }}
+          COMMENT_BODY: ${{ github.event.comment.body }}
+        run: |
+          trusted=false
+          case "$AUTHOR_ASSOCIATION" in
+            OWNER|MEMBER|COLLABORATOR)
+              trusted=true
+              ;;
+          esac
+
+          matched=false
+          lower_comment=$(printf '%s' "$COMMENT_BODY" | tr '[:upper:]' '[:lower:]')
+          if printf '%s\n' "$lower_comment" | grep -Eq '(^|[^[:alnum:]_])@?warp([^[:alnum:]_]|$)'; then
+            matched=true
+          fi
+
+          echo "trusted=$trusted" >> "$GITHUB_OUTPUT"
+          echo "matched=$matched" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v4.3.1
+        if: steps.trigger.outputs.trusted == 'true' && steps.trigger.outputs.matched == 'true'
+        with:
+          fetch-depth: 0
+
+      - name: Address PR review comment
+        if: steps.trigger.outputs.trusted == 'true' && steps.trigger.outputs.matched == 'true'
+        uses: warpdotdev/oz-agent-action@v1
+        with:
+          warp_api_key: ${{ secrets.WARP_API_KEY }}
+          prompt: |
+            A trusted user invoked Warp on a PR review comment.
+
+            Pull request number: ${{ github.event.pull_request.number }}
+            File: ${{ github.event.comment.path }}
+            Comment:
+            "${{ github.event.comment.body }}"
+
+            Goal:
+            - Address the inline review comment precisely.
+            - If a code change is needed, implement it on the current PR branch and push.
+            - If the right outcome is explanation instead of code, reply clearly to the review comment thread.
+
+            Execution rules:
+            1. Focus on the referenced file and surrounding diff first.
+            2. Keep the fix scoped to the review comment unless adjacent cleanup is required for correctness.
+            3. Leave a concise follow-up explaining the resolution.
