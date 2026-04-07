@@ -16,25 +16,27 @@ permissions:
 
 jobs:
   functionality-check:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, big]
+    outputs:
+      build_status: ${{ steps.build.outputs.BUILD_STATUS }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@main
+        uses: actions/checkout@v4.3.1
 
       - name: Setup Node.js
-        uses: actions/setup-node@main
+        uses: actions/setup-node@v4.4.0
         with:
           node-version: '20'
         continue-on-error: true
 
       - name: Setup Python
-        uses: actions/setup-python@main
+        uses: actions/setup-python@v5.6.0
         with:
           python-version: '3.11'
         continue-on-error: true
 
       - name: Setup Go
-        uses: actions/setup-go@main
+        uses: actions/setup-go@v5.6.0
         with:
           go-version: 'stable'
         continue-on-error: true
@@ -42,49 +44,85 @@ jobs:
       - name: Install Dependencies and Build
         id: build
         run: |
-          echo "BUILD_STATUS=unknown" >> $GITHUB_OUTPUT
+          build_status="no-project-detected"
+          build_failed=false
+          build_succeeded=false
+          project_detected=false
           
           # Node.js project
           if [ -f "package.json" ]; then
+            project_detected=true
             echo "Detected Node.js project"
             npm install || echo "npm install failed"
             
             if grep -q '"build"' package.json; then
-              npm run build && echo "BUILD_STATUS=success" >> $GITHUB_OUTPUT || echo "BUILD_STATUS=failed" >> $GITHUB_OUTPUT
-            else
-              echo "BUILD_STATUS=no-build-script" >> $GITHUB_OUTPUT
+              if npm run build; then
+                build_succeeded=true
+              else
+                build_failed=true
+              fi
             fi
           fi
           
           # Python project
           if [ -f "requirements.txt" ] || [ -f "setup.py" ] || [ -f "pyproject.toml" ]; then
+            project_detected=true
             echo "Detected Python project"
             if [ -f "requirements.txt" ]; then
               pip install -r requirements.txt || echo "pip install failed"
             fi
-            if [ -f "setup.py" ]; then
-              pip install -e . || echo "setup.py install failed"
+            if [ -f "setup.py" ] || [ -f "pyproject.toml" ]; then
+              if pip install -e .; then
+                build_succeeded=true
+              else
+                build_failed=true
+              fi
             fi
-            echo "BUILD_STATUS=success" >> $GITHUB_OUTPUT
           fi
           
           # Go project
           if [ -f "go.mod" ]; then
+            project_detected=true
             echo "Detected Go project"
-            go build ./... && echo "BUILD_STATUS=success" >> $GITHUB_OUTPUT || echo "BUILD_STATUS=failed" >> $GITHUB_OUTPUT
+            if go build ./...; then
+              build_succeeded=true
+            else
+              build_failed=true
+            fi
           fi
           
           # Java/Maven project
           if [ -f "pom.xml" ]; then
+            project_detected=true
             echo "Detected Maven project"
-            mvn clean compile && echo "BUILD_STATUS=success" >> $GITHUB_OUTPUT || echo "BUILD_STATUS=failed" >> $GITHUB_OUTPUT
+            if mvn clean compile; then
+              build_succeeded=true
+            else
+              build_failed=true
+            fi
           fi
           
           # Gradle project
           if [ -f "build.gradle" ] || [ -f "build.gradle.kts" ]; then
+            project_detected=true
             echo "Detected Gradle project"
-            ./gradlew build -x test && echo "BUILD_STATUS=success" >> $GITHUB_OUTPUT || echo "BUILD_STATUS=failed" >> $GITHUB_OUTPUT
+            if ./gradlew build -x test; then
+              build_succeeded=true
+            else
+              build_failed=true
+            fi
           fi
+
+          if [ "$build_failed" = true ]; then
+            build_status="failed"
+          elif [ "$build_succeeded" = true ]; then
+            build_status="success"
+          elif [ "$project_detected" = true ]; then
+            build_status="no-build-script"
+          fi
+
+          echo "BUILD_STATUS=$build_status" >> "$GITHUB_OUTPUT"
+          echo "Resolved BUILD_STATUS=$build_status"
         continue-on-error: true
 
       - name: Run Basic Functionality Tests
@@ -104,10 +142,12 @@ jobs:
         continue-on-error: true
 
   documentation-review:
-    runs-on: ubuntu-latest
+    needs: functionality-check
+    if: ${{ always() }}
+    runs-on: [self-hosted, linux, x64, big]
     steps:
       - name: Checkout code
-        uses: actions/checkout@main
+        uses: actions/checkout@v4.3.1
 
       - name: Analyze Documentation
         id: doc-analysis
@@ -318,11 +358,13 @@ jobs:
           cat /tmp/doc-analysis.md
         continue-on-error: true
 
-      - name: GitHub Copilot Documentation Review (optional)
-        if: ${{ secrets.COPILOT_TOKEN != '' }}
-        uses: austenstone/copilot-cli-action@v2
+      - name: GitHub Copilot Documentation Review
+        uses: austenstone/copilot-cli@v3
         with:
-          copilot-token: ${{ secrets.COPILOT_TOKEN }}
+          copilot-token: ${{ secrets.COPILOT_TOKEN || github.token }}
+          repo-token: ${{ github.token }}
+          model: gpt-5.4
+          reasoning-effort: xhigh
           prompt: |
             Review the documentation for this repository:
             1. Check README.md completeness and quality
@@ -338,7 +380,7 @@ jobs:
         continue-on-error: true
 
       - name: Create Documentation Review Report
-        uses: actions/github-script@main
+        uses: actions/github-script@v7.1.0
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -424,4 +466,4 @@ jobs:
               });
             }
         env:
-          BUILD_STATUS: ${{ steps.build.outputs.BUILD_STATUS }}
+          BUILD_STATUS: ${{ needs.functionality-check.outputs.build_status || 'unknown' }}
