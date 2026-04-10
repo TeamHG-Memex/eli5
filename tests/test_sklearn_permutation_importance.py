@@ -190,3 +190,13 @@ def test_cv_sample_weight(iris_train):
 
     # passing a vector of weights filled with one should be the same as passing no weights
     assert (perm.feature_importances_ == perm_weights.feature_importances_).all()
+
+def test_allow_nans(iris_train):
+    xgboost = pytest.importorskip('xgboost')
+
+    X, y, feature_names, target_names = iris_train
+    X[0, 0] = np.nan
+
+    perm = PermutationImportance(xgboost.XGBClassifier(), cv=5)
+    # There should be not error thrown during fitting of the model
+    perm.fit(X, y)
