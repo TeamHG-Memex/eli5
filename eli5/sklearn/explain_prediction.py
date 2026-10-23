@@ -206,7 +206,7 @@ def explain_prediction_linear_classifier(clf, doc,
             label_id, target = display_names[0]
         else:
             label_id = 1 if score >= 0 else 0
-            target = display_names[label_id][1]
+            target = dict(display_names)[label_id]
         scale = -1 if label_id == 0 else 1
 
         target_expl = TargetExplanation(

@@ -205,7 +205,7 @@ def get_binary_target_scale_label_id(score, display_names, proba=None):
         label_id, target = display_names[0]
         scale *= -1 if label_id != predicted_label_id else 1
     else:
-        target = display_names[label_id][1]
+        target = dict(display_names)[label_id]
 
     return target, scale, label_id
 
